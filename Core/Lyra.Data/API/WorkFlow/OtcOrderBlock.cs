@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public interface IOtc : IBrokerAccount
+    public interface IOtcOrder : IBrokerAccount
     {
         OTCOrder Order { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class OtcBlock : BrokerAccountRecv, IOtc
+    public class OtcOrderBlock : BrokerAccountRecv, IOtcOrder
     {
         public OTCOrder Order { get; set; }
 
@@ -26,7 +26,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcBlock;
+            var ob = other as OtcOrderBlock;
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order);
@@ -49,7 +49,7 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class OtcGenesis : OtcBlock, IOpeningBlock
+    public class OtcGenesis : OtcOrderBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 

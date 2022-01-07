@@ -2111,9 +2111,9 @@ namespace Lyra.Core.Accounts
             return q;
         }
 
-        public List<OtcBlock> GetOtcOrdersByOwner(string accountId)
+        public List<OtcOrderBlock> GetOtcOrdersByOwner(string accountId)
         {
-            var q = _blocks.OfType<OtcBlock>()
+            var q = _blocks.OfType<OtcOrderBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .ToList();
             return q;

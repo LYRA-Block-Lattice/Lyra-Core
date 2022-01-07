@@ -81,7 +81,7 @@ namespace UnitTests
             Shutdown();
         }
 
-        private async Task<bool> AuthAsync(Block block)
+        private async Task<AuthorizationAPIResult> AuthAsync(Block block)
         {
             if(block is TransactionBlock)
             {
@@ -104,13 +104,19 @@ namespace UnitTests
                     _sbAuthResults.Append($"{result.Item1}, ");
                 }
 
-                return result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success;
+                return new AuthorizationAPIResult
+                {
+                    ResultCode = result.Item1,
+                };
             }
             else
             {
                 // allow service block and consolidation block for now
                 await store.AddBlockAsync(block);
-                return true;
+                return new AuthorizationAPIResult
+                {
+                    ResultCode = APIResultCodes.Success,
+                };
             }
         }
 
@@ -122,7 +128,7 @@ namespace UnitTests
                 await Task.Delay(1000);
                 cs = ConsensusService.Instance;
             }
-            cs.OnNewBlock += async (b) => (ConsensusResult.Yea, await AuthAsync(b) ? APIResultCodes.Success : APIResultCodes.UndefinedError);
+            cs.OnNewBlock += async (b) => (ConsensusResult.Yea, (await AuthAsync(b)).ResultCode);
             //{
             //    var result = ;
             //    //return Task.FromResult( (ConsensusResult.Yea, result) );
@@ -147,14 +153,10 @@ namespace UnitTests
             var apisvc = new ApiService(NullLogger<ApiService>.Instance);
             var mock = new Mock<ILyraAPI>();
             client = mock.Object;
+            Block blockx = null;
             mock.Setup(x => x.SendTransferAsync(It.IsAny<SendTransferBlock>()))
-                .Callback((SendTransferBlock block) => {
-                    var t = Task.Run(async () => {
-                        await AuthAsync(block);
-                    });
-                    Task.WaitAll(t);
-                })
-                .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
+                //.Callback((SendTransferBlock block) => blockx = block)
+                .Returns<SendTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
             mock.Setup(x => x.GetSyncHeightAsync())
                 .ReturnsAsync(await api.GetSyncHeightAsync());
 
@@ -280,9 +282,9 @@ namespace UnitTests
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
             await TestOTCTrade();
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
-            await TestNodeFee();
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            //await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -308,10 +310,10 @@ namespace UnitTests
             var order = new OTCOrder
             {
                 daoid = dao1.AccountID,
-                dir = OTCOrder.Direction.Sell,
+                dir = Direction.Sell,
                 crypto = "BTC",
                 fiat = "USD",
-                priceType = OTCOrder.PriceType.Fixed,
+                priceType = PriceType.Fixed,
                 price = 45000,
                 amount = 10,
             };
@@ -328,8 +330,23 @@ namespace UnitTests
 
             var otcg = otcs.First() as OtcGenesis;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
-
             await Task.Delay(1000);
+
+            // here comes a buyer, he who want to buy 1 BTC.
+            var trade = new OTCTrade
+            {
+                daoid = dao1.AccountID,
+                orderid = otcg.AccountID,
+                dir = Direction.Sell,
+                crypto = "BTC",
+                fiat = "USD",
+                priceType = PriceType.Fixed,
+                price = 45000,
+                amount = 1,
+            };
+            var traderet = await testWallet.CreateOTCTradeAsync(trade);
+            Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
+
             //Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
             //ResetAuthFail();
         }
@@ -435,7 +452,7 @@ namespace UnitTests
             var lsb = await testWallet.RPC.GetLastServiceBlockAsync();
             var svcb = await cs.CreateNewViewAsNewLeaderAsync();
             var svcret = await AuthAsync(svcb);
-            Assert.IsTrue(svcret);
+            Assert.IsTrue(svcret.Successful());
 
             var lsb2 = await testWallet.RPC.GetLastServiceBlockAsync();
             Assert.IsTrue(lsb.GetBlock().Height + 1 == lsb2.GetBlock().Height);
@@ -558,7 +575,7 @@ namespace UnitTests
             await testWallet.SyncAsync(null);
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
-            Assert.IsTrue(crplret.Successful());
+            Assert.IsTrue(crplret.Successful(), $"Error create liquidate pool {crplret.ResultCode}");
             await Task.Delay(10000);
             var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(pool.PoolAccountId != null && pool.PoolAccountId.StartsWith('L'), "Can't get pool created.");

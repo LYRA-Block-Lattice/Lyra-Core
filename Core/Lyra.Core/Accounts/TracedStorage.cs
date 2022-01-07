@@ -330,7 +330,7 @@ namespace Lyra.Core.Accounts
             return StopWatcher.Track(() => _store.GetDaoByName(name), "GetDaoByName");
         }
 
-        public List<OtcBlock> GetOtcOrdersByOwner(string accountId)
+        public List<OtcOrderBlock> GetOtcOrdersByOwner(string accountId)
         {
             return StopWatcher.Track(() => _store.GetOtcOrdersByOwner(accountId), "GetOtcOrdersByOwner");
         }

@@ -2144,6 +2144,23 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(order.daoid, amounts, tags);
             return result;
         }
+
+        public async Task<APIResult> CreateOTCTradeAsync(OTCTrade trade)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRTRD },
+                { "data", JsonConvert.SerializeObject(trade) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
+            };
+
+            var result = await SendExAsync(trade.daoid, amounts, tags);
+            return result;
+        }
         #endregion
 
         public string PrintLastBlock()

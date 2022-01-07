@@ -198,7 +198,7 @@ namespace Lyra.Core.Blocks
 
         protected const int MAX_TAGS_COUNT = 16;
 
-        protected const int MAX_STRING_LENGTH = 256;
+        protected const int MAX_STRING_LENGTH = 1024;
 
         protected virtual bool ValidateTags()
         {
@@ -373,6 +373,8 @@ namespace Lyra.Core.Blocks
         // OTC
         OTCOrder = 84,
         OTCOrderGenesis = 85,
+        OTCTrade = 86,
+        OTCTradeGenesis = 87,
     }
 
     public enum APIResultCodes

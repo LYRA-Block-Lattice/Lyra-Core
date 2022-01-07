@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public class OTCOrder
+    // type
+    public enum Direction { Buy, Sell };
+    public enum PriceType { Fixed, Float }
+    public class OTCTrade
     {
         // data
         public string daoid { get; set; }   // DAO account ID
+        public string orderid { get; set; }   // Order account ID
         public Direction dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
