@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lyra.Data.API.WorkFlow;
 
 namespace Lyra.Core.Decentralize
 {
@@ -46,33 +47,14 @@ namespace Lyra.Core.Decentralize
 
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
-            // ignore any token but LYR. keep the block clean.
-            //if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-            //    return;
-
             var latestBalances = latestPoolBlock.Balances.ToDecimalDict();
             var recvBalances = latestPoolBlock.Balances.ToDecimalDict();
-            //foreach (var chg in txInfo.Changes)
-            //{
-            //    if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
-            //        continue;
-
-            //    if (recvBalances.ContainsKey(chg.Key))
-            //        recvBalances[chg.Key] += chg.Value;
-            //    else
-            //        recvBalances.Add(chg.Key, chg.Value);
-            //}
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
             receiveBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
 
             return receiveBlock;
-            //var tx = new ServiceWithActionTx(sendBlock.Hash)
-            //{
-            //    PoolId = latestPoolBlock.AccountID
-            //};
-            //await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
         }
 
         public static async Task<ReceiveTransferBlock> ReceiveDaoFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
@@ -82,53 +64,54 @@ namespace Lyra.Core.Decentralize
             if (recv != null)
                 return null;
 
-            TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-            var txInfo = sendBlock.GetBalanceChanges(prevSend);
+            var txInfo = sendBlock.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock);
+            var latestBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as DaoBlock;
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
-            var receiveBlock = new ReceiveTransferBlock
+
+            var receiveBlock = new DaoBlock
             {
-                AccountID = sendBlock.DestinationAccountId,
-                VoteFor = null,
+                // block
                 ServiceHash = lsb.Hash,
+
+                // transaction
+                AccountID = sendBlock.DestinationAccountId,                
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
-                Fee = Math.Round(txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE], 8, MidpointRounding.ToZero),
+                Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.FullFee,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // broker
+                Name = latestBlock.Name,
+                OwnerAccountId = sendBlock.DestinationAccountId,
+                RelatedTx = sendBlock.Hash,
+
+                // dao                
+                Description = latestBlock.Description,
+                Treasure = latestBlock.Treasure.ToDecimalDict().ToLongDict(),
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
-            TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            var latestBalances = latestBlock.Balances.ToDecimalDict();
+            var recvBalances = latestBlock.Balances.ToDecimalDict();
+            foreach (var chg in txInfo.Changes)
+            {
+                if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
+                    continue;
 
-            // ignore any token but LYR. keep the block clean.
-            //if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-            //    return;
-
-            var latestBalances = latestPoolBlock.Balances.ToDecimalDict();
-            var recvBalances = latestPoolBlock.Balances.ToDecimalDict();
-            //foreach (var chg in txInfo.Changes)
-            //{
-            //    if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
-            //        continue;
-
-            //    if (recvBalances.ContainsKey(chg.Key))
-            //        recvBalances[chg.Key] += chg.Value;
-            //    else
-            //        recvBalances.Add(chg.Key, chg.Value);
-            //}
+                if (recvBalances.ContainsKey(chg.Key))
+                    recvBalances[chg.Key] += chg.Value;
+                else
+                    recvBalances.Add(chg.Key, chg.Value);
+            }
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
-            receiveBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
 
             return receiveBlock;
-            //var tx = new ServiceWithActionTx(sendBlock.Hash)
-            //{
-            //    PoolId = latestPoolBlock.AccountID
-            //};
-            //await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
         }
 
     }

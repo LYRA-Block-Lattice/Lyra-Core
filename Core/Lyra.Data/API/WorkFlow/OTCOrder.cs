@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Decentralize.WorkFlow.OTC
+namespace Lyra.Data.API.WorkFlow
 {
     public class OTCOrder
     {

@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Shared;
 using System;
@@ -326,7 +327,12 @@ namespace Lyra.Core.Accounts
 
         public DaoBlock GetDaoByName(string name)
         {
-            return StopWatcher.Track(() => _store.GetDaoByName(name), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetDaoByName(name), "GetDaoByName");
+        }
+
+        public List<OtcBlock> GetOtcOrdersByOwner(string accountId)
+        {
+            return StopWatcher.Track(() => _store.GetOtcOrdersByOwner(accountId), "GetOtcOrdersByOwner");
         }
     }
 }

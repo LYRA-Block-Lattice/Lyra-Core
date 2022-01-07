@@ -84,7 +84,6 @@ namespace Lyra.Core.Blocks
         // this is the number of atomic units; it must be divided by the number of digits after the digital point for specific currency
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Balances { get; set; }
-        //public List<string, decimal> Balances { get; set; }
 
         public decimal Fee { get; set; } // the amount of transfer fee paid to the authorizers for processing transfer
 

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Decentralize.WorkFlow
+namespace Lyra.Core.WorkFlow
 {
     public interface IWorkFlow
     {

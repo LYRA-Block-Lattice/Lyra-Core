@@ -722,5 +722,15 @@ namespace Lyra.Core.API
 
             return await GetAsync<BlockAPIResult>("GetDaoByName", args);
         }
+
+        public async Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetOtcOrdersByOwner", args);
+        }
     }
 }

@@ -1,12 +1,13 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Decentralize.WorkFlow
+namespace Lyra.Core.WorkFlow
 {
     public class BlockDesc
     {

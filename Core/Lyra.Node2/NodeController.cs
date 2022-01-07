@@ -651,6 +651,14 @@ namespace LyraLexWeb2
             return await _node.GetDaoByNameAsync(name);
         }
 
+        [Route("GetOtcOrdersByOwner")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetOtcOrdersByOwnerAsync(accountId);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

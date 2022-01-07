@@ -1183,5 +1183,32 @@ namespace Lyra.Core.Decentralize
 
             return Task.FromResult(result);
         }
+
+        public Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = NodeService.Dag.Storage.GetOtcOrdersByOwner(accountId);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetDaoByNameAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.ToString();
+            }
+
+            return Task.FromResult(result);
+        }
     }
 }

@@ -234,6 +234,11 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
+        public Block Clone()
+        {
+            return MemberwiseClone() as Block;
+        }
+
         public void AddTag(string tagKey, string tagValue)
         {
             if (Tags == null)

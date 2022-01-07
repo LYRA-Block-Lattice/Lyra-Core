@@ -14,7 +14,7 @@ using Lyra.Data.API;
 using Lyra.Data.Utils;
 using System.Threading;
 using Lyra.Data.Blocks;
-using Lyra.Core.Decentralize.WorkFlow.OTC;
+using Lyra.Data.API.WorkFlow;
 
 namespace Lyra.Core.Accounts
 {
@@ -2141,7 +2141,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
             };
 
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(order.daoid, amounts, tags);
             return result;
         }
         #endregion

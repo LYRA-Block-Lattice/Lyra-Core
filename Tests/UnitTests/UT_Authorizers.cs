@@ -7,9 +7,9 @@ using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
-using Lyra.Core.Decentralize.WorkFlow.OTC;
 using Lyra.Core.Utils;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -184,8 +184,12 @@ namespace UnitTests
                 .Returns<string, string, string>((acct, token, sign) => Task.FromResult(api.GetTokenGenesisBlockAsync(acct, token, sign)).Result);
             mock.Setup(x => x.GetPoolAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string>((acct, sign) => Task.FromResult(api.GetPoolAsync(acct, sign)).Result);
+
+            // dao
             mock.Setup(x => x.GetDaoByNameAsync(It.IsAny<string>()))
                 .Returns<string>(name => Task.FromResult(api.GetDaoByNameAsync(name)).Result);
+            mock.Setup(x => x.GetOtcOrdersByOwnerAsync(It.IsAny<string>()))
+                .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Callback((ReceiveTransferBlock block) => {
@@ -275,11 +279,11 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            //await TestOTCTrade();
+            await TestOTCTrade();
             await TestPoolAsync();
             await TestProfitingAndStaking();
             await TestNodeFee();
-            //await TestDepositWithdraw();
+            ////await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
@@ -317,8 +321,17 @@ namespace UnitTests
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
             await Task.Delay(1000);
-            Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
-            ResetAuthFail();
+            var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
+            Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
+            var otcs = otcret.GetBlocks();
+            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcGenesis, $"otc gensis block not found.");
+
+            var otcg = otcs.First() as OtcGenesis;
+            Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
+
+            await Task.Delay(1000);
+            //Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
+            //ResetAuthFail();
         }
 
         private async Task TestDepositWithdraw()

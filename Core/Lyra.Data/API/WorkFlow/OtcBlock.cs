@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
@@ -6,68 +7,60 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Data.Blocks
+namespace Lyra.Data.API.WorkFlow
 {
-    public interface IDao : IBrokerAccount
+    public interface IOtc : IBrokerAccount
     {
-        public string Description { get; set; }
-        public Dictionary<string, long> Treasure { get; set; }
-        //public Dictionary<string, long> Collateral { get; set; }
-        //public Dictionary<string, string> WorkFlows { get; set; }
+        OTCOrder Order { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class DaoBlock : BrokerAccountRecv, IDao
+    public class OtcBlock : BrokerAccountRecv, IOtc
     {
-        public string Description { get; set; }
-        public Dictionary<string, long> Treasure { get; set; }
+        public OTCOrder Order { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.Orgnization;
+            return BlockTypes.OTCOrder;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as DaoBlock;
+            var ob = other as OtcBlock;
 
             return base.AuthCompare(ob) &&
-                Description == ob.Description &&
-                CompareDict(Treasure, ob.Treasure)
-                ;
+                    Order.Equals(ob.Order);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Description + "|";
-            extraData += DictToStr(Treasure) + "|";
+            extraData += Order.GetExtraData() + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
-            result += $"Description: {Description}\n";
-            result += $"Treasure: {DictToStr(Treasure)}\n";
+            result += $"{Order}\n";
             return result;
         }
     }
 
 
     [BsonIgnoreExtraElements]
-    public class DaoGenesis : DaoBlock, IOpeningBlock
+    public class OtcGenesis : OtcBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationGenesis;
+            return BlockTypes.OTCOrderGenesis;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as DaoGenesis;
+            var ob = other as OtcGenesis;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

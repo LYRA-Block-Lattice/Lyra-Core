@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Accounts
@@ -26,6 +27,7 @@ namespace Lyra.Core.Accounts
         TransactionBlock FindFirstBlock(string AccountId);
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
         DaoBlock GetDaoByName(string name);
+        List<OtcBlock> GetOtcOrdersByOwner(string accountId);
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);

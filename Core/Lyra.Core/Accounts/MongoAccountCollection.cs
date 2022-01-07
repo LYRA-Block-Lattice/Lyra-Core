@@ -20,6 +20,7 @@ using Lyra.Data.Blocks;
 using Lyra.Core.Decentralize;
 using System.Reflection;
 using System.Globalization;
+using Lyra.Data.API.WorkFlow;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -2107,6 +2108,14 @@ namespace Lyra.Core.Accounts
             var q = _blocks.OfType<DaoBlock>()
                 .Find(a => a.Name == name)
                 .FirstOrDefault();
+            return q;
+        }
+
+        public List<OtcBlock> GetOtcOrdersByOwner(string accountId)
+        {
+            var q = _blocks.OfType<OtcBlock>()
+                .Find(a => a.OwnerAccountId == accountId)
+                .ToList();
             return q;
         }
     }

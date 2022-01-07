@@ -11,5 +11,6 @@
         Profiting = 8,
         DEX = 9,
         DAO = 10,
+        OTC = 11,
     }
 }

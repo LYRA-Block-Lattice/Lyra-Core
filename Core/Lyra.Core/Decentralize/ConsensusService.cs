@@ -1904,7 +1904,9 @@ namespace Lyra.Core.Decentralize
                     }
                     catch (Exception e)
                     {
-                        _log.LogError("Error Executing blueprints: " + e.ToString());
+                        var ms = "Error Executing blueprints: " + e.ToString();
+                        Console.WriteLine(ms);
+                        _log.LogError(ms);
                     }
                     finally
                     {
@@ -1920,17 +1922,18 @@ namespace Lyra.Core.Decentralize
             // find the key
             string key = null;
             
-            if (block.AccountID == PoolFactoryBlock.FactoryAccount)
-            {
-                key = (block as ReceiveTransferBlock).SourceHash;
-            }
-            else if(block is IPool pool)
+            if(block is IPool pool)
             {
                 key = pool.RelatedTx;
             }
             else if(block is IBrokerAccount ib)
             {
                 key = ib.RelatedTx;
+            }
+            else if(block is ReceiveTransferBlock recv)
+            {
+                key = recv.SourceHash;
+                //if (block.AccountID == PoolFactoryBlock.FactoryAccount)
             }
             // add token gateway, merchant etc.
 

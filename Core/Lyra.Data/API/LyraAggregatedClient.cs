@@ -586,5 +586,10 @@ namespace Lyra.Data.API
         {
             return SeedClient.GetDaoByNameAsync(name);
         }
+
+        public Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId)
+        {
+            return SeedClient.GetOtcOrdersByOwnerAsync(accountId);
+        }
     }
 }

@@ -2,7 +2,7 @@
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
-using Lyra.Core.Decentralize.WorkFlow;
+using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Data.Shared;
 using MongoDB.Bson.Serialization.Attributes;
@@ -138,7 +138,6 @@ deactivate db
                     {
                         LastBlockTime = DateTime.UtcNow;
                         await submit(preBlock);
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
                 else if(wf.GetDescription().RecvVia == BrokerRecvType.DaoRecv)
@@ -150,16 +149,16 @@ deactivate db
                     {
                         LastBlockTime = DateTime.UtcNow;
                         await submit(preBlock);
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
                 else
                 {
                     preDone = true;
                 }
+                Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
             }
 
-            if(preDone && !mainDone)
+            if (preDone && !mainDone)
             {
                 var mainBlock = await wf.BrokerOpsAsync(sys, send);
                 if (mainBlock == null)
@@ -169,10 +168,9 @@ deactivate db
                     // send it
                     LastBlockTime = DateTime.UtcNow;
                     await submit(mainBlock);
-                    Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                 }
+                Console.WriteLine($"WF: {send.Hash.Shorten()} mainDone: {mainDone}");
             }
-
             if (preDone && mainDone && !extraDone)
             {
                 var otherBlocks = await wf.ExtraOpsAsync(sys, svcReqHash);
@@ -185,8 +183,8 @@ deactivate db
                     // foreach block send it
                     LastBlockTime = DateTime.UtcNow;
                     await submit(otherBlocks);
-                    Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
                 }
+                Console.WriteLine($"WF: {send.Hash.Shorten()} extraDone: {false}");
             }
             return FullDone;
         }

@@ -1,7 +1,9 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using System;
@@ -10,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Decentralize.WorkFlow
+namespace Lyra.Core.WorkFlow
 {
     [LyraWorkFlow]
     public class WFDao : WorkFlowBase
@@ -40,6 +42,10 @@ namespace Lyra.Core.Decentralize.WorkFlow
             // it can be verified by other nodes.
             var keyStr = $"{send.Hash.Substring(0, 16)},{name},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
+
+            var exists = await sys.Storage.FindFirstBlockAsync(AccountId);
+            if (exists != null)
+                return null;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var daogen = new DaoGenesis

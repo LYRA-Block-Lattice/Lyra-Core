@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
@@ -11,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Decentralize.WorkFlow
+namespace Lyra.Core.WorkFlow
 {
     [LyraWorkFlow]
     public class WFProfitCreate : WorkFlowBase

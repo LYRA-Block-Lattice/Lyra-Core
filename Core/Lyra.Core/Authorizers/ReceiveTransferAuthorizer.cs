@@ -99,6 +99,10 @@ namespace Lyra.Core.Authorizers
                 || block is IBrokerAccount)
                 return true;
 
+            var firstblock = sys.Storage.FindFirstBlock(block.AccountID);
+            if (firstblock.BlockType == BlockTypes.OrgnizationGenesis)
+                return true;
+
             return base.IsManagedBlockAllowed(sys, block);
         }
 

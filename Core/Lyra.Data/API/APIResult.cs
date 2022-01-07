@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +8,7 @@ using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Newtonsoft.Json;
 
@@ -398,6 +400,11 @@ namespace Lyra.Core.API
                     default:
                         throw new Exception("Unknown block type");
                 }
+            }
+
+            if(block is DaoBlock dao && dao.Treasure == null)
+            {
+                Debugger.Break();
             }
 
             // here verify block signature. 
