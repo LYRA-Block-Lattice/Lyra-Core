@@ -367,14 +367,17 @@ namespace Lyra.Core.Blocks
         DexWithdrawToken = 75,
         
         // DAO
-        Orgnization = 80,
+        OrgnizationRecv = 80,
         OrgnizationGenesis = 81,
+        OrgnizationSend = 82,
 
         // OTC
-        OTCOrder = 84,
+        OTCOrderRecv = 84,
         OTCOrderGenesis = 85,
-        OTCTrade = 86,
-        OTCTradeGenesis = 87,
+        OTCOrderSend = 86,
+        OTCTradeRecv = 87,
+        OTCTradeGenesis = 88,
+        OTCTradeSend = 89,
     }
 
     public enum APIResultCodes

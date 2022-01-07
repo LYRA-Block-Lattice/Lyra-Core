@@ -11,56 +11,89 @@ namespace Lyra.Data.API.WorkFlow
 {
     public interface IOtcTrade : IBrokerAccount
     {
-        OTCTrade Order { get; set; }
+        OTCTrade Trade { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class OtcTradeBlock : BrokerAccountRecv, IOtcTrade
+    public class OtcTradeRecvBlock : BrokerAccountRecv, IOtcTrade
     {
-        public OTCTrade Order { get; set; }
+        public OTCTrade Trade { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCTrade;
+            return BlockTypes.OTCTradeRecv;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcTradeBlock;
+            var ob = other as OtcTradeRecvBlock;
 
             return base.AuthCompare(ob) &&
-                    Order.Equals(ob.Order);
+                    Trade.Equals(ob.Trade);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Order.GetExtraData() + "|";
+            extraData += Trade.GetExtraData() + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
-            result += $"{Order}\n";
+            result += $"{Trade}\n";
+            return result;
+        }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class OtcTradeSendBlock : BrokerAccountSend, IOtcTrade
+    {
+        public OTCTrade Trade { get; set; }
+
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.OTCTradeSend;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as OtcTradeSendBlock;
+
+            return base.AuthCompare(ob) &&
+                    Trade.Equals(ob.Trade);
+        }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += Trade.GetExtraData() + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"{Trade}\n";
             return result;
         }
     }
 
 
     [BsonIgnoreExtraElements]
-    public class OtcTradeGenesis : OtcOrderBlock, IOpeningBlock
+    public class OtcTradeGenesisBlock : OtcTradeRecvBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCOrderGenesis;
+            return BlockTypes.OTCTradeGenesis;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcTradeGenesis;
+            var ob = other as OtcTradeGenesisBlock;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

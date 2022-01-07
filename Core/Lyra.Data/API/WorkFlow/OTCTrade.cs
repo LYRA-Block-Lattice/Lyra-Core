@@ -33,7 +33,7 @@ namespace Lyra.Data.API.WorkFlow
             if (this.GetType() != obOther.GetType())
                 return false;
 
-            var ob = obOther as OTCOrder;
+            var ob = obOther as OTCTrade;
             return daoid == ob.daoid &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&

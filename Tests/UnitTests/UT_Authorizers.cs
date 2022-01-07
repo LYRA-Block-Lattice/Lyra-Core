@@ -293,7 +293,7 @@ namespace UnitTests
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
 
-            var dao1 = daoret.GetBlock() as DaoBlock;
+            var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
             var order = new OTCOrder
             {
@@ -319,7 +319,7 @@ namespace UnitTests
             // then DAO treasure should have the crypto
             var daoret3 = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret3.Successful(), $"Can't get DAO: {daoret3.ResultCode}");
-            var daot = daoret3.GetBlock() as DaoBlock;
+            var daot = daoret3.GetBlock() as DaoRecvBlock;
             Assert.IsTrue(daot.Balances.ContainsKey(crypto), "No collateral token in DAO treasure.");
             Assert.AreEqual(10m, daot.Balances[crypto].ToBalanceDecimal());
 
@@ -339,16 +339,16 @@ namespace UnitTests
                 price = 2000,
                 amount = 1,
             };
-            var traderet = await test2Wallet.CreateOTCTradeAsync(trade);
+            var traderet = await test2Wallet.CreateOTCTradeAsync(trade, 1000000);
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
 
-            await Task.Delay(1000);
+            await Task.Delay(3000);
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
-            var otcs2 = otcret.GetBlocks();
-            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcOrderGenesis, $"otc block count not = 1.");
-            var otcorderx = otcs2.First() as OtcOrderBlock;
+            var otcs2 = otcret2.GetBlocks();
+            Assert.IsTrue(otcs2.Count() == 1 && otcs2.First() is IOtcOrder, $"otc block count not = 1.");
+            var otcorderx = otcs2.First() as IOtcOrder;
             Assert.AreEqual(9, otcorderx.Order.amount);
 
 

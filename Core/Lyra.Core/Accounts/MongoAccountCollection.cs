@@ -2103,26 +2103,33 @@ namespace Lyra.Core.Accounts
                 as TransactionBlock;
         }
 
-        public DaoBlock GetDaoByName(string name)
+        public DaoRecvBlock GetDaoByName(string name)
         {
-            var q = _blocks.OfType<DaoBlock>()
+            var q = _blocks.OfType<DaoRecvBlock>()
                 .Find(a => a.Name == name)
                 .SortByDescending(a => a.Height)
                 .FirstOrDefault();
             return q;
         }
 
-        public List<OtcOrderBlock> GetOtcOrdersByOwner(string accountId)
+        public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
-            var q = _blocks.OfType<OtcOrderBlock>()
+            var q = _blocks.OfType<OtcOrderGenesis>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .ToList();
-            return q;
+
+            var blks = new List<Block>();
+            foreach(var x in q)
+            {
+                var b = await FindLatestBlockAsync(x.AccountID);
+                blks.Add(b);
+            }
+            return blks;
         }
 
-        public OtcOrderBlock GetOtcOrderByID(string orderId)
+        public OtcOrderRecvBlock GetOtcOrderByID(string orderId)
         {
-            var q = _blocks.OfType<OtcOrderBlock>()
+            var q = _blocks.OfType<OtcOrderRecvBlock>()
                 .Find(a => a.AccountID == orderId)
                 .FirstOrDefault();
             return q;

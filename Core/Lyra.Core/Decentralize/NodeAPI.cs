@@ -1184,20 +1184,20 @@ namespace Lyra.Core.Decentralize
             return Task.FromResult(result);
         }
 
-        public Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId)
+        public async Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId)
         {
             var result = new MultiBlockAPIResult();
 
             try
             {
-                var blocks = NodeService.Dag.Storage.GetOtcOrdersByOwner(accountId);
+                var blocks = await NodeService.Dag.Storage.GetOtcOrdersByOwnerAsync(accountId);
                 if (blocks == null)
                 {
                     result.ResultCode = APIResultCodes.BlockNotFound;
                 }
                 else
                 {
-                    result.SetBlocks(blocks.ToArray());
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
                     result.ResultCode = APIResultCodes.Success;
                 }
             }
@@ -1208,7 +1208,7 @@ namespace Lyra.Core.Decentralize
                 result.ResultMessage = e.ToString();
             }
 
-            return Task.FromResult(result);
+            return result;
         }
     }
 }

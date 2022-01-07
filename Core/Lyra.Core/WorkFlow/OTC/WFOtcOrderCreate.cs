@@ -29,18 +29,79 @@ namespace Lyra.Core.WorkFlow
                     {
                         BlockType = BlockTypes.OTCOrderGenesis,
                         TheBlock = typeof(OtcOrderGenesis),
-                        //AuthorizerType = typeof(OtcGenesisAuthorizer),
-                    }
+                    },
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.OTCOrderRecv,
+                        TheBlock = typeof(OtcOrderRecvBlock),
+                    },                    
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.OTCOrderSend,
+                        TheBlock = typeof(OtcOrderSendBlock),
+                    },
                 }
             };
         }
 
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
+            return await OneByOneAsync(sys, send,
+                SendTokenFromDaoToOrderAsync,
+                CreateGenesisAsync
+                );
+        }
+
+        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
+
+            var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoid) as TransactionBlock;
+
+            var keyStr = $"{send.Hash.Substring(0, 16)},{order.crypto},{send.AccountID}";
+            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
+
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var sendToOrderBlock = new DaoSendBlock
+            {
+                // block
+                ServiceHash = sb.Hash,
+
+                // trans
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                AccountID = lastblock.AccountID,
+
+                // send
+                DestinationAccountId = AccountId,
+
+                // broker
+                Name = ((IBrokerAccount)lastblock).Name,
+                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
+                RelatedTx = send.Hash,
+
+                // dao
+                SellerCollateralPercentage = ((IDao)lastblock).SellerCollateralPercentage,
+                ByerCollateralPercentage = ((IDao)lastblock).ByerCollateralPercentage,
+                MetaHash = ((IDao)lastblock).MetaHash,
+                Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
+            };
+
+            // calculate balance
+            var dict = lastblock.Balances.ToDecimalDict();
+            dict[order.crypto] -= order.amount;
+            sendToOrderBlock.Balances = dict.ToLongDict();
+
+            sendToOrderBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            sendToOrderBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return sendToOrderBlock;
+        }
+
+        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, SendTransferBlock send)
+        {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
-            var ogen = blocks.FirstOrDefault(a => a is OtcOrderGenesis);
-            if (ogen != null)
-                return null;
 
             var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
 
@@ -60,6 +121,9 @@ namespace Lyra.Core.WorkFlow
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 
+                // recv
+                SourceHash = (blocks.First() as TransactionBlock).Hash,
+
                 // broker
                 Name = "no name",
                 OwnerAccountId = send.AccountID,
@@ -68,6 +132,8 @@ namespace Lyra.Core.WorkFlow
                 // otc
                 Order = order,
             };
+
+            otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());
 
             otcblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 

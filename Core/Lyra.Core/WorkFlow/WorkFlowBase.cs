@@ -31,5 +31,18 @@ namespace Lyra.Core.WorkFlow
             return Task.FromResult((TransactionBlock)null);
         }
         public abstract Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
+
+        protected async Task<TransactionBlock> OneByOneAsync(DagSystem sys, SendTransferBlock send,
+            params Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] operations)
+        {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var desc = GetDescription();
+
+            var index = blocks.Count - (desc.RecvVia == BrokerRecvType.None ? 0 : 1);
+            if (index >= operations.Length)
+                return null;
+
+            return await operations[index](sys, send);
+        }
     }
 }

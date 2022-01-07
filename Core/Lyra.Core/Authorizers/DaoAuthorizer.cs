@@ -14,10 +14,10 @@ namespace Lyra.Core.Authorizers
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoBlock))
+            if (!(tblock is DaoRecvBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoBlock;
+            var block = tblock as DaoRecvBlock;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

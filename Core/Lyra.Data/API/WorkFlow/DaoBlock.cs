@@ -20,7 +20,7 @@ namespace Lyra.Data.API.WorkFlow
     }
 
     [BsonIgnoreExtraElements]
-    public class DaoBlock : BrokerAccountRecv, IDao
+    public class DaoRecvBlock : BrokerAccountRecv, IDao
     {
         public int SellerCollateralPercentage { get; set; }
         public int ByerCollateralPercentage { get; set; }
@@ -31,12 +31,60 @@ namespace Lyra.Data.API.WorkFlow
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.Orgnization;
+            return BlockTypes.OrgnizationRecv;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as DaoBlock;
+            var ob = other as DaoRecvBlock;
+
+            return base.AuthCompare(ob) &&
+                SellerCollateralPercentage == ob.SellerCollateralPercentage &&
+                ByerCollateralPercentage == ob.ByerCollateralPercentage &&
+                MetaHash == ob.MetaHash &&
+                CompareDict(Treasure, ob.Treasure)
+                ;
+        }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += $"{SellerCollateralPercentage}|";
+            extraData += $"{ByerCollateralPercentage}|";
+            extraData += DictToStr(Treasure) + "|";
+            extraData += MetaHash + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"SellerCollateralPercentage: {MetaHash}\n";
+            result += $"ByerCollateralPercentage: {MetaHash}\n";
+            result += $"Treasure: {DictToStr(Treasure)}\n";
+            result += $"MetaHash: {MetaHash}\n";
+            return result;
+        }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class DaoSendBlock : BrokerAccountSend, IDao
+    {
+        public int SellerCollateralPercentage { get; set; }
+        public int ByerCollateralPercentage { get; set; }
+        public string MetaHash { get; set; }
+
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
+        public Dictionary<string, long> Treasure { get; set; }
+
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.OrgnizationSend;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as DaoSendBlock;
 
             return base.AuthCompare(ob) &&
                 SellerCollateralPercentage == ob.SellerCollateralPercentage &&
@@ -69,7 +117,7 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class DaoGenesisBlock : DaoBlock, IOpeningBlock
+    public class DaoGenesisBlock : DaoRecvBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 

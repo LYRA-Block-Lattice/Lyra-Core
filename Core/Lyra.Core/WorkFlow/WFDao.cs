@@ -28,13 +28,16 @@ namespace Lyra.Core.WorkFlow
                     {
                         BlockType = BlockTypes.OrgnizationGenesis,
                         TheBlock = typeof(DaoGenesisBlock),
-                        //AuthorizerType = typeof(BrokerAccountRecvAuthorizer),       // generic, no need for dedicate one
                     },
                     new BlockDesc
                     {
-                        BlockType = BlockTypes.Orgnization,
-                        TheBlock = typeof(DaoBlock),
-                        //AuthorizerType = typeof(BrokerAccountRecvAuthorizer),       // generic, no need for dedicate one
+                        BlockType = BlockTypes.OrgnizationRecv,
+                        TheBlock = typeof(DaoRecvBlock),
+                    },
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.OrgnizationSend,
+                        TheBlock = typeof(DaoSendBlock),
                     }
                 }
             };

@@ -325,16 +325,16 @@ namespace Lyra.Core.Accounts
             _store.Dispose();
         }
 
-        public DaoBlock GetDaoByName(string name)
+        public DaoRecvBlock GetDaoByName(string name)
         {
             return StopWatcher.Track(() => _store.GetDaoByName(name), "GetDaoByName");
         }
 
-        public List<OtcOrderBlock> GetOtcOrdersByOwner(string accountId)
+        public Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
-            return StopWatcher.Track(() => _store.GetOtcOrdersByOwner(accountId), "GetOtcOrdersByOwner");
+            return StopWatcher.Track(() => _store.GetOtcOrdersByOwnerAsync(accountId), "GetOtcOrdersByOwner");
         }
-        public OtcOrderBlock GetOtcOrderByID(string orderId)
+        public OtcOrderRecvBlock GetOtcOrderByID(string orderId)
         {
             return StopWatcher.Track(() => _store.GetOtcOrderByID(orderId), "GetOtcOrderByID");
         }

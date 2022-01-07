@@ -65,11 +65,11 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             var txInfo = sendBlock.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock);
-            var latestBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as DaoBlock;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var receiveBlock = new DaoBlock
+            var receiveBlock = new DaoRecvBlock
             {
                 // block
                 ServiceHash = lsb.Hash,
@@ -83,21 +83,21 @@ namespace Lyra.Core.Decentralize
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // broker
-                Name = latestBlock.Name,
-                OwnerAccountId = sendBlock.DestinationAccountId,
+                Name = ((IBrokerAccount)lastblock).Name,
+                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
                 RelatedTx = sendBlock.Hash,
 
                 // dao     
-                SellerCollateralPercentage = latestBlock.SellerCollateralPercentage,
-                ByerCollateralPercentage = latestBlock.ByerCollateralPercentage,
-                Treasure = latestBlock.Treasure.ToDecimalDict().ToLongDict(),
-                MetaHash = latestBlock.MetaHash,
+                SellerCollateralPercentage = ((IDao)lastblock).SellerCollateralPercentage,
+                ByerCollateralPercentage = ((IDao)lastblock).ByerCollateralPercentage,
+                Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
+                MetaHash = ((IDao)lastblock).MetaHash,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
-            var latestBalances = latestBlock.Balances.ToDecimalDict();
-            var recvBalances = latestBlock.Balances.ToDecimalDict();
+            var latestBalances = lastblock.Balances.ToDecimalDict();
+            var recvBalances = lastblock.Balances.ToDecimalDict();
             foreach (var chg in txInfo.Changes)
             {
                 if (recvBalances.ContainsKey(chg.Key))
@@ -108,7 +108,7 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
-            receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            receiveBlock.InitializeBlock(lastblock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
 
             return receiveBlock;
         }

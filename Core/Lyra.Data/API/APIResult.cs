@@ -342,7 +342,7 @@ namespace Lyra.Core.API
                 }
             }
 
-            if(block is DaoBlock dao && dao.Treasure == null)
+            if(block is DaoRecvBlock dao && dao.Treasure == null)
             {
                 Debugger.Break();
             }
