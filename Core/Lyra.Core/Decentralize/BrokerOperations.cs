@@ -87,9 +87,11 @@ namespace Lyra.Core.Decentralize
                 OwnerAccountId = sendBlock.DestinationAccountId,
                 RelatedTx = sendBlock.Hash,
 
-                // dao                
-                Description = latestBlock.Description,
+                // dao     
+                SellerCollateralPercentage = latestBlock.SellerCollateralPercentage,
+                ByerCollateralPercentage = latestBlock.ByerCollateralPercentage,
                 Treasure = latestBlock.Treasure.ToDecimalDict().ToLongDict(),
+                MetaHash = latestBlock.MetaHash,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
@@ -98,9 +100,6 @@ namespace Lyra.Core.Decentralize
             var recvBalances = latestBlock.Balances.ToDecimalDict();
             foreach (var chg in txInfo.Changes)
             {
-                if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
-                    continue;
-
                 if (recvBalances.ContainsKey(chg.Key))
                     recvBalances[chg.Key] += chg.Value;
                 else

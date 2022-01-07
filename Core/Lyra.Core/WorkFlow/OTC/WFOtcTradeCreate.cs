@@ -16,19 +16,19 @@ using System.Threading.Tasks;
 namespace Lyra.Core.WorkFlow
 {
     [LyraWorkFlow]
-    public class WFOtcCreate : WorkFlowBase
+    public class WFOtcTradeCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
         {
             return new WorkFlowDescription
             {
-                Action = BrokerActions.BRK_OTC_CRODR,
+                Action = BrokerActions.BRK_OTC_CRTRD,
                 RecvVia = BrokerRecvType.DaoRecv,
                 Blocks = new[]{
                     new BlockDesc
                     {
-                        BlockType = BlockTypes.OTCOrderGenesis,
-                        TheBlock = typeof(OtcGenesis),
+                        BlockType = BlockTypes.OTCTradeGenesis,
+                        TheBlock = typeof(OtcTradeGenesis),
                         //AuthorizerType = typeof(OtcGenesisAuthorizer),
                     }
                 }
@@ -37,8 +37,9 @@ namespace Lyra.Core.WorkFlow
 
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
+            throw new NotImplementedException();
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
-            var ogen = blocks.FirstOrDefault(a => a is OtcGenesis);
+            var ogen = blocks.FirstOrDefault(a => a is OtcOrderGenesis);
             if (ogen != null)
                 return null;
 
@@ -48,7 +49,7 @@ namespace Lyra.Core.WorkFlow
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var otcblock = new OtcGenesis
+            var otcblock = new OtcOrderGenesis
             {
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -78,10 +79,20 @@ namespace Lyra.Core.WorkFlow
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
-            var dao = await sys.Storage.FindFirstBlockAsync(order.daoid) as DaoGenesis;
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            var dao = await sys.Storage.FindFirstBlockAsync(trade.daoid) as DaoGenesisBlock;
             if (dao == null || dao.AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
+
+            var orderblk = sys.Storage.GetOtcOrderByID(trade.orderid);
+            if (orderblk == null)
+                return APIResultCodes.InvalidOrder;
+
+            var order = orderblk.Order;
+            if (order.crypto != trade.crypto ||
+                order.fiat != trade.fiat ||
+                order.amount <= trade.amount)
+                return APIResultCodes.InvalidTrade;
 
             return APIResultCodes.Success;
         }

@@ -49,7 +49,7 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class OtcGenesis : OtcOrderBlock, IOpeningBlock
+    public class OtcOrderGenesis : OtcOrderBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
@@ -60,7 +60,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcGenesis;
+            var ob = other as OtcOrderGenesis;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

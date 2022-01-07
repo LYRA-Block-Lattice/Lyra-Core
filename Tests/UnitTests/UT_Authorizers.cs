@@ -153,9 +153,7 @@ namespace UnitTests
             var apisvc = new ApiService(NullLogger<ApiService>.Instance);
             var mock = new Mock<ILyraAPI>();
             client = mock.Object;
-            Block blockx = null;
             mock.Setup(x => x.SendTransferAsync(It.IsAny<SendTransferBlock>()))
-                //.Callback((SendTransferBlock block) => blockx = block)
                 .Returns<SendTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
             mock.Setup(x => x.GetSyncHeightAsync())
                 .ReturnsAsync(await api.GetSyncHeightAsync());
@@ -194,29 +192,11 @@ namespace UnitTests
                 .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
-                .Callback((ReceiveTransferBlock block) => {
-                    var t = Task.Run(async () => {
-                        await AuthAsync(block);
-                    });
-                    Task.WaitAll(t);
-                })
-                .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
+                .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
             mock.Setup(x => x.ReceiveTransferAndOpenAccountAsync(It.IsAny<OpenWithReceiveTransferBlock>()))
-                .Callback((OpenWithReceiveTransferBlock block) => {
-                    var t = Task.Run(async () => {
-                        await AuthAsync(block);
-                    });
-                    Task.WaitAll(t);
-                })
-                .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
+                .Returns<OpenWithReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
             mock.Setup(x => x.CreateTokenAsync(It.IsAny<TokenGenesisBlock>()))
-                .Callback((TokenGenesisBlock block) => {
-                    var t = Task.Run(async () => {
-                        await AuthAsync(block);
-                    });
-                    Task.WaitAll(t);
-                })
-                .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
+                .Returns<TokenGenesisBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
 
             var walletStor = new AccountInMemoryStorage();
             Wallet.Create(walletStor, "gensisi", "1234", networkId, sys.PosWallet.PrivateKey);
@@ -226,7 +206,7 @@ namespace UnitTests
 
             Assert.IsTrue(genesisWallet.BaseBalance > 1000000m);
 
-            var tamount = 1000000m;
+            var tamount = 1000000000m;
             var sendResult = await genesisWallet.SendAsync(tamount, testPublicKey);
             Assert.IsTrue(sendResult.Successful(), $"send error {sendResult.ResultCode}");
             var sendResult2 = await genesisWallet.SendAsync(tamount, test2PublicKey);
@@ -295,10 +275,18 @@ namespace UnitTests
 
         private async Task TestOTCTrade()
         {
+            var crypto = "unittest/ETH";
+            // init. create token to sell
+            var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
+                    "", "", ContractTypes.Cryptocurrency, null);
+            Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode}");
+            await Task.Delay(1000);
+            await testWallet.SyncAsync(null);
+
             // first create a DAO
             var name = "First DAO";
             var dcret = await testWallet.CreateDAOAsync(name);
-            Assert.IsTrue(dcret.Successful());
+            Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await Task.Delay(1000);
 
@@ -311,24 +299,31 @@ namespace UnitTests
             {
                 daoid = dao1.AccountID,
                 dir = Direction.Sell,
-                crypto = "BTC",
+                crypto = crypto,
                 fiat = "USD",
                 priceType = PriceType.Fixed,
-                price = 45000,
+                price = 2000,
                 amount = 10,
             };
 
             await Task.Delay(1000);
-            var ret = await testWallet.CreateOTCOrderAsync(order);
+            var ret = await testWallet.CreateOTCOrderAsync(order, 1000000);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
             await Task.Delay(1000);
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
-            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcGenesis, $"otc gensis block not found.");
+            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcOrderGenesis, $"otc gensis block not found.");
 
-            var otcg = otcs.First() as OtcGenesis;
+            // then DAO treasure should have the crypto
+            var daoret3 = await testWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(daoret3.Successful(), $"Can't get DAO: {daoret3.ResultCode}");
+            var daot = daoret3.GetBlock() as DaoBlock;
+            Assert.IsTrue(daot.Balances.ContainsKey(crypto), "No collateral token in DAO treasure.");
+            Assert.AreEqual(10m, daot.Balances[crypto].ToBalanceDecimal());
+
+            var otcg = otcs.First() as OtcOrderGenesis;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
             await Task.Delay(1000);
 
@@ -338,14 +333,24 @@ namespace UnitTests
                 daoid = dao1.AccountID,
                 orderid = otcg.AccountID,
                 dir = Direction.Sell,
-                crypto = "BTC",
+                crypto = "unittest/ETH",
                 fiat = "USD",
                 priceType = PriceType.Fixed,
-                price = 45000,
+                price = 2000,
                 amount = 1,
             };
-            var traderet = await testWallet.CreateOTCTradeAsync(trade);
+            var traderet = await test2Wallet.CreateOTCTradeAsync(trade);
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
+
+            await Task.Delay(1000);
+            // the otc order should now be amount 9
+            var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
+            Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
+            var otcs2 = otcret.GetBlocks();
+            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcOrderGenesis, $"otc block count not = 1.");
+            var otcorderx = otcs2.First() as OtcOrderBlock;
+            Assert.AreEqual(9, otcorderx.Order.amount);
+
 
             //Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
             //ResetAuthFail();

@@ -12,7 +12,9 @@ namespace Lyra.Data.API.WorkFlow
 {
     public interface IDao : IBrokerAccount
     {
-        public string Description { get; set; }
+        // percentage, 0 ~ 1000%
+        public int SellerCollateralPercentage { get; set; }
+        public int ByerCollateralPercentage { get; set; }
         public Dictionary<string, long> Treasure { get; set; }
         public string MetaHash { get; set; }    // dao configuration record hash, in other db collection
     }
@@ -20,7 +22,8 @@ namespace Lyra.Data.API.WorkFlow
     [BsonIgnoreExtraElements]
     public class DaoBlock : BrokerAccountRecv, IDao
     {
-        public string Description { get; set; }
+        public int SellerCollateralPercentage { get; set; }
+        public int ByerCollateralPercentage { get; set; }
         public string MetaHash { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
@@ -36,6 +39,8 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as DaoBlock;
 
             return base.AuthCompare(ob) &&
+                SellerCollateralPercentage == ob.SellerCollateralPercentage &&
+                ByerCollateralPercentage == ob.ByerCollateralPercentage &&
                 MetaHash == ob.MetaHash &&
                 CompareDict(Treasure, ob.Treasure)
                 ;
@@ -44,23 +49,27 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += MetaHash + "|";
+            extraData += $"{SellerCollateralPercentage}|";
+            extraData += $"{ByerCollateralPercentage}|";
             extraData += DictToStr(Treasure) + "|";
+            extraData += MetaHash + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
-            result += $"MetaHash: {MetaHash}\n";
+            result += $"SellerCollateralPercentage: {MetaHash}\n";
+            result += $"ByerCollateralPercentage: {MetaHash}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
+            result += $"MetaHash: {MetaHash}\n";
             return result;
         }
     }
 
 
     [BsonIgnoreExtraElements]
-    public class DaoGenesis : DaoBlock, IOpeningBlock
+    public class DaoGenesisBlock : DaoBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
@@ -71,7 +80,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as DaoGenesis;
+            var ob = other as DaoGenesisBlock;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

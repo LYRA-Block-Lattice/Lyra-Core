@@ -2128,17 +2128,19 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region OTC
-        public async Task<APIResult> CreateOTCOrderAsync(OTCOrder order)
+        public async Task<APIResult> CreateOTCOrderAsync(OTCOrder order, int collateralAmount)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRODR },
                 { "data", JsonConvert.SerializeObject(order) },
+                { "ctamt", collateralAmount.ToString() },
             };
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + collateralAmount },
+                { order.crypto, order.amount }
             };
 
             var result = await SendExAsync(order.daoid, amounts, tags);

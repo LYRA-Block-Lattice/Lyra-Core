@@ -27,7 +27,13 @@ namespace Lyra.Core.WorkFlow
                     new BlockDesc
                     {
                         BlockType = BlockTypes.OrgnizationGenesis,
-                        TheBlock = typeof(DaoGenesis),
+                        TheBlock = typeof(DaoGenesisBlock),
+                        //AuthorizerType = typeof(BrokerAccountRecvAuthorizer),       // generic, no need for dedicate one
+                    },
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.Orgnization,
+                        TheBlock = typeof(DaoBlock),
                         //AuthorizerType = typeof(BrokerAccountRecvAuthorizer),       // generic, no need for dedicate one
                     }
                 }
@@ -48,7 +54,7 @@ namespace Lyra.Core.WorkFlow
                 return null;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var daogen = new DaoGenesis
+            var daogen = new DaoGenesisBlock
             {
                 Height = 1,
                 ServiceHash = sb.Hash,
@@ -67,7 +73,8 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash,
 
                 // dao
-                Description = "hahaha",
+                SellerCollateralPercentage = 200,
+                ByerCollateralPercentage = 150,
                 Treasure = new Dictionary<string, long>(),
             };
 

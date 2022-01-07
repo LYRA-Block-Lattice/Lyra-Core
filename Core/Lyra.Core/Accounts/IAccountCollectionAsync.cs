@@ -28,6 +28,7 @@ namespace Lyra.Core.Accounts
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
         DaoBlock GetDaoByName(string name);
         List<OtcOrderBlock> GetOtcOrdersByOwner(string accountId);
+        OtcOrderBlock GetOtcOrderByID(string orderId);
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);

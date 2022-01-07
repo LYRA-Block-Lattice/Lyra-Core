@@ -47,10 +47,10 @@ namespace Lyra.Core.Authorizers
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoGenesis))
+            if (!(tblock is DaoGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoGenesis;
+            var block = tblock as DaoGenesisBlock;
 
             if(block.AccountType != AccountTypes.DAO)
             {

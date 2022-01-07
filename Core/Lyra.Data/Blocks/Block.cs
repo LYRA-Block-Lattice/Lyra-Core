@@ -596,5 +596,7 @@ namespace Lyra.Core.Blocks
         TokenNotFound,
 
         InvalidOrgnization,
+        InvalidOrder,
+        InvalidTrade,
     }
 }

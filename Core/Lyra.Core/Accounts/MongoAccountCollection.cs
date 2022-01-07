@@ -2107,6 +2107,7 @@ namespace Lyra.Core.Accounts
         {
             var q = _blocks.OfType<DaoBlock>()
                 .Find(a => a.Name == name)
+                .SortByDescending(a => a.Height)
                 .FirstOrDefault();
             return q;
         }
@@ -2116,6 +2117,14 @@ namespace Lyra.Core.Accounts
             var q = _blocks.OfType<OtcOrderBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .ToList();
+            return q;
+        }
+
+        public OtcOrderBlock GetOtcOrderByID(string orderId)
+        {
+            var q = _blocks.OfType<OtcOrderBlock>()
+                .Find(a => a.AccountID == orderId)
+                .FirstOrDefault();
             return q;
         }
     }
