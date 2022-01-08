@@ -284,6 +284,7 @@ namespace UnitTests
             Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode}");
             await Task.Delay(100);
             await testWallet.SyncAsync(null);
+            var testbalance = testWallet.BaseBalance;
 
             // first create a DAO
             var name = "First DAO";
@@ -306,10 +307,11 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 10,
+                sellerCollateral = 1000000,
             };
 
             await Task.Delay(100);
-            var ret = await testWallet.CreateOTCOrderAsync(order, 1000000);
+            var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
             await Task.Delay(200);
@@ -364,7 +366,7 @@ namespace UnitTests
             var tradgen = blks.FirstOrDefault(a => a is OtcTradeGenesisBlock) as OtcTradeGenesisBlock;
             Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
             Assert.AreEqual(trade, tradgen.Trade);
-            Assert.AreEqual(TradeStatus.Open, tradgen.Status);
+            Assert.AreEqual(OtcTradeStatus.Open, tradgen.Status);
 
             // buyer send payment indicator
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
@@ -374,22 +376,39 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-            Assert.AreEqual(TradeStatus.BuyerPaid, (trdlatest.GetBlock() as IOtcTrade).Status,
+            Assert.AreEqual(OtcTradeStatus.BuyerPaid, (trdlatest.GetBlock() as IOtcTrade).Status,
                 $"Trade statust not changed to BuyerPaid");
 
             // seller got the payment
-            var gotpayret = await test2Wallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
+            var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
             await Task.Delay(100);
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-            Assert.AreEqual(TradeStatus.ProductReleased, (trdlatest2.GetBlock() as IOtcTrade).Status,
+            Assert.AreEqual(OtcTradeStatus.ProductReleased, (trdlatest2.GetBlock() as IOtcTrade).Status,
                 $"Trade statust not changed to ProductReleased");
 
             await test2Wallet.SyncAsync(null);
-            Assert.AreEqual(test2balance - 15, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
+            Assert.AreEqual(test2balance - 13, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
+
+            // trade is ok. now its time to clase the order
+            var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
+            Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
+
+            await Task.Delay(100);
+            var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
+            Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
+            Assert.AreEqual(OtcOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).Status,
+                $"Order statust not changed to Closed");
+
+            await testWallet.SyncAsync(null);
+            var lyrshouldbe = testbalance - 10016;
+            Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
+            var bal2 = testWallet.GetLatestBlock().Balances[crypto].ToBalanceDecimal();
+            Assert.AreEqual(100000m - 1m, bal2,
+                $"testwallet balance of crypto should be {100000m - 1m} but {bal2}");
 
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");

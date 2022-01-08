@@ -58,7 +58,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
                 // trade     
                 Trade = ((IOtcTrade)lastblock).Trade,
-                Status = TradeStatus.BuyerPaid,
+                Status = OtcTradeStatus.BuyerPaid,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

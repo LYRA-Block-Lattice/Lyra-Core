@@ -2128,18 +2128,17 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region OTC
-        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCOrder order, int collateralAmount)
+        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCOrder order)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRODR },
                 { "data", JsonConvert.SerializeObject(order) },
-                { "ctamt", collateralAmount.ToString() },
             };
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + collateralAmount },
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.sellerCollateral },
                 { order.crypto, order.amount }
             };
 
@@ -2195,6 +2194,24 @@ namespace Lyra.Core.Accounts
             };
 
             var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> CloseOTCOrderAsync(string daoid, string orderid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_ORDCLOSE },
+                { "daoid", daoid },
+                { "orderid", orderid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
             return result;
         }
         #endregion

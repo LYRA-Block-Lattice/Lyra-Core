@@ -9,15 +9,18 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
+    public enum OtcOrderStatus { Open, Partial, Closed, Dispute };
     public interface IOtcOrder : IBrokerAccount
     {
         OTCOrder Order { get; set; }
+        OtcOrderStatus Status { get; set; }
     }
 
     [BsonIgnoreExtraElements]
     public class OtcOrderRecvBlock : BrokerAccountRecv, IOtcOrder
     {
         public OTCOrder Order { get; set; }
+        public OtcOrderStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -29,13 +32,15 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as OtcOrderRecvBlock;
 
             return base.AuthCompare(ob) &&
-                    Order.Equals(ob.Order);
+                    Order.Equals(ob.Order) &&
+                    Status.Equals(ob.Status);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Order.GetExtraData() + "|";
+            extraData += $"{Status}|";
             return extraData;
         }
 
@@ -43,6 +48,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"{Order}\n";
+            result += $"Status: {Status}\n";
             return result;
         }
     }
@@ -51,6 +57,7 @@ namespace Lyra.Data.API.WorkFlow
     public class OtcOrderSendBlock : BrokerAccountSend, IOtcOrder
     {
         public OTCOrder Order { get; set; }
+        public OtcOrderStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -62,13 +69,15 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as OtcOrderSendBlock;
 
             return base.AuthCompare(ob) &&
-                    Order.Equals(ob.Order);
+                    Order.Equals(ob.Order) &&
+                    Status.Equals(ob.Status);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Order.GetExtraData() + "|";
+            extraData += $"{Status}|";
             return extraData;
         }
 
@@ -76,6 +85,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"{Order}\n";
+            result += $"Status: {Status}\n";
             return result;
         }
     }

@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum TradeStatus { Open, BuyerPaid, SellerConfirmed, ProductReleased, BuyerCollateralReleased, Closed, Dispute };
+    public enum OtcTradeStatus { Open, BuyerPaid, SellerConfirmed, ProductReleased, BuyerCollateralReleased, Closed, Dispute };
     public interface IOtcTrade : IBrokerAccount
     {
         OTCTrade Trade { get; set; }
-        TradeStatus Status { get; set; }
+        OtcTradeStatus Status { get; set; }
     }
 
     [BsonIgnoreExtraElements]
     public class OtcTradeRecvBlock : BrokerAccountRecv, IOtcTrade
     {
         public OTCTrade Trade { get; set; }
-        public TradeStatus Status { get; set; }
+        public OtcTradeStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -57,7 +57,7 @@ namespace Lyra.Data.API.WorkFlow
     public class OtcTradeSendBlock : BrokerAccountSend, IOtcTrade
     {
         public OTCTrade Trade { get; set; }
-        public TradeStatus Status { get; set; }
+        public OtcTradeStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {

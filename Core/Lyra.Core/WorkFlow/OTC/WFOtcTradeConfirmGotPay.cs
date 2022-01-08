@@ -32,7 +32,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 () => new OtcTradeSendBlock(),
                 (b) =>
                 {
-                    (b as IOtcTrade).Status = TradeStatus.ProductReleased;
+                    (b as IOtcTrade).Status = OtcTradeStatus.ProductReleased;
                     (b as SendTransferBlock).DestinationAccountId = (b as IOtcTrade).OwnerAccountId;
                     (b as SendTransferBlock).Balances.Remove((b as IOtcTrade).Trade.crypto);
                 });
@@ -101,7 +101,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     }
                     b.Balances = recvBalances.ToLongDict();
 
-                    (b as IOtcTrade).Status = TradeStatus.SellerConfirmed;
+                    (b as IOtcTrade).Status = OtcTradeStatus.SellerConfirmed;
                 });
         }
 
