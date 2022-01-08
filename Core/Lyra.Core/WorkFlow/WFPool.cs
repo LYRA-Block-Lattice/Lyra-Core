@@ -26,7 +26,6 @@ namespace Lyra.Core.WorkFlow
                     {
                         BlockType = BlockTypes.PoolGenesis,
                         TheBlock = typeof(PoolGenesisBlock),
-                        //AuthorizerType = typeof(PoolGenesisAuthorizer),
                     }
                 }
             };

@@ -27,6 +27,34 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        {
+            if (send.Tags.Count != 3 ||
+                !send.Tags.ContainsKey("daoid") ||
+                string.IsNullOrWhiteSpace(send.Tags["daoid"]) ||
+                !send.Tags.ContainsKey("orderid") ||
+                string.IsNullOrWhiteSpace(send.Tags["orderid"])
+                )
+                return APIResultCodes.InvalidBlockTags;
+
+            var daoid = send.Tags["daoid"];
+            var orderid = send.Tags["orderid"];
+            var daoblk = await sys.Storage.FindLatestBlockAsync(daoid);
+            var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
+            if (daoblk == null || orderblk == null || 
+                (orderblk as IOtcOrder).Order.daoid != (daoblk as TransactionBlock).AccountID)
+                return APIResultCodes.InvalidTrade;
+
+            if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+                return APIResultCodes.NotSellerOfTrade;
+
+            if ((orderblk as IOtcOrder).Status != OtcOrderStatus.Open &&
+                (orderblk as IOtcOrder).Status != OtcOrderStatus.Partial)
+                return APIResultCodes.InvalidOrderStatus;
+
+            return APIResultCodes.Success;
+        }
+
         async Task<TransactionBlock> SealOrderAsync(DagSystem sys, SendTransferBlock send)
         {
             var daoid = send.Tags["daoid"];
@@ -124,11 +152,6 @@ namespace Lyra.Core.WorkFlow.OTC
 
             sendCollateral.InitializeBlock(daolastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendCollateral;
-        }
-
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
-        {
-            return APIResultCodes.Success;
         }
     }
 }

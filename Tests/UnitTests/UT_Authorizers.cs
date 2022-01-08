@@ -264,9 +264,9 @@ namespace UnitTests
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
             await TestOTCTrade();
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -336,7 +336,7 @@ namespace UnitTests
             {
                 daoid = dao1.AccountID,
                 orderid = otcg.AccountID,
-                dir = Direction.Sell,
+                dir = Direction.Buy,
                 crypto = "unittest/ETH",
                 fiat = "USD",
                 priceType = PriceType.Fixed,
@@ -383,7 +383,7 @@ namespace UnitTests
             var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            await Task.Delay(100);
+            await Task.Delay(200);
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");

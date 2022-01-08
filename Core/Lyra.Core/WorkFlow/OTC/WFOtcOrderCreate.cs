@@ -40,16 +40,49 @@ namespace Lyra.Core.WorkFlow
                         BlockType = BlockTypes.OTCOrderSend,
                         TheBlock = typeof(OtcOrderSendBlock),
                     },
+                },
+                Steps = new[]
+                {
+                    SendTokenFromDaoToOrderAsync,
+                    CreateGenesisAsync
                 }
             };
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            return await OneByOneAsync(sys, send,
-                SendTokenFromDaoToOrderAsync,
-                CreateGenesisAsync
-                );
+            if (send.Tags.Count != 2 ||
+                !send.Tags.ContainsKey("data") ||
+                string.IsNullOrWhiteSpace(send.Tags["data"])
+                )
+                return APIResultCodes.InvalidBlockTags;
+
+            OTCOrder order;
+            try
+            {
+                order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
+            }
+            catch (Exception ex)
+            {
+                return APIResultCodes.InvalidBlockTags;
+            }
+
+            var dao = await sys.Storage.FindLatestBlockAsync(order.daoid);
+            if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
+                return APIResultCodes.InvalidOrgnization;
+
+            // check every field of Order
+
+
+            // verify collateral
+            var chgs = send.GetBalanceChanges(last);
+            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.sellerCollateral)
+                return APIResultCodes.InvalidCollateral;
+
+            // TODO: check the price of order and collateral.
+
+            return APIResultCodes.Success;
         }
 
         async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
@@ -140,16 +173,6 @@ namespace Lyra.Core.WorkFlow
             // pool blocks are service block so all service block signed by leader node
             otcblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return otcblock;
-        }
-
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
-        {
-            var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
-            var dao = await sys.Storage.FindFirstBlockAsync(order.daoid) as DaoGenesisBlock;
-            if (dao == null || dao.AccountID != send.DestinationAccountId)
-                return APIResultCodes.InvalidOrgnization;
-
-            return APIResultCodes.Success;
         }
     }
 }

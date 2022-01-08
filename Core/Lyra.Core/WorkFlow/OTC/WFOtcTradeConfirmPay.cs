@@ -26,6 +26,28 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
+        // user pay via off-chain ways and confirm payment in OTC trade.
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        {
+            if (send.Tags.Count != 2 ||
+                !send.Tags.ContainsKey("tradeid") ||
+                string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
+                return APIResultCodes.InvalidBlockTags;
+
+            var tradeid = send.Tags["tradeid"];
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
+            if (tradeblk == null)
+                return APIResultCodes.InvalidTrade;
+            
+            if ((tradeblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+                return APIResultCodes.NotOwnerOfTrade;
+
+            if ((tradeblk as IOtcTrade).Status != OtcTradeStatus.Open)
+                return APIResultCodes.InvalidTradeStatus;
+
+            return APIResultCodes.Success;
+        }
+
         protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             // check exists
@@ -78,11 +100,6 @@ namespace Lyra.Core.WorkFlow.OTC
             receiveBlock.InitializeBlock(lastblock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
 
             return receiveBlock;
-        }
-
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
-        {
-            return APIResultCodes.Success;
         }
     }
 }

@@ -601,5 +601,10 @@ namespace Lyra.Core.Blocks
         InvalidOrgnization,
         InvalidOrder,
         InvalidTrade,
+        NotOwnerOfTrade,
+        NotSellerOfTrade,
+        InvalidTradeStatus,
+        InvalidOrderStatus,
+        InvalidCollateral,
     }
 }

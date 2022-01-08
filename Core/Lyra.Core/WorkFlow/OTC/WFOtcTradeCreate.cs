@@ -40,15 +40,35 @@ namespace Lyra.Core.WorkFlow
                         BlockType = BlockTypes.OTCTradeRecv,
                         TheBlock = typeof(OtcTradeRecvBlock),
                     },
+                },
+                Steps = new[]
+                {
+                    SendTokenFromOrderToTradeAsync,
+                    TradeGenesisReceiveAsync
                 }
             };
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
-            var dao = await sys.Storage.FindFirstBlockAsync(trade.daoid) as DaoGenesisBlock;
-            if (dao == null || dao.AccountID != send.DestinationAccountId)
+            if (send.Tags.Count != 2 ||
+                !send.Tags.ContainsKey("data") ||
+                string.IsNullOrWhiteSpace(send.Tags["data"])
+                )
+                return APIResultCodes.InvalidBlockTags;
+
+            OTCTrade trade;
+            try
+            {
+                trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            }
+            catch (Exception ex)
+            {
+                return APIResultCodes.InvalidBlockTags;
+            }
+
+            var dao = await sys.Storage.FindLatestBlockAsync(trade.daoid);
+            if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
             var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderid) as IOtcOrder;
@@ -58,18 +78,20 @@ namespace Lyra.Core.WorkFlow
             var order = orderblk.Order;
             if (order.crypto != trade.crypto ||
                 order.fiat != trade.fiat ||
-                order.amount <= trade.amount)
+                order.amount <= trade.amount ||
+                order.dir == trade.dir
+                )
                 return APIResultCodes.InvalidTrade;
 
-            return APIResultCodes.Success;
-        }
+            // verify collateral
+            var chgs = send.GetBalanceChanges(last);
+            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.buyerCollateral)
+                return APIResultCodes.InvalidCollateral;
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
-        {
-            return await OneByOneAsync(sys, send,
-                SendTokenFromOrderToTradeAsync,
-                TradeGenesisReceiveAsync                
-                );
+            // TODO: check the price of order and collateral.
+
+            return APIResultCodes.Success;
         }
 
         async Task<TransactionBlock> SendTokenFromOrderToTradeAsync(DagSystem sys, SendTransferBlock send)

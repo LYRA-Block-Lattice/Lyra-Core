@@ -26,6 +26,33 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        {
+            if (send.Tags.Count != 2 ||
+                !send.Tags.ContainsKey("tradeid") ||
+                string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
+                return APIResultCodes.InvalidBlockTags;
+
+            var tradeid = send.Tags["tradeid"];
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
+            if (tradeblk == null)
+                return APIResultCodes.InvalidTrade;
+
+            if ((tradeblk as IOtcTrade).Status != OtcTradeStatus.BuyerPaid)
+                return APIResultCodes.InvalidTradeStatus;
+
+            // check if seller is the order's owner
+            var orderid = (tradeblk as IOtcTrade).Trade.orderid;
+            var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
+            if (orderblk == null)
+                return APIResultCodes.InvalidOrder;
+
+            if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+                return APIResultCodes.NotSellerOfTrade;
+
+            return APIResultCodes.Success;
+        }
+
         protected Task<TransactionBlock> SendCryptoProductToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             return TradeBlockOperateAsync(sys, sendBlock,
@@ -118,10 +145,10 @@ namespace Lyra.Core.WorkFlow.OTC
 
             var nextblock = GenBlock();
 
-                // block
+            // block
             nextblock.ServiceHash = lsb.Hash;
 
-                // transaction
+            // transaction
             nextblock.AccountID = sendBlock.DestinationAccountId;
             nextblock.Balances = new Dictionary<string, long>();
             nextblock.Fee = 0;
@@ -148,11 +175,6 @@ namespace Lyra.Core.WorkFlow.OTC
             nextblock.InitializeBlock(lastblock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
 
             return nextblock;
-        }
-
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
-        {
-            return APIResultCodes.Success;
         }
     }
 }
