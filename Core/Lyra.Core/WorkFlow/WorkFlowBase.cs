@@ -20,12 +20,16 @@ namespace Lyra.Core.WorkFlow
         public string Action { get; set; }
         public BrokerRecvType RecvVia { get; set; }
         public BlockDesc[] Blocks { get; set; }
+        public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] Steps { get; set; }
     }
 
     public abstract class WorkFlowBase : IWorkFlow
     {
         public abstract WorkFlowDescription GetDescription();
-        public abstract Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send);
+        public virtual Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        {
+            return OneByOneAsync(sys, send, GetDescription().Steps);
+        }
         public virtual Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash)
         {
             return Task.FromResult((TransactionBlock)null);

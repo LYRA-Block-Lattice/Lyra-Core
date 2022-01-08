@@ -35,5 +35,8 @@ namespace Lyra.Data.API
         // OTC
         public const string BRK_OTC_CRODR = "CRODR";
         public const string BRK_OTC_CRTRD = "CRTRD";
+        public const string BRK_OTC_TRDPAYSENT = "TRDPAYSNT";
+        public const string BRK_OTC_TRDPAYGOT = "TRDPAYGOT";
+        public const string BRK_OTC_ORDCLOSE = "ORDCLOSE";
     }
 }

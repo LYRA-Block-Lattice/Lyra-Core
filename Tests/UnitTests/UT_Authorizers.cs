@@ -107,6 +107,7 @@ namespace UnitTests
                 return new AuthorizationAPIResult
                 {
                     ResultCode = result.Item1,
+                    TxHash = block.Hash,
                 };
             }
             else
@@ -116,6 +117,7 @@ namespace UnitTests
                 return new AuthorizationAPIResult
                 {
                     ResultCode = APIResultCodes.Success,
+                    TxHash = block.Hash,
                 };
             }
         }
@@ -341,8 +343,9 @@ namespace UnitTests
             };
             var traderet = await test2Wallet.CreateOTCTradeAsync(trade, 1000000);
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
@@ -351,9 +354,29 @@ namespace UnitTests
             var otcorderx = otcs2.First() as IOtcOrder;
             Assert.AreEqual(9, otcorderx.Order.amount);
 
+            // get trade
+            var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
+            Assert.IsTrue(related.Successful(), $"Can't get rleated tx for trade genesis: {related.ResultCode}");
+            var blks = related.GetBlocks();
+            var tradgen = blks.FirstOrDefault(a => a is OtcTradeGenesisBlock) as OtcTradeGenesisBlock;
+            Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
+            Assert.AreEqual(trade, tradgen.Trade);
+            Assert.AreEqual(TradeStatus.Open, tradgen.Status);
 
-            //Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
-            //ResetAuthFail();
+            // buyer send payment indicator
+            var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
+            Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
+
+            await Task.Delay(1000);
+            // status changed to BuyerPaid
+            var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
+            Assert.AreEqual(TradeStatus.BuyerPaid, (trdlatest.GetBlock() as IOtcTrade).Status,
+                $"Trade statust not changed to BuyerPaid");
+            
+            await Task.Delay(1000);
+            Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
+            ResetAuthFail();
         }
 
         private async Task TestDepositWithdraw()

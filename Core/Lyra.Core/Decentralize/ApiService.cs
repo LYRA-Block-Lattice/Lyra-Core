@@ -93,6 +93,7 @@ namespace Lyra.Core.Decentralize
             if (consensusResult == ConsensusResult.Yea)
             {
                 result.ResultCode = APIResultCodes.Success;
+                result.TxHash = block1.Hash;
             }
             else if (consensusResult == ConsensusResult.Nay)
             {
@@ -265,7 +266,6 @@ namespace Lyra.Core.Decentralize
                     {
                         result.ResultCode = APIResultCodes.TradeOrderMatchFound;
                         result.SetBlock(result_block);
-                        result.ServiceHash = result_block.ServiceHash;
                     }
                     else
                     {

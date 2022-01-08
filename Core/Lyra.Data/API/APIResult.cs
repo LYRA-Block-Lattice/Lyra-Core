@@ -104,19 +104,17 @@ namespace Lyra.Core.API
     // returns the authorization signatures for send or receive blocks
     public class AuthorizationAPIResult: APIResult
     {
-        public string ServiceHash { get; set; }
-        public List<AuthorizationSignature> Authorizations { get; set; }
-
+        public string TxHash { get; set; }
         public override bool Equals(object obj)
         {
             return obj is AuthorizationAPIResult result &&
                    base.Equals(obj) &&
-                   ServiceHash == result.ServiceHash;
+                   TxHash == result.TxHash;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(base.GetHashCode(), ServiceHash);
+            return HashCode.Combine(base.GetHashCode(), TxHash);
         }
     }
 

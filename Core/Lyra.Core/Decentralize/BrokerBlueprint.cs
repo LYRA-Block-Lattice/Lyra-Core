@@ -129,32 +129,15 @@ deactivate db
 
             if (!preDone)
             {
-                if(wf.GetDescription().RecvVia == BrokerRecvType.PFRecv)
-                {
-                    var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, send);
-                    if (preBlock == null)
-                        preDone = true;
-                    else
-                    {
-                        LastBlockTime = DateTime.UtcNow;
-                        await submit(preBlock);
-                    }
-                }
-                else if(wf.GetDescription().RecvVia == BrokerRecvType.DaoRecv)
-                {
-                    var preBlock = await BrokerOperations.ReceiveDaoFeeAsync(sys, send);
-                    if (preBlock == null)
-                        preDone = true;
-                    else
-                    {
-                        LastBlockTime = DateTime.UtcNow;
-                        await submit(preBlock);
-                    }
-                }
+                var preBlock = await BrokerOperations.ReceiveViaCallback[wf.GetDescription().RecvVia](sys, send);
+                if (preBlock == null)
+                    preDone = true;
                 else
                 {
-                    preDone = true;
+                    LastBlockTime = DateTime.UtcNow;
+                    await submit(preBlock);
                 }
+
                 Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
             }
 
@@ -194,7 +177,7 @@ deactivate db
     {
 
     }
-    public enum BrokerRecvType { None, PFRecv, DaoRecv }
+    public enum BrokerRecvType { None, PFRecv, DaoRecv, TradeRecv }
     public class BrokerFactory
     {
         public static Dictionary<string, WorkFlowBase> DynWorkFlows;
@@ -208,6 +191,7 @@ deactivate db
             var desc = workflow.GetDescription();
             DynWorkFlows.Add(desc.Action, workflow);
 
+            if(desc.Blocks != null)
             foreach(var bd in desc.Blocks)
             {
                 //if (bd.AuthorizerType != null)

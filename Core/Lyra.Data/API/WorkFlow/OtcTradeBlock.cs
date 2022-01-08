@@ -9,15 +9,18 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
+    public enum TradeStatus { Open, BuyerPaid, SellerConfirmed, Closed, Dispute };
     public interface IOtcTrade : IBrokerAccount
     {
         OTCTrade Trade { get; set; }
+        TradeStatus Status { get; set; }
     }
 
     [BsonIgnoreExtraElements]
     public class OtcTradeRecvBlock : BrokerAccountRecv, IOtcTrade
     {
         public OTCTrade Trade { get; set; }
+        public TradeStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -29,6 +32,7 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as OtcTradeRecvBlock;
 
             return base.AuthCompare(ob) &&
+                Status == ob.Status &&
                     Trade.Equals(ob.Trade);
         }
 
@@ -36,6 +40,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData() + "|";
+            extraData += $"{Status}|";
             return extraData;
         }
 
@@ -43,6 +48,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"{Trade}\n";
+            result += $"Status: {Status}\n";
             return result;
         }
     }
@@ -51,6 +57,7 @@ namespace Lyra.Data.API.WorkFlow
     public class OtcTradeSendBlock : BrokerAccountSend, IOtcTrade
     {
         public OTCTrade Trade { get; set; }
+        public TradeStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -62,6 +69,7 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as OtcTradeSendBlock;
 
             return base.AuthCompare(ob) &&
+                Status == ob.Status &&
                     Trade.Equals(ob.Trade);
         }
 
@@ -69,6 +77,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData() + "|";
+            extraData += $"{Status}|";
             return extraData;
         }
 
@@ -76,6 +85,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"{Trade}\n";
+            result += $"Status: {Status}\n";
             return result;
         }
     }

@@ -1756,16 +1756,16 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> CreateLiquidatePoolAsync(string token0, string token1)
+        public async Task<AuthorizationAPIResult> CreateLiquidatePoolAsync(string token0, string token1)
         {
             var tokenNames = await GetProperTokenNameAsync(new[] { token0, token1 });
 
             if (tokenNames.Any(a => a == null))
-                return new APIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+                return new AuthorizationAPIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
 
             var pool = await _rpcClient.GetPoolAsync(tokenNames[0], tokenNames[1]);
             if (pool.PoolAccountId != null)
-                return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
+                return new AuthorizationAPIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
 
             var tags = new Dictionary<string, string>
             {
@@ -1780,11 +1780,11 @@ namespace Lyra.Core.Accounts
             return await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
         }
 
-        public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
+        public async Task<AuthorizationAPIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
             var pool = await _rpcClient.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
-                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+                return new AuthorizationAPIResult { ResultCode = APIResultCodes.PoolNotExists };
 
             var amountsDeposit = new Dictionary<string, decimal>
             {
@@ -1802,11 +1802,11 @@ namespace Lyra.Core.Accounts
             return poolDepositResult;
         }
 
-        public async Task<APIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
+        public async Task<AuthorizationAPIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
         {
             var pool = await _rpcClient.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
-                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+                return new AuthorizationAPIResult { ResultCode = APIResultCodes.PoolNotExists };
 
             var tags = new Dictionary<string, string>
             {
@@ -1821,11 +1821,11 @@ namespace Lyra.Core.Accounts
             return poolWithdrawResult;
         }
 
-        public async Task<APIResult> SwapTokenAsync(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
+        public async Task<AuthorizationAPIResult> SwapTokenAsync(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
             var pool = await _rpcClient.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
-                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+                return new AuthorizationAPIResult { ResultCode = APIResultCodes.PoolNotExists };
 
             var tags = new Dictionary<string, string>
             {
@@ -1884,7 +1884,7 @@ namespace Lyra.Core.Accounts
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
         }
 
-        public async Task<APIResult> CreateDividendsAsync(string profitingAccountId)
+        public async Task<AuthorizationAPIResult> CreateDividendsAsync(string profitingAccountId)
         {
             var amounts = new Dictionary<string, decimal>
             {
@@ -1943,7 +1943,7 @@ namespace Lyra.Core.Accounts
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
         }
 
-        public async Task<APIResult> AddStakingAsync(string stakingAccountId, decimal amount)
+        public async Task<AuthorizationAPIResult> AddStakingAsync(string stakingAccountId, decimal amount)
         {
             var amountsDeposit = new Dictionary<string, decimal>
             {
@@ -1968,7 +1968,7 @@ namespace Lyra.Core.Accounts
                 return null;
         }
 
-        public async Task<APIResult> UnStakingAsync(string stakingAccountId)
+        public async Task<AuthorizationAPIResult> UnStakingAsync(string stakingAccountId)
         {
             var tags = new Dictionary<string, string>
             {
@@ -1987,7 +1987,7 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region dex deposition & withdraw
-        public async Task<APIResult> CreateDexWalletAsync(string symbol, string provider)
+        public async Task<AuthorizationAPIResult> CreateDexWalletAsync(string symbol, string provider)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2029,7 +2029,7 @@ namespace Lyra.Core.Accounts
         /// <param name="dexWalletId"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public async Task<APIResult> DexMintTokenAsync(string dexWalletId, decimal amount)
+        public async Task<AuthorizationAPIResult> DexMintTokenAsync(string dexWalletId, decimal amount)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2053,7 +2053,7 @@ namespace Lyra.Core.Accounts
         /// <param name="dexWalletId"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public async Task<APIResult> DexGetTokenAsync(string dexWalletId, decimal amount)
+        public async Task<AuthorizationAPIResult> DexGetTokenAsync(string dexWalletId, decimal amount)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2071,7 +2071,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> DexPutTokenAsync(string dexWalletId, string ticker, decimal amount)
+        public async Task<AuthorizationAPIResult> DexPutTokenAsync(string dexWalletId, string ticker, decimal amount)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2088,7 +2088,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> DexWithdrawTokenAsync(string dexWalletId, string extaddress, decimal amount)
+        public async Task<AuthorizationAPIResult> DexWithdrawTokenAsync(string dexWalletId, string extaddress, decimal amount)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2109,7 +2109,7 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region DAO
-        public async Task<APIResult> CreateDAOAsync(string name)
+        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2128,7 +2128,7 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region OTC
-        public async Task<APIResult> CreateOTCOrderAsync(OTCOrder order, int collateralAmount)
+        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCOrder order, int collateralAmount)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2147,7 +2147,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> CreateOTCTradeAsync(OTCTrade trade, int collateralAmount)
+        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCTrade trade, int collateralAmount)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2162,6 +2162,23 @@ namespace Lyra.Core.Accounts
             };
 
             var result = await SendExAsync(trade.daoid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> OTCTradeBuyerPaymentSentAsync(string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_TRDPAYSENT },
+                { "tradeid", tradeid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
             return result;
         }
         #endregion

@@ -2126,14 +2126,6 @@ namespace Lyra.Core.Accounts
             }
             return blks;
         }
-
-        public OtcOrderRecvBlock GetOtcOrderByID(string orderId)
-        {
-            var q = _blocks.OfType<OtcOrderRecvBlock>()
-                .Find(a => a.AccountID == orderId)
-                .FirstOrDefault();
-            return q;
-        }
     }
     public static class MyExtensions
     {

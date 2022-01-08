@@ -51,7 +51,7 @@ namespace Lyra.Core.WorkFlow
             if (dao == null || dao.AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
-            var orderblk = sys.Storage.GetOtcOrderByID(trade.orderid);
+            var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderid) as IOtcOrder;
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
 

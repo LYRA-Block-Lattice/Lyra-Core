@@ -334,9 +334,5 @@ namespace Lyra.Core.Accounts
         {
             return StopWatcher.Track(() => _store.GetOtcOrdersByOwnerAsync(accountId), "GetOtcOrdersByOwner");
         }
-        public OtcOrderRecvBlock GetOtcOrderByID(string orderId)
-        {
-            return StopWatcher.Track(() => _store.GetOtcOrderByID(orderId), "GetOtcOrderByID");
-        }
     }
 }

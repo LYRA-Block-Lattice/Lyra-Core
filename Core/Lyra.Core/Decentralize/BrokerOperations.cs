@@ -18,6 +18,15 @@ namespace Lyra.Core.Decentralize
 {
     public class BrokerOperations
     {
+        public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, Task<ReceiveTransferBlock>>> ReceiveViaCallback 
+                => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, Task<ReceiveTransferBlock>>>
+                {
+                    { BrokerRecvType.PFRecv, ReceivePoolFactoryFeeAsync },
+                    { BrokerRecvType.DaoRecv, ReceiveDaoFeeAsync },
+                    { BrokerRecvType.TradeRecv, ReceiveTradeFeeAsync },
+                    { BrokerRecvType.None, ReceiveNoneAsync },
+                };
+
         // every method must check if the operation has been done.
         // if has been done, return null.
         public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
@@ -113,5 +122,62 @@ namespace Lyra.Core.Decentralize
             return receiveBlock;
         }
 
+        public static async Task<ReceiveTransferBlock> ReceiveTradeFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
+        {
+            // check exists
+            var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
+            if (recv != null)
+                return null;
+
+            var txInfo = sendBlock.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock);
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+
+            var lsb = await sys.Storage.GetLastServiceBlockAsync();
+
+            var receiveBlock = new OtcTradeRecvBlock
+            {
+                // block
+                ServiceHash = lsb.Hash,
+
+                // transaction
+                AccountID = sendBlock.DestinationAccountId,
+                SourceHash = sendBlock.Hash,
+                Balances = new Dictionary<string, long>(),
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // broker
+                Name = ((IBrokerAccount)lastblock).Name,
+                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
+                RelatedTx = sendBlock.Hash,
+
+                // trade     
+                Trade = ((IOtcTrade)lastblock).Trade,
+            };
+
+            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            var latestBalances = lastblock.Balances.ToDecimalDict();
+            var recvBalances = lastblock.Balances.ToDecimalDict();
+            foreach (var chg in txInfo.Changes)
+            {
+                if (recvBalances.ContainsKey(chg.Key))
+                    recvBalances[chg.Key] += chg.Value;
+                else
+                    recvBalances.Add(chg.Key, chg.Value);
+            }
+
+            receiveBlock.Balances = recvBalances.ToLongDict();
+
+            receiveBlock.InitializeBlock(lastblock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+
+            return receiveBlock;
+        }
+
+        public static Task<ReceiveTransferBlock> ReceiveNoneAsync(DagSystem sys, SendTransferBlock sendBlock)
+        {
+            return Task.FromResult<ReceiveTransferBlock>(null);
+        }
     }
 }
