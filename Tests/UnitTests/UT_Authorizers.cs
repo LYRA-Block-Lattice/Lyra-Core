@@ -312,7 +312,7 @@ namespace UnitTests
             var ret = await testWallet.CreateOTCOrderAsync(order, 1000000);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
-            await Task.Delay(100);
+            await Task.Delay(200);
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
@@ -340,12 +340,15 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
+                buyerCollateral = 1000000
             };
-            var traderet = await test2Wallet.CreateOTCTradeAsync(trade, 1000000);
+            await test2Wallet.SyncAsync(null);
+            var test2balance = test2Wallet.BaseBalance;
+            var traderet = await test2Wallet.CreateOTCTradeAsync(trade);
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await Task.Delay(100);
+            await Task.Delay(200);
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
@@ -382,8 +385,11 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-            Assert.AreEqual(TradeStatus.SellerConfirmed, (trdlatest2.GetBlock() as IOtcTrade).Status,
-                $"Trade statust not changed to SellerConfirmed");
+            Assert.AreEqual(TradeStatus.ProductReleased, (trdlatest2.GetBlock() as IOtcTrade).Status,
+                $"Trade statust not changed to ProductReleased");
+
+            await test2Wallet.SyncAsync(null);
+            Assert.AreEqual(test2balance - 15, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
 
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");

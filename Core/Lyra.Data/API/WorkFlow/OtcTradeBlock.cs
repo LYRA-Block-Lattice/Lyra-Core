@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum TradeStatus { Open, BuyerPaid, SellerConfirmed, Closed, Dispute };
+    public enum TradeStatus { Open, BuyerPaid, SellerConfirmed, ProductReleased, BuyerCollateralReleased, Closed, Dispute };
     public interface IOtcTrade : IBrokerAccount
     {
         OTCTrade Trade { get; set; }

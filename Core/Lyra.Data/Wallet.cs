@@ -2147,18 +2147,17 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCTrade trade, int collateralAmount)
+        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCTrade trade)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRTRD },
                 { "data", JsonConvert.SerializeObject(trade) },
-                { "ctamt", collateralAmount.ToString() },
             };
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + collateralAmount },
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.buyerCollateral },
             };
 
             var result = await SendExAsync(trade.daoid, amounts, tags);
