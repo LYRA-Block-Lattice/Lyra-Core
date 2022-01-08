@@ -2181,6 +2181,23 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(tradeid, amounts, tags);
             return result;
         }
+
+        public async Task<AuthorizationAPIResult> OTCTradeSellerGotPaymentAsync(string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_TRDPAYGOT },
+                { "tradeid", tradeid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
         #endregion
 
         public string PrintLastBlock()

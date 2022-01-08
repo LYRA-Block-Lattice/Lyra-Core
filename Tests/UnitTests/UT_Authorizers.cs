@@ -282,7 +282,7 @@ namespace UnitTests
             var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
                     "", "", ContractTypes.Cryptocurrency, null);
             Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode}");
-            await Task.Delay(1000);
+            await Task.Delay(100);
             await testWallet.SyncAsync(null);
 
             // first create a DAO
@@ -290,7 +290,7 @@ namespace UnitTests
             var dcret = await testWallet.CreateDAOAsync(name);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
-            await Task.Delay(1000);
+            await Task.Delay(100);
 
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
@@ -308,11 +308,11 @@ namespace UnitTests
                 amount = 10,
             };
 
-            await Task.Delay(1000);
+            await Task.Delay(100);
             var ret = await testWallet.CreateOTCOrderAsync(order, 1000000);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
-            await Task.Delay(1000);
+            await Task.Delay(100);
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
@@ -327,7 +327,7 @@ namespace UnitTests
 
             var otcg = otcs.First() as OtcOrderGenesis;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
-            await Task.Delay(1000);
+            await Task.Delay(100);
 
             // here comes a buyer, he who want to buy 1 BTC.
             var trade = new OTCTrade
@@ -345,7 +345,7 @@ namespace UnitTests
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await Task.Delay(1000);
+            await Task.Delay(100);
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
@@ -367,14 +367,25 @@ namespace UnitTests
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
-            await Task.Delay(1000);
+            await Task.Delay(100);
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
             Assert.AreEqual(TradeStatus.BuyerPaid, (trdlatest.GetBlock() as IOtcTrade).Status,
                 $"Trade statust not changed to BuyerPaid");
-            
-            await Task.Delay(1000);
+
+            // seller got the payment
+            var gotpayret = await test2Wallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
+            Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
+
+            await Task.Delay(100);
+            // status changed to BuyerPaid
+            var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
+            Assert.AreEqual(TradeStatus.SellerConfirmed, (trdlatest2.GetBlock() as IOtcTrade).Status,
+                $"Trade statust not changed to SellerConfirmed");
+
+            await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
             ResetAuthFail();
         }
