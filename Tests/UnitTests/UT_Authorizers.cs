@@ -264,9 +264,9 @@ namespace UnitTests
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
             await TestOTCTrade();
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
-            await TestNodeFee();
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            //await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -288,13 +288,17 @@ namespace UnitTests
 
             // first create a DAO
             var name = "First DAO";
-            var dcret = await testWallet.CreateDAOAsync(name);
+            var desc = "Doing great business!";
+            var dcret = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await Task.Delay(100);
 
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
+            var daoblk = daoret.GetBlock() as DaoGenesisBlock;
+            Assert.AreEqual(name, daoblk.Name);
+            Assert.AreEqual(desc, daoblk.Description);
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 

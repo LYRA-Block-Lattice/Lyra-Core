@@ -100,7 +100,7 @@ namespace Lyra.Core.WorkFlow
                 // dao
                 SellerCollateralPercentage = ((IDao)lastblock).SellerCollateralPercentage,
                 ByerCollateralPercentage = ((IDao)lastblock).ByerCollateralPercentage,
-                MetaHash = ((IDao)lastblock).MetaHash,
+                Description = ((IDao)lastblock).Description,
                 Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
             };
 

@@ -2109,12 +2109,13 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region DAO
-        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name)
+        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name, string description)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CRDAO },
                 { "name", name },
+                { "desc", description },
             };
 
             var amounts = new Dictionary<string, decimal>

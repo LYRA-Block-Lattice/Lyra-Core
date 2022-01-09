@@ -100,7 +100,7 @@ namespace Lyra.Core.Decentralize
                 SellerCollateralPercentage = ((IDao)lastblock).SellerCollateralPercentage,
                 ByerCollateralPercentage = ((IDao)lastblock).ByerCollateralPercentage,
                 Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
-                MetaHash = ((IDao)lastblock).MetaHash,
+                Description = ((IDao)lastblock).Description,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

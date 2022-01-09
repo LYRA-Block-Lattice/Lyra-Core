@@ -16,7 +16,7 @@ namespace Lyra.Data.API.WorkFlow
         public int SellerCollateralPercentage { get; set; }
         public int ByerCollateralPercentage { get; set; }
         public Dictionary<string, long> Treasure { get; set; }
-        public string MetaHash { get; set; }    // dao configuration record hash, in other db collection
+        public string Description { get; set; }    // dao configuration record hash, in other db collection
     }
 
     [BsonIgnoreExtraElements]
@@ -24,7 +24,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public int SellerCollateralPercentage { get; set; }
         public int ByerCollateralPercentage { get; set; }
-        public string MetaHash { get; set; }
+        public string Description { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Treasure { get; set; }
@@ -41,7 +41,7 @@ namespace Lyra.Data.API.WorkFlow
             return base.AuthCompare(ob) &&
                 SellerCollateralPercentage == ob.SellerCollateralPercentage &&
                 ByerCollateralPercentage == ob.ByerCollateralPercentage &&
-                MetaHash == ob.MetaHash &&
+                Description == ob.Description &&
                 CompareDict(Treasure, ob.Treasure)
                 ;
         }
@@ -52,17 +52,17 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{SellerCollateralPercentage}|";
             extraData += $"{ByerCollateralPercentage}|";
             extraData += DictToStr(Treasure) + "|";
-            extraData += MetaHash + "|";
+            extraData += Description + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
-            result += $"SellerCollateralPercentage: {MetaHash}\n";
-            result += $"ByerCollateralPercentage: {MetaHash}\n";
+            result += $"SellerCollateralPercentage: {Description}\n";
+            result += $"ByerCollateralPercentage: {Description}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
-            result += $"MetaHash: {MetaHash}\n";
+            result += $"MetaHash: {Description}\n";
             return result;
         }
     }
@@ -72,7 +72,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public int SellerCollateralPercentage { get; set; }
         public int ByerCollateralPercentage { get; set; }
-        public string MetaHash { get; set; }
+        public string Description { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Treasure { get; set; }
@@ -89,7 +89,7 @@ namespace Lyra.Data.API.WorkFlow
             return base.AuthCompare(ob) &&
                 SellerCollateralPercentage == ob.SellerCollateralPercentage &&
                 ByerCollateralPercentage == ob.ByerCollateralPercentage &&
-                MetaHash == ob.MetaHash &&
+                Description == ob.Description &&
                 CompareDict(Treasure, ob.Treasure)
                 ;
         }
@@ -100,17 +100,17 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{SellerCollateralPercentage}|";
             extraData += $"{ByerCollateralPercentage}|";
             extraData += DictToStr(Treasure) + "|";
-            extraData += MetaHash + "|";
+            extraData += Description + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
-            result += $"SellerCollateralPercentage: {MetaHash}\n";
-            result += $"ByerCollateralPercentage: {MetaHash}\n";
+            result += $"SellerCollateralPercentage: {Description}\n";
+            result += $"ByerCollateralPercentage: {Description}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
-            result += $"MetaHash: {MetaHash}\n";
+            result += $"MetaHash: {Description}\n";
             return result;
         }
     }

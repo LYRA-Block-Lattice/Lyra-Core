@@ -29,6 +29,7 @@ namespace Lyra.Core.WorkFlow
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var name = send.Tags["name"];
+            var desc = send.Tags["desc"];
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
@@ -59,6 +60,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash,
 
                 // dao
+                Description = desc,
                 SellerCollateralPercentage = 200,
                 ByerCollateralPercentage = 150,
                 Treasure = new Dictionary<string, long>(),
@@ -74,15 +76,21 @@ namespace Lyra.Core.WorkFlow
         public override Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
             if (
-                send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"])
-                && send.Tags.Count == 2
+                send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"]) &&
+                send.Tags.ContainsKey("desc") && !string.IsNullOrWhiteSpace(send.Tags["desc"])
+                && send.Tags.Count == 3
                 )
             {
+                var name = send.Tags["name"];
+                var desc = send.Tags["desc"];
+
+                if (name.Length > 100 || desc.Length > 300)
+                    return Task.FromResult(APIResultCodes.InputTooLong);
+
                 if (send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
                     return Task.FromResult(APIResultCodes.InvalidServiceRequest);
 
                 // check name dup
-                var name = send.Tags["name"];
                 var existsdao = sys.Storage.GetDaoByName(name);
                 if (existsdao != null)
                     return Task.FromResult(APIResultCodes.DuplicateName);

@@ -606,5 +606,6 @@ namespace Lyra.Core.Blocks
         InvalidTradeStatus,
         InvalidOrderStatus,
         InvalidCollateral,
+        InputTooLong,
     }
 }
