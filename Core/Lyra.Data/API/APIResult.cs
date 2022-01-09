@@ -285,7 +285,8 @@ namespace Lyra.Core.API
                 {
                     bt = entry.b.GetBlockType();
                     //Console.WriteLine($"{bt}: {entry.t.Name}");
-                    Register(bt, entry.t);
+                    if(bt != BlockTypes.Null)
+                        Register(bt, entry.t);
                 }
                 catch { }
             }

@@ -24,10 +24,6 @@ namespace Lyra.Data.Blocks
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
 
-        public override BlockTypes GetBlockType()
-        {
-            throw new NotImplementedException();
-        }
         public override bool AuthCompare(Block other)
         {
             var ob = other as BrokerAccountRecv;
@@ -67,11 +63,6 @@ namespace Lyra.Data.Blocks
 
         // user specified string, less thant 32 char
         public string Name { get; set; }
-
-        public override BlockTypes GetBlockType()
-        {
-            throw new NotImplementedException();
-        }
 
         public override bool AuthCompare(Block other)
         {
