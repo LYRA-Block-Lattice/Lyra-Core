@@ -24,14 +24,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DEX_DPOREQ,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.DexWalletGenesis,
-                        TheBlock = typeof(DexWalletGenesis),
-                        //AuthorizerType = typeof(DexWalletGenesisAuthorizer),
-                    }
-                }
             };
         }
 
@@ -131,20 +123,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DEX_MINT,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.DexTokenMint,
-                        TheBlock = typeof(TokenMintBlock),
-                        //AuthorizerType = typeof(DexTokenMintAuthorizer),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.DexTokenBurn,
-                        TheBlock = typeof(TokenBurnBlock),
-                        //AuthorizerType = typeof(DexTokenBurnAuthorizer),
-                    }
-                }
             };
         }
 
@@ -243,14 +221,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DEX_GETTKN,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.DexSendToken,
-                        TheBlock = typeof(DexSendBlock),
-                        //AuthorizerType = typeof(DexSendAuthorizer),
-                    }
-                }
             };
         }
 
@@ -343,14 +313,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DEX_PUTTKN,
                 RecvVia = BrokerRecvType.None,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.DexRecvToken,
-                        TheBlock = typeof(DexReceiveBlock),
-                        //AuthorizerType = typeof(DexReceiveAuthorizer),
-                    }
-                }
             };
         }
 
@@ -447,14 +409,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DEX_WDWREQ,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.DexWithdrawToken,
-                        TheBlock = typeof(TokenWithdrawBlock),
-                        //AuthorizerType = typeof(DexWithdrawAuthorizer),
-                    }
-                }
             };
         }
 

@@ -9,17 +9,16 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow
 {
-    public class BlockDesc
-    {
-        public BlockTypes BlockType { get; set; }
-        //public Type AuthorizerType { get; set; }
-        public Type TheBlock { get; set; }
-    }
+    //public class BlockDesc
+    //{
+    //    public BlockTypes BlockType { get; set; }
+    //    //public Type AuthorizerType { get; set; }
+    //    public Type TheBlock { get; set; }
+    //}
     public class WorkFlowDescription
     {
         public string Action { get; set; }
         public BrokerRecvType RecvVia { get; set; }
-        public BlockDesc[] Blocks { get; set; }
         public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] Steps { get; set; }
     }
 

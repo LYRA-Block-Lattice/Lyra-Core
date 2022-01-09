@@ -23,23 +23,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DAO_CRDAO,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new []{
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.OrgnizationGenesis,
-                        TheBlock = typeof(DaoGenesisBlock),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.OrgnizationRecv,
-                        TheBlock = typeof(DaoRecvBlock),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.OrgnizationSend,
-                        TheBlock = typeof(DaoSendBlock),
-                    }
-                }
             };
         }
 

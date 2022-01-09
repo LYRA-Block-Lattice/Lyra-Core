@@ -21,13 +21,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_POOL_CRPL,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.PoolGenesis,
-                        TheBlock = typeof(PoolGenesisBlock),
-                    }
-                }
             };
         }
 
@@ -148,14 +141,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_POOL_ADDLQ,
                 RecvVia = BrokerRecvType.None,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.PoolDeposit,
-                        TheBlock = typeof(PoolDepositBlock),
-                        //AuthorizerType = typeof(PoolDepositAuthorizer),
-                    } 
-                }
             };
         }
 
@@ -307,14 +292,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_POOL_RMLQ,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.PoolWithdraw,
-                        TheBlock = typeof(PoolWithdrawBlock),
-                        //AuthorizerType = typeof(PoolWithdrawAuthorizer),
-                    }
-                }
             };
         }
 
@@ -417,20 +394,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_POOL_SWAP,
                 RecvVia = BrokerRecvType.None,
-                Blocks = new[]{
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.PoolSwapIn,
-                        TheBlock = typeof(PoolSwapInBlock),
-                        //AuthorizerType = typeof(PoolSwapInAuthorizer),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.PoolSwapOut,
-                        TheBlock = typeof(PoolSwapOutBlock),
-                        //AuthorizerType = typeof(PoolSwapOutAuthorizer),
-                    },                
-                }
             };
         }
 

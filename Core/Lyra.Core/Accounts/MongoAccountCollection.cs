@@ -97,24 +97,32 @@ namespace Lyra.Core.Accounts
                 cm.SetIsRootClass(false);
             });
 
-            BsonClassMap.RegisterClassMap<TransactionBlock>();
-            BsonClassMap.RegisterClassMap<SendTransferBlock>();
-            BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
-            BsonClassMap.RegisterClassMap<OpenWithReceiveTransferBlock>();
-            BsonClassMap.RegisterClassMap<LyraTokenGenesisBlock>();
-            BsonClassMap.RegisterClassMap<TokenGenesisBlock>();
-            BsonClassMap.RegisterClassMap<TradeBlock>();
-            BsonClassMap.RegisterClassMap<TradeOrderBlock>();
-            BsonClassMap.RegisterClassMap<ExecuteTradeOrderBlock>();
-            BsonClassMap.RegisterClassMap<CancelTradeOrderBlock>();
-            BsonClassMap.RegisterClassMap<ReceiveNodeProfitBlock>();
-            BsonClassMap.RegisterClassMap<ConsolidationBlock>();
-            BsonClassMap.RegisterClassMap<ServiceBlock>();
-            BsonClassMap.RegisterClassMap<AuthorizationSignature>();
-            BsonClassMap.RegisterClassMap<ImportAccountBlock>();
-            BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
-            BsonClassMap.RegisterClassMap<ReceiveAsFeeBlock>();
-            BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
+            var alltypes = typeof(Block)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(Block)) && !t.IsAbstract);
+            foreach (var type in alltypes)
+            {
+                Register(type);
+            }
+
+            //BsonClassMap.RegisterClassMap<TransactionBlock>();
+            //BsonClassMap.RegisterClassMap<SendTransferBlock>();
+            //BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
+            //BsonClassMap.RegisterClassMap<OpenWithReceiveTransferBlock>();
+            //BsonClassMap.RegisterClassMap<LyraTokenGenesisBlock>();
+            //BsonClassMap.RegisterClassMap<TokenGenesisBlock>();
+            //BsonClassMap.RegisterClassMap<TradeBlock>();
+            //BsonClassMap.RegisterClassMap<TradeOrderBlock>();
+            //BsonClassMap.RegisterClassMap<ExecuteTradeOrderBlock>();
+            //BsonClassMap.RegisterClassMap<CancelTradeOrderBlock>();
+            //BsonClassMap.RegisterClassMap<ReceiveNodeProfitBlock>();
+            //BsonClassMap.RegisterClassMap<ConsolidationBlock>();
+            //BsonClassMap.RegisterClassMap<ServiceBlock>();
+            //BsonClassMap.RegisterClassMap<AuthorizationSignature>();
+            //BsonClassMap.RegisterClassMap<ImportAccountBlock>();
+            //BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
+            //BsonClassMap.RegisterClassMap<ReceiveAsFeeBlock>();
+            //BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
 
             // all dynamically add
 
@@ -140,7 +148,7 @@ namespace Lyra.Core.Accounts
             //BsonClassMap.RegisterClassMap<TokenWithdrawBlock>();
 
             // obsolete, but needed for compatiblity
-            BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
+            //BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
             _blueprints = GetDatabase().GetCollection<BrokerBlueprint>(_blueprintCollectionName);
@@ -256,7 +264,7 @@ namespace Lyra.Core.Accounts
         }
 
         //BsonClassMap.RegisterClassMap<UnStakingBlock>();
-        public void Register(Type type)
+        private void Register(Type type)
         {
             if (BsonClassMap.IsClassMapRegistered(type))
                 return;

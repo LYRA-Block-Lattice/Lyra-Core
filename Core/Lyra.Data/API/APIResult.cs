@@ -253,7 +253,7 @@ namespace Lyra.Core.API
         }
 
         private static Dictionary<BlockTypes, MethodInfo> TypeDict = new Dictionary<BlockTypes, MethodInfo>();
-        public static void Register(BlockTypes bt, Type type)
+        static void Register(BlockTypes bt, Type type)
         {
             var methodInfo = typeof(JsonConvert).GetMethod("DeserializeObject",
                 BindingFlags.Public | BindingFlags.Static,
@@ -267,6 +267,29 @@ namespace Lyra.Core.API
 
         public string BlockData { get; set; }
         public BlockTypes ResultBlockType { get; set; }
+
+        static BlockAPIResult()
+        {
+            var exporters = typeof(Block)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(Block)) && !t.IsAbstract)
+                .Select(t => new
+                {
+                    b = (Block)Activator.CreateInstance(t),
+                    t
+                });
+            foreach(var entry in exporters)
+            {
+                BlockTypes bt;
+                try
+                {
+                    bt = entry.b.GetBlockType();
+                    //Console.WriteLine($"{bt}: {entry.t.Name}");
+                    Register(bt, entry.t);
+                }
+                catch { }
+            }
+        }
 
         public void SetBlock(Block block)
         {

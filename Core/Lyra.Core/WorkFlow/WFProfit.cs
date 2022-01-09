@@ -23,14 +23,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_PFT_CRPFT,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.ProfitingGenesis,
-                        TheBlock = typeof(ProfitingGenesis),
-                        //AuthorizerType = typeof(ProfitingGenesisAuthorizer),
-                    }
-                }
             };
         }
 
@@ -270,26 +262,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_PFT_GETPFT,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.Profiting,
-                        TheBlock = typeof(ProfitingBlock),
-                        //AuthorizerType = typeof(ProfitingAuthorizer),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.Benefiting,
-                        TheBlock = typeof(BenefitingBlock),
-                        //AuthorizerType = typeof(BenefitingAuthorizer),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.ReceiveNodeProfit,
-                        TheBlock = typeof(ReceiveNodeProfitBlock),
-                        //AuthorizerType = typeof(ReceiveNodeProfitAuthorizer),
-                    },
-                }
             };
         }
 

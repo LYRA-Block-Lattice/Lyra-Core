@@ -24,23 +24,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_OTC_CRTRD,
                 RecvVia = BrokerRecvType.DaoRecv,
-                Blocks = new[]{
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.OTCTradeGenesis,
-                        TheBlock = typeof(OtcTradeGenesisBlock),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.OTCTradeSend,
-                        TheBlock = typeof(OtcTradeSendBlock),
-                    },
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.OTCTradeRecv,
-                        TheBlock = typeof(OtcTradeRecvBlock),
-                    },
-                },
                 Steps = new[]
                 {
                     SendTokenFromOrderToTradeAsync,

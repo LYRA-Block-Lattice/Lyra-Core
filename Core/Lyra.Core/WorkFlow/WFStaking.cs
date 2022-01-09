@@ -23,14 +23,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_STK_CRSTK,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.StakingGenesis,
-                        TheBlock = typeof(StakingGenesis),
-                        //AuthorizerType = typeof(StakingGenesisAuthorizer),
-                    }
-                }
             };
         }
 
@@ -150,14 +142,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_STK_ADDSTK,
                 RecvVia = BrokerRecvType.None,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.Staking,
-                        TheBlock = typeof(StakingBlock),
-                        //AuthorizerType = typeof(StakingAuthorizer),
-                    }
-                }
             };
         }
 
@@ -258,14 +242,6 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_STK_UNSTK,
                 RecvVia = BrokerRecvType.PFRecv,
-                Blocks = new[] {
-                    new BlockDesc
-                    {
-                        BlockType = BlockTypes.UnStaking,
-                        TheBlock = typeof(UnStakingBlock),
-                        //AuthorizerType = typeof(UnStakingAuthorizer),
-                    }
-                }
             };
         }
 

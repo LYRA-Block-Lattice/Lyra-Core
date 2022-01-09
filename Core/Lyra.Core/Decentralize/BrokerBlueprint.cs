@@ -191,18 +191,17 @@ deactivate db
             var desc = workflow.GetDescription();
             DynWorkFlows.Add(desc.Action, workflow);
 
-            if(desc.Blocks != null)
-            foreach(var bd in desc.Blocks)
-            {
-                //if (bd.AuthorizerType != null)
-                //    af.Register(bd.BlockType, bd.AuthorizerType);
+            //if(desc.Blocks != null)
+            //foreach(var bd in desc.Blocks)
+            //{
+            //    //if (bd.AuthorizerType != null)
+            //    //    af.Register(bd.BlockType, bd.AuthorizerType);
 
-                if (bd.TheBlock != null)
-                {
-                    store?.Register(bd.TheBlock);
-                    BlockAPIResult.Register(bd.BlockType, bd.TheBlock);
-                }                    
-            }
+            //    if (bd.TheBlock != null)
+            //    {
+            //        store?.Register(bd.TheBlock);
+            //    }                    
+            //}
         }
 
         private IEnumerable<Type> GetTypesWithMyAttribute(Assembly assembly)
