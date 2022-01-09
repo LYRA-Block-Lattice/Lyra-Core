@@ -625,19 +625,17 @@ namespace Lyra.Core.Accounts
             if (Ticker == null)
                 return null;
 
-            var q = _blocks.OfType<TokenGenesisBlock>()
-                .Find(a => a.Ticker == Ticker)
-                .FirstOrDefault();
+            //var q = _blocks.OfType<TokenGenesisBlock>()
+            //    .Find(a => a.Ticker == Ticker)
+            //    .FirstOrDefault();
 
-            return q;
-            //var regexFilter = Regex.Escape(Ticker);
-            //var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/^" + regexFilter + "$/i"));
-            //var genResults = await _blocks.OfType<TokenGenesisBlock>()
-            //    .FindAsync(filter);
+            //return q;
+            var regexFilter = Regex.Escape(Ticker);
+            var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/^" + regexFilter + "$/i"));
+            var genResults = await _blocks.OfType<TokenGenesisBlock>()
+                .FindAsync(filter);
 
-            //var gens = genResults.ToList();
-
-            //return gens.FirstOrDefault();
+             return genResults.FirstOrDefault();
         }
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
