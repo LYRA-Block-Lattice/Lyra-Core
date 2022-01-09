@@ -76,7 +76,7 @@ namespace Lyra.Data.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            var plainTextBytes = Encoding.UTF8.GetBytes(Name);
+            var plainTextBytes = Encoding.UTF8.GetBytes(Name??"");
             var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
             extraData += nameEnc + "|";
             extraData += OwnerAccountId + "|";
