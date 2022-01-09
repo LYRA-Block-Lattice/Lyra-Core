@@ -16,7 +16,7 @@ namespace UnitTests.Swap
             var X = 10000m; // LYR
             var Y = 20000m;  // dai
 
-            var fakeBlock = new TransactionBlock();
+            var fakeBlock = new SendTransferBlock();
             fakeBlock.Balances = new Dictionary<string, long>();
             fakeBlock.Balances.Add("LYR", X.ToBalanceLong());
             fakeBlock.Balances.Add("DAI", Y.ToBalanceLong());

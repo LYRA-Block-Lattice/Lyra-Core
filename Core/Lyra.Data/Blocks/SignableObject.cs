@@ -34,6 +34,7 @@ namespace Lyra.Core.Blocks
                 //// debug only, temp code
                 //if(record.Contains("LyraTokenGenesis"))
                 //    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
+                //File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
 
                 return hash;
             }

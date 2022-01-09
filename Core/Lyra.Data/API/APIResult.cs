@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Lyra.Core.Accounts;
@@ -263,6 +264,8 @@ namespace Lyra.Core.API
 
             var genericMethodInfo = methodInfo.MakeGenericMethod(type);
             TypeDict[bt] = genericMethodInfo;
+
+            //File.AppendAllText(@"c:\tmp\hash.txt", $"{bt} {genericMethodInfo}\n");
         }
 
         public string BlockData { get; set; }
@@ -300,74 +303,10 @@ namespace Lyra.Core.API
 
         public Block GetBlock()
         {
-            Block block;
+            Block block = null;
 
             if (TypeDict.ContainsKey(ResultBlockType))
                 block = TypeDict[ResultBlockType].Invoke(null, new object[] { BlockData }) as Block;
-            else
-            {
-                switch (ResultBlockType)
-                {
-                    case BlockTypes.SendTransfer:
-                        block = JsonConvert.DeserializeObject<SendTransferBlock>(BlockData);
-                        break;
-                    case BlockTypes.TokenGenesis:
-                        block = JsonConvert.DeserializeObject<TokenGenesisBlock>(BlockData);
-                        break;
-                    case BlockTypes.LyraTokenGenesis:
-                        block = JsonConvert.DeserializeObject<LyraTokenGenesisBlock>(BlockData);
-                        break;
-                    case BlockTypes.ReceiveTransfer:
-                        block = JsonConvert.DeserializeObject<ReceiveTransferBlock>(BlockData);
-                        break;
-                    case BlockTypes.ReceiveAsFee:
-                        block = JsonConvert.DeserializeObject<ReceiveAsFeeBlock>(BlockData);
-                        break;
-                    case BlockTypes.OpenAccountWithReceiveTransfer:
-                        block = JsonConvert.DeserializeObject<OpenWithReceiveTransferBlock>(BlockData);
-                        break;
-                    case BlockTypes.ReceiveAuthorizerFee:
-                        block = JsonConvert.DeserializeObject<ReceiveAuthorizerFeeBlock>(BlockData);
-                        break;
-                    case BlockTypes.Service:
-                        block = JsonConvert.DeserializeObject<ServiceBlock>(BlockData);
-                        break;
-                    case BlockTypes.Consolidation:
-                        block = JsonConvert.DeserializeObject<ConsolidationBlock>(BlockData);
-                        break;
-                    case BlockTypes.TradeOrder:
-                        block = JsonConvert.DeserializeObject<TradeOrderBlock>(BlockData);
-                        break;
-                    case BlockTypes.CancelTradeOrder:
-                        block = JsonConvert.DeserializeObject<CancelTradeOrderBlock>(BlockData);
-                        break;
-                    case BlockTypes.Trade:
-                        block = JsonConvert.DeserializeObject<TradeBlock>(BlockData);
-                        break;
-                    case BlockTypes.ExecuteTradeOrder:
-                        block = JsonConvert.DeserializeObject<ExecuteTradeOrderBlock>(BlockData);
-                        break;
-                    case BlockTypes.ImportAccount:
-                        block = JsonConvert.DeserializeObject<ImportAccountBlock>(BlockData);
-                        break;
-                    case BlockTypes.OpenAccountWithImport:
-                        block = JsonConvert.DeserializeObject<OpenAccountWithImportBlock>(BlockData);
-                        break;
-                    case BlockTypes.PoolFactory:
-                        block = JsonConvert.DeserializeObject<PoolFactoryBlock>(BlockData);
-                        break;
-                    case BlockTypes.Null:
-                        block = null;
-                        break;
-                    default:
-                        throw new Exception($"Unknown block type: {ResultBlockType}");
-                }
-            }
-
-            if(block is DaoRecvBlock dao && dao.Treasure == null)
-            {
-                Debugger.Break();
-            }
 
             // here verify block signature. 
             if(block != null && block.VerifyHash())
@@ -377,6 +316,7 @@ namespace Lyra.Core.API
             else
             {
                 Console.WriteLine($">>>>>\n{BlockData}\n>>>>");
+                //File.AppendAllText(@"c:\tmp\hash.txt", $"Block {block.Hash} New txt: {block.GetHashInput()}\n");
                 return null;
             }
                 

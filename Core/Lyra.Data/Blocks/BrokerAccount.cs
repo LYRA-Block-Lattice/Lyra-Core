@@ -17,7 +17,7 @@ namespace Lyra.Data.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class BrokerAccountRecv : ReceiveTransferBlock, IBrokerAccount
+    public abstract class BrokerAccountRecv : ReceiveTransferBlock, IBrokerAccount
     {
         // user specified string, less thant 32 char
         public string Name { get; set; }
@@ -56,7 +56,7 @@ namespace Lyra.Data.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class BrokerAccountSend : SendTransferBlock, IBrokerAccount
+    public abstract class BrokerAccountSend : SendTransferBlock, IBrokerAccount
     {
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }

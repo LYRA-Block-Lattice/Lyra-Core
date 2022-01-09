@@ -76,7 +76,7 @@ namespace Lyra.Core.Blocks
     // this is base class for all send and receive blocks, i.e. all blocks containing transaction,
     // including genesis blocks and opening derivatives
     [BsonIgnoreExtraElements]
-    public class TransactionBlock : Block
+    public abstract class TransactionBlock : Block
     {
         // this is the wallet address
         public string AccountID { get; set; }
@@ -147,7 +147,12 @@ namespace Lyra.Core.Blocks
             string extraData = base.GetExtraData();
             extraData += AccountID + "|";
             extraData += BalanceToString() + "|";
-            extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
+
+            if (Version < 6)
+                extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
+            else
+                extraData += $"{Fee.ToBalanceLong()}|";
+
             extraData += FeeCode + "|";
 
             // TODO remove this once testnet reset
