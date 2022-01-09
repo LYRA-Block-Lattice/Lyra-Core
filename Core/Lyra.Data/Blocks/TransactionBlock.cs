@@ -148,10 +148,7 @@ namespace Lyra.Core.Blocks
             extraData += AccountID + "|";
             extraData += BalanceToString() + "|";
 
-            if (Version < 6)
-                extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
-            else
-                extraData += $"{Fee.ToBalanceLong()}|";
+            extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
 
             extraData += FeeCode + "|";
 
