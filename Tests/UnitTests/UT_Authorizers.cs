@@ -167,6 +167,9 @@ namespace UnitTests
 
             mock.Setup(x => x.GetBlockHashesByTimeRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
                 .Returns<DateTime, DateTime>((acct, sign) => Task.FromResult(api.GetBlockHashesByTimeRangeAsync(acct, sign)).Result);
+            // brks
+            mock.Setup(x => x.GetAllBrokerAccountsForOwnerAsync(It.IsAny<string>()))
+                .Returns<string>(name => Task.FromResult(api.GetAllBrokerAccountsForOwnerAsync(name)).Result);
 
             // DEX
             mock.Setup(x => x.GetAllDexWalletsAsync(It.IsAny<string>()))
@@ -299,6 +302,13 @@ namespace UnitTests
             var daoblk = daoret.GetBlock() as DaoGenesisBlock;
             Assert.AreEqual(name, daoblk.Name);
             Assert.AreEqual(desc, daoblk.Description);
+
+            // get dao by the IBroker api
+            var brkblksret = await testWallet.RPC.GetAllBrokerAccountsForOwnerAsync(testWallet.AccountId);
+            Assert.IsTrue(brkblksret.Successful(), $"Can't get DAO by brk api: {brkblksret.ResultCode}");
+            var daoblk2 = brkblksret.GetBlocks().FirstOrDefault(a => a is DaoGenesisBlock) as DaoGenesisBlock;
+            Assert.AreEqual(name, daoblk2.Name);
+            Assert.AreEqual(desc, daoblk2.Description);
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 

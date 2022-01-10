@@ -1881,7 +1881,8 @@ namespace Lyra.Core.Accounts
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.And(filter.Or(
                 filter.Eq("BlockType", BlockTypes.ProfitingGenesis),
-                filter.Eq("BlockType", BlockTypes.StakingGenesis)
+                filter.Eq("BlockType", BlockTypes.StakingGenesis),
+                filter.Eq("BlockType", BlockTypes.OrgnizationGenesis)
                 ), filter.Eq("OwnerAccountId", ownerAccount));
 
             var finds = await _blocks.FindAsync(filterDefination);
