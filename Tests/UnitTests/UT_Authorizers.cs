@@ -294,8 +294,11 @@ namespace UnitTests
             var desc = "Doing great business!";
             var dcret = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
-
             await Task.Delay(100);
+
+            var dcretx = await testWallet.CreateDAOAsync(name, desc);
+            Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
+            ResetAuthFail();
 
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
@@ -315,31 +318,31 @@ namespace UnitTests
             var order = new OTCCryptoOrder
             {
                 daoid = dao1.AccountID,
-                dir = Direction.Sell,
+                dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = "USD",
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 10,
-                sellerCollateral = 1000000,
+                collateral = 1000000,
             };
 
             await Task.Delay(100);
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
-            await Task.Delay(200);
+            await Task.Delay(500);
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
             Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcOrderGenesis, $"otc gensis block not found.");
 
-            // then DAO treasure should have the crypto
+            // then DAO treasure should not have the crypto
             var daoret3 = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret3.Successful(), $"Can't get DAO: {daoret3.ResultCode}");
-            var daot = daoret3.GetBlock() as DaoRecvBlock;
+            var daot = daoret3.GetBlock() as TransactionBlock;
             Assert.IsTrue(daot.Balances.ContainsKey(crypto), "No collateral token in DAO treasure.");
-            Assert.AreEqual(10m, daot.Balances[crypto].ToBalanceDecimal());
+            Assert.AreEqual(0, daot.Balances[crypto].ToBalanceDecimal());
 
             var otcg = otcs.First() as OtcOrderGenesis;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
@@ -350,13 +353,13 @@ namespace UnitTests
             {
                 daoid = dao1.AccountID,
                 orderid = otcg.AccountID,
-                dir = Direction.Buy,
+                dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
                 fiat = "USD",
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                buyerCollateral = 1000000
+                collateral = 1000000
             };
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;

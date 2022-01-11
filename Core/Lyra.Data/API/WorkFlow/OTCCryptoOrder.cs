@@ -11,13 +11,13 @@ namespace Lyra.Data.API.WorkFlow
     {
         // data
         public string daoid { get; set; }   // DAO account ID
-        public Direction dir { get; set; }
+        public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
         public PriceType priceType { get; set; }
         public decimal price { get; set; }
         public decimal amount { get; set; }
-        public decimal sellerCollateral { get; set; }
+        public decimal collateral { get; set; }
 
         public override bool Equals(object obOther)
         {
@@ -37,13 +37,13 @@ namespace Lyra.Data.API.WorkFlow
                 fiat == ob.fiat &&
                 priceType == ob.priceType &&
                 amount == ob.amount &&
-                sellerCollateral == ob.sellerCollateral &&
+                collateral == ob.collateral &&
                 price == ob.price;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, sellerCollateral);
+            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, collateral);
         }
 
         public string GetExtraData()
@@ -56,7 +56,7 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{priceType}|";
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
-            extraData += $"{sellerCollateral.ToBalanceLong()}|";
+            extraData += $"{collateral.ToBalanceLong()}|";
             return extraData;
         }
 
@@ -70,7 +70,7 @@ namespace Lyra.Data.API.WorkFlow
             result += $"Price Type: {priceType}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
-            result += $"Seller Collateral: {sellerCollateral}\n";
+            result += $"Seller Collateral: {collateral}\n";
             return result;
         }
     }

@@ -94,7 +94,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     priceType = ((IOtcOrder)lastblock).Order.priceType,
                     price = ((IOtcOrder)lastblock).Order.price,
                     amount = 0,
-                    sellerCollateral = 0,
+                    collateral = 0,
                 },
                 Status = OtcOrderStatus.Closed,
             };
@@ -145,7 +145,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             // calculate balance
             var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= order.sellerCollateral;
+            dict[LyraGlobal.OFFICIALTICKERCODE] -= order.collateral;
             sendCollateral.Balances = dict.ToLongDict();
 
             sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

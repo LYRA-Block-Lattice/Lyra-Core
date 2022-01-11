@@ -101,7 +101,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             // calculate balance
             var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= trade.buyerCollateral;
+            dict[LyraGlobal.OFFICIALTICKERCODE] -= trade.collateral;
             sendCollateral.Balances = dict.ToLongDict();
 
             sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

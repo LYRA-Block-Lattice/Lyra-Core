@@ -8,20 +8,20 @@ using System.Threading.Tasks;
 namespace Lyra.Data.API.WorkFlow
 {
     // type
-    public enum Direction { Buy, Sell };
+    public enum TradeDirection { Buy, Sell };
     public enum PriceType { Fixed, Float }
     public class OTCCryptoTrade
     {
         // data
         public string daoid { get; set; }   // DAO account ID
         public string orderid { get; set; }   // Order account ID
-        public Direction dir { get; set; }
+        public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
         public PriceType priceType { get; set; }
         public decimal price { get; set; }
         public decimal amount { get; set; }
-        public decimal buyerCollateral { get; set; }
+        public decimal collateral { get; set; }
 
         public override bool Equals(object obOther)
         {
@@ -41,13 +41,13 @@ namespace Lyra.Data.API.WorkFlow
                 fiat == ob.fiat &&
                 priceType == ob.priceType &&
                 amount == ob.amount &&
-                buyerCollateral == ob.buyerCollateral &&
+                collateral == ob.collateral &&
                 price == ob.price;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, amount, buyerCollateral);
+            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, amount, collateral);
         }
 
         public string GetExtraData()
@@ -60,7 +60,7 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{priceType}|";
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
-            extraData += $"{buyerCollateral.ToBalanceLong()}|";
+            extraData += $"{collateral.ToBalanceLong()}|";
             return extraData;
         }
 
@@ -74,7 +74,7 @@ namespace Lyra.Data.API.WorkFlow
             result += $"Price Type: {priceType}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
-            result += $"Buyer Collateral: {buyerCollateral} {LyraGlobal.OFFICIALTICKERCODE}\n";
+            result += $"Buyer Collateral: {collateral} {LyraGlobal.OFFICIALTICKERCODE}\n";
             return result;
         }
     }

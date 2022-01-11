@@ -60,7 +60,7 @@ namespace Lyra.Core.WorkFlow
             // verify collateral
             var chgs = send.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
-                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.sellerCollateral)
+                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.collateral)
                 return APIResultCodes.InvalidCollateral;
 
             // TODO: check the price of order and collateral.

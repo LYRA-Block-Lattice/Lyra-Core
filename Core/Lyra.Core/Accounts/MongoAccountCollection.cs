@@ -600,16 +600,14 @@ namespace Lyra.Core.Accounts
                 .Limit(1)
                 .FirstOrDefault();
             return Task.FromResult(blk);
-
-            //var options = new FindOptions<Block, Block>
-            //{
-            //    Limit = 1,
-            //    Sort = Builders<Block>.Sort.Descending(o => o.Height)
-            //};
-            //var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
-
-            //var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
-            //return result;
+        }
+        public Block FindLatestBlock(string AccountId)
+        {
+            var blk = _blocks.Find(Builders<Block>.Filter.Eq("AccountID", AccountId))
+                .SortByDescending(a => a.TimeStamp)
+                .Limit(1)
+                .FirstOrDefault();
+            return blk;
         }
 
         public Task<Block> FindFirstBlockAsync(string AccountId)
@@ -2115,13 +2113,24 @@ namespace Lyra.Core.Accounts
                 as TransactionBlock;
         }
 
-        public DaoRecvBlock GetDaoByName(string name)
+        public Block GetDaoByName(string name)
         {
-            var q = _blocks.OfType<DaoRecvBlock>()
-                .Find(a => a.Name == name)
-                .SortByDescending(a => a.Height)
+            //var q = _blocks.OfType<DaoRecvBlock>()
+            //    .Find(a => a.Name == name)
+            //    .SortByDescending(a => a.Height)
+            //    .FirstOrDefault();
+            //return q;
+
+            var regexFilter = Regex.Escape(name);
+            var filter = Builders<DaoGenesisBlock>.Filter.Regex(u => u.Name, new BsonRegularExpression("/^" + regexFilter + "$/i"));
+            var genResult = _blocks.OfType<DaoGenesisBlock>()
+                .Find(filter)
                 .FirstOrDefault();
-            return q;
+
+            if (genResult != null)
+                return FindLatestBlock(genResult.AccountID);
+
+            return null;
         }
 
         public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)

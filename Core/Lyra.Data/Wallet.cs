@@ -2139,7 +2139,7 @@ namespace Lyra.Core.Accounts
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.sellerCollateral },
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.collateral },
                 { order.crypto, order.amount }
             };
 
@@ -2157,7 +2157,7 @@ namespace Lyra.Core.Accounts
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.buyerCollateral },
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.collateral },
             };
 
             var result = await SendExAsync(trade.daoid, amounts, tags);
