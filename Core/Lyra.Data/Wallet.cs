@@ -2129,7 +2129,7 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region OTC
-        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCOrder order)
+        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCCryptoOrder order)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2147,7 +2147,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCTrade trade)
+        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCCryptoTrade trade)
         {
             var tags = new Dictionary<string, string>
             {

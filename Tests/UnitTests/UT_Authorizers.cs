@@ -312,7 +312,7 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
-            var order = new OTCOrder
+            var order = new OTCCryptoOrder
             {
                 daoid = dao1.AccountID,
                 dir = Direction.Sell,
@@ -346,7 +346,7 @@ namespace UnitTests
             await Task.Delay(100);
 
             // here comes a buyer, he who want to buy 1 BTC.
-            var trade = new OTCTrade
+            var trade = new OTCCryptoTrade
             {
                 daoid = dao1.AccountID,
                 orderid = otcg.AccountID,
@@ -380,7 +380,7 @@ namespace UnitTests
             var tradgen = blks.FirstOrDefault(a => a is OtcTradeGenesisBlock) as OtcTradeGenesisBlock;
             Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
             Assert.AreEqual(trade, tradgen.Trade);
-            Assert.AreEqual(OtcTradeStatus.Open, tradgen.Status);
+            Assert.AreEqual(OtcCryptoTradeStatus.Open, tradgen.Status);
 
             // buyer send payment indicator
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
@@ -390,7 +390,7 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-            Assert.AreEqual(OtcTradeStatus.BuyerPaid, (trdlatest.GetBlock() as IOtcTrade).Status,
+            Assert.AreEqual(OtcCryptoTradeStatus.FiatSent, (trdlatest.GetBlock() as IOtcCryptoTrade).Status,
                 $"Trade statust not changed to BuyerPaid");
 
             // seller got the payment
@@ -401,7 +401,7 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-            Assert.AreEqual(OtcTradeStatus.ProductReleased, (trdlatest2.GetBlock() as IOtcTrade).Status,
+            Assert.AreEqual(OtcCryptoTradeStatus.CryptoReleased, (trdlatest2.GetBlock() as IOtcCryptoTrade).Status,
                 $"Trade statust not changed to ProductReleased");
 
             await test2Wallet.SyncAsync(null);

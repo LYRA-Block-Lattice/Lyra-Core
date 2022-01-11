@@ -9,37 +9,37 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum OtcTradeStatus { Open, BuyerPaid, SellerConfirmed, ProductReleased, BuyerCollateralReleased, Closed, Dispute };
-    public interface IOtcTrade : IBrokerAccount
+    public enum OtcOrderStatus { Open, Partial, Closed, Dispute };
+    public interface IOtcOrder : IBrokerAccount
     {
-        OTCTrade Trade { get; set; }
-        OtcTradeStatus Status { get; set; }
+        OTCCryptoOrder Order { get; set; }
+        OtcOrderStatus Status { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class OtcTradeRecvBlock : BrokerAccountRecv, IOtcTrade
+    public class OtcCryptoOrderRecvBlock : BrokerAccountRecv, IOtcOrder
     {
-        public OTCTrade Trade { get; set; }
-        public OtcTradeStatus Status { get; set; }
+        public OTCCryptoOrder Order { get; set; }
+        public OtcOrderStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCTradeRecv;
+            return BlockTypes.OTCOrderRecv;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcTradeRecvBlock;
+            var ob = other as OtcCryptoOrderRecvBlock;
 
             return base.AuthCompare(ob) &&
-                Status == ob.Status &&
-                    Trade.Equals(ob.Trade);
+                    Order.Equals(ob.Order) &&
+                    Status.Equals(ob.Status);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Trade.GetExtraData() + "|";
+            extraData += Order.GetExtraData() + "|";
             extraData += $"{Status}|";
             return extraData;
         }
@@ -47,36 +47,36 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
-            result += $"{Trade}\n";
+            result += $"{Order}\n";
             result += $"Status: {Status}\n";
             return result;
         }
     }
 
     [BsonIgnoreExtraElements]
-    public class OtcTradeSendBlock : BrokerAccountSend, IOtcTrade
+    public class OtcCryptoOrderSendBlock : BrokerAccountSend, IOtcOrder
     {
-        public OTCTrade Trade { get; set; }
-        public OtcTradeStatus Status { get; set; }
+        public OTCCryptoOrder Order { get; set; }
+        public OtcOrderStatus Status { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCTradeSend;
+            return BlockTypes.OTCOrderSend;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcTradeSendBlock;
+            var ob = other as OtcCryptoOrderSendBlock;
 
             return base.AuthCompare(ob) &&
-                Status == ob.Status &&
-                    Trade.Equals(ob.Trade);
+                    Order.Equals(ob.Order) &&
+                    Status.Equals(ob.Status);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Trade.GetExtraData() + "|";
+            extraData += Order.GetExtraData() + "|";
             extraData += $"{Status}|";
             return extraData;
         }
@@ -84,7 +84,7 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
-            result += $"{Trade}\n";
+            result += $"{Order}\n";
             result += $"Status: {Status}\n";
             return result;
         }
@@ -92,18 +92,18 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class OtcTradeGenesisBlock : OtcTradeRecvBlock, IOpeningBlock
+    public class OtcOrderGenesis : OtcCryptoOrderRecvBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCTradeGenesis;
+            return BlockTypes.OTCOrderGenesis;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcTradeGenesisBlock;
+            var ob = other as OtcOrderGenesis;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

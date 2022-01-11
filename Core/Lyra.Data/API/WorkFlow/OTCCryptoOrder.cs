@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public class OTCOrder
+    public class OTCCryptoOrder
     {
         // data
         public string daoid { get; set; }   // DAO account ID
@@ -30,7 +30,7 @@ namespace Lyra.Data.API.WorkFlow
             if (this.GetType() != obOther.GetType())
                 return false;
 
-            var ob = obOther as OTCOrder;
+            var ob = obOther as OTCCryptoOrder;
             return daoid == ob.daoid &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&

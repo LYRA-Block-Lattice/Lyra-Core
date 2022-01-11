@@ -134,7 +134,7 @@ namespace Lyra.Core.Decentralize
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var receiveBlock = new OtcTradeRecvBlock
+            var receiveBlock = new OtcCryptoTradeRecvBlock
             {
                 // block
                 ServiceHash = lsb.Hash,
@@ -153,7 +153,7 @@ namespace Lyra.Core.Decentralize
                 RelatedTx = sendBlock.Hash,
 
                 // trade     
-                Trade = ((IOtcTrade)lastblock).Trade,
+                Trade = ((IOtcCryptoTrade)lastblock).Trade,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

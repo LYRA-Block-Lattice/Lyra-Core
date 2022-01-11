@@ -42,7 +42,7 @@ namespace Lyra.Core.WorkFlow.OTC
             if ((tradeblk as IBrokerAccount).OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotOwnerOfTrade;
 
-            if ((tradeblk as IOtcTrade).Status != OtcTradeStatus.Open)
+            if ((tradeblk as IOtcCryptoTrade).Status != OtcCryptoTradeStatus.Open)
                 return APIResultCodes.InvalidTradeStatus;
 
             return APIResultCodes.Success;
@@ -60,7 +60,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var receiveBlock = new OtcTradeRecvBlock
+            var receiveBlock = new OtcCryptoTradeRecvBlock
             {
                 // block
                 ServiceHash = lsb.Hash,
@@ -79,8 +79,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 RelatedTx = sendBlock.Hash,
 
                 // trade     
-                Trade = ((IOtcTrade)lastblock).Trade,
-                Status = OtcTradeStatus.BuyerPaid,
+                Trade = ((IOtcCryptoTrade)lastblock).Trade,
+                Status = OtcCryptoTradeStatus.FiatSent,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

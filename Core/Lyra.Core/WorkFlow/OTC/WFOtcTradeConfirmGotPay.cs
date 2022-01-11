@@ -38,11 +38,11 @@ namespace Lyra.Core.WorkFlow.OTC
             if (tradeblk == null)
                 return APIResultCodes.InvalidTrade;
 
-            if ((tradeblk as IOtcTrade).Status != OtcTradeStatus.BuyerPaid)
+            if ((tradeblk as IOtcCryptoTrade).Status != OtcCryptoTradeStatus.FiatSent)
                 return APIResultCodes.InvalidTradeStatus;
 
             // check if seller is the order's owner
-            var orderid = (tradeblk as IOtcTrade).Trade.orderid;
+            var orderid = (tradeblk as IOtcCryptoTrade).Trade.orderid;
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
@@ -56,12 +56,12 @@ namespace Lyra.Core.WorkFlow.OTC
         protected Task<TransactionBlock> SendCryptoProductToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             return TradeBlockOperateAsync(sys, sendBlock,
-                () => new OtcTradeSendBlock(),
+                () => new OtcCryptoTradeSendBlock(),
                 (b) =>
                 {
-                    (b as IOtcTrade).Status = OtcTradeStatus.ProductReleased;
-                    (b as SendTransferBlock).DestinationAccountId = (b as IOtcTrade).OwnerAccountId;
-                    (b as SendTransferBlock).Balances.Remove((b as IOtcTrade).Trade.crypto);
+                    (b as IOtcCryptoTrade).Status = OtcCryptoTradeStatus.CryptoReleased;
+                    (b as SendTransferBlock).DestinationAccountId = (b as IOtcCryptoTrade).OwnerAccountId;
+                    (b as SendTransferBlock).Balances.Remove((b as IOtcCryptoTrade).Trade.crypto);
                 });
         }
 
@@ -69,7 +69,7 @@ namespace Lyra.Core.WorkFlow.OTC
         {
             var tradelatest = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
-            var trade = (tradelatest as IOtcTrade).Trade;
+            var trade = (tradelatest as IOtcCryptoTrade).Trade;
             var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoid) as TransactionBlock;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -113,7 +113,7 @@ namespace Lyra.Core.WorkFlow.OTC
         protected Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             return TradeBlockOperateAsync(sys, sendBlock,
-                () => new OtcTradeRecvBlock(),
+                () => new OtcCryptoTradeRecvBlock(),
                 (b) =>
                 {
                     var txInfo = sendBlock.GetBalanceChanges(sys.Storage.FindBlockByHash(sendBlock.PreviousHash) as TransactionBlock);
@@ -128,7 +128,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     }
                     b.Balances = recvBalances.ToLongDict();
 
-                    (b as IOtcTrade).Status = OtcTradeStatus.SellerConfirmed;
+                    (b as IOtcCryptoTrade).Status = OtcCryptoTradeStatus.FiatReceived;
                 });
         }
 
@@ -161,8 +161,8 @@ namespace Lyra.Core.WorkFlow.OTC
             (nextblock as IBrokerAccount).RelatedTx = sendBlock.Hash;
 
             // trade     
-            (nextblock as IOtcTrade).Trade = ((IOtcTrade)lastblock).Trade;
-            (nextblock as IOtcTrade).Status = ((IOtcTrade)lastblock).Status;
+            (nextblock as IOtcCryptoTrade).Trade = ((IOtcCryptoTrade)lastblock).Trade;
+            (nextblock as IOtcCryptoTrade).Status = ((IOtcCryptoTrade)lastblock).Status;
 
             nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 

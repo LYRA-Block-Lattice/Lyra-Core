@@ -40,10 +40,10 @@ namespace Lyra.Core.WorkFlow
                 )
                 return APIResultCodes.InvalidBlockTags;
 
-            OTCOrder order;
+            OTCCryptoOrder order;
             try
             {
-                order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
+                order = JsonConvert.DeserializeObject<OTCCryptoOrder>(send.Tags["data"]);
             }
             catch (Exception ex)
             {
@@ -70,7 +70,7 @@ namespace Lyra.Core.WorkFlow
 
         async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
         {
-            var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
+            var order = JsonConvert.DeserializeObject<OTCCryptoOrder>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoid) as TransactionBlock;
 
@@ -119,7 +119,7 @@ namespace Lyra.Core.WorkFlow
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
-            var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
+            var order = JsonConvert.DeserializeObject<OTCCryptoOrder>(send.Tags["data"]);
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{order.crypto},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());

@@ -64,7 +64,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var order = (lastblock as IOtcOrder).Order;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToTradeBlock = new OtcOrderSendBlock
+            var sendToTradeBlock = new OtcCryptoOrderSendBlock
             {
                 // block
                 ServiceHash = sb.Hash,
@@ -85,7 +85,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 RelatedTx = send.Hash,
 
                 // otc
-                Order = new OTCOrder
+                Order = new OTCCryptoOrder
                 {
                     daoid = ((IOtcOrder)lastblock).Order.daoid,
                     dir = ((IOtcOrder)lastblock).Order.dir,
