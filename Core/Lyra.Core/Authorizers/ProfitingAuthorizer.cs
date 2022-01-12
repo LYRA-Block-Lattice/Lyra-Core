@@ -11,6 +11,11 @@ namespace Lyra.Core.Authorizers
 {
     public class ProfitingAuthorizer : BrokerAccountRecvAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.Profiting;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ProfitingBlock))

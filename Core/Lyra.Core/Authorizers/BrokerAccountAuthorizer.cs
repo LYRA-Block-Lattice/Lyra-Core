@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class BrokerAccountAuthorizer : TransactionAuthorizer
+    public class BrokerAccountAuthorizer
     {
-        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        public virtual async Task<APIResultCodes> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
             var block = tblock as IBrokerAccount;
             if (block == null)
@@ -30,7 +30,7 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class BrokerAccountRecvAuthorizer : ReceiveTransferAuthorizer
+    public abstract class BrokerAccountRecvAuthorizer : ReceiveTransferAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
@@ -48,14 +48,14 @@ namespace Lyra.Core.Authorizers
             var brkauth = new BrokerAccountAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
 
-            if (brkret.Item1 == APIResultCodes.Success)
+            if (brkret == APIResultCodes.Success)
                 return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "BrokerAccountRecvAuthorizer->ReceiveTransferAuthorizer");
             else
-                return brkret.Item1;
+                return brkret;
         }
     }
 
-    public class BrokerAccountSendAuthorizer : SendTransferAuthorizer
+    public abstract class BrokerAccountSendAuthorizer : SendTransferAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
@@ -74,10 +74,10 @@ namespace Lyra.Core.Authorizers
             // IBrokerAccount interface
             var brkauth = new BrokerAccountAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
-            if (brkret.Item1 == APIResultCodes.Success)
+            if (brkret == APIResultCodes.Success)
                 return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "BrokerAccountSendAuthorizer->SendTransferAuthorizer");
             else
-                return brkret.Item1;
+                return brkret;
         }
 
         protected override AuthorizationFeeTypes GetFeeType()

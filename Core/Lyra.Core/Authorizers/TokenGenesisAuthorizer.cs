@@ -18,6 +18,11 @@ namespace Lyra.Core.Authorizers
             "wizard", "official", "tether", "contract"
         };
 
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.TokenGenesis;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is TokenGenesisBlock))
@@ -123,6 +128,11 @@ namespace Lyra.Core.Authorizers
 
     public class LyraGenesisAuthorizer : TokenGenesisAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.LyraTokenGenesis;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is LyraTokenGenesisBlock))

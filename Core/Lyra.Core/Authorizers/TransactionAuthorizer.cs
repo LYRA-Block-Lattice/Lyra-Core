@@ -16,7 +16,7 @@ using static Lyra.Core.Decentralize.ConsensusService;
 
 namespace Lyra.Core.Authorizers
 {
-    public class TransactionAuthorizer : BaseAuthorizer
+    public abstract class TransactionAuthorizer : BaseAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {

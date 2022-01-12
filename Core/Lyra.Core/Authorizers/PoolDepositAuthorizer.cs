@@ -10,6 +10,11 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolDepositAuthorizer : ReceiveTransferAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolDeposit;
+        }
+
         protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
             // recalculate

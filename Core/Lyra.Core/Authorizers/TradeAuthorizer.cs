@@ -13,6 +13,11 @@ namespace Lyra.Core.Authorizers
 {
     public class TradeAuthorizer : TransactionAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.Trade;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is TradeBlock))

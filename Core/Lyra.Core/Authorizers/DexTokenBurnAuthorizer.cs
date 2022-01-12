@@ -10,6 +10,11 @@ namespace Lyra.Core.Authorizers
 {
     public class DexTokenBurnAuthorizer : TransactionAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.DexTokenBurn;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is TokenBurnBlock))
@@ -27,10 +32,10 @@ namespace Lyra.Core.Authorizers
             // IDexWallet interface
             var brkauth = new DexWalletAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
-            if (brkret.Item1 == APIResultCodes.Success)
+            if (brkret == APIResultCodes.Success)
                 return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexTokenBurnAuthorizer->TransactionAuthorizer");
             else
-                return brkret.Item1;
+                return brkret;
         }
         protected override AuthorizationFeeTypes GetFeeType()
         {
@@ -45,6 +50,11 @@ namespace Lyra.Core.Authorizers
 
     public class DexWithdrawAuthorizer : DexTokenBurnAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.DexWithdrawToken;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is TokenWithdrawBlock))

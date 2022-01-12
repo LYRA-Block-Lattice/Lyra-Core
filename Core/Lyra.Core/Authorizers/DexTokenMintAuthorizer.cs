@@ -12,6 +12,11 @@ namespace Lyra.Core.Authorizers
 {
     public class DexTokenMintAuthorizer : TransactionAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.DexTokenMint;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is TokenMintBlock))
@@ -32,10 +37,10 @@ namespace Lyra.Core.Authorizers
             // IDexWallet interface
             var brkauth = new DexWalletAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
-            if (brkret.Item1 == APIResultCodes.Success)
+            if (brkret == APIResultCodes.Success)
                 return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexTokenMintAuthorizer->TransactionAuthorizer");
             else
-                return brkret.Item1;
+                return brkret;
         }
 
         protected override AuthorizationFeeTypes GetFeeType()

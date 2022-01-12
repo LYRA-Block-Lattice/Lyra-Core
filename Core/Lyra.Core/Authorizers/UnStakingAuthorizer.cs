@@ -10,6 +10,11 @@ namespace Lyra.Core.Authorizers
 {
     public class UnStakingAuthorizer : BrokerAccountSendAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.UnStaking;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is UnStakingBlock))

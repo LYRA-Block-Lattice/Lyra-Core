@@ -18,6 +18,10 @@ namespace Lyra.Core.Authorizers
 {
     public class ConsolidationBlockAuthorizer : BaseAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.Consolidation;
+        }
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ConsolidationBlock))

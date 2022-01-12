@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static Lyra.Core.Accounts.Wallet;
 
@@ -52,6 +53,8 @@ namespace UnitTests
         bool _authResult = true;
         StringBuilder _sbAuthResults = new StringBuilder();
 
+        ManualResetEvent _newAuth = new ManualResetEvent(false);
+
         [TestInitialize]
         public void TestSetup()
         {
@@ -62,9 +65,13 @@ namespace UnitTests
             sys = ta.TheDagSystem;
             sys.StartConsensus();
             store = ta.TheDagSystem.Storage;
+        }
 
-            //af = new AuthorizersFactory();
-            //af.Init();
+        [TestMethod]
+        public void TestAuthorizerFactory()
+        {
+            var af = new AuthorizersFactory();
+            af.Init();
         }
 
         // when we create failure test case, call this
@@ -83,42 +90,50 @@ namespace UnitTests
 
         private async Task<AuthorizationAPIResult> AuthAsync(Block block)
         {
-            if(block is TransactionBlock)
+            try
             {
-                var accid = block is TransactionBlock tb ? tb.AccountID : "";
-                var auth = cs.AF.Create(block);
-                var result = await auth.AuthorizeAsync(sys, block);
-
-                Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {block.BlockType} Index: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} ");
-                //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
-
-                if (result.Item1 == APIResultCodes.Success)
+                _newAuth.Reset();
+                if (block is TransactionBlock)
                 {
-                    await store.AddBlockAsync(block);
+                    var accid = block is TransactionBlock tb ? tb.AccountID : "";
+                    var auth = cs.AF.Create(block);
+                    var result = await auth.AuthorizeAsync(sys, block);
 
-                    cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
-                }                    
+                    Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {block.BlockType} Index: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} ");
+                    //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
+
+                    if (result.Item1 == APIResultCodes.Success)
+                    {
+                        await store.AddBlockAsync(block);
+
+                        cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
+                    }
+                    else
+                    {
+                        _authResult = false;
+                        _sbAuthResults.Append($"{result.Item1}, ");
+                    }
+
+                    return new AuthorizationAPIResult
+                    {
+                        ResultCode = result.Item1,
+                        TxHash = block.Hash,
+                    };
+                }
                 else
                 {
-                    _authResult = false;
-                    _sbAuthResults.Append($"{result.Item1}, ");
+                    // allow service block and consolidation block for now
+                    await store.AddBlockAsync(block);
+                    return new AuthorizationAPIResult
+                    {
+                        ResultCode = APIResultCodes.Success,
+                        TxHash = block.Hash,
+                    };
                 }
-
-                return new AuthorizationAPIResult
-                {
-                    ResultCode = result.Item1,
-                    TxHash = block.Hash,
-                };
             }
-            else
+            finally
             {
-                // allow service block and consolidation block for now
-                await store.AddBlockAsync(block);
-                return new AuthorizationAPIResult
-                {
-                    ResultCode = APIResultCodes.Success,
-                    TxHash = block.Hash,
-                };
+                _newAuth.Set();
             }
         }
 
@@ -267,15 +282,26 @@ namespace UnitTests
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
             await TestOTCTrade();
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
 
             
+        }
+
+        private async Task WaitBlock(int count = 1)
+        {
+            while (count > 0)
+            {
+                var ret = _newAuth.WaitOne(2000);
+                Assert.IsTrue(ret);
+
+                count--;
+            }
         }
 
         private async Task TestOTCTrade()
@@ -285,7 +311,9 @@ namespace UnitTests
             var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
                     "", "", ContractTypes.Cryptocurrency, null);
             Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode}");
-            await Task.Delay(100);
+
+            await WaitBlock();
+
             await testWallet.SyncAsync(null);
             var testbalance = testWallet.BaseBalance;
 
@@ -294,10 +322,13 @@ namespace UnitTests
             var desc = "Doing great business!";
             var dcret = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
-            await Task.Delay(100);
+            
+            await WaitBlock();
 
             var dcretx = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
+
+            await WaitBlock();
             ResetAuthFail();
 
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
@@ -327,11 +358,11 @@ namespace UnitTests
                 collateral = 1000000,
             };
 
-            await Task.Delay(100);
+            await WaitBlock();
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
-            await Task.Delay(500);
+            await WaitBlock();
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
@@ -346,7 +377,7 @@ namespace UnitTests
 
             var otcg = otcs.First() as OtcOrderGenesis;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
-            await Task.Delay(100);
+            await WaitBlock();
 
             // here comes a buyer, he who want to buy 1 BTC.
             var trade = new OTCCryptoTrade
@@ -367,7 +398,7 @@ namespace UnitTests
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await Task.Delay(200);
+            await WaitBlock();
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
@@ -389,7 +420,7 @@ namespace UnitTests
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
-            await Task.Delay(100);
+            await WaitBlock();
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
@@ -400,7 +431,7 @@ namespace UnitTests
             var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            await Task.Delay(200);
+            await WaitBlock();
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
@@ -414,7 +445,7 @@ namespace UnitTests
             var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
-            await Task.Delay(100);
+            await WaitBlock();
             var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
             Assert.AreEqual(OtcOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).Status,

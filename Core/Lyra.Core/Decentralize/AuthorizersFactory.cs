@@ -3,6 +3,7 @@ using Lyra.Core.Blocks;
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Lyra.Core.Decentralize
@@ -12,7 +13,6 @@ namespace Lyra.Core.Decentralize
         public AuthorizersFactory Singleton { get; private set; }
         static Dictionary<BlockTypes, Type> _authorizers;
         static Dictionary<BlockTypes, IAuthorizer> _authorizerInstances;
-        static TransactionAuthorizer _wfAuthorizer;
 
         public AuthorizersFactory()
         {
@@ -26,6 +26,30 @@ namespace Lyra.Core.Decentralize
                 //throw new InvalidOperationException("Already initialized.");
 
             _authorizers = new Dictionary<BlockTypes, Type>();
+            _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
+
+            var exporters = typeof(BaseAuthorizer)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(BaseAuthorizer)) && !t.IsAbstract)
+                .Select(t => new
+                {
+                    b = (IAuthorizer)Activator.CreateInstance(t),
+                    t
+                });
+            foreach (var entry in exporters)
+            {
+                BlockTypes bt;
+                try
+                {
+                    bt = entry.b.GetBlockType();
+                    //Console.WriteLine($"{bt}: {entry.t.Name}");
+                    if (bt != BlockTypes.Null)
+                        Register(bt, entry.t);
+                }
+                catch { }
+            }
+
+            /*
             _authorizers.Add(BlockTypes.SendTransfer, typeof(SendTransferAuthorizer));
             
             _authorizers.Add(BlockTypes.ReceiveFee, typeof(ReceiveTransferAuthorizer));
@@ -82,7 +106,7 @@ namespace Lyra.Core.Decentralize
                 _authorizerInstances.Add(kvp.Key, authorizer);
             }
 
-            _wfAuthorizer = new TransactionAuthorizer();
+            //_wfAuthorizer = new TransactionAuthorizer(); */
 
             Singleton = this;
         }
@@ -92,15 +116,19 @@ namespace Lyra.Core.Decentralize
             //return (IAuthorizer)Activator.CreateInstance(_authorizers[blockType]);
             if (_authorizerInstances.ContainsKey(block.BlockType))
                 return _authorizerInstances[block.BlockType];
-            else if (block is IBrokerAccount || block is IPool)
-                return _wfAuthorizer;
             else
                 throw new Exception($"No authorizer for {block.BlockType}");
         }
 
         public void Register(BlockTypes blockType, Type authrType)
         {
+            if(_authorizers.ContainsKey(blockType))
+            {
+                return;
+            }
+                
             _authorizers.Add(blockType, authrType);
+            //Console.WriteLine($"Error Adding authorizer {blockType} for {authrType.Name}");
 
             var authorizer = (IAuthorizer)Activator.CreateInstance(authrType);
             _authorizerInstances.Add(blockType, authorizer);

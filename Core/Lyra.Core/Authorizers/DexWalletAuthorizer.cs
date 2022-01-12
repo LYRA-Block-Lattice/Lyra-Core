@@ -10,7 +10,7 @@ namespace Lyra.Core.Authorizers
 {
     public class DexWalletAuthorizer : BrokerAccountAuthorizer
     {
-        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        public override async Task<APIResultCodes> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is IDexWallet))
                 return APIResultCodes.InvalidBlockType;
@@ -31,12 +31,7 @@ namespace Lyra.Core.Authorizers
 
             // TODO: verify against dex server
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexWalletAuthorizer->BrokerAccountAuthorizer");
-        }
-
-        protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
-        {
-            return true;
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeAsync(sys, tblock), "DexWalletAuthorizer->BrokerAccountAuthorizer");
         }
     }
 }

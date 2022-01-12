@@ -8,6 +8,11 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolSwapInAuthorizer : ReceiveTransferAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolSwapIn;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is PoolSwapInBlock))

@@ -8,6 +8,10 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolFactoryAuthorizer : BaseAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolFactory;
+        }
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is PoolFactoryBlock))

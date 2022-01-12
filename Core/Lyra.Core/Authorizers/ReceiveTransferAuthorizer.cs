@@ -14,6 +14,11 @@ namespace Lyra.Core.Authorizers
 {
     public class ReceiveTransferAuthorizer: TransactionAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.ReceiveTransfer;
+        }
+
         static List<BlockTypes> AllowedOpeningBlockTypes = new List<BlockTypes> { 
             BlockTypes.ProfitingGenesis,
             BlockTypes.StakingGenesis,

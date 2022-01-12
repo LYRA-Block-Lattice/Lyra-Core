@@ -12,6 +12,11 @@ namespace Lyra.Core.Authorizers
 {
     public class ReceiveNodeProfitAuthorizer : ProfitingAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.ReceiveNodeProfit;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ReceiveNodeProfitBlock))

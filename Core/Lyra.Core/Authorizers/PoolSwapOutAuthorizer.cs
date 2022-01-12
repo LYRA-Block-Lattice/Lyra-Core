@@ -13,6 +13,11 @@ namespace Lyra.Core.Authorizers
     {
         private SwapCalculator _calculator;
 
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolSwapOut;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is PoolSwapOutBlock))

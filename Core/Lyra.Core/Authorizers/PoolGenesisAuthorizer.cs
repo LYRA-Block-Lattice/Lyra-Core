@@ -10,6 +10,11 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolGenesisAuthorizer : ReceiveTransferAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolGenesis;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is PoolGenesisBlock))

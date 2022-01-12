@@ -18,6 +18,10 @@ namespace Lyra.Core.Authorizers
 {
     public class SendTransferAuthorizer : TransactionAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.SendTransfer;
+        }
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is SendTransferBlock))

@@ -12,6 +12,11 @@ namespace Lyra.Core.Authorizers
 {
     public class DexWalletGenesisAuthorizer : DexReceiveAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.DexWalletGenesis;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is DexWalletGenesis))

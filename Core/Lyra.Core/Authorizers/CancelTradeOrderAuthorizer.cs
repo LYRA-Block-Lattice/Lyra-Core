@@ -5,6 +5,11 @@ namespace Lyra.Core.Authorizers
 {
     public class CancelTradeOrderAuthorizer: ReceiveTransferAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.CancelTradeOrder;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is CancelTradeOrderBlock))

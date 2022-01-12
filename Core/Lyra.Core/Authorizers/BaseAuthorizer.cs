@@ -39,6 +39,8 @@ namespace Lyra.Core.Authorizers
             _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
+        public abstract BlockTypes GetBlockType();
+
         public async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block
         {
             var result = await AuthorizeImplAsync(sys, tblock);

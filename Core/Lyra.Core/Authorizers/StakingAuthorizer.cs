@@ -10,6 +10,11 @@ namespace Lyra.Core.Authorizers
 {
     public class StakingAuthorizer : BrokerAccountRecvAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.Staking;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is StakingBlock))

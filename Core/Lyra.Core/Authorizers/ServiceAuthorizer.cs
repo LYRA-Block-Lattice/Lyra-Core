@@ -18,6 +18,10 @@ namespace Lyra.Core.Authorizers
 {
     public class ServiceAuthorizer : BaseAuthorizer
     {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.Service;
+        }
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ServiceBlock))
