@@ -36,7 +36,7 @@ namespace Lyra.Core.Decentralize
         }
         private bool _closed = false;
         public bool IsClosed => _closed;
-        public event SuccessConsensusHandler OnConsensusSuccess;
+        //public event SuccessConsensusHandler OnConsensusSuccess;
 
         // for debug profiling only
         public DateTime T1 { get; set; }
@@ -91,7 +91,9 @@ namespace Lyra.Core.Decentralize
 
         private IList<string> _validNodes;
 
-        public AuthState()
+        private Func<Block, ConsensusResult?, bool, Task> _OnFinishedHandler;
+
+        public AuthState(Func<Block, ConsensusResult?, bool, Task> OnFinished)
         {
             _log = new SimpleLogger("AuthState").Logger;
 
@@ -101,6 +103,7 @@ namespace Lyra.Core.Decentralize
             CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);
+            _OnFinishedHandler = OnFinished;
         }
 
         public void Reset()
@@ -239,13 +242,13 @@ namespace Lyra.Core.Decentralize
                 await Done.AsTaskAsync();
         }
 
-        public void Commit()
+        public Task Commit()
         {
             if (_commited)
                 _log.LogError("already commited. should not happen.");
 
             if (_commited)
-                return;
+                return Task.CompletedTask;
 
             _commited = true;
             try
@@ -271,12 +274,15 @@ namespace Lyra.Core.Decentralize
                 else if (CommitConsensus == null || CommitConsensus == ConsensusResult.Uncertain)
                     localResultGood = true;
 
-                OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
+                return _OnFinishedHandler.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
+                //OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
             }
             catch (Exception exe)
             {
                 _log.LogError("Call OnConsensusSuccess: " + exe);
             }
+
+            return Task.CompletedTask;
         }
     }
 }

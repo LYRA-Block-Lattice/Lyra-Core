@@ -110,6 +110,7 @@ deactivate db
         public bool extraDone { get; set; }
 
         public bool FullDone => preDone && mainDone && extraDone;
+        public bool laststepresult { get; set; }
 
         public DateTime LastBlockTime { get; private set; }
 

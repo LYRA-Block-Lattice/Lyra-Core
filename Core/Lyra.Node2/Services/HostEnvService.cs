@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using WorkflowCore.Interface;
 
 namespace Noded.Services
 {
@@ -38,6 +39,18 @@ namespace Noded.Services
                 return cert.Thumbprint;
             else
                 return null;
+        }
+
+        public IWorkflowHost GetWorkflowHost()
+        {
+            return _host;
+        }
+
+        IWorkflowHost _host;
+
+        public void SetWorkflowHost(IWorkflowHost workflowHost)
+        {
+            _host = workflowHost;
         }
     }
 }

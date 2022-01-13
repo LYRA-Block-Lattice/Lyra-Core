@@ -28,6 +28,8 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.Extensions.FileProviders;
+using WorkflowCore.Interface;
+using Lyra.Core.WorkFlow;
 
 namespace Lyra.Node2
 {
@@ -95,12 +97,18 @@ namespace Lyra.Node2
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();
-            services.AddTransient<IHostEnv, HostEnvService>();
+            services.AddSingleton<IHostEnv, HostEnvService>();
 
             services.AddMvc();
             services.AddControllers();
 
             //services.AddGrpc();
+            services.AddWorkflow(cfg =>
+            {
+                cfg.UseMongoDB(@"mongodb://localhost:27017", "workflow");
+                cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
+                //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
+            });
 
             services.AddApiVersioning(options => {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -217,6 +225,12 @@ namespace Lyra.Node2
             //        context.Context.Response.Headers["Content-Disposition"] = "attachment";
             //    }
             //});
+
+            var host = app.ApplicationServices.GetService<IWorkflowHost>();
+            host.RegisterWorkflow<BlockRunner, BrokerBlueprint>();
+            host.Start();
+            var evn = app.ApplicationServices.GetService<IHostEnv>();
+            evn.SetWorkflowHost(host);
 
             app.UseRouting();
             app.UseCors();

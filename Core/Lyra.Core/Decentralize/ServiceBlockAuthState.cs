@@ -1,15 +1,18 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Neo;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
     public class ServiceBlockAuthState : AuthState
     {
         private List<string> _allVoters;
-        public ServiceBlockAuthState(List<string> AllVoters) : base()
+        public ServiceBlockAuthState(Func<Block, ConsensusResult?, bool, Task> OnFinished, List<string> AllVoters) 
+            : base(OnFinished)
         {
             _allVoters = AllVoters;
         }

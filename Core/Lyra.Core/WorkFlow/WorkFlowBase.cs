@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WorkflowCore.Interface;
 
 namespace Lyra.Core.WorkFlow
 {
@@ -22,7 +23,7 @@ namespace Lyra.Core.WorkFlow
         public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] Steps { get; set; }
     }
 
-    public abstract class WorkFlowBase : IWorkFlow
+    public abstract class WorkFlowBase : IDebiWorkFlow
     {
         public abstract WorkFlowDescription GetDescription();
         public virtual Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)

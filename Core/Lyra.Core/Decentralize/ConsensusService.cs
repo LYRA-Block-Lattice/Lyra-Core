@@ -29,6 +29,8 @@ using Lyra.Data.Crypto;
 using System.Diagnostics;
 using Lyra.Data.Blocks;
 using Lyra.Data.Shared;
+using WorkflowCore.Interface;
+using WorkflowCore.Models;
 
 namespace Lyra.Core.Decentralize
 {
@@ -585,7 +587,7 @@ namespace Lyra.Core.Decentralize
                             if (bpx != null)
                             {
                                 _log.LogInformation($"BrokerFactory.OnFinished try next in queue {bpx.svcReqHash} for brk: {bp.brokerAccount}");
-                                ExecuteBlueprint(bpx, "OnFinished Leader");
+                                //ExecuteBlueprint(bpx, "OnFinished Leader");
                             }                            
                         }
                     };
@@ -1673,7 +1675,7 @@ namespace Lyra.Core.Decentralize
         //    return APIResultCodes.Success;
         //}
 
-        public async void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
+        public async Task Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
             if(result != ConsensusResult.Uncertain)
                 _successBlockCount++;
@@ -1722,7 +1724,7 @@ namespace Lyra.Core.Decentralize
                                 })
                                 .ToArray())
                             {
-                                ExecuteBlueprint(x.bp, "New Elected Leader");
+                                //ExecuteBlueprint(x.bp, "New Elected Leader");
                             }
                         }).ConfigureAwait(false);
                     }
@@ -1806,13 +1808,13 @@ namespace Lyra.Core.Decentralize
             //    send.Tags != null &&
             //    send.Tags.ContainsKey(Block.REQSERVICETAG))
             if (block is SendTransferBlock send)
-                ProcessServerReqBlock(send, result);
+                await ProcessServerReqBlock(send, result);
 
             if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
                 ProcessManagedBlock(block as TransactionBlock, result);
         }
 
-        public void ProcessServerReqBlock(SendTransferBlock send, ConsensusResult? result)
+        public async Task ProcessServerReqBlock(SendTransferBlock send, ConsensusResult? result)
         {
             if (result != ConsensusResult.Yea)
                 return;
@@ -1854,18 +1856,29 @@ namespace Lyra.Core.Decentralize
                     }
 
                     _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
-                    ExecuteBlueprint(blueprint, "Leader ProcessServerReqBlock");
+                    //ExecuteBlueprint(blueprint, "Leader ProcessServerReqBlock");
+
+                    var wfhost = _hostEnv.GetWorkflowHost();
+                    var id = await wfhost.StartWorkflow<BrokerBlueprint>("DebiMain", blueprint);
                 }
             }
         }
 
         public async Task<bool> CheckFinishedAsync(BrokerBlueprint bp)
         {
-            return await bp.ExecuteAsync(_sys, (b) => Task.CompletedTask, "CheckFinishedAsync");
+            //return await bp.ExecuteAsync(_sys, (b) => Task.CompletedTask, "CheckFinishedAsync");
+            return false;
         }
 
-        public void ExecuteBlueprint(BrokerBlueprint bp, string caller)
+        public async void ExecuteBlueprintx(BrokerBlueprint bp, string caller)
         {
+            var wfhost = _hostEnv.GetWorkflowHost();
+
+            wfhost.PublishEvent("", "", "");
+            var id = await wfhost.StartWorkflow<BrokerBlueprint>("DebiMain", bp);
+            var x = await wfhost.PersistenceStore.GetWorkflowInstance(id);
+            
+
             if (_pfTaskMutex.Wait(1))
             {
                 _ = Task.Run(async () =>

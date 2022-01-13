@@ -763,20 +763,19 @@ namespace Lyra.Core.Decentralize
             if (msg.Block is ServiceBlock sb)
             {
                 _log.LogInformation($"AllVoters: {Board.AllVoters.Count}");
-                state = new ServiceBlockAuthState(Board.AllVoters);
+                state = new ServiceBlockAuthState(Worker_OnConsensusSuccess, Board.AllVoters);
                 msg.IsServiceBlock = true;
                 state.SetView(Board.AllVoters);
             }
             else
             {
-                state = new AuthState();
+                state = new AuthState(Worker_OnConsensusSuccess);
                 msg.IsServiceBlock = false;
                 state.SetView(Board.PrimaryAuthorizers);
             }
             state.InputMsg = msg;
 
             state.IsSourceValid = sourceValid;
-            state.OnConsensusSuccess += Worker_OnConsensusSuccess;
 
             return state;
         }
