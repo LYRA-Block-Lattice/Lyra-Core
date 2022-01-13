@@ -49,7 +49,6 @@
     <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
     <PackageReference Include="WorkflowCore" Version="3.6.2" />
     <PackageReference Include="WorkflowCore.DSL" Version="3.6.2" />
-    <PackageReference Include="WorkflowCore.Persistence.MongoDB" Version="3.6.2" />
   </ItemGroup>
 
   <ItemGroup>

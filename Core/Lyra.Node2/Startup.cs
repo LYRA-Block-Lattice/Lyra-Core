@@ -105,7 +105,8 @@ namespace Lyra.Node2
             //services.AddGrpc();
             services.AddWorkflow(cfg =>
             {
-                cfg.UseMongoDB(@"mongodb://localhost:27017", "workflow");
+                //cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("lyra", "workflows"), "workflows");
+                cfg.UseSqlite(@"Data Source=database.db;", true);
                 cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
             });
