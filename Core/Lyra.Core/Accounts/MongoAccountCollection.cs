@@ -2135,7 +2135,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
-            var q = _blocks.OfType<OtcOrderGenesis>()
+            var q = _blocks.OfType<OTCCryptoOrderGenesisBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .ToList();
 

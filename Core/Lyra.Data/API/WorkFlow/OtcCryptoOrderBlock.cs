@@ -24,7 +24,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCOrderRecv;
+            return BlockTypes.OTCCryptoOrderRecv;
         }
 
         public override bool AuthCompare(Block other)
@@ -61,7 +61,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCOrderSend;
+            return BlockTypes.OTCCryptoOrderSend;
         }
 
         public override bool AuthCompare(Block other)
@@ -92,18 +92,18 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class OtcOrderGenesis : OtcCryptoOrderRecvBlock, IOpeningBlock
+    public class OTCCryptoOrderGenesisBlock : OtcCryptoOrderRecvBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCOrderGenesis;
+            return BlockTypes.OTCCryptoOrderGenesis;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcOrderGenesis;
+            var ob = other as OTCCryptoOrderGenesisBlock;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

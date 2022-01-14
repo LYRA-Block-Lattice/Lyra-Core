@@ -237,7 +237,7 @@ namespace Lyra.Core.API
     // return the auhtorization signatures for send or receive blocks
     public class BlockAPIResult : APIResult
     {
-        class MyBinder : Binder
+        public class MyBinder : Binder
         {
             public override MethodBase SelectMethod(BindingFlags bindingAttr, MethodBase[] match, Type[] types, ParameterModifier[] modifiers)
             {

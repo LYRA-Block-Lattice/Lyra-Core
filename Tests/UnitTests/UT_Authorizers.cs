@@ -21,11 +21,14 @@ using Neo;
 using Neo.Network.P2P;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WorkflowCore.Interface;
+using WorkflowCore.Services;
 using static Lyra.Core.Accounts.Wallet;
 
 namespace UnitTests
@@ -57,8 +60,9 @@ namespace UnitTests
         bool _authResult = true;
         StringBuilder _sbAuthResults = new StringBuilder();
 
-        ManualResetEvent _newAuth = new ManualResetEvent(false);
-        ManualResetEvent _workflowEnds = new ManualResetEvent(false);
+        AutoResetEvent _newAuth = new AutoResetEvent(false);
+        AutoResetEvent _workflowEnds = new AutoResetEvent(false);
+        List<string> _endedWorkflows = new List<string>();
 
         [TestInitialize]
         public void TestSetup()
@@ -76,7 +80,29 @@ namespace UnitTests
 
             //start the workflow host
             var host = serviceProvider.GetService<IWorkflowHost>();
-            host.RegisterWorkflow<CreateDaoWorkflow, LyraContext>();
+
+            var alltypes = typeof(DebiWorkflow)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
+
+            foreach (var type in alltypes)
+            {
+                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(a => a.Name == "RegisterWorkflow")
+                    .Last();
+
+                //var methodInfo = typeof(IWorkflowHost).GetMethod("RegisterWorkflow",
+                //    BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static,
+                //    new BlockAPIResult.MyBinder(),
+                //    new[] { typeof(object), typeof(object) },
+                //    null);
+
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+
+                genericMethodInfo.Invoke(host, new object[] { });
+                //host.RegisterWorkflow<type, LyraContext>();
+            }
+           
             host.OnStepError += Host_OnStepError;
             host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
             host.Start();
@@ -89,9 +115,15 @@ namespace UnitTests
 
         private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
         {
-            Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+            //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
             if(evt.Reference == "end")
-                _workflowEnds.Set();
+            {
+                if(!_endedWorkflows.Contains(evt.WorkflowInstanceId))
+                {
+                    _endedWorkflows.Add(evt.WorkflowInstanceId);
+                    _workflowEnds.Set();
+                }
+            }                
         }
 
         private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
@@ -158,13 +190,13 @@ namespace UnitTests
                     if (result.Item1 == APIResultCodes.Success)
                     {
                         await store.AddBlockAsync(block);
-
                         await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
                     }
                     else
                     {
                         _authResult = false;
                         _sbAuthResults.Append($"{result.Item1}, ");
+                        await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Nay, true);
                     }
 
                     return new AuthorizationAPIResult
@@ -183,6 +215,17 @@ namespace UnitTests
                         TxHash = block.Hash,
                     };
                 }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"In AuthAsync: {ex}");
+                await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Uncertain, true);
+
+                return new AuthorizationAPIResult
+                {
+                    ResultCode = APIResultCodes.Exception,
+                    TxHash = block.Hash,
+                };
             }
             finally
             {
@@ -352,7 +395,7 @@ namespace UnitTests
             while (count > 0)
             {
                 var ret = _newAuth.WaitOne(2000);
-                Assert.IsTrue(ret);
+                Assert.IsTrue(ret, "block not authorized properly.");
 
                 count--;
             }
@@ -362,8 +405,8 @@ namespace UnitTests
         {
             while (count > 0)
             {
-                var ret = _workflowEnds.WaitOne(2000);
-                Assert.IsTrue(ret);
+                var ret = _workflowEnds.WaitOne(5000);
+                Assert.IsTrue(ret, "workflow not finished properly.");
 
                 count--;
             }
@@ -427,10 +470,11 @@ namespace UnitTests
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
             await WaitWorkflow();
+
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
-            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OtcOrderGenesis, $"otc gensis block not found.");
+            Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OTCCryptoOrderGenesisBlock, $"otc order gensis block not found.");
 
             // then DAO treasure should not have the crypto
             var daoret3 = await testWallet.RPC.GetDaoByNameAsync(name);
@@ -439,7 +483,7 @@ namespace UnitTests
             Assert.IsTrue(daot.Balances.ContainsKey(crypto), "No collateral token in DAO treasure.");
             Assert.AreEqual(0, daot.Balances[crypto].ToBalanceDecimal());
 
-            var otcg = otcs.First() as OtcOrderGenesis;
+            var otcg = otcs.First() as OTCCryptoOrderGenesisBlock;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
             await WaitBlock();
 
@@ -462,20 +506,20 @@ namespace UnitTests
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await WaitBlock();
+            await WaitWorkflow();
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
             var otcs2 = otcret2.GetBlocks();
             Assert.IsTrue(otcs2.Count() == 1 && otcs2.First() is IOtcOrder, $"otc block count not = 1.");
             var otcorderx = otcs2.First() as IOtcOrder;
-            Assert.AreEqual(9, otcorderx.Order.amount);
+            Assert.AreEqual(9, otcorderx.Order.amount, "order not processed");
 
             // get trade
             var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
             Assert.IsTrue(related.Successful(), $"Can't get rleated tx for trade genesis: {related.ResultCode}");
             var blks = related.GetBlocks();
-            var tradgen = blks.FirstOrDefault(a => a is OtcTradeGenesisBlock) as OtcTradeGenesisBlock;
+            var tradgen = blks.FirstOrDefault(a => a is OtcCryptoTradeGenesisBlock) as OtcCryptoTradeGenesisBlock;
             Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
             Assert.AreEqual(trade, tradgen.Trade);
             Assert.AreEqual(OtcCryptoTradeStatus.Open, tradgen.Status);
@@ -484,7 +528,7 @@ namespace UnitTests
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
-            await WaitBlock();
+            await WaitWorkflow();
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
@@ -495,7 +539,7 @@ namespace UnitTests
             var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            await WaitBlock();
+            await WaitWorkflow();
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
@@ -509,7 +553,7 @@ namespace UnitTests
             var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
-            await WaitBlock();
+            await WaitWorkflow();
             var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
             Assert.AreEqual(OtcOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).Status,

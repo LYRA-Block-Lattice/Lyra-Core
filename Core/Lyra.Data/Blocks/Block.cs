@@ -372,12 +372,12 @@ namespace Lyra.Core.Blocks
         OrgnizationSend = 82,
 
         // OTC
-        OTCOrderRecv = 84,
-        OTCOrderGenesis = 85,
-        OTCOrderSend = 86,
-        OTCTradeRecv = 87,
-        OTCTradeGenesis = 88,
-        OTCTradeSend = 89,
+        OTCCryptoOrderRecv = 84,
+        OTCCryptoOrderGenesis = 85,
+        OTCCryptoOrderSend = 86,
+        OTCCryptoTradeRecv = 87,
+        OTCCryptoTradeGenesis = 88,
+        OTCCryptoTradeSend = 89,
     }
 
     public enum APIResultCodes
@@ -607,5 +607,6 @@ namespace Lyra.Core.Blocks
         InvalidOrderStatus,
         InvalidCollateral,
         InputTooLong,
+        Exception,
     }
 }

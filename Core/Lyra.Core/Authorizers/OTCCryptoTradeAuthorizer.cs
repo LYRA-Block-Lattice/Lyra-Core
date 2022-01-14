@@ -10,34 +10,35 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class DaoRecvAuthorizer : BrokerAccountRecvAuthorizer
+    public class OTCCryptoTradeRecvAuthorizer : BrokerAccountRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationRecv;
+            return BlockTypes.OTCCryptoTradeRecv;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoRecvBlock))
+            if (!(tblock is OtcCryptoTradeRecvBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoRecvBlock;
+            var block = tblock as OtcCryptoTradeRecvBlock;
 
-            // related tx must exist 
-            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-            {
-                // verify its pf or dao
-                var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
-                if(daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                    return APIResultCodes.InvalidServiceRequest;
-            }
+            //// related tx must exist 
+            //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            //if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            //{
+            //    // verify its pf or dao
+            //    var dao = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId);
+            //    var daog = dao as DaoGenesisBlock; //xx no, this is dest the trade chain
+            //    if(daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            //        return APIResultCodes.InvalidServiceRequest;
+            //}
 
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
-                return APIResultCodes.InvalidServiceRequest;
+            //// service must not been processed
+            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (processed.Count != 0)
+            //    return APIResultCodes.InvalidServiceRequest;
 
             //var name = relTx.Tags["name"];
 
@@ -53,34 +54,34 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class DaoSendAuthorizer : BrokerAccountSendAuthorizer
+    public class OTCCryptoTradeSendAuthorizer : BrokerAccountSendAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationSend;
+            return BlockTypes.OTCCryptoTradeSend;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoSendBlock))
+            if (!(tblock is OtcCryptoTradeSendBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoSendBlock;
+            var block = tblock as OtcCryptoTradeSendBlock;
 
-            // related tx must exist 
-            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-            {
-                // verify its pf or dao
-                var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
-                if (daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                    return APIResultCodes.InvalidServiceRequest;
-            }
+            //// related tx must exist 
+            //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            //if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            //{
+            //    // verify its pf or dao
+            //    var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
+            //    if (daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            //        return APIResultCodes.InvalidServiceRequest;
+            //}
 
             // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 1)
-                return APIResultCodes.InvalidServiceRequest;
+            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (processed.Count != 1)
+            //    return APIResultCodes.InvalidServiceRequest;
 
             //var name = relTx.Tags["name"];
 
@@ -96,21 +97,21 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class DaoGenesisAuthorizer : DaoRecvAuthorizer
+    public class OTCCryptoTradeGenesisAuthorizer : OTCCryptoTradeRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationGenesis;
+            return BlockTypes.OTCCryptoTradeGenesis;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoGenesisBlock))
+            if (!(tblock is OtcCryptoTradeGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoGenesisBlock;
+            var block = tblock as OtcCryptoTradeGenesisBlock;
 
-            if(block.AccountType != AccountTypes.DAO)
+            if(block.AccountType != AccountTypes.OTC)
             {
                 return APIResultCodes.InvalidAccountType;
             }

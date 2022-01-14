@@ -27,6 +27,8 @@ namespace Lyra.Core.Authorizers
             BlockTypes.LyraTokenGenesis,
             BlockTypes.DexWalletGenesis,
             BlockTypes.OrgnizationGenesis,
+            BlockTypes.OTCCryptoOrderGenesis,
+            BlockTypes.OTCCryptoTradeGenesis,
         };
 
         
@@ -132,6 +134,8 @@ namespace Lyra.Core.Authorizers
                     || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting
                     || block.BlockType == BlockTypes.ReceiveAsFee
                     || block.BlockType == BlockTypes.DexRecvToken
+                    || block.BlockType == BlockTypes.OrgnizationRecv
+                    || block.BlockType == BlockTypes.OTCCryptoTradeRecv
                     )  // temp code. should use getbalancechanges
                 {
                     if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)

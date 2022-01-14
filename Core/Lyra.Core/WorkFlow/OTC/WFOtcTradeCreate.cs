@@ -140,7 +140,7 @@ namespace Lyra.Core.WorkFlow
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var otcblock = new OtcTradeGenesisBlock
+            var otcblock = new OtcCryptoTradeGenesisBlock
             {
                 ServiceHash = sb.Hash,
                 Fee = 0,

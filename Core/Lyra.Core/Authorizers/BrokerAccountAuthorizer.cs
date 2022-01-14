@@ -64,12 +64,12 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             // benefiting may have multiple blocks
-            if(!(block is BenefitingBlock))
-            {
-                var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-                if (blocks.Count != 0)
-                    return APIResultCodes.InvalidRelatedTx;
-            }
+            //if(!(block is BenefitingBlock))
+            //{
+            //    var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //    if (blocks.Count != 0)
+            //        return APIResultCodes.InvalidRelatedTx;
+            //}
 
             // IBrokerAccount interface
             var brkauth = new BrokerAccountAuthorizer();

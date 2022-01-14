@@ -1846,6 +1846,7 @@ namespace Lyra.Core.Decentralize
                     Consensus = this,
                     SendBlock = send,
                     SubWorkflow = BrokerFactory.DynWorkFlows[svcreqtag],
+                    InRuning = true,
                 };
                 var id = await wfhost.StartWorkflow(svcreqtag, ctx);
                 _workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
@@ -1979,6 +1980,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var wfhost = _hostEnv.GetWorkflowHost();
+            Console.WriteLine($"Publish Consensus event for {key}: {result} ");
             await wfhost.PublishEvent("Consensus", key, result);
             return;
 

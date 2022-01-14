@@ -10,19 +10,19 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class DaoRecvAuthorizer : BrokerAccountRecvAuthorizer
+    public class OTCCryptoOrderRecvAuthorizer : BrokerAccountRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationRecv;
+            return BlockTypes.OTCCryptoOrderRecv;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoRecvBlock))
+            if (!(tblock is OtcCryptoOrderRecvBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoRecvBlock;
+            var block = tblock as OtcCryptoOrderRecvBlock;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
@@ -34,10 +34,10 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidServiceRequest;
             }
 
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
-                return APIResultCodes.InvalidServiceRequest;
+            //// service must not been processed
+            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (processed.Count != 0)
+            //    return APIResultCodes.InvalidServiceRequest;
 
             //var name = relTx.Tags["name"];
 
@@ -53,19 +53,19 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class DaoSendAuthorizer : BrokerAccountSendAuthorizer
+    public class OTCCryptoOrderSendAuthorizer : BrokerAccountSendAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationSend;
+            return BlockTypes.OTCCryptoOrderSend;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoSendBlock))
+            if (!(tblock is OtcCryptoOrderSendBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoSendBlock;
+            var block = tblock as OtcCryptoOrderSendBlock;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
@@ -96,21 +96,21 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class DaoGenesisAuthorizer : DaoRecvAuthorizer
+    public class OTCCryptoOrderGenesisAuthorizer : OTCCryptoOrderRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationGenesis;
+            return BlockTypes.OTCCryptoOrderGenesis;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is DaoGenesisBlock))
+            if (!(tblock is OTCCryptoOrderGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as DaoGenesisBlock;
+            var block = tblock as OTCCryptoOrderGenesisBlock;
 
-            if(block.AccountType != AccountTypes.DAO)
+            if(block.AccountType != AccountTypes.OTC)
             {
                 return APIResultCodes.InvalidAccountType;
             }
