@@ -184,7 +184,7 @@ namespace UnitTests
                     var auth = cs.AF.Create(block);
                     var result = await auth.AuthorizeAsync(sys, block);
 
-                    Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {block.BlockType} Index: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} ");
+                    Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
                     //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
                     if (result.Item1 == APIResultCodes.Success)
@@ -546,7 +546,7 @@ namespace UnitTests
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
             Assert.AreEqual(OtcCryptoTradeStatus.CryptoReleased, (trdlatest2.GetBlock() as IOtcCryptoTrade).Status,
-                $"Trade statust not changed to ProductReleased");
+                $"Trade status not changed to ProductReleased");
 
             await test2Wallet.SyncAsync(null);
             Assert.AreEqual(test2balance - 13, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
@@ -702,11 +702,11 @@ namespace UnitTests
             Assert.IsTrue(crstkret.Successful());
             var stkblock = crstkret.GetBlock() as StakingBlock;
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
-            await Task.Delay(1000);
+            await WaitWorkflow();
 
             var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);
             Assert.IsTrue(addstkret.Successful());
-            await Task.Delay(1000);
+            await WaitWorkflow();
             var stk = await w.GetStakingAsync(stkblock.AccountID);
             Assert.AreEqual(amount, (stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
             return stk;
@@ -717,7 +717,7 @@ namespace UnitTests
             var balance = w.BaseBalance;
             var unstkret = await w.UnStakingAsync(stkid);
             Assert.IsTrue(unstkret.Successful());
-            await Task.Delay(1000);
+            await WaitWorkflow();
             await w.SyncAsync(null);
             var nb = balance + 2000m - 2;// * 0.988m; // two send fee
             //Assert.AreEqual(nb, w.BaseBalance);
@@ -742,11 +742,11 @@ namespace UnitTests
             Console.WriteLine("Staking 1");
             // create two staking account, add funds, and vote to it
             var stk = await CreateStaking(testWallet, pftblock.AccountID, 2000m);
+
             Console.WriteLine("Staking 2"); 
             var stk2 = await CreateStaking(test2Wallet, pftblock.AccountID, 2000m);
 
             // get the base balance
-            await Task.Delay(1000);
             await testWallet.SyncAsync(null);
             await test2Wallet.SyncAsync(null);
 
@@ -764,7 +764,7 @@ namespace UnitTests
             Assert.IsTrue(getpftRet.Successful(), $"Failed to get dividends: {getpftRet.ResultCode}");
 
             // then sync wallet and see if it gets a dividend
-            await Task.Delay(3000);
+            await WaitWorkflow();
             if (networkId == "devnet")
                 await Task.Delay(3000);
             var bal1 = testWallet.BaseBalance;
@@ -798,7 +798,7 @@ namespace UnitTests
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(crplret.Successful(), $"Error create liquidate pool {crplret.ResultCode}");
-            await Task.Delay(10000);
+            await WaitWorkflow();
             var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(pool.PoolAccountId != null && pool.PoolAccountId.StartsWith('L'), "Can't get pool created.");
 
@@ -806,7 +806,7 @@ namespace UnitTests
             var addpoolret = await testWallet.AddLiquidateToPoolAsync(token0, 1000000, "LYR", 5000);
             Assert.IsTrue(addpoolret.Successful());
 
-            await Task.Delay(1000);
+            await WaitWorkflow();
 
             // swap
             var poolx = await client.GetPoolAsync(token0, LyraGlobal.OFFICIALTICKERCODE);
@@ -814,24 +814,21 @@ namespace UnitTests
             var poolLatestBlock = poolx.GetBlock() as TransactionBlock;
 
             await testWallet.SyncAsync(null);
-            await Task.Delay(1000);
+
             var oldtkn0 = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal();
             var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, token0, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, 20, 0);
             var swapret = await testWallet.SwapTokenAsync("LYR", token0, "LYR", 20, cal2.SwapOutAmount);
             Assert.IsTrue(swapret.Successful());
-            await Task.Delay(2000);
+            await WaitWorkflow();
             await testWallet.SyncAsync(null);
-            await Task.Delay(1000);
+
             var gotamount = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal() - oldtkn0;
             Console.WriteLine($"Got swapped amount {gotamount} {token0}");
-
-            await Task.Delay(1000);
 
             // remove liquidate from pool
             var rmliqret = await testWallet.RemoveLiquidateFromPoolAsync(token0, "LYR");
             Assert.IsTrue(rmliqret.Successful());
 
-            await Task.Delay(1000);
             await testWallet.SyncAsync(null);
         }
     }

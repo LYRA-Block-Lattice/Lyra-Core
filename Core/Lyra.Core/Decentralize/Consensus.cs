@@ -540,7 +540,7 @@ namespace Lyra.Core.Decentralize
             }
 
             // unite test only
-            if (_hostEnv == null)
+            if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
                 svcBlock.Authorizers.Add(_board.CurrentLeader, null);
 
             // fees aggregation

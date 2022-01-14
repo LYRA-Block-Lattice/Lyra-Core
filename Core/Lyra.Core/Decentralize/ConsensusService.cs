@@ -412,7 +412,7 @@ namespace Lyra.Core.Decentralize
 
             Instance = this;
             // hack for unit test
-            if (_hostEnv == null)
+            if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
                 _localNode = null;
         }
 
@@ -1623,7 +1623,7 @@ namespace Lyra.Core.Decentralize
         private async Task SubmitToConsensusAsync(AuthState state)
         {
             // unit test support
-            if(_hostEnv == null)
+            if(Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
             {
                 await OnNewBlock(state.InputMsg.Block);
                 return;
