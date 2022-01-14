@@ -31,6 +31,7 @@ using Lyra.Data.Blocks;
 using Lyra.Data.Shared;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
+using Lyra.Core.WorkFlow;
 
 namespace Lyra.Core.Decentralize
 {
@@ -58,7 +59,7 @@ namespace Lyra.Core.Decentralize
         public BlockChainState CurrentState => _stateMachine.State;
 
         readonly ILogger _log;
-        readonly IHostEnv _hostEnv;
+        IHostEnv _hostEnv;
         readonly ConcurrentDictionary<string, DateTime> _criticalMsgCache;
         readonly ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         List<Vote> _lastVotes;
@@ -91,6 +92,10 @@ namespace Lyra.Core.Decentralize
         private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(1);
 
         private DateTime _lastConsolidateTry;
+
+        public void SetHostEnv(IHostEnv env) { _hostEnv = env; }
+        ConcurrentDictionary<string, string> _workFlows;
+
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -108,7 +113,7 @@ namespace Lyra.Core.Decentralize
 
             _board = new BillBoard();
 
-            //_verifiedIP = new ConcurrentDictionary<string, DateTime>();
+            _workFlows = new ConcurrentDictionary<string, string>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
             _af = new AuthorizersFactory();
@@ -1808,59 +1813,79 @@ namespace Lyra.Core.Decentralize
             //    send.Tags != null &&
             //    send.Tags.ContainsKey(Block.REQSERVICETAG))
             if (block is SendTransferBlock send)
-                await ProcessServerReqBlock(send, result);
+                await ProcessServerReqBlockAsync(send, result);
 
             if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
                 ProcessManagedBlock(block as TransactionBlock, result);
         }
 
-        public async Task ProcessServerReqBlock(SendTransferBlock send, ConsensusResult? result)
+        public async Task<object> GetBlockForRelatedTx(string reltx)
+        {
+            var wfhost = _hostEnv.GetWorkflowHost();
+
+            var Id = _workFlows[reltx];
+            var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
+            return (wf.Data as LyraContext).LastBlock;
+        }
+
+        public async Task ProcessServerReqBlockAsync(SendTransferBlock send, ConsensusResult? result)
         {
             if (result != ConsensusResult.Yea)
                 return;
 
-            string action = null;
+            string svcreqtag = null;
             if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
-                action = send.Tags[Block.REQSERVICETAG];
+                svcreqtag = send.Tags[Block.REQSERVICETAG];
 
-            if (action != null)
+            if (svcreqtag != null)
             {
-                // get broker account
-                var brkaccount = BrokerFactory.GetBrokerAccountID(send);
-
-                var bps = BrokerFactory.GetAllBlueprints();
-                var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
-
-                // create a blueprint for workflow
-                var blueprint = new BrokerBlueprint
+                var wfhost = _hostEnv.GetWorkflowHost();
+                var ctx = new LyraContext
                 {
-                    view = _currentView,
-                    start = send.TimeStamp,
-                    initiatorAccount = send.AccountID,
-                    brokerAccount = brkaccount,
-                    svcReqHash = send.Hash,
-                    action = action,
-                    preDone = false,
-                    mainDone = false,
-                    extraDone = false
+                    Sys = _sys,
+                    Consensus = this,
+                    SendBlock = send,
+                    SubWorkflow = BrokerFactory.DynWorkFlows[svcreqtag],
                 };
-                BrokerFactory.CreateBlueprint(blueprint);
+                var id = await wfhost.StartWorkflow(svcreqtag, ctx);
+                _workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
 
-                if(IsThisNodeLeader)
-                {
-                    // if same broker account, then don't run, let it wait in queue.
-                    if (brkaccount != null && curbrks.Any())
-                    {
-                        _log.LogInformation($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
-                        return;
-                    }
+                //// get broker account
+                //var brkaccount = BrokerFactory.GetBrokerAccountID(send);
 
-                    _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
-                    //ExecuteBlueprint(blueprint, "Leader ProcessServerReqBlock");
+                //var bps = BrokerFactory.GetAllBlueprints();
+                //var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
 
-                    var wfhost = _hostEnv.GetWorkflowHost();
-                    var id = await wfhost.StartWorkflow<BrokerBlueprint>("DebiMain", blueprint);
-                }
+                //// create a blueprint for workflow
+                //var blueprint = new BrokerBlueprint
+                //{
+                //    view = _currentView,
+                //    start = send.TimeStamp,
+                //    initiatorAccount = send.AccountID,
+                //    brokerAccount = brkaccount,
+                //    svcReqHash = send.Hash,
+                //    action = action,
+                //    preDone = false,
+                //    mainDone = false,
+                //    extraDone = false
+                //};
+                //BrokerFactory.CreateBlueprint(blueprint);
+
+                //if(IsThisNodeLeader)
+                //{
+                //    // if same broker account, then don't run, let it wait in queue.
+                //    if (brkaccount != null && curbrks.Any())
+                //    {
+                //        _log.LogInformation($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
+                //        return;
+                //    }
+
+                //    _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
+                //    //ExecuteBlueprint(blueprint, "Leader ProcessServerReqBlock");
+
+                //    var wfhost = _hostEnv.GetWorkflowHost();
+                //    var id = await wfhost.StartWorkflow("DebiMain", blueprint);
+                //}
             }
         }
 
@@ -1930,7 +1955,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void ProcessManagedBlock(TransactionBlock block, ConsensusResult? result)
+        public async Task ProcessManagedBlock(TransactionBlock block, ConsensusResult? result)
         {
             // find the key
             string key = null;
@@ -1952,6 +1977,10 @@ namespace Lyra.Core.Decentralize
 
             if (key == null)
                 return;
+
+            var wfhost = _hostEnv.GetWorkflowHost();
+            await wfhost.PublishEvent("Consensus", key, result);
+            return;
 
             var bp = BrokerFactory.GetBlueprint(key);
             if (bp == null)

@@ -715,22 +715,29 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task SendBlockToConsensusAndForgetAsync(Block block)
+        public async Task SendBlockToConsensusAndForgetAsync(Block block)
         {
             if (block == null)
                 throw new ArgumentNullException();
 
-            AuthorizingMsg msg = new AuthorizingMsg
+            if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
             {
-                From = _sys.PosWallet.AccountId,
-                Block = block,
-                BlockHash = block.Hash,
-                MsgType = ChatMessageType.AuthorizerPrePrepare
-            };
+                await OnNewBlock(block);
+            }
+            else
+            {
+                AuthorizingMsg msg = new AuthorizingMsg
+                {
+                    From = _sys.PosWallet.AccountId,
+                    Block = block,
+                    BlockHash = block.Hash,
+                    MsgType = ChatMessageType.AuthorizerPrePrepare
+                };
 
-            var state = CreateAuthringState(msg, true);
+                var state = CreateAuthringState(msg, true);
 
-            await SubmitToConsensusAsync(state);
+                await SubmitToConsensusAsync(state);
+            }
         }
 
         private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default

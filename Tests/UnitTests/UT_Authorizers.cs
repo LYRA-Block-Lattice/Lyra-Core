@@ -8,10 +8,12 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Shared;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -23,6 +25,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WorkflowCore.Interface;
 using static Lyra.Core.Accounts.Wallet;
 
 namespace UnitTests
@@ -36,6 +39,7 @@ namespace UnitTests
         readonly string test2PrivateKey = "2XAGksPqMDxeSJVoE562TX7JzmCKna3i7AS9e4ZPmiTKQYATsy";
         string test2PublicKey = "LUTob2rWpFBZ6r3UxHhDYR8Utj4UDrmf1SFC25RpQxEfZNaA2WHCFtLVmURe1ty4ZNU9gBkCCrSt6ffiXKrRH3z9T3ZdXK";
 
+        IHostEnv _env;
         private ConsensusService cs;
         private IAccountCollectionAsync store;
         private DagSystem sys;
@@ -54,6 +58,7 @@ namespace UnitTests
         StringBuilder _sbAuthResults = new StringBuilder();
 
         ManualResetEvent _newAuth = new ManualResetEvent(false);
+        ManualResetEvent _workflowEnds = new ManualResetEvent(false);
 
         [TestInitialize]
         public void TestSetup()
@@ -65,6 +70,54 @@ namespace UnitTests
             sys = ta.TheDagSystem;
             sys.StartConsensus();
             store = ta.TheDagSystem.Storage;
+
+            // workflow init
+            IServiceProvider serviceProvider = ConfigureServices();
+
+            //start the workflow host
+            var host = serviceProvider.GetService<IWorkflowHost>();
+            host.RegisterWorkflow<CreateDaoWorkflow, LyraContext>();
+            host.OnStepError += Host_OnStepError;
+            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
+            host.Start();
+
+            _env = serviceProvider.GetService<IHostEnv>();
+            _env.SetWorkflowHost(host);
+
+            //host.StartWorkflow("HelloWorld", 1, null, null);
+        }
+
+        private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
+        {
+            Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+            if(evt.Reference == "end")
+                _workflowEnds.Set();
+        }
+
+        private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
+        {
+            Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
+        }
+
+        private static IServiceProvider ConfigureServices()
+        {
+            //setup dependency injection
+            IServiceCollection services = new ServiceCollection();
+            services.AddLogging();
+            services.AddWorkflow(cfg =>
+            {
+                //cfg.UseMongoDB(@"mongodb://localhost:27017", "workflow");
+                cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
+                //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
+            });
+
+            //services.AddTransient<DoSomething>();
+            //services.AddTransient<IMyService, MyService>();
+            services.AddSingleton<IHostEnv, TestEnv>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            return serviceProvider;
         }
 
         [TestMethod]
@@ -106,7 +159,7 @@ namespace UnitTests
                     {
                         await store.AddBlockAsync(block);
 
-                        cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
+                        await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
                     }
                     else
                     {
@@ -144,6 +197,7 @@ namespace UnitTests
             {
                 await Task.Delay(1000);
                 cs = ConsensusService.Instance;
+                cs.SetHostEnv(_env);
             }
             cs.OnNewBlock += async (b) => (ConsensusResult.Yea, (await AuthAsync(b)).ResultCode);
             //{
@@ -304,6 +358,17 @@ namespace UnitTests
             }
         }
 
+        private async Task WaitWorkflow(int count = 1)
+        {
+            while (count > 0)
+            {
+                var ret = _workflowEnds.WaitOne(2000);
+                Assert.IsTrue(ret);
+
+                count--;
+            }
+        }
+
         private async Task TestOTCTrade()
         {
             var crypto = "unittest/ETH";
@@ -322,20 +387,20 @@ namespace UnitTests
             var desc = "Doing great business!";
             var dcret = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
-            
-            await WaitBlock();
 
-            var dcretx = await testWallet.CreateDAOAsync(name, desc);
-            Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
-
-            await WaitBlock();
-            ResetAuthFail();
+            await WaitWorkflow();
 
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
             var daoblk = daoret.GetBlock() as DaoGenesisBlock;
             Assert.AreEqual(name, daoblk.Name);
             Assert.AreEqual(desc, daoblk.Description);
+
+            var dcretx = await testWallet.CreateDAOAsync(name, desc);
+            Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
+
+            await WaitBlock();
+            ResetAuthFail();
 
             // get dao by the IBroker api
             var brkblksret = await testWallet.RPC.GetAllBrokerAccountsForOwnerAsync(testWallet.AccountId);
@@ -358,11 +423,10 @@ namespace UnitTests
                 collateral = 1000000,
             };
 
-            await WaitBlock();
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
-            await WaitBlock();
+            await WaitWorkflow();
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();

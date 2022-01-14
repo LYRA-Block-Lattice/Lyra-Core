@@ -55,6 +55,8 @@ namespace Lyra
         public BlockChainState ConsensusState { get; private set; }
         public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
 
+        public static DagSystem Singleton { get; private set; }
+
         public DagSystem(IHostEnv hostEnv, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _hostEnv = hostEnv;
@@ -74,6 +76,8 @@ namespace Lyra
 
                 TradeEngine = new TradeMatchEngine(Storage);
             }
+
+            Singleton = this;
         }
 
         public async Task StartAsync()

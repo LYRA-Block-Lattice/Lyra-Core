@@ -97,25 +97,26 @@ namespace Lyra.Core.Authorizers
 
                 if (reltx != null)
                 {
-                    var wf = BrokerFactory.GetBlueprint(reltx);
-                    if (wf == null)
-                    {
-                        Console.WriteLine("wf == null");
-                        return APIResultCodes.InvalidManagementBlock;
-                    }
+                    var txnew = await ConsensusService.Instance.GetBlockForRelatedTx(reltx) as Block;
+                    //var wf = BrokerFactory.GetBlueprint(reltx);
+                    //if (wf == null)
+                    //{
+                    //    Console.WriteLine("wf == null");
+                    //    return APIResultCodes.InvalidManagementBlock;
+                    //}
 
-                    TransactionBlock txnew = null;
-                    await wf.ExecuteAsync(sys, (blk) =>
-                    {
-                        txnew = blk;
-                        return Task.CompletedTask;
-                    }, "TransactionAuthorizer");
+                    //TransactionBlock txnew = null;
+                    //await wf.ExecuteAsync(sys, (blk) =>
+                    //{
+                    //    txnew = blk;
+                    //    return Task.CompletedTask;
+                    //}, "TransactionAuthorizer");
 
-                    if (txnew == null)
-                    {
-                        Console.WriteLine("txnew == null");
-                        return APIResultCodes.InvalidManagementBlock;
-                    }
+                    //if (txnew == null)
+                    //{
+                    //    Console.WriteLine("txnew == null");
+                    //    return APIResultCodes.InvalidManagementBlock;
+                    //}
 
                     // compare block
                     if (!block.AuthCompare(txnew))

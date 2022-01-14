@@ -7,15 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WorkflowCore.Interface;
+using WorkflowCore.Models;
 
 namespace Lyra.Core.WorkFlow
 {
-    //public class BlockDesc
-    //{
-    //    public BlockTypes BlockType { get; set; }
-    //    //public Type AuthorizerType { get; set; }
-    //    public Type TheBlock { get; set; }
-    //}
     public class WorkFlowDescription
     {
         public string Action { get; set; }

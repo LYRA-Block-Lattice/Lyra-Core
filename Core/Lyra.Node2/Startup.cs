@@ -30,6 +30,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using Microsoft.Extensions.FileProviders;
 using WorkflowCore.Interface;
 using Lyra.Core.WorkFlow;
+using Lyra.Core.Blocks;
 
 namespace Lyra.Node2
 {
@@ -227,7 +228,7 @@ namespace Lyra.Node2
             //});
 
             var host = app.ApplicationServices.GetService<IWorkflowHost>();
-            host.RegisterWorkflow<BlockRunner, BrokerBlueprint>();
+            host.RegisterWorkflow<CreateDaoWorkflow, LyraContext>();
             host.Start();
             var evn = app.ApplicationServices.GetService<IHostEnv>();
             evn.SetWorkflowHost(host);
