@@ -1980,7 +1980,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var wfhost = _hostEnv.GetWorkflowHost();
-            Console.WriteLine($"Publish Consensus event for {key}: {result} ");
+            //Console.WriteLine($"Publish Consensus event for {key}: {result} ");
             await wfhost.PublishEvent("Consensus", key, result);
             return;
 

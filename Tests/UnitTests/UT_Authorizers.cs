@@ -353,6 +353,7 @@ namespace UnitTests
             var walletStor2 = new AccountInMemoryStorage();
             Wallet.Create(walletStor2, "xunit", "1234", networkId, testPrivateKey);
             testWallet = Wallet.Open(walletStor2, "xunit", "1234", client);
+            testWallet.NoConsole = true;
             Assert.AreEqual(testWallet.AccountId, testPublicKey);
 
             await testWallet.SyncAsync(client);
@@ -373,6 +374,7 @@ namespace UnitTests
             var walletStor3 = new AccountInMemoryStorage();
             Wallet.Create(walletStor3, "xunit2", "1234", networkId, test2PrivateKey);
             test2Wallet = Wallet.Open(walletStor3, "xunit2", "1234", client);
+            test2Wallet.NoConsole = true;
             Assert.AreEqual(test2Wallet.AccountId, test2PublicKey);
 
             await test2Wallet.SyncAsync(client);
@@ -394,7 +396,7 @@ namespace UnitTests
         {
             while (count > 0)
             {
-                var ret = _newAuth.WaitOne(2000);
+                var ret = _newAuth.WaitOne(1000);
                 Assert.IsTrue(ret, "block not authorized properly.");
 
                 count--;
@@ -405,7 +407,7 @@ namespace UnitTests
         {
             while (count > 0)
             {
-                var ret = _workflowEnds.WaitOne(5000);
+                var ret = _workflowEnds.WaitOne(2000);
                 Assert.IsTrue(ret, "workflow not finished properly.");
 
                 count--;

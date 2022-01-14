@@ -24,7 +24,7 @@ namespace UnitTests
 
         public TestAuthorizer(TestProbe testProbe)
         {
-            Console.WriteLine("initialize DagSystem");
+            //Console.WriteLine("initialize DagSystem");
 
             Environment.SetEnvironmentVariable("LYRA_NETWORK", "xtest");
 

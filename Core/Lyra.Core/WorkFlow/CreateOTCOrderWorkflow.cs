@@ -44,4 +44,12 @@ namespace Lyra.Core.WorkFlow
 
         public int Version => 1;
     }
+
+    public class OTCOrderCloseWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_OTC_ORDCLOSE;
+        public override BrokerRecvType RecvVia => BrokerRecvType.DaoRecv;
+
+        public int Version => 1;
+    }
 }

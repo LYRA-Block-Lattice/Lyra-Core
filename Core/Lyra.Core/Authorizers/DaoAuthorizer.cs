@@ -67,20 +67,20 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as DaoSendBlock;
 
-            // related tx must exist 
-            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-            {
-                // verify its pf or dao
-                var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
-                if (daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                    return APIResultCodes.InvalidServiceRequest;
-            }
+            //// related tx must exist 
+            //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            //if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            //{
+            //    // verify its pf or dao
+            //    var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
+            //    if (daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            //        return APIResultCodes.InvalidServiceRequest;
+            //}
 
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 1)
-                return APIResultCodes.InvalidServiceRequest;
+            //// service must not been processed
+            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (processed.Count != 1)
+            //    return APIResultCodes.InvalidServiceRequest;
 
             //var name = relTx.Tags["name"];
 

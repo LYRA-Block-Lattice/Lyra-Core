@@ -19,28 +19,5 @@ namespace Lyra.Core.WorkFlow
         public override BrokerRecvType RecvVia => BrokerRecvType.PFRecv;
 
         public int Version => 1;
-
-        public void Build(IWorkflowBuilder<LyraContext> builder)
-        {
-            builder
-                .StartWith(a => {
-                    a.Workflow.Reference = "start";
-                    Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}"); 
-                })
-                .Then<ReqReceiver>()
-                    .Output(data => data.LastBlock, step => step.ConfirmSvcReq)
-                .Then<CustomMessage>()
-                    .Name("Log")
-                    .Input(step => step.Message, data => $"{this.GetType().Name} generated {data.LastBlock}.")
-                .If(a => true).Do(letConsensus)
-                .Then<Repeator>()
-                    .Output(data => data.LastBlock, step => step.block)
-                .If(a => true).Do(letConsensus)
-                .Then(a => { 
-                    Console.WriteLine("Ends.");
-                    a.Workflow.Reference = "end";
-                })
-                ;
-        }
     }
 }

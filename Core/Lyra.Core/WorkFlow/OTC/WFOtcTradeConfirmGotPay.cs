@@ -61,7 +61,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 {
                     (b as IOtcCryptoTrade).Status = OtcCryptoTradeStatus.CryptoReleased;
                     (b as SendTransferBlock).DestinationAccountId = (b as IOtcCryptoTrade).OwnerAccountId;
-                    (b as SendTransferBlock).Balances.Remove((b as IOtcCryptoTrade).Trade.crypto);
+                    (b as SendTransferBlock).Balances[(b as IOtcCryptoTrade).Trade.crypto] = 0;
                 });
         }
 
