@@ -113,17 +113,23 @@ namespace UnitTests
             //host.StartWorkflow("HelloWorld", 1, null, null);
         }
 
+        object lifeo = new object();
         private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
         {
-            //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
-            if(evt.Reference == "end")
+            lock(lifeo)
             {
-                if(!_endedWorkflows.Contains(evt.WorkflowInstanceId))
+                //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+                if (evt.Reference == "end")
                 {
-                    _endedWorkflows.Add(evt.WorkflowInstanceId);
-                    _workflowEnds.Set();
+                    if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
+                    {
+                        _endedWorkflows.Add(evt.WorkflowInstanceId);
+                        var hash = cs.GetHashForWorkflow(evt.WorkflowInstanceId);
+                        Console.WriteLine($"Key is {hash} terminated. Set it.");
+                        _workflowEnds.Set();
+                    }
                 }
-            }                
+            }             
         }
 
         private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
@@ -392,26 +398,19 @@ namespace UnitTests
             
         }
 
-        private async Task WaitBlock(int count = 1)
+        private async Task WaitBlock(string target)
         {
-            while (count > 0)
-            {
-                var ret = _newAuth.WaitOne(1000);
-                Assert.IsTrue(ret, "block not authorized properly.");
-
-                count--;
-            }
+            Console.WriteLine($"Waiting for block: {target}");
+            var ret = _newAuth.WaitOne(1000);
+            Assert.IsTrue(ret, "block not authorized properly.");
         }
 
-        private async Task WaitWorkflow(int count = 1)
+        private async Task WaitWorkflow(string target)
         {
-            while (count > 0)
-            {
-                var ret = _workflowEnds.WaitOne(2000);
-                Assert.IsTrue(ret, "workflow not finished properly.");
-
-                count--;
-            }
+            Console.WriteLine($"\nWaiting for workflow: {target}");
+            var ret = _workflowEnds.WaitOne(2000);
+            Console.WriteLine($"Waited for workflow: {target}, Got it? {ret}");
+            Assert.IsTrue(ret, "workflow not finished properly.");
         }
 
         private async Task TestOTCTrade()
@@ -422,7 +421,7 @@ namespace UnitTests
                     "", "", ContractTypes.Cryptocurrency, null);
             Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode}");
 
-            await WaitBlock();
+            await WaitBlock("CreateTokenAsync");
 
             await testWallet.SyncAsync(null);
             var testbalance = testWallet.BaseBalance;
@@ -433,7 +432,7 @@ namespace UnitTests
             var dcret = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
-            await WaitWorkflow();
+            await WaitWorkflow("CreateDAOAsync");
 
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
@@ -444,7 +443,7 @@ namespace UnitTests
             var dcretx = await testWallet.CreateDAOAsync(name, desc);
             Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
 
-            await WaitBlock();
+            await WaitBlock("CreateDAOAsync Wrong");
             ResetAuthFail();
 
             // get dao by the IBroker api
@@ -471,7 +470,7 @@ namespace UnitTests
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
-            await WaitWorkflow();
+            await WaitWorkflow("CreateOTCOrderAsync");
 
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
@@ -487,8 +486,7 @@ namespace UnitTests
 
             var otcg = otcs.First() as OTCCryptoOrderGenesisBlock;
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
-            await WaitBlock();
-
+            
             // here comes a buyer, he who want to buy 1 BTC.
             var trade = new OTCCryptoTrade
             {
@@ -508,7 +506,7 @@ namespace UnitTests
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await WaitWorkflow();
+            await WaitWorkflow("CreateOTCTradeAsync");
             // the otc order should now be amount 9
             var otcret2 = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret2.Successful(), $"Can't get otc block. {otcret2.ResultCode}");
@@ -530,7 +528,7 @@ namespace UnitTests
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
-            await WaitWorkflow();
+            await WaitWorkflow("OTCTradeBuyerPaymentSentAsync");
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
@@ -541,7 +539,7 @@ namespace UnitTests
             var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            await WaitWorkflow();
+            await WaitWorkflow("OTCTradeSellerGotPaymentAsync");
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
@@ -555,11 +553,11 @@ namespace UnitTests
             var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
-            await WaitWorkflow();
+            await WaitWorkflow("CloseOTCOrderAsync");
             var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
             Assert.AreEqual(OtcOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).Status,
-                $"Order statust not changed to Closed");
+                $"Order status not changed to Closed");
 
             await testWallet.SyncAsync(null);
             var lyrshouldbe = testbalance - 10016;
@@ -702,11 +700,11 @@ namespace UnitTests
             Assert.IsTrue(crstkret.Successful());
             var stkblock = crstkret.GetBlock() as StakingBlock;
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
-            await WaitWorkflow();
+            await WaitWorkflow($"CreateStakingAccountAsync");
 
             var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);
             Assert.IsTrue(addstkret.Successful());
-            await WaitWorkflow();
+            await WaitWorkflow($"AddStakingAsync {addstkret.TxHash}");
             var stk = await w.GetStakingAsync(stkblock.AccountID);
             Assert.AreEqual(amount, (stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
             return stk;
@@ -717,7 +715,7 @@ namespace UnitTests
             var balance = w.BaseBalance;
             var unstkret = await w.UnStakingAsync(stkid);
             Assert.IsTrue(unstkret.Successful());
-            await WaitWorkflow();
+            await WaitWorkflow($"UnStakingAsync {unstkret.TxHash}");
             await w.SyncAsync(null);
             var nb = balance + 2000m - 2;// * 0.988m; // two send fee
             //Assert.AreEqual(nb, w.BaseBalance);
@@ -764,7 +762,7 @@ namespace UnitTests
             Assert.IsTrue(getpftRet.Successful(), $"Failed to get dividends: {getpftRet.ResultCode}");
 
             // then sync wallet and see if it gets a dividend
-            await WaitWorkflow();
+            await WaitWorkflow("CreateDividendsAsync");
             if (networkId == "devnet")
                 await Task.Delay(3000);
             var bal1 = testWallet.BaseBalance;
@@ -798,7 +796,7 @@ namespace UnitTests
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(crplret.Successful(), $"Error create liquidate pool {crplret.ResultCode}");
-            await WaitWorkflow();
+            await WaitWorkflow("CreateLiquidatePoolAsync");
             var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(pool.PoolAccountId != null && pool.PoolAccountId.StartsWith('L'), "Can't get pool created.");
 
@@ -806,7 +804,7 @@ namespace UnitTests
             var addpoolret = await testWallet.AddLiquidateToPoolAsync(token0, 1000000, "LYR", 5000);
             Assert.IsTrue(addpoolret.Successful());
 
-            await WaitWorkflow();
+            await WaitWorkflow("AddLiquidateToPoolAsync");
 
             // swap
             var poolx = await client.GetPoolAsync(token0, LyraGlobal.OFFICIALTICKERCODE);
@@ -819,7 +817,7 @@ namespace UnitTests
             var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, token0, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, 20, 0);
             var swapret = await testWallet.SwapTokenAsync("LYR", token0, "LYR", 20, cal2.SwapOutAmount);
             Assert.IsTrue(swapret.Successful());
-            await WaitWorkflow();
+            await WaitWorkflow("SwapTokenAsync");
             await testWallet.SyncAsync(null);
 
             var gotamount = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal() - oldtkn0;

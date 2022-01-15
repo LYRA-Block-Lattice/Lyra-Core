@@ -70,7 +70,7 @@ namespace Lyra.Core.WorkFlow
                 .If(data => data.LastBlock != null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash}")
+                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash} for {data.SendBlock.GetBlockType()}")
                         .Output(data => data.LastTime, step => DateTime.UtcNow)
                     .Then<SubmitBlock>()
                         .Input(step => step.block, data => data.LastBlock)
@@ -78,12 +78,12 @@ namespace Lyra.Core.WorkFlow
                         .Output(data => data.LastResult, step => step.EventData)
                     .Then<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash}, Consensus result is {data.LastResult}.")
+                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash}, Consensus event is {data.LastResult}.")
                         )
                 .If(data => data.LastBlock == null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Block is null.")
+                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash}, Block is null. Terminate.")
                     .Output(data => data.InRuning, step => false)
                 ));
 
@@ -142,7 +142,7 @@ namespace Lyra.Core.WorkFlow
 
         public override ExecutionResult Run(IStepExecutionContext context)
         {
-            //Console.WriteLine(Message);
+            Console.WriteLine(Message);
             return ExecutionResult.Next();
         }
     }

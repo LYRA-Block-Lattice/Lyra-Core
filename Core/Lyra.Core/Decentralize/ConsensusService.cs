@@ -1828,6 +1828,11 @@ namespace Lyra.Core.Decentralize
             return (wf.Data as LyraContext).LastBlock;
         }
 
+        public string GetHashForWorkflow(string id)
+        {
+            return _workFlows.FirstOrDefault(a => a.Value == id).Key;
+        }
+
         public async Task ProcessServerReqBlockAsync(SendTransferBlock send, ConsensusResult? result)
         {
             if (result != ConsensusResult.Yea)
@@ -1980,7 +1985,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var wfhost = _hostEnv.GetWorkflowHost();
-            //Console.WriteLine($"Publish Consensus event for {key}: {result} ");
+            Console.WriteLine($"Key is {key} Publish Consensus event {result} ");
             await wfhost.PublishEvent("Consensus", key, result);
             return;
 
