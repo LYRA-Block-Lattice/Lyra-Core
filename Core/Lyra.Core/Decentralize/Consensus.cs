@@ -718,7 +718,10 @@ namespace Lyra.Core.Decentralize
         public async Task WorkflowSubmitAsync(Block block)
         {
             if (IsThisNodeLeader)
+            {
+                await Task.Delay(1000);
                 await SendBlockToConsensusAndForgetAsync(block);
+            }                
         }
 
         public async Task SendBlockToConsensusAndForgetAsync(Block block)

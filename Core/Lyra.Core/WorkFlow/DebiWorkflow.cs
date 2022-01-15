@@ -31,9 +31,9 @@ namespace Lyra.Core.WorkFlow
         public bool finished;
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var ctx = context.Workflow.Data as LyraContext;
-            //Console.WriteLine($"BrokerOpsAsync called.");
+            var ctx = context.Workflow.Data as LyraContext;            
             block = await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock);
+            Console.WriteLine($"BrokerOpsAsync called and generated {block}");
             return ExecutionResult.Next();
         }
 
