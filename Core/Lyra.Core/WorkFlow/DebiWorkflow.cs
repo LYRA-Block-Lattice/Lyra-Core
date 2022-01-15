@@ -49,6 +49,8 @@ namespace Lyra.Core.WorkFlow
         BrokerRecvType RecvVia { get; }
     }
 
+    public enum WFState { Init, Running, Finished, ConsensusTimeout };
+
     public class LyraContext
     {
         public DagSystem Sys { get; init; }
@@ -56,7 +58,7 @@ namespace Lyra.Core.WorkFlow
         public SendTransferBlock SendBlock { get; init; }
         public WorkFlowBase SubWorkflow { get; init; }
 
-        public bool InRuning { get; set; }
+        public WFState State { get; set; }
         public TransactionBlock LastBlock { get; set; }
         public ConsensusResult? LastResult { get; set; }
         public DateTime LastTime { get; set; }
@@ -68,23 +70,47 @@ namespace Lyra.Core.WorkFlow
         public Action<IWorkflowBuilder<LyraContext>> letConsensus => new Action<IWorkflowBuilder<LyraContext>>(branch => branch
                 
                 .If(data => data.LastBlock != null).Do(then => then
+
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash} for {data.SendBlock.GetBlockType()}")
+                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash} Block is {data.LastBlock.GetBlockType()} Let's consensus")
                         .Output(data => data.LastTime, step => DateTime.UtcNow)
-                    .Then<SubmitBlock>()
-                        .Input(step => step.block, data => data.LastBlock)
-                    .WaitFor("Consensus", data => data.SendBlock.Hash, data => data.LastTime)
-                        .Output(data => data.LastResult, step => step.EventData)
+                        .Output(data => data.LastResult, step => null)
+                    .Parallel()
+                        .Do(then => then
+                            .StartWith<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Submiting block...")
+                            .Then<SubmitBlock>()
+                                .Input(step => step.block, data => data.LastBlock)
+                            .WaitFor("Consensus", data => data.SendBlock.Hash, data => data.LastTime)
+                                .Output(data => data.LastResult, step => step.EventData)
+                            .Then<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus event is {data.LastResult}.")
+                            )                        
+                        .Do(then => then
+                            .StartWith<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus is monitored.")
+                            .Delay(data => TimeSpan.FromSeconds(5))
+                            .Then<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus is timeout.")
+                                .Output(data => data.LastResult, step => ConsensusResult.Uncertain)
+                                .Output(data => data.State, step => WFState.ConsensusTimeout)
+                            )
+                    .Join()
+                        .CancelCondition(data => data.LastResult != null, true)
                     .Then<CustomMessage>()
-                        .Name("Log")
-                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash}, Consensus event is {data.LastResult}.")
-                        )
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus completed with {data.LastResult}")
+                    )
                 .If(data => data.LastBlock == null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is {data.SendBlock.Hash}, Block is null. Terminate.")
-                    .Output(data => data.InRuning, step => false)
+                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Block is null. Terminate.")
+                    .Output(data => data.State, step => WFState.Finished)
                 ));
 
         public void Build(IWorkflowBuilder<LyraContext> builder)
@@ -93,11 +119,13 @@ namespace Lyra.Core.WorkFlow
                 .StartWith(a => {
                     a.Workflow.Reference = "start";
                     //Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
-                })
+                    return ExecutionResult.Next();
+                    })
+                    .Output(data => data.State, step => WFState.Running)
                 .If(a => RecvVia != BrokerRecvType.None)
                     .Do(a => a
                         .StartWith<ReqReceiver>()
-                            .Output(data => data.LastBlock, step => step.ConfirmSvcReq)
+                            .Output(data => data.LastBlock, step => step.ConfirmSvcReq)                            
                         .Then<CustomMessage>()
                             .Name("Log")
                             .Input(step => step.Message, data => $"{this.GetType().Name} generated {data.LastBlock}.")
@@ -105,18 +133,35 @@ namespace Lyra.Core.WorkFlow
                 )
                 .Then<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"In the middle. InRuning: {data.InRuning}")
-                .While(a => a.InRuning)
+                        .Input(step => step.Message, data => $"In the middle. InRuning: {data.State}")
+                .While(a => a.State != WFState.Finished)
                     .Do(x => x
-                        .StartWith<Repeator>()
-                            .Output(data => data.LastBlock, step => step.block)
-                        .If(a => true).Do(letConsensus)
-                    )
+                        .If(data => data.State == WFState.Running).Do(then => then
+                            .StartWith<Repeator>()
+                                .Output(data => data.LastBlock, step => step.block)
+                            .If(a => true).Do(letConsensus)
+                            )
+                        .If(data => data.State == WFState.ConsensusTimeout).Do(then => then
+                            .StartWith<ReqViewChange>()
+                            .Delay(data => TimeSpan.FromSeconds(45))
+                                .Output(data => data.State, step => WFState.Running)
+                            )
+                        )
                 .Then(a => {
                     //Console.WriteLine("Ends.");
                     a.Workflow.Reference = "end";
                 })
                 ;
+        }
+    }
+
+    public class ReqViewChange : StepBody
+    {
+        public override ExecutionResult Run(IStepExecutionContext context)
+        {
+            var ctx = context.Workflow.Data as LyraContext;
+            Console.WriteLine($"Request View Change.");
+            return ExecutionResult.Next();
         }
     }
 
@@ -129,7 +174,7 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
 
             //Console.WriteLine($"In SubmitBlock: {block}");
-            await ctx.Consensus.SendBlockToConsensusAndForgetAsync(block);
+            _ = Task.Run(async () => { await ctx.Consensus.SendBlockToConsensusAndForgetAsync(block); });
 
             return ExecutionResult.Next();
         }
@@ -137,7 +182,6 @@ namespace Lyra.Core.WorkFlow
 
     public class CustomMessage : StepBody
     {
-
         public string Message { get; set; }
 
         public override ExecutionResult Run(IStepExecutionContext context)

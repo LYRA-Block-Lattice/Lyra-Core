@@ -407,9 +407,9 @@ namespace UnitTests
 
         private async Task WaitWorkflow(string target)
         {
-            Console.WriteLine($"\nWaiting for workflow: {target}");
-            var ret = _workflowEnds.WaitOne(2000);
-            Console.WriteLine($"Waited for workflow: {target}, Got it? {ret}");
+            Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
+            var ret = _workflowEnds.WaitOne(120000);
+            Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");
         }
 

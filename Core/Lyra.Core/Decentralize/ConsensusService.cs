@@ -1851,7 +1851,7 @@ namespace Lyra.Core.Decentralize
                     Consensus = this,
                     SendBlock = send,
                     SubWorkflow = BrokerFactory.DynWorkFlows[svcreqtag],
-                    InRuning = true,
+                    State = WFState.Init,
                 };
                 var id = await wfhost.StartWorkflow(svcreqtag, ctx);
                 _workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
