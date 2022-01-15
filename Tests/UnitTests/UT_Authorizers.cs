@@ -238,7 +238,7 @@ namespace UnitTests
             while (cs == null)
             {
                 await Task.Delay(1000);
-                cs = ConsensusService.Instance;
+                cs = ConsensusService.Singleton;
                 cs.SetHostEnv(_env);
             }
             cs.OnNewBlock += async (b) => (ConsensusResult.Yea, (await AuthAsync(b)).ResultCode);

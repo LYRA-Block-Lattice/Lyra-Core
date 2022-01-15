@@ -97,7 +97,7 @@ namespace Lyra.Core.Authorizers
 
                 if (reltx != null)
                 {
-                    var txnew = await ConsensusService.Instance.GetBlockForRelatedTx(reltx) as Block;
+                    var txnew = await ConsensusService.Singleton.GetBlockForRelatedTx(reltx) as Block;
                     //var wf = BrokerFactory.GetBlueprint(reltx);
                     //if (wf == null)
                     //{

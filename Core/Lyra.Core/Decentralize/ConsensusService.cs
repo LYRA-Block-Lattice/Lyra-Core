@@ -88,7 +88,6 @@ namespace Lyra.Core.Decentralize
         private AuthorizersFactory _af;
         private BrokerFactory _bf;
         private long _currentView;
-        public static ConsensusService Instance;
         private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(1);
 
         private DateTime _lastConsolidateTry;
@@ -100,7 +99,6 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
-            Singleton = this;
             _sys = sys;
             _currentView = sys.Storage.GetCurrentView();
             _hostEnv = hostEnv;
@@ -413,7 +411,7 @@ namespace Lyra.Core.Decentralize
                 timr.Enabled = true;
             }
 
-            Instance = this;
+            Singleton = this;
             // hack for unit test
             if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
                 _localNode = null;
