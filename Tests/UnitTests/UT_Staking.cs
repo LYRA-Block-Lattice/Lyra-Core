@@ -84,7 +84,7 @@ namespace UnitTests
                 Assert.IsNotNull(pgen);
 
                 Console.WriteLine($"Profit account: {pgen.AccountID}");
-                return;
+
                 var stopwatch = Stopwatch.StartNew();
                 List<Wallet> stkWallets1 = new List<Wallet>();
                 List<Wallet> stkWallets2 = new List<Wallet>();

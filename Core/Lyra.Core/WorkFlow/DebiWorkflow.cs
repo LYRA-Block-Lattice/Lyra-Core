@@ -172,7 +172,7 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
 
             //Console.WriteLine($"In SubmitBlock: {block}");
-            _ = Task.Run(async () => { await ConsensusService.Singleton.SendBlockToConsensusAndForgetAsync(block); });
+            await ConsensusService.Singleton.WorkflowSubmitAsync(block);
 
             return ExecutionResult.Next();
         }

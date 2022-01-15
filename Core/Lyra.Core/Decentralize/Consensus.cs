@@ -715,6 +715,12 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public async Task WorkflowSubmitAsync(Block block)
+        {
+            if (IsThisNodeLeader)
+                await SendBlockToConsensusAndForgetAsync(block);
+        }
+
         public async Task SendBlockToConsensusAndForgetAsync(Block block)
         {
             if (block == null)
@@ -722,7 +728,7 @@ namespace Lyra.Core.Decentralize
 
             if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
             {
-                await OnNewBlock(block);
+                _ = Task.Run(async () => { await OnNewBlock(block); });
             }
             else
             {
