@@ -1827,7 +1827,9 @@ namespace Lyra.Core.Decentralize
             var Id = _workFlows[reltx];
             var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
             var ctx = wf.Data as LyraContext;
-            while (ctx.LastBlock == null && ctx.State == WFState.Running)
+            // wait for 2s for block
+            int count = 200;
+            while (count-- > 0 && ctx.LastBlock == null && ctx.State == WFState.Running)
                 await Task.Delay(10);
             return ctx.LastBlock;
         }
