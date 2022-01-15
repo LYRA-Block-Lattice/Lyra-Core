@@ -136,4 +136,42 @@ namespace Lyra.Core.WorkFlow
         public int Version => 1;
     }
     #endregion
+
+    #region DEX
+    public class DexDepositWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DEX_DPOREQ;
+        public override BrokerRecvType RecvVia => BrokerRecvType.PFRecv;
+
+        public int Version => 1;
+    }
+    public class DexMintWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DEX_MINT;
+        public override BrokerRecvType RecvVia => BrokerRecvType.PFRecv;
+
+        public int Version => 1;
+    }
+    public class DexGetTokenWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DEX_GETTKN;
+        public override BrokerRecvType RecvVia => BrokerRecvType.PFRecv;
+
+        public int Version => 1;
+    }
+    public class DexPutTokenWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DEX_PUTTKN;
+        public override BrokerRecvType RecvVia => BrokerRecvType.None;
+
+        public int Version => 1;
+    }
+    public class DexWithdrawWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DEX_WDWREQ;
+        public override BrokerRecvType RecvVia => BrokerRecvType.PFRecv;
+
+        public int Version => 1;
+    }
+    #endregion
 }
