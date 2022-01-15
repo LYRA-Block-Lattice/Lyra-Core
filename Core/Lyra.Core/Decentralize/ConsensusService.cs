@@ -96,7 +96,7 @@ namespace Lyra.Core.Decentralize
         public void SetHostEnv(IHostEnv env) { _hostEnv = env; }
         ConcurrentDictionary<string, string> _workFlows;
 
-        public static ConsensusService Singleton { get; init; }
+        public static ConsensusService Singleton { get; private set; }
 
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
