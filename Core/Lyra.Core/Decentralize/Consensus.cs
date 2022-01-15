@@ -719,7 +719,6 @@ namespace Lyra.Core.Decentralize
         {
             if (IsThisNodeLeader)
             {
-                await Task.Delay(1000);
                 await SendBlockToConsensusAndForgetAsync(block);
             }                
         }
