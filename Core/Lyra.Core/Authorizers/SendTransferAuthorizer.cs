@@ -119,7 +119,7 @@ namespace Lyra.Core.Authorizers
 
                 if (svcReqResult != APIResultCodes.Success)
                 {
-                    //Console.WriteLine($"SVCREQ failed for {block.Tags[Block.REQSERVICETAG]}: {svcReqResult}");
+                    Console.WriteLine($"SVCREQ failed for {block.Tags[Block.REQSERVICETAG]}: {svcReqResult}");
                     return svcReqResult;
                 }                    
             }

@@ -151,12 +151,12 @@ namespace UnitTests
             return serviceProvider;
         }
 
-        [TestMethod]
-        public void TestAuthorizerFactory()
-        {
-            var af = new AuthorizersFactory();
-            af.Init();
-        }
+        //[TestMethod]
+        //public void TestAuthorizerFactory()
+        //{
+        //    var af = new AuthorizersFactory();
+        //    af.Init();
+        //}
 
         // when we create failure test case, call this
         private void ResetAuthFail()

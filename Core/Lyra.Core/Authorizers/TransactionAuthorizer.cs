@@ -120,7 +120,13 @@ namespace Lyra.Core.Authorizers
 
                     // compare block
                     if (!block.AuthCompare(txnew))
+                    {
+                        Console.WriteLine("\n!block.AuthCompare(txnew). Block vs TxNew");
+                        Console.WriteLine(ObjectDumper.Dump(block));
+                        Console.WriteLine(ObjectDumper.Dump(txnew));
+                        Console.WriteLine();
                         return APIResultCodes.InvalidManagedTransaction;
+                    }                        
                 }
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
