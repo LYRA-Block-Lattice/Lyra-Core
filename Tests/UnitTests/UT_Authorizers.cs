@@ -91,16 +91,9 @@ namespace UnitTests
                     .Where(a => a.Name == "RegisterWorkflow")
                     .Last();
 
-                //var methodInfo = typeof(IWorkflowHost).GetMethod("RegisterWorkflow",
-                //    BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static,
-                //    new BlockAPIResult.MyBinder(),
-                //    new[] { typeof(object), typeof(object) },
-                //    null);
-
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
 
                 genericMethodInfo.Invoke(host, new object[] { });
-                //host.RegisterWorkflow<type, LyraContext>();
             }
            
             host.OnStepError += Host_OnStepError;

@@ -31,6 +31,9 @@ using Microsoft.Extensions.FileProviders;
 using WorkflowCore.Interface;
 using Lyra.Core.WorkFlow;
 using Lyra.Core.Blocks;
+using System.Linq;
+using WorkflowCore.Services;
+using System.Reflection;
 
 namespace Lyra.Node2
 {
@@ -229,7 +232,23 @@ namespace Lyra.Node2
             //});
 
             var host = app.ApplicationServices.GetService<IWorkflowHost>();
-            host.RegisterWorkflow<CreateDaoWorkflow, LyraContext>();
+
+            // register work flows
+            var alltypes = typeof(DebiWorkflow)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
+
+            foreach (var type in alltypes)
+            {
+                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(a => a.Name == "RegisterWorkflow")
+                    .Last();
+
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+
+                genericMethodInfo.Invoke(host, new object[] { });
+            }
+
             host.Start();
             var evn = app.ApplicationServices.GetService<IHostEnv>();
             evn.SetWorkflowHost(host);
