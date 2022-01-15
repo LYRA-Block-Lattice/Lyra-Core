@@ -96,8 +96,11 @@ namespace Lyra.Core.Decentralize
         public void SetHostEnv(IHostEnv env) { _hostEnv = env; }
         ConcurrentDictionary<string, string> _workFlows;
 
+        public static ConsensusService Singleton { get; init; }
+
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
+            Singleton = this;
             _sys = sys;
             _currentView = sys.Storage.GetCurrentView();
             _hostEnv = hostEnv;
@@ -1847,8 +1850,6 @@ namespace Lyra.Core.Decentralize
                 var wfhost = _hostEnv.GetWorkflowHost();
                 var ctx = new LyraContext
                 {
-                    Sys = _sys,
-                    Consensus = this,
                     SendBlock = send,
                     SubWorkflow = BrokerFactory.DynWorkFlows[svcreqtag],
                     State = WFState.Init,

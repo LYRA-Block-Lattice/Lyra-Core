@@ -20,7 +20,7 @@ namespace Lyra.Core.WorkFlow
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
-            ConfirmSvcReq = await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](ctx.Sys, ctx.SendBlock);
+            ConfirmSvcReq = await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.SendBlock);
             return ExecutionResult.Next();
         }
     }
@@ -33,7 +33,7 @@ namespace Lyra.Core.WorkFlow
         {
             var ctx = context.Workflow.Data as LyraContext;
             //Console.WriteLine($"BrokerOpsAsync called.");
-            block = await ctx.SubWorkflow.BrokerOpsAsync(ctx.Sys, ctx.SendBlock);
+            block = await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock);
             return ExecutionResult.Next();
         }
 
@@ -53,8 +53,6 @@ namespace Lyra.Core.WorkFlow
 
     public class LyraContext
     {
-        public DagSystem Sys { get; init; }
-        public ConsensusService Consensus { get; init; }
         public SendTransferBlock SendBlock { get; init; }
         public WorkFlowBase SubWorkflow { get; init; }
 
@@ -174,7 +172,7 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
 
             //Console.WriteLine($"In SubmitBlock: {block}");
-            _ = Task.Run(async () => { await ctx.Consensus.SendBlockToConsensusAndForgetAsync(block); });
+            _ = Task.Run(async () => { await ConsensusService.Singleton.SendBlockToConsensusAndForgetAsync(block); });
 
             return ExecutionResult.Next();
         }
