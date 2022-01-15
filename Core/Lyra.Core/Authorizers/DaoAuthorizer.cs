@@ -103,15 +103,15 @@ namespace Lyra.Core.Authorizers
             return BlockTypes.OrgnizationGenesis;
         }
 
-        static int count = 0;
+        //static int count = 0;
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if(count == 0)
-            {
-                await Task.Delay(16000);
-                count++;
-            }                
+            //if(count == 0)
+            //{
+            //    await Task.Delay(16000);
+            //    count++;
+            //}                
 
             if (!(tblock is DaoGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
