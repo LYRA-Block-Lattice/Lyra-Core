@@ -13,6 +13,7 @@ using static Lyra.Core.Decentralize.ConsensusService;
 using Lyra.Data.API;
 using Microsoft.Extensions.Logging;
 using Lyra.Data.Shared;
+using Lyra.Data.Utils;
 
 namespace Lyra.Core.Authorizers
 {
@@ -65,7 +66,12 @@ namespace Lyra.Core.Authorizers
 
                 var myscvb = await sys.Consensus.Ask<ServiceBlock>(new AskForServiceBlock());
                 if (!myscvb.AuthCompare(block))
+                {
+                    Console.WriteLine($"\nCompare service block, myscvb vs block");
+                    Console.WriteLine(ObjectDumper.Dump(myscvb));
+                    Console.WriteLine(ObjectDumper.Dump(block));
                     return APIResultCodes.BlockCompareFailed;
+                }                    
             }
             else // svc gensis
             {
