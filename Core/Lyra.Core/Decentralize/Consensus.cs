@@ -714,16 +714,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task WorkflowSubmitAsync(Block block)
-        {
-            if (IsThisNodeLeader)
-            {
-                await Task.Delay(1000);
-                await SendBlockToConsensusAndForgetAsync(block);
-            }                
-        }
-
-        public async Task SendBlockToConsensusAndForgetAsync(Block block)
+        public async Task LeaderSendBlockToConsensusAndForgetAsync(Block block)
         {
             if (block == null)
                 throw new ArgumentNullException();
@@ -734,6 +725,8 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
+                await Task.Delay(1000);
+
                 AuthorizingMsg msg = new AuthorizingMsg
                 {
                     From = _sys.PosWallet.AccountId,

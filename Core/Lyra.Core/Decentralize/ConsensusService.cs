@@ -152,14 +152,12 @@ namespace Lyra.Core.Decentralize
 
                             _ = Task.Run(async () =>
                             {
-                                await Task.Delay(1000);     // some nodes may not got this in time
-
                                 try
                                 {
                                     var svcBlock = await CreateNewViewAsNewLeaderAsync();
 
                                     _log.LogInformation($"New View was created. send to network...");
-                                    await SendBlockToConsensusAndForgetAsync(svcBlock);
+                                    await LeaderSendBlockToConsensusAndForgetAsync(svcBlock);
                                     //var result = await SendBlockToConsensusAndWaitResultAsync(svcBlock);
                                 }
                                 catch (Exception e)
