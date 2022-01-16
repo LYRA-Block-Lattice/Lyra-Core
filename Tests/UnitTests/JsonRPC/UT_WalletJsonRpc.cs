@@ -122,10 +122,11 @@ namespace UnitTests.JsonRPC
             _notified = true;
         }
 
-        protected override string SignMessage(string message)
+        protected override Task<string> SignMessageAsync(string message)
         {
             Console.WriteLine($"Signing: {message}");
-            return Signatures.GetSignature(_privateKey, message, _accountId);
+            return Task.FromResult(Signatures.GetSignature(_privateKey, message, _accountId));
         }
+
     }
 }

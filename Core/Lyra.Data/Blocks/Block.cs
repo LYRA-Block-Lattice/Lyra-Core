@@ -9,8 +9,6 @@ using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
-    public delegate string SignHandler(string text);
-
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
@@ -75,7 +73,7 @@ namespace Lyra.Core.Blocks
             Sign(PrivateKey, AccountId);
         }
 
-        public void InitializeBlock(Block prevBlock, SignHandler signr)
+        public async Task InitializeBlockAsync(Block prevBlock, Func<string, Task<string>> signr)
         {
             if (prevBlock != null)
             {
@@ -95,7 +93,7 @@ namespace Lyra.Core.Blocks
 
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
-            Signature = signr(Hash);
+            Signature = await signr(Hash);
         }
 
         public virtual bool AuthCompare(Block other)

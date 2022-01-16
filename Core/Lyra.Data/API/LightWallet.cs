@@ -25,7 +25,7 @@ namespace Lyra.Data.API
             _networkId = networkId;
             _accountId = Signatures.GetAccountIdFromPrivateKey(new NetworkCredential("", _securePrivateKey).Password);
             _client = new LyraJsonRPCClient(_networkId, (s) => 
-                Signatures.GetSignature(new NetworkCredential("", _securePrivateKey).Password, s, _accountId));
+                Task.FromResult(Signatures.GetSignature(new NetworkCredential("", _securePrivateKey).Password, s, _accountId)));
         }
 
         public async Task<BalanceResult> GetBalanceAsync()

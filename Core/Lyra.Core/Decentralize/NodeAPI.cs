@@ -1083,9 +1083,9 @@ namespace Lyra.Core.Decentralize
         {
             return NodeService.Dag.Storage.FindAllProfitingAccountsAsync(begin, end);
         }
-        public ProfitingGenesis FindProfitingAccountsByNameAsync(string Name)
+        public Task<ProfitingGenesis> FindProfitingAccountsByNameAsync(string Name)
         {
-            return NodeService.Dag.Storage.FindProfitingAccountsByName(Name);
+            return Task.FromResult(NodeService.Dag.Storage.FindProfitingAccountsByName(Name));
         }
         public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {

@@ -88,7 +88,7 @@ namespace UnitTests
                 var stopwatch = Stopwatch.StartNew();
                 List<Wallet> stkWallets1 = new List<Wallet>();
                 List<Wallet> stkWallets2 = new List<Wallet>();
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < totalStaking; i++)
                 {
                     var (pvtx, pubx) = Signatures.GenerateWallet();
                     var stkx = Restore(pvtx);
@@ -108,7 +108,7 @@ namespace UnitTests
                     var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
                     Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
                 }
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < totalStaking; i++)
                 {
                     var (pvtx, pubx) = Signatures.GenerateWallet();
                     var stkx = Restore(pvtx);

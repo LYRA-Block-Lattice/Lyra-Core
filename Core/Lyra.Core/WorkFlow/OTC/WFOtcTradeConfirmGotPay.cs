@@ -172,7 +172,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             ChangeBlock(nextblock);
 
-            nextblock.InitializeBlock(lastblock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            await nextblock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
 
             return nextblock;
         }

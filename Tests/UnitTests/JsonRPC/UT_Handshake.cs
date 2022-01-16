@@ -43,5 +43,10 @@ namespace UnitTests.JsonRPC
                 Assert.Fail();
             }).ConfigureAwait(true);
         }
+
+        protected override Task<string> SignMessageAsync(string message)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

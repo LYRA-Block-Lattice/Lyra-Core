@@ -33,13 +33,13 @@ namespace Lyra.Node
 
         private KeylessWallet CreateWallet(string accountId)
         {
-            var klWallet = new KeylessWallet(accountId, (msg) =>
+            var klWallet = new KeylessWallet(accountId, async (msg) =>
             {
                 // [type, signature] = Sign ([ type, message, accountId ])
                 var result3 = RPC.InvokeAsync<string[]>("Sign", new object[] { "hash", msg, accountId });
                 try
                 {
-                    var signaturs = result3.GetAwaiter().GetResult();
+                    var signaturs = await result3;
                     if (signaturs[0] == "p1393")
                         return signaturs[1];
                     else if(signaturs[0] == "der") // der, bouncycastle compatible

@@ -15,7 +15,7 @@ namespace Lyra.Data.API
         private readonly string _signingPrivateKey;
         private readonly string _signingAccountId;
         private readonly string _accountId;
-        private readonly SignHandler _signer;
+        private readonly Func<string, Task<string>> _signer;
 
         private readonly LyraRestClient _rpcClient;
 
@@ -33,7 +33,7 @@ namespace Lyra.Data.API
 
             _rpcClient = client;
 
-            _signer = (hash) => Signatures.GetSignature(_signingPrivateKey, hash, _signingAccountId);
+            _signer = (hash) => Task.FromResult(Signatures.GetSignature(_signingPrivateKey, hash, _signingAccountId));
         }
 
         public async Task<Dictionary<string, long>> GetBalanceAsync()
@@ -54,7 +54,8 @@ namespace Lyra.Data.API
             ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer2Async(_accountId, _signer(lastServiceBlock.Hash));
+                var signature = await _signer(lastServiceBlock.Hash);
+                var lookup_result = await _rpcClient.LookForNewTransfer2Async(_accountId, signature);
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -67,7 +68,7 @@ namespace Lyra.Data.API
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer2Async(_accountId, _signer(lastServiceBlock.Hash));
+                    lookup_result = await _rpcClient.LookForNewTransfer2Async(_accountId, await _signer(lastServiceBlock.Hash));
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -142,7 +143,7 @@ namespace Lyra.Data.API
             // substract the fee
             sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = (sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() - fee).ToBalanceLong();
 
-            sendBlock.InitializeBlock(previousBlock, _signer);
+            await sendBlock.InitializeBlockAsync(previousBlock, _signer);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -202,7 +203,7 @@ namespace Lyra.Data.API
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
-            receiveBlock.InitializeBlock(latestBlock, _signer);
+            await receiveBlock.InitializeBlockAsync(latestBlock, _signer);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
                 throw new Exception("ValidateTransaction failed");
@@ -240,7 +241,7 @@ namespace Lyra.Data.API
             {
                 openReceiveBlock.Balances.Add(chg.Key, chg.Value.ToBalanceLong());
             }
-            openReceiveBlock.InitializeBlock(null, _signer);
+            await openReceiveBlock.InitializeBlockAsync(null, _signer);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 

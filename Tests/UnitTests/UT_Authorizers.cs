@@ -189,13 +189,13 @@ namespace UnitTests
                     if (result.Item1 == APIResultCodes.Success)
                     {
                         await store.AddBlockAsync(block);
-                        await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
+                        await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Yea, true);
                     }
                     else
                     {
                         _authResult = false;
                         _sbAuthResults.Append($"{result.Item1}, ");
-                        await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Nay, true);
+                        await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Nay, true);
                     }
 
                     return new AuthorizationAPIResult
@@ -218,7 +218,7 @@ namespace UnitTests
             catch(Exception ex)
             {
                 Console.WriteLine($"In AuthAsync: {ex}");
-                await cs.Worker_OnConsensusSuccess(block, ConsensusResult.Uncertain, true);
+                await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Uncertain, true);
 
                 return new AuthorizationAPIResult
                 {

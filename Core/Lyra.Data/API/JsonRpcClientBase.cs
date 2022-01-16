@@ -134,7 +134,7 @@ namespace Lyra.Core.API
     }
 
     public delegate void ReceivingEventHandler(Receiving recvMsg);
-    public class JsonRpcClientBase
+    public abstract class JsonRpcClientBase
     {
         protected string NetworkId;
         public event ReceivingEventHandler OnReceiving;
@@ -142,10 +142,8 @@ namespace Lyra.Core.API
         {
             OnReceiving?.Invoke(notifyObj.ToObject<Receiving>());
         }
-        protected virtual string SignMessage(string message)
-        {
-            throw new Exception("SignMessage Must be override.");
-        }
+        protected abstract Task<string> SignMessageAsync(string message);
+
         public async Task TestProcAsync(Func<JsonRpc, CancellationToken, Task> mainFunc)
         {
             var cancellationTokenSrc = new CancellationTokenSource();
@@ -163,10 +161,11 @@ namespace Lyra.Core.API
                 {
                     try
                     {
-                        jsonRpc.AddLocalRpcMethod("Sign", new Func<string, string, string, string[]>(
-                            (type, msg, accountId) =>
+                        jsonRpc.AddLocalRpcMethod("Sign", new Func<string, string, string, Task<string[]>>(
+                            async (type, msg, accountId) =>
                             {
-                                return new string[] { "p1393", SignMessage(msg) };
+                                var sign = await SignMessageAsync(msg);
+                                return new string[] { "p1393",  sign};
                             }
                         ));
 

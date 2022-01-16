@@ -242,7 +242,7 @@ namespace Lyra.Core.Decentralize
                 await Done.AsTaskAsync();
         }
 
-        public Task Commit()
+        public Task CommitAsync()
         {
             if (_commited)
                 _log.LogError("already commited. should not happen.");

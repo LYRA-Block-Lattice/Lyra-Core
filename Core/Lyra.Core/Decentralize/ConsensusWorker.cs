@@ -461,7 +461,7 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                await _state.Commit();
+                await _state.CommitAsync();
                 _log.LogInformation($"consensus commited. {block.Height}/{block.Hash} state close.");
             }
             catch(Exception ex)

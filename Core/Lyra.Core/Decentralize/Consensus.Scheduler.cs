@@ -197,7 +197,7 @@ namespace Lyra.Core.Decentralize
         [DisallowConcurrentExecution]
         private class LeaderTaskMonitor : IJob
         {
-            public async Task Execute(IJobExecutionContext context)
+            public Task Execute(IJobExecutionContext context)
             {
                 var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
 
@@ -205,49 +205,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if(cs.CurrentState == Data.API.BlockChainState.Almighty)
                     {
-                        var blueprints = BrokerFactory.GetAllBlueprints();
-                        foreach (var blueprint in blueprints)
-                        {
-                            // if finished, or > 300s, delete it.
-                            if (await cs.CheckFinishedAsync(blueprint) || blueprint.start.AddSeconds(300) < DateTime.UtcNow)
-                                BrokerFactory.RemoveBlueprint(blueprint.svcReqHash);
-                        }
 
-                        //if(cs.IsThisNodeLeader)
-                        //{
-                        //    blueprints = BrokerFactory.GetAllBlueprints();
-                        //    foreach (var x in blueprints
-                        //        .GroupBy(a => a.brokerAccount)
-                        //        .Select(g => new
-                        //        {
-                        //            brk = g.Key,
-                        //            bp = g.OrderBy(d => d.start).FirstOrDefault()
-                        //        })
-                        //        .ToArray())
-                        //    {
-                        //        if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
-                        //        {
-                        //            cs._log.LogError($"blueprint failed: {x.bp.svcReqHash}");
-                        //            BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
-                        //            blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
-                        //        }
-                        //        else
-                        //        {
-                        //            cs.ExecuteBlueprint(x.bp, "LeaderTaskMonitor");
-                        //        }
-                        //    }
-                        //}
-
-                        BrokerFactory.Persist(cs._sys.Storage);
-
-                        if(cs._viewChangeHandler != null && !cs._viewChangeHandler.IsViewChanging)
-                        {
-                            var bps = BrokerFactory.GetAllBlueprints();
-                            var lsp = await cs._sys.Storage.GetLastServiceBlockAsync();
-                            if (bps.Any(a => DateTime.UtcNow - a.start > TimeSpan.FromSeconds(120))
-                                && DateTime.UtcNow - lsp.TimeStamp > TimeSpan.FromSeconds(120))
-                                await cs.BeginChangeViewAsync("block monitor", ViewChangeReason.LeaderFailedProcessingDEX);
-                        }
                     }
 
 
@@ -257,6 +215,8 @@ namespace Lyra.Core.Decentralize
                 {
                     cs._log.LogError($"In LeaderTaskMonitor: {e}");
                 }
+
+                return Task.CompletedTask;
             }
         }
 

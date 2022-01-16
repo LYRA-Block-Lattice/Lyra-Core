@@ -16,7 +16,7 @@ namespace Lyra.Data.API
             public byte[] Data { get; set; }
             public bool Backup { get; set; }
         }
-        public event EventHandler? OnChange;
+        public event EventHandler OnChange;
         Dictionary<string, MetaData> _wallets;
         public WalletContainer(string json)
         {

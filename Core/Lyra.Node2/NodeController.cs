@@ -586,10 +586,10 @@ namespace LyraLexWeb2
 
         [Route("FindProfitingAccountsByName")]
         [HttpGet]
-        public ProfitingGenesis FindProfitingAccountsByName(string name)
+        public async Task<ProfitingGenesis> FindProfitingAccountsByNameAsync(string name)
         {
             if (!CheckServiceStatus()) return null;
-            return _node.FindProfitingAccountsByNameAsync(name);
+            return await _node.FindProfitingAccountsByNameAsync(name);
         }
 
         [Route("FindAllStakings")]

@@ -15,7 +15,7 @@ namespace Lyra.Data.API
     public class KeylessWallet
     {
         private string _accountId;
-        private SignHandler _signer;
+        private Func<string, Task<string>> _signer;
 
         INodeAPI _node;
         INodeTransactionAPI _trans;
@@ -24,7 +24,7 @@ namespace Lyra.Data.API
 
         public TransactionBlock LastBlock { get; private set; }
 
-        public KeylessWallet(string accountId, SignHandler signer, INodeAPI client, INodeTransactionAPI trans)
+        public KeylessWallet(string accountId, Func<string, Task<string>> signer, INodeAPI client, INodeTransactionAPI trans)
         {
             _accountId = accountId;
             _signer = signer;
@@ -150,7 +150,7 @@ namespace Lyra.Data.API
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)))
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            sendBlock.InitializeBlock(previousBlock, _signer);
+            await sendBlock.InitializeBlockAsync(previousBlock, _signer);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -215,7 +215,7 @@ namespace Lyra.Data.API
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
-            receiveBlock.InitializeBlock(latestBlock, _signer);
+            await receiveBlock.InitializeBlockAsync(latestBlock, _signer);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
                 throw new Exception("ValidateTransaction failed");
@@ -257,7 +257,7 @@ namespace Lyra.Data.API
             {
                 openReceiveBlock.Balances.Add(chg.Key, chg.Value.ToBalanceLong());
             }
-            openReceiveBlock.InitializeBlock(null, _signer);
+            await openReceiveBlock.InitializeBlockAsync(null, _signer);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
@@ -326,7 +326,7 @@ namespace Lyra.Data.API
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
             sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = (sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() - fee).ToBalanceLong();
 
-            sendBlock.InitializeBlock(previousBlock, _signer);
+            await sendBlock.InitializeBlockAsync(previousBlock, _signer);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -422,7 +422,7 @@ namespace Lyra.Data.API
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            tokenBlock.InitializeBlock(latestBlock, _signer);
+            await tokenBlock.InitializeBlockAsync(latestBlock, _signer);
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 

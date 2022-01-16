@@ -229,7 +229,6 @@ namespace Lyra.Core.Decentralize
                             }
                         }
 
-                        int count = 0;
                         foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
                         {
                             //_log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
@@ -719,6 +718,7 @@ namespace Lyra.Core.Decentralize
         {
             if (IsThisNodeLeader)
             {
+                await Task.Delay(1000);
                 await SendBlockToConsensusAndForgetAsync(block);
             }                
         }
@@ -778,13 +778,13 @@ namespace Lyra.Core.Decentralize
             if (msg.Block is ServiceBlock sb)
             {
                 _log.LogInformation($"AllVoters: {Board.AllVoters.Count}");
-                state = new ServiceBlockAuthState(Worker_OnConsensusSuccess, Board.AllVoters);
+                state = new ServiceBlockAuthState(Worker_OnConsensusSuccessAsync, Board.AllVoters);
                 msg.IsServiceBlock = true;
                 state.SetView(Board.AllVoters);
             }
             else
             {
-                state = new AuthState(Worker_OnConsensusSuccess);
+                state = new AuthState(Worker_OnConsensusSuccessAsync);
                 msg.IsServiceBlock = false;
                 state.SetView(Board.PrimaryAuthorizers);
             }

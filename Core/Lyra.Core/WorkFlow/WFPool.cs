@@ -272,13 +272,8 @@ namespace Lyra.Core.WorkFlow
             depositBlock.Balances = depositBalance.ToLongDict();
             depositBlock.Shares = depositShares.ToRitoLongDict();
 
-            depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            await depositBlock.InitializeBlockAsync(latestPoolBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
             return depositBlock;
-            //var tx = new ServiceTx(sendBlock.Hash)
-            //{
-            //    PoolId = latestPoolBlock.AccountID
-            //};
-            //await QueueBlockForPoolAsync(depositBlock, tx);  // pool deposition
         }
         #endregion
     }
@@ -378,9 +373,8 @@ namespace Lyra.Core.WorkFlow
             withdrawBlock.Balances = nextBalance.ToLongDict();
             withdrawBlock.Shares = nextShares.ToRitoLongDict();
 
-            withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            await withdrawBlock.InitializeBlockAsync(poolLatestBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
             return withdrawBlock;
-            //await QueueTxActionBlockAsync(withdrawBlock);
         }
         #endregion
     }
@@ -518,7 +512,7 @@ namespace Lyra.Core.WorkFlow
 
             swapInBlock.Balances = depositBalance.ToLongDict();
             swapInBlock.Shares = (latestPoolBlock as IPool).Shares;
-            swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            await swapInBlock.InitializeBlockAsync(latestPoolBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
 
             return swapInBlock;
         }
@@ -582,7 +576,7 @@ namespace Lyra.Core.WorkFlow
 
             swapOutBlock.Balances = nextBalance.ToLongDict();
             swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
-            swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            await swapOutBlock.InitializeBlockAsync(poolLatestBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
 
             // verify 
             var chgs = swapOutBlock.GetBalanceChanges(poolLatestBlock);

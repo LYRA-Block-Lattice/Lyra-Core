@@ -1681,7 +1681,7 @@ namespace Lyra.Core.Decentralize
         //    return APIResultCodes.Success;
         //}
 
-        public async Task Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
+        public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {
             if(result != ConsensusResult.Uncertain)
                 _successBlockCount++;
@@ -1817,20 +1817,20 @@ namespace Lyra.Core.Decentralize
                 await ProcessServerReqBlockAsync(send, result);
 
             if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
-                ProcessManagedBlock(block as TransactionBlock, result);
+                await ProcessManagedBlockAsync(block as TransactionBlock, result);
         }
 
-        public async Task<object> GetBlockForRelatedTx(string reltx)
+        public async Task<object> GetBlockForRelatedTxAsync(string reltx)
         {
             var wfhost = _hostEnv.GetWorkflowHost();
 
             var Id = _workFlows[reltx];
             var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
             var ctx = wf.Data as LyraContext;
-            // wait for 2s for block
-            int count = 200;
-            while (count-- > 0 && ctx.LastBlock == null && ctx.State == WFState.Running)
-                await Task.Delay(10);
+            //// wait for 2s for block
+            //int count = 200;
+            //while (count-- > 0 && ctx.LastBlock == null && ctx.State == WFState.Running)
+            //    await Task.Delay(10);
             return ctx.LastBlock;
         }
 
@@ -1859,113 +1859,10 @@ namespace Lyra.Core.Decentralize
                 };
                 var id = await wfhost.StartWorkflow(svcreqtag, ctx);
                 _workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
-
-                //// get broker account
-                //var brkaccount = BrokerFactory.GetBrokerAccountID(send);
-
-                //var bps = BrokerFactory.GetAllBlueprints();
-                //var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
-
-                //// create a blueprint for workflow
-                //var blueprint = new BrokerBlueprint
-                //{
-                //    view = _currentView,
-                //    start = send.TimeStamp,
-                //    initiatorAccount = send.AccountID,
-                //    brokerAccount = brkaccount,
-                //    svcReqHash = send.Hash,
-                //    action = action,
-                //    preDone = false,
-                //    mainDone = false,
-                //    extraDone = false
-                //};
-                //BrokerFactory.CreateBlueprint(blueprint);
-
-                //if(IsThisNodeLeader)
-                //{
-                //    // if same broker account, then don't run, let it wait in queue.
-                //    if (brkaccount != null && curbrks.Any())
-                //    {
-                //        _log.LogInformation($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
-                //        return;
-                //    }
-
-                //    _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
-                //    //ExecuteBlueprint(blueprint, "Leader ProcessServerReqBlock");
-
-                //    var wfhost = _hostEnv.GetWorkflowHost();
-                //    var id = await wfhost.StartWorkflow("DebiMain", blueprint);
-                //}
             }
         }
 
-        public async Task<bool> CheckFinishedAsync(BrokerBlueprint bp)
-        {
-            //return await bp.ExecuteAsync(_sys, (b) => Task.CompletedTask, "CheckFinishedAsync");
-            return false;
-        }
-
-        public async void ExecuteBlueprintx(BrokerBlueprint bp, string caller)
-        {
-            var wfhost = _hostEnv.GetWorkflowHost();
-
-            wfhost.PublishEvent("", "", "");
-            var id = await wfhost.StartWorkflow<BrokerBlueprint>("DebiMain", bp);
-            var x = await wfhost.PersistenceStore.GetWorkflowInstance(id);
-            
-
-            if (_pfTaskMutex.Wait(1))
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        _log.LogInformation($"Executing blueprints: process {bp.svcReqHash} ...");
-
-                        bool success = false;
-                        // hack for unit test
-                        if (_hostEnv == null)
-                        {
-                            success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b), caller);
-                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                            if (success)
-                                BrokerFactory.RemoveBlueprint(bp.svcReqHash);
-                        }
-                        else
-                        {
-                            _log.LogInformation($"Begin executing blueprints...");
-                            if (IsThisNodeLeader)
-                            {
-                                success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b), caller + " Leader");
-                            }
-                            else   // give normal nodes a chance to clear the queue
-                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask, caller + " normal node");
-                            _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
-                        }
-
-                        if (success)
-                            BrokerFactory.RemoveBlueprint(bp.svcReqHash);
-                        else
-                        {
-                            BrokerFactory.UpdateBlueprint(bp);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        var ms = "Error Executing blueprints: " + e.ToString();
-                        Console.WriteLine(ms);
-                        _log.LogError(ms);
-                    }
-                    finally
-                    {
-                        _log.LogInformation("Executing blueprints Done.");
-                        _pfTaskMutex.Release();
-                    }
-                }).ConfigureAwait(false);
-            }
-        }
-
-        public async Task ProcessManagedBlock(TransactionBlock block, ConsensusResult? result)
+        public async Task ProcessManagedBlockAsync(TransactionBlock block, ConsensusResult? result)
         {
             // find the key
             string key = null;
@@ -1992,78 +1889,6 @@ namespace Lyra.Core.Decentralize
             Console.WriteLine($"Key is {key} Publish Consensus event {result} ");
             await wfhost.PublishEvent("Consensus", key, result);
             return;
-
-            var bp = BrokerFactory.GetBlueprint(key);
-            if (bp == null)
-                return;
-
-            if(result == ConsensusResult.Nay)
-            {
-                // PD recv never fail, it just retry again
-                if(block is ReceiveTransferBlock recv && recv.AccountID == PoolFactoryBlock.FactoryAccount)
-                {
-                    _log.LogWarning($"PoolFactory receive Nay. retry... RelatedTx: {key}");
-                }
-                else
-                {
-                    // process Nay
-                    _log.LogCritical($"Fatal Error ProcessManagedBlock! RelatedTx: {key}");
-                    BrokerFactory.RemoveBlueprint(key);
-                }
-            }
-
-            if (!bp.FullDone)
-            {
-                _ = Task.Run(async () =>
-                {
-                    // hack for unit test
-                    if (_hostEnv == null)
-                    {
-                        await Task.Delay(10);
-                    }
-                    // debug unit test. force execute when unit test debug
-                    if (_hostEnv == null || _pfTaskMutex.Wait(1))
-                    {
-                        try
-                        {
-                            bool success = false;
-                            if (IsThisNodeLeader)
-                            {
-                                if (_hostEnv == null)
-                                {
-                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b), "ProcessManagedBlock");
-                                }
-                                else
-                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b), "ProcessManagedBlock");
-                            }
-                            else   // give normal nodes a chance to clear the queue
-                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask, "ProcessManagedBlock");
-                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                            if (success)
-                                BrokerFactory.RemoveBlueprint(bp.svcReqHash);
-                            else
-                            {
-                                BrokerFactory.UpdateBlueprint(bp);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            var err = "Error Executing blueprints: " + e.ToString();
-                            Console.WriteLine(err);
-                            _log.LogError(err);
-                        }
-                        finally
-                        {
-                            _log.LogInformation("Executing blueprints Done.");
-                            _pfTaskMutex.Release();
-                        }
-                    }
-                }).ConfigureAwait(false);
-            }
-            else
-            {
-                BrokerFactory.RemoveBlueprint(key);
-            }
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)

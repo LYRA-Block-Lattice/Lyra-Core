@@ -4,6 +4,7 @@ using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,8 +21,6 @@ namespace Lyra.Data.API
 
         private List<LyraRestClient> _primaryClients;
 
-        private int _baseIndex;
-
         public LyraRestClient SeedClient => LyraRestClient.Create(_networkId, Environment.OSVersion.Platform.ToString(), "LyraAggregatedClient", "1.0");
 
         public LyraAggregatedClient(string networkId, bool seedsOnly, string poswallet)
@@ -29,8 +28,6 @@ namespace Lyra.Data.API
             _networkId = networkId;
             _seedsOnly = seedsOnly;
             _poswallet = poswallet;
-
-            _baseIndex = 0;
         }
 
         // update it from node's json
@@ -41,6 +38,7 @@ namespace Lyra.Data.API
 
         public async Task InitAsync()
         {
+            ServicePointManager.DefaultConnectionLimit = 30;
             var platform = Environment.OSVersion.Platform.ToString();
             var appName = "LyraAggregatedClient";
             var appVer = "1.0";
@@ -60,7 +58,7 @@ namespace Lyra.Data.API
                 try
                 {
                     Console.WriteLine("LyraAggregatedClient.InitAsync");
-                    foreach(var sd in seedNodes)
+                    foreach (var sd in seedNodes)
                     {
                         try
                         {
@@ -68,7 +66,8 @@ namespace Lyra.Data.API
                             currentBillBoard = await apiClient.GetBillBoardAsync();
                             break;
                         }
-                        catch(Exception e){
+                        catch (Exception e)
+                        {
                             Console.WriteLine("LyraAggregatedClient.InitAsync: " + e.Message);
                         }
                     }
@@ -110,14 +109,14 @@ namespace Lyra.Data.API
                     //    continue;
                     //}
 
-                    if(_seedsOnly)
+                    if (_seedsOnly)
                     {
                         // create clients for primary nodes
                         _primaryClients = seedNodes
                             .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c}:{peerPort}/api/Node/"))
                             .ToList();
                     }
-                    else if(currentBillBoard == null)
+                    else if (currentBillBoard == null)
                     {
                         Console.WriteLine("Error init LyraAggregatedClient. Billboard is null.");
                         await Task.Delay(1000);
@@ -136,8 +135,11 @@ namespace Lyra.Data.API
 
                     if (_primaryClients.Count < 2)      // billboard not harvest address enough
                         await Task.Delay(2000);
+
+                    foreach (var primaryClient in _primaryClients)
+                        primaryClient.SetTimeout(TimeSpan.FromSeconds(5));
                 }
-                catch(Exception exx)
+                catch (Exception exx)
                 {
                     Console.WriteLine("Error init LyraAggregatedClient. Error: " + exx.ToString());
                     await Task.Delay(1000);
@@ -161,7 +163,7 @@ namespace Lyra.Data.API
             //    await Task.WhenAll(tasks.Values);
             //}
             //catch { }
-            
+
             //var highest = tasks.Where(a => !(a.Value.IsFaulted || a.Value.IsCanceled) && a.Value.IsCompleted)
             //    .Select(x => x.Value.Result)
             //    .OrderByDescending(o => o.Status.totalBlockCount)
@@ -179,60 +181,40 @@ namespace Lyra.Data.API
             ////
         }
 
-        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T: APIResult, new()
+        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T : APIResult, new()
         {
+            await Task.WhenAll(tasks);
+
             var expectedCount = LyraGlobal.GetMajority(tasks.Count);
             if (_seedsOnly)    // seed stage
                 expectedCount = 2;
 
-            ISet<Task<T>> activeTasks = new HashSet<Task<T>>(tasks);
-            while (activeTasks.Count > 0)
+
+            var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted);
+            //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
+
+            if (compeletedCount >= expectedCount)
             {
-                try
+                var coll = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
+                    .Select(a => a.Result)
+                    .GroupBy(b => b)
+                    .Select(g => new
+                    {
+                        Data = g.Key,
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(x => x.Count);
+
+                var best = coll.First();
+
+                if (best.Count >= expectedCount)
                 {
-                    try
-                    {
-                        await Task.WhenAny(activeTasks);
-                    }
-                    catch(Exception)
-                    {
-
-                    }
-
-                    foreach (var t in activeTasks.Where(a => a.IsCompleted).ToList())
-                        activeTasks.Remove(t);
-
-                    var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted);
-                    //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
-
-                    if (compeletedCount >= expectedCount)
-                    {
-                        var coll = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
-                            .Select(a => a.Result)
-                            .GroupBy(b => b)
-                            .Select(g => new
-                            {
-                                Data = g.Key,
-                                Count = g.Count()
-                            })
-                            .OrderByDescending(x => x.Count);
-
-                        var best = coll.First();
-
-                        if (best.Count >= expectedCount)
-                        {
-                            var x = tasks.First(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result == best.Data);
-                            return await x;
-                        }
-                        else
-                        {
-                            //Console.WriteLine($"Result count: {best.Count} / {expectedCount}");
-                        }
-                    }
+                    var x = tasks.First(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result == best.Data);
+                    return await x;
                 }
-                catch(Exception)
+                else
                 {
-
+                    Console.WriteLine($"Result count: {best.Count} / {expectedCount}");
                 }
             }
 
@@ -562,9 +544,9 @@ namespace Lyra.Data.API
             return SeedClient.FindAllProfitingAccountsAsync(begin, end);
         }
 
-        public ProfitingGenesis FindProfitingAccountsByNameAsync(string Name)
+        public Task<ProfitingGenesis> FindProfitingAccountsByNameAsync(string Name)
         {
-            return SeedClient.FindProfitingAccountsByNameAsync(Name).Result;
+            return SeedClient.FindProfitingAccountsByNameAsync(Name);
         }
 
         public Task<PendingStats> GetPendingStatsAsync(string accountId)

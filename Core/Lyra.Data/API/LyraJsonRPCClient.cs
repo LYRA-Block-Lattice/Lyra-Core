@@ -11,17 +11,17 @@ namespace Lyra.Core.API
 {
     public class LyraJsonRPCClient : JsonRpcClientBase
     {
-        SignHandler _signr;
+        Func<string, Task<string>> _signr;
 
-        public LyraJsonRPCClient(string networkId, SignHandler signr)
+        public LyraJsonRPCClient(string networkId, Func<string, Task<string>> signr)
         {
             NetworkId = networkId;
             _signr = signr;
         }
 
-        protected override string SignMessage(string message)
+        protected override async Task<string> SignMessageAsync(string message)
         {
-            return _signr(message);
+            return await _signr(message);
         }
     }
 }

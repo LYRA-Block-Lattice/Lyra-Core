@@ -26,8 +26,15 @@ namespace Lyra.Core.API
 
         public string Host { get; private set; }
         private CancellationTokenSource _cancel;
+
+        private TimeSpan _timeout;
+        public void SetTimeout(TimeSpan timeout)
+        {
+            _timeout = timeout;
+        }
         public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
+            _timeout = TimeSpan.FromSeconds(10);
             _platform = platform;
             _url = url;
             _appName = appName;
@@ -62,7 +69,7 @@ namespace Lyra.Core.API
                     return true;
                 };
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 // wasm will throw platform unsupported exception
             }
@@ -117,6 +124,7 @@ namespace Lyra.Core.API
         private async Task<T> PostBlockAsync<T>(string action, object obj)
         {
             using var client = CreateClient();
+            client.Timeout = _timeout;
             HttpResponseMessage response = await client.PostAsJsonAsync(
                 action, obj, _cancel.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
@@ -690,11 +698,6 @@ namespace Lyra.Core.API
             };
 
             return await GetAsync<PendingStats>("GetPendingStats", args);
-        }
-
-        ProfitingGenesis INodeAPI.FindProfitingAccountsByNameAsync(string Name)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<MultiBlockAPIResult> GetAllDexWalletsAsync(string owner)
