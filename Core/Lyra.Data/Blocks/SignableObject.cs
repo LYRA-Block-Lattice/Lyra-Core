@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Lyra.Data.Crypto;
 using Lyra.Data.Blocks;
+using System.Threading;
 
 namespace Lyra.Core.Blocks
 {
@@ -19,6 +20,8 @@ namespace Lyra.Core.Blocks
         public abstract string GetHashInput();
 
         protected abstract string GetExtraData();
+
+        static ReaderWriterLock rwl = new ReaderWriterLock();
 
         // Calculate object's SHA256 hash 
         public string CalculateHash()
@@ -34,7 +37,15 @@ namespace Lyra.Core.Blocks
                 //// debug only, temp code
                 //if (record.Contains("LyraTokenGenesis"))
                 //    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
-                File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
+                try
+                {
+                    rwl.AcquireWriterLock(1000);
+                    File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
+                }
+                finally
+                {
+                    rwl.ReleaseWriterLock();
+                }                
 
                 return hash;
             }
