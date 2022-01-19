@@ -1783,11 +1783,16 @@ namespace Lyra.Core.Decentralize
         {
             var wfhost = _hostEnv.GetWorkflowHost();
 
-            var Id = _workFlows[reltx];
-            var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
-            var ctx = wf.Data as LyraContext;
+            if (_workFlows.ContainsKey(reltx))
+            {
+                var Id = _workFlows[reltx];
+                var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
+                var ctx = wf.Data as LyraContext;
 
-            return ctx.LastBlock;
+                return ctx.LastBlock;
+            }
+            else
+                return null;
         }
 
         public string GetHashForWorkflow(string id)
