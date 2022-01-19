@@ -924,19 +924,27 @@ namespace Lyra.Core.Decentralize
 
         public int GetQualifiedNodeCount(List<ActiveNode> allNodes)
         {
-            var count = allNodes.Count();
-            if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
+            return Settings.Default.LyraNode.Lyra.NetworkId switch
             {
-                return LyraGlobal.MAXIMUM_VOTER_NODES;
-            }
-            else if (count < LyraGlobal.MINIMUM_AUTHORIZERS)
-            {
-                return LyraGlobal.MINIMUM_AUTHORIZERS;
-            }
-            else
-            {
-                return count;
-            }
+                "mainnet" => 19,
+                "testnet" => 13,
+                "devnet" => 4,
+                _ => 4,
+            };
+
+            //var count = allNodes.Count();
+            //if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
+            //{
+            //    return LyraGlobal.MAXIMUM_VOTER_NODES;
+            //}
+            //else if (count < LyraGlobal.MINIMUM_AUTHORIZERS)
+            //{
+            //    return LyraGlobal.MINIMUM_AUTHORIZERS;
+            //}
+            //else
+            //{
+            //    return count;
+            //}
         }
 
         public bool AddFailedLeader(string leaderPosWallet)
@@ -1330,7 +1338,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no IP {ip}");
             }
 
-            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)).ToList();
+            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddMinutes(-60)).ToList();
             foreach (var n in deadList)
                 _board.NodeAddresses.TryRemove(n.AccountID, out _);
         }

@@ -123,23 +123,25 @@ namespace Lyra.Core.Decentralize
                             // need to replace the bad leader with some 'random', like sha256(view id) mod total
 
                             // view change timeout
-                            if(cs._viewChangeHandler.selectedSuccess)
-                            {
-                                // leader failure
-                                cs.AddFailedLeader(cs._viewChangeHandler.nextLeader);
+                            //if(cs._viewChangeHandler.selectedSuccess)
+                            //{
+                            //    // leader failure
+                            //    cs.AddFailedLeader(cs._viewChangeHandler.nextLeader);
 
-                                await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.NewLeaderFailedCreatingView);
-                            }
-                            else if(cs._viewChangeHandler.LastViewChangeReason != ViewChangeReason.ViewChangeTimeout)
-                            {
-                                // view change voting failure
-                                await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
-                            }
-                            else
-                            {
-                                cs._log.LogInformation("Stop doing endless view change.");
-                                cs._viewChangeHandler.StopViewChange();
-                            }
+                            //    await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.NewLeaderFailedCreatingView);
+                            //}
+                            //else if(cs._viewChangeHandler.LastViewChangeReason != ViewChangeReason.ViewChangeTimeout)
+                            //{
+                            //    // view change voting failure
+                            //    await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
+                            //}
+                            //else
+                            //{
+                            //    cs._log.LogInformation("Stop doing endless view change.");
+                            //    cs._viewChangeHandler.StopViewChange();
+                            //}
+                            cs._log.LogInformation("Stop view change.");
+                            cs._viewChangeHandler.StopViewChange();
                         }
                     }
                     else
