@@ -78,7 +78,6 @@ namespace Lyra.Core.Blocks
 
             return base.AuthCompare(ob) &&
                 Leader == ob.Leader &&
-                CompareDict<string>(Authorizers, ob.Authorizers) &&
                 NetworkId == ob.NetworkId &&
                 FeeTicker == ob.FeeTicker &&
                 TransferFee == ob.TransferFee &&
