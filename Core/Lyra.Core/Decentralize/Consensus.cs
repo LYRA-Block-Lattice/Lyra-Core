@@ -721,7 +721,7 @@ namespace Lyra.Core.Decentralize
 
             if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
             {
-                _ = Task.Run(async () => { await OnNewBlock(block); });
+                _ = Task.Run(async () => { await OnNewBlock(block); }).ConfigureAwait(false);
             }
             else
             {

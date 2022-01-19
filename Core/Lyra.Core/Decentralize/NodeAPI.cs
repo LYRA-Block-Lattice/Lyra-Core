@@ -922,9 +922,9 @@ namespace Lyra.Core.Decentralize
             return NodeService.Dag.Storage.FindVotes(model.posAccountIds, model.endTime);
         }
 
-        public FeeStats GetFeeStats()
+        public Task<FeeStats> GetFeeStatsAsync()
         {
-            return NodeService.Dag.Storage.GetFeeStats();
+            return NodeService.Dag.Storage.GetFeeStatsAsync();
         }
 
         // util 

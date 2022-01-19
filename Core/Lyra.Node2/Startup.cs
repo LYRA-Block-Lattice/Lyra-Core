@@ -251,7 +251,7 @@ namespace Lyra.Node2
                 genericMethodInfo.Invoke(host, new object[] { });
             }
 
-            host.Start();
+            //host.Start(); // will start later on consensus network is ready
             var evn = app.ApplicationServices.GetService<IHostEnv>();
             evn.SetWorkflowHost(host);
 

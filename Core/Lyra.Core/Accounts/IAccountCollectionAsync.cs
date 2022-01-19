@@ -86,7 +86,7 @@ namespace Lyra.Core.Accounts
 
         List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime);
         List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime);
-        FeeStats GetFeeStats();
+        Task<FeeStats> GetFeeStatsAsync();
 
         Task<List<Block>> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime);
         Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime);

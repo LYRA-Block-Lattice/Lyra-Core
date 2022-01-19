@@ -69,7 +69,7 @@ namespace Lyra.Core.API
         #region voting
         List<Voter> GetVoters(VoteQueryModel model);
         List<Vote> FindVotes(VoteQueryModel model);
-        FeeStats GetFeeStats();
+        Task<FeeStats> GetFeeStatsAsync();
         #endregion
 
         #region Reward trade methods

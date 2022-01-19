@@ -2,6 +2,7 @@
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
+using Microsoft.Extensions.Logging;
 using Neo;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
+using WorkflowCore.Services;
 
 namespace Lyra.Core.WorkFlow
 {
@@ -64,11 +66,11 @@ namespace Lyra.Core.WorkFlow
 
     public abstract class DebiWorkflow
     {
+        protected List<string> LockingIds { get; init; } = new List<string>();
         public abstract BrokerRecvType RecvVia { get; }
         public Action<IWorkflowBuilder<LyraContext>> letConsensus => new Action<IWorkflowBuilder<LyraContext>>(branch => branch
                 
                 .If(data => data.LastBlock != null).Do(then => then
-
                     .StartWith<CustomMessage>()
                         .Name("Log")
                         .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash} Block is {data.LastBlock.GetBlockType()} Let's consensus")
@@ -117,6 +119,7 @@ namespace Lyra.Core.WorkFlow
                 .StartWith(a => {
                     a.Workflow.Reference = "start";
                     //Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
+                    //ConsensusService.Singleton.LockIds(LockingIds);
                     return ExecutionResult.Next();
                     })
                     .Output(data => data.State, step => WFState.Running)
@@ -148,17 +151,19 @@ namespace Lyra.Core.WorkFlow
                 .Then(a => {
                     //Console.WriteLine("Ends.");
                     a.Workflow.Reference = "end";
+                    //ConsensusService.Singleton.UnLockIds(LockingIds);
                 })
                 ;
         }
     }
 
-    public class ReqViewChange : StepBody
+    public class ReqViewChange : StepBodyAsync
     {
-        public override ExecutionResult Run(IStepExecutionContext context)
+        public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var ctx = context.Workflow.Data as LyraContext;
+            //var ctx = context.Workflow.Data as LyraContext;
             Console.WriteLine($"Request View Change.");
+            await ConsensusService.Singleton.BeginChangeViewAsync("WF Engine", ViewChangeReason.ConsensusTimeout);
             return ExecutionResult.Next();
         }
     }

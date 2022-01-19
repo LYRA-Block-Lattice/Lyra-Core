@@ -1772,7 +1772,7 @@ namespace Lyra.Core.Accounts
             return perAtrVotes;
         }
 
-        public FeeStats GetFeeStats()
+        public Task<FeeStats> GetFeeStatsAsync()
         {
             var sbs = _blocks.OfType<ServiceBlock>()
                     .Aggregate()
@@ -1820,11 +1820,11 @@ namespace Lyra.Core.Accounts
             // unconfirmed
             var unconfirm = sbs.Last().Authorizers.Keys.Select(a => new RevnuItem { AccId = a, Revenue = Math.Round(totalFeeUnConfirmed / sbs.Last().Authorizers.Count, 8) });
 
-            return new FeeStats { TotalFeeConfirmed = totalFeeConfirmed,
+            return Task.FromResult(new FeeStats { TotalFeeConfirmed = totalFeeConfirmed,
                 TotalFeeUnConfirmed = totalFeeUnConfirmed,
                 ConfirmedEarns = confimed.OrderByDescending(a => a.Revenue).ToList(),
                 UnConfirmedEarns = unconfirm.OrderByDescending(a => a.Revenue).ToList()
-            };
+            });
         }
 
         public async Task<PoolFactoryBlock> GetPoolFactoryAsync()

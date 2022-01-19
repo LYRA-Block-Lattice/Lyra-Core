@@ -184,9 +184,9 @@ namespace Lyra.Core.Accounts
             return StopWatcher.Track(() => _store.FindVotes(posAccountIds, endTime), "FindVotes");
         }
 
-        public FeeStats GetFeeStats()
+        public Task<FeeStats> GetFeeStatsAsync()
         {
-            return StopWatcher.Track(() => _store.GetFeeStats(), "GetFeeStats");
+            return StopWatcher.Track(() => _store.GetFeeStatsAsync(), "GetFeeStatsAsync");
         }
 
         public Task<List<Block>> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)

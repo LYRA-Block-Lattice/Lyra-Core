@@ -578,11 +578,6 @@ namespace Lyra.Core.API
             throw new NotImplementedException();
         }
 
-        public FeeStats GetFeeStats()
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var args = new Dictionary<string, string>

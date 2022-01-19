@@ -32,6 +32,8 @@ using Lyra.Data.Shared;
 using WorkflowCore.Interface;
 using WorkflowCore.Models;
 using Lyra.Core.WorkFlow;
+using System.Reflection;
+using WorkflowCore.Services;
 
 namespace Lyra.Core.Decentralize
 {
@@ -415,7 +417,7 @@ namespace Lyra.Core.Decentralize
                 _localNode = null;
         }
 
-        private async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
+        public async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
         {
             _log.LogWarning($"Get View Change Request from {sender} for Reason: {reason}");
 
@@ -872,6 +874,19 @@ namespace Lyra.Core.Decentralize
                 {
                     var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                     _viewChangeHandler.ShiftView(lsb.Height + 1);
+
+                    var host = _hostEnv.GetWorkflowHost();
+
+                    BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+                    FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
+                    bool shutdown = (bool)finfo.GetValue(host);
+                    if (shutdown)
+                    {
+                        host.OnStepError += Host_OnStepError;
+                        host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
+                        host.Start();
+                    }
+
                 }).ConfigureAwait(false))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);
@@ -881,6 +896,30 @@ namespace Lyra.Core.Decentralize
                 _sys.UpdateConsensusState(t.Destination);
                 _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})");
             });
+        }
+
+        object lifeo = new object();
+        List<string> _endedWorkflows = new List<string>();
+        private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
+        {
+            //lock (lifeo)
+            //{
+            //    //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+            //    if (evt.Reference == "end")
+            //    {
+            //        if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
+            //        {
+            //            _endedWorkflows.Add(evt.WorkflowInstanceId);
+            //            var hash = GetHashForWorkflow(evt.WorkflowInstanceId);
+            //            Console.WriteLine($"Key is {hash} terminated. Set it.");
+            //        }
+            //    }
+            //}
+        }
+
+        private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
+        {
+            _log.LogError($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
         }
 
         public int GetQualifiedNodeCount(List<ActiveNode> allNodes)
@@ -1670,15 +1709,6 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        //public APIResultCodes AddSvcQueue(SendTransferBlock send)
-        //{
-        //    if (!_svcQueue.CanAdd(send.DestinationAccountId))
-        //        return APIResultCodes.ReQuotaNeeded;
-
-        //    _svcQueue.Add(send.DestinationAccountId, send.Hash);
-        //    return APIResultCodes.Success;
-        //}
-
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {
             if(result != ConsensusResult.Uncertain)
@@ -1712,83 +1742,6 @@ namespace Lyra.Core.Decentralize
                 if (result == ConsensusResult.Yea)
                 {
                     ServiceBlockCreated(serviceBlock);
-
-                    if(IsThisNodeLeader)
-                    {
-                        _ = Task.Run(() => {
-                            var blueprints = BrokerFactory.GetAllBlueprints();
-
-                            foreach (var x in blueprints
-                                .OrderBy(a => a.start)
-                                .GroupBy(a => a.brokerAccount)
-                                .Select(g => new
-                                {
-                                    brk = g.Key,
-                                    bp = g.OrderBy(d => d.start).FirstOrDefault()
-                                })
-                                .ToArray())
-                            {
-                                //ExecuteBlueprint(x.bp, "New Elected Leader");
-                            }
-                        }).ConfigureAwait(false);
-                    }
-
-                    /*
-                    if (IsThisNodeLeader)
-                    {
-                        // new leader. clean all the unfinished swap operations
-                        _ = Task.Run(async () =>
-                        {
-                            // get all unsettled send to pool factory
-                            // get all unsettled send to pools
-
-                            var allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
-                            _log.LogInformation($"This new leader is processing {allLeaderTasks.Count} leader tasks.");
-                            foreach (var entry in allLeaderTasks)
-                            {
-                                if (entry.ReqRecvHash == null)
-                                {
-                                    // do receive
-                                    var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
-
-                                    if (send == null)
-                                    {
-                                        // not valid?
-                                        continue;
-                                    }
-
-                                    var recv = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash) as ReceiveTransferBlock;
-                                    if (recv == null)
-                                    {
-                                        _log.LogInformation($"One receive not finished for send {send.Hash}. processing...");
-                                        ProcessSendBlock(send);
-                                    }
-                                    else
-                                    {
-                                        entry.FinishRecv(recv.Hash);
-
-                                        //if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
-                                        //{
-                                        //    var block = await _sys.Storage.FindBlocksByRelatedTxAsync(recv.Hash);
-                                        //    if (block == null)
-                                        //    {
-                                        //        _log.LogInformation($"One action not finished for recv {recv.Hash}. processing...");
-                                        //        //ProcessManagedBlock(block, ConsensusResult.Yea);
-                                        //    }
-                                        //    else
-                                        //    {
-                                        //        entry.FinishAction(block.Hash);
-                                        //    }
-                                        //}
-                                    }
-                                }
-                            }
-
-                            _svcQueue.Clean();
-                            allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
-                            _log.LogInformation($"This new leader still have {allLeaderTasks.Count} leader tasks in queue.");
-                        }).ConfigureAwait(false);
-                    }*/
                 }
 
                 return;
@@ -1825,10 +1778,7 @@ namespace Lyra.Core.Decentralize
             var Id = _workFlows[reltx];
             var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
             var ctx = wf.Data as LyraContext;
-            //// wait for 2s for block
-            //int count = 200;
-            //while (count-- > 0 && ctx.LastBlock == null && ctx.State == WFState.Running)
-            //    await Task.Delay(10);
+
             return ctx.LastBlock;
         }
 
@@ -1967,7 +1917,7 @@ namespace Lyra.Core.Decentralize
                     await OnHeartBeatAsync(chat as HeartBeatMessage);
                     break;
                 case ChatMessageType.NodeUp:
-                    await Task.Run(async () => { await OnNodeUpAsync(chat); }).ConfigureAwait(false);
+                    await OnNodeUpAsync(chat);
                     break;
                 //case ChatMessageType.NodeStatusInquiry:
                 //    var status = await GetNodeStatusAsync();
