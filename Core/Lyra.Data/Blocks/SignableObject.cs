@@ -32,9 +32,9 @@ namespace Lyra.Core.Blocks
                 string hash = Base58Encoding.Encode(hash_bytes);
 
                 //// debug only, temp code
-                //if(record.Contains("LyraTokenGenesis"))
+                //if (record.Contains("LyraTokenGenesis"))
                 //    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
-                //File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
+                File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
 
                 return hash;
             }
