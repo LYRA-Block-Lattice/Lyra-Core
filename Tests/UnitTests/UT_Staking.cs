@@ -77,7 +77,7 @@ namespace UnitTests
                 await Task.Delay(1000);
                 int totalStaking = 2;
                 // test create profiting account
-                var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking);
+                var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking * 2);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
 
                 var pgen = result.GetBlock() as ProfitingBlock;
