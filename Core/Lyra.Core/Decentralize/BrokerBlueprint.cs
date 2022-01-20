@@ -119,7 +119,7 @@ deactivate db
 
         }
 
-        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit, string caller)
+/*        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit, string caller)
         {
             //Console.WriteLine($"execute bp by {caller}: {svcReqHash} for {action}");
             // execute work flow
@@ -171,7 +171,7 @@ deactivate db
                 Console.WriteLine($"WF: {send.Hash.Shorten()} extraDone: {false}");
             }
             return FullDone;
-        }
+        }*/
     }
 
     public class LyraWorkFlowAttribute : Attribute

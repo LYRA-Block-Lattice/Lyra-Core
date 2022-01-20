@@ -1994,9 +1994,6 @@ namespace Lyra.Core.Accounts
         // StakingAccountId -> UserAccountId
         public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {
-            // TODO: add time support
-            var importedAccounts = FindAllImportedAccountID();
-
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Eq("Voting", pftid);
             var finds = _blocks.Find(filterDefination);

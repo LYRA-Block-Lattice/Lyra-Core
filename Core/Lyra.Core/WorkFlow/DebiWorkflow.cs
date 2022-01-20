@@ -36,6 +36,8 @@ namespace Lyra.Core.WorkFlow
         {
             var ctx = context.Workflow.Data as LyraContext;            
             block = await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock);
+            if (block == null)
+                block = await ctx.SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendBlock.Hash);
             Console.WriteLine($"BrokerOpsAsync called and generated {block}");
             return ExecutionResult.Next();
         }

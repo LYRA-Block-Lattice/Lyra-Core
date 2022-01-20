@@ -1860,7 +1860,7 @@ namespace Lyra.Core.Accounts
             if (result.ResultCode != APIResultCodes.Success)
                 return new BlockAPIResult { ResultCode = result.ResultCode };
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 15; i++)
             {
                 // then find by RelatedTx
                 var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(GetLatestBlock().Hash);
@@ -1878,7 +1878,7 @@ namespace Lyra.Core.Accounts
                         return ret;
                     }
                 }
-                await Task.Delay(500);
+                await Task.Delay(1000);
             }
 
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
@@ -1937,7 +1937,7 @@ namespace Lyra.Core.Accounts
                         return ret;
                     }
                 }
-                await Task.Delay(500);
+                await Task.Delay(1000);
             }
 
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
