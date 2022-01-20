@@ -109,8 +109,13 @@ namespace Lyra.Node2
             //services.AddGrpc();
             services.AddWorkflow(cfg =>
             {
-                var fn = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}workflow.db";
-                if(Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet" && File.Exists(fn))
+                // lyra network ID must be set early
+                var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
+                if (networkId == null)
+                    networkId = "devnet";   // for dev convenient
+
+                var fn = $"{Utilities.GetLyraDataDir(networkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}workflow.db";
+                if(networkId == "devnet" && File.Exists(fn))
                     File.Delete(fn);
                 //cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("lyra", "workflows"), "workflows");
                 cfg.UseSqlite($"Data Source={fn};", true);
