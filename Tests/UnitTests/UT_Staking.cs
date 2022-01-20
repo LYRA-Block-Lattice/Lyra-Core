@@ -129,11 +129,13 @@ namespace UnitTests
                     Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
                 }
                 stopwatch.Stop();
+                await Task.Delay(5000);
+
                 Console.WriteLine($"create staking uses {stopwatch.ElapsedMilliseconds} ms");
                 await w1.SendAsync(200, pgen.AccountID);
                 var dvdret = await wx.CreateDividendsAsync(pgen.AccountID);
                 Assert.IsTrue(dvdret.Successful(), $"Create dividens failed: {dvdret.ResultCode}");
-                await Task.Delay(10000);
+                await Task.Delay(20000);
 
                 foreach (var stkx in stkWallets1)
                 {
@@ -142,7 +144,7 @@ namespace UnitTests
 
                     var stkact = stkactcall.GetBlocks().First(a => a is IStaking) as IStaking;
                     var last = await stkx.RPC.GetLastBlockAsync((stkact as TransactionBlock).AccountID);
-                    Assert.AreEqual(10m, (last.GetBlock() as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
+                    Assert.AreEqual(60m, (last.GetBlock() as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
 
                     await stkx.SyncAsync(client);
                     Assert.AreEqual(8m, stkx.BaseBalance);
@@ -158,7 +160,7 @@ namespace UnitTests
                     Assert.AreEqual(10m, (last.GetBlock() as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
 
                     await stkx.SyncAsync(client);
-                    Assert.AreEqual(8m, stkx.BaseBalance);
+                    Assert.AreEqual(58m, stkx.BaseBalance);
                 }
             }
             finally

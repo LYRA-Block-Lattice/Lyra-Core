@@ -659,7 +659,7 @@ namespace Lyra.Core.WorkFlow
                         target, reqHash,
                         amount);
 
-                    Console.WriteLine($"CreateBenefiting for {reqHash} generated {pftSend?.Hash}");
+                    Console.WriteLine($"CreateBenefiting for {reqHash} generated {pftSend?.Hash} to {pftSend.DestinationAccountId}");
                     return pftSend;
                 }
 
