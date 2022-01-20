@@ -21,8 +21,9 @@ namespace Lyra.Core.WorkFlow
         public ReceiveTransferBlock ConfirmSvcReq { get; set; }
 
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
-        {
+        {            
             var ctx = context.Workflow.Data as LyraContext;
+            Console.WriteLine($"ReqReceiver for {ctx.SendBlock.Hash}");
             ConfirmSvcReq = await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.SendBlock);
             return ExecutionResult.Next();
         }
@@ -38,7 +39,7 @@ namespace Lyra.Core.WorkFlow
             block = await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock);
             if (block == null)
                 block = await ctx.SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendBlock.Hash);
-            Console.WriteLine($"BrokerOpsAsync called and generated {block}");
+            Console.WriteLine($"BrokerOpsAsync for {ctx.SendBlock.Hash} called and generated {block}");
             return ExecutionResult.Next();
         }
 
