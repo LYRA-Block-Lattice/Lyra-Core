@@ -54,7 +54,7 @@ namespace Lyra.Core.WorkFlow
         BrokerRecvType RecvVia { get; }
     }
 
-    public enum WFState { Init, Running, Finished, ConsensusTimeout };
+    public enum WFState { Init, Running, Finished, ConsensusTimeout, Error };
 
     public class LyraContext
     {
@@ -138,12 +138,18 @@ namespace Lyra.Core.WorkFlow
                 .Then<CustomMessage>()
                         .Name("Log")
                         .Input(step => step.Message, data => $"In the middle. InRuning: {data.State}")
-                .While(a => a.State != WFState.Finished)
+                .While(a => a.State != WFState.Finished && a.State != WFState.Error)
                     .Do(x => x
                         .If(data => data.State == WFState.Running).Do(then => then
                             .StartWith<Repeator>()
                                 .Output(data => data.LastBlock, step => step.block)
                             .If(a => true).Do(letConsensus)
+                            )
+                        .If(data => data.LastResult == ConsensusResult.Nay).Do(then => then
+                            .StartWith<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Consensus Nay. workflow failed.")
+                                .Output(data => data.State, step => WFState.Error)
                             )
                         .If(data => data.State == WFState.ConsensusTimeout).Do(then => then
                             .Parallel()
