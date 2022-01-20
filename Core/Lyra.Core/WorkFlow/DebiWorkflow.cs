@@ -83,7 +83,7 @@ namespace Lyra.Core.WorkFlow
                                 .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Submiting block...")
                             .Then<SubmitBlock>()
                                 .Input(step => step.block, data => data.LastBlock)
-                            .WaitFor("Consensus", data => data.SendBlock.Hash, data => data.LastTime)
+                            .WaitFor("MgBlkDone", data => data.SendBlock.Hash, data => data.LastTime)
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
                                 .Name("Log")
@@ -144,8 +144,12 @@ namespace Lyra.Core.WorkFlow
                             )
                         .If(data => data.State == WFState.ConsensusTimeout).Do(then => then
                             .StartWith<ReqViewChange>()
-                            .Delay(data => TimeSpan.FromSeconds(45))
+                            .WaitFor("ViewChanged", data => data.LastBlock.ServiceHash, data => DateTime.Now)
+                                .Output(data => data.LastResult, step => step.EventData)
                                 .Output(data => data.State, step => WFState.Running)
+                            .Then<CustomMessage>()
+                                    .Name("Log")
+                                    .Input(step => step.Message, data => $"View changed.")
                             )
                         )
                 .Then(a => {

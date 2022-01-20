@@ -1750,6 +1750,10 @@ namespace Lyra.Core.Decentralize
                 if (result == ConsensusResult.Yea)
                 {
                     ServiceBlockCreated(serviceBlock);
+
+                    var wfhost = _hostEnv.GetWorkflowHost();
+                    Console.WriteLine($"View changed to {serviceBlock.Height} ");
+                    await wfhost.PublishEvent("ViewChanged", $"{serviceBlock.PreviousHash}", result);
                 }
 
                 return;
@@ -1843,7 +1847,7 @@ namespace Lyra.Core.Decentralize
 
             var wfhost = _hostEnv.GetWorkflowHost();
             Console.WriteLine($"Key is {key} Publish Consensus event {result} ");
-            await wfhost.PublishEvent("Consensus", key, result);
+            await wfhost.PublishEvent("MgBlkDone", key, result);
             return;
         }
 

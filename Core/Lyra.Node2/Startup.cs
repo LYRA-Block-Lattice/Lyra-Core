@@ -110,7 +110,8 @@ namespace Lyra.Node2
             services.AddWorkflow(cfg =>
             {
                 var fn = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}workflow.db";
-
+                if(Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet" && File.Exists(fn))
+                    File.Delete(fn);
                 //cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("lyra", "workflows"), "workflows");
                 cfg.UseSqlite($"Data Source={fn};", true);
                 cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
