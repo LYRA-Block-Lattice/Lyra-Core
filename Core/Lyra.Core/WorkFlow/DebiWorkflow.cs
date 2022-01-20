@@ -84,7 +84,7 @@ namespace Lyra.Core.WorkFlow
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Submiting block...")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Submiting block {data.LastBlock.Hash}...")
                             .Then<SubmitBlock>()
                                 .Input(step => step.block, data => data.LastBlock)
                             .WaitFor("MgBlkDone", data => data.SendBlock.Hash, data => data.LastTime)

@@ -653,10 +653,13 @@ namespace Lyra.Core.WorkFlow
                     var amount = sendAmounts[target.StkAccount];
                     var sb = await sys.Storage.GetLastServiceBlockAsync();
                     var lastblkx = await sys.Storage.FindLatestBlockAsync(pftid);
+
+                    Console.WriteLine($"CreateBenefiting for {reqHash}");
                     var pftSend = CreateBenefiting(lastblkx as TransactionBlock, sb,
                         target, reqHash,
                         amount);
 
+                    Console.WriteLine($"CreateBenefiting for {reqHash} generated {pftSend?.Hash}");
                     return pftSend;
                 }
 
@@ -673,11 +676,14 @@ namespace Lyra.Core.WorkFlow
                         //    continue;
 
                         // look for any unsettled receive
+                        Console.WriteLine($"CNOAddStakingImplAsync for {reqHash}");
                         SendTransferBlock xsend = await NodeService.Dag.Storage.FindUnsettledSendBlockAsync(target.StkAccount);
                         if (xsend == null)
                             continue;
 
                         var compstk = await WFStakingAddStaking.CNOAddStakingImplAsync(sys, xsend, reqHash);
+
+                        Console.WriteLine($"CNOAddStakingImplAsync for {reqHash} generated {compstk?.Hash}");
                         if (compstk != null)
                             return compstk;
                     }
