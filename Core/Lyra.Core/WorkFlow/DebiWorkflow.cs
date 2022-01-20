@@ -198,7 +198,8 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
 
             //Console.WriteLine($"In SubmitBlock: {block}");
-            await ConsensusService.Singleton.LeaderSendBlockToConsensusAndForgetAsync(block);
+            if(ConsensusService.Singleton.IsThisNodeLeader)
+                await ConsensusService.Singleton.LeaderSendBlockToConsensusAndForgetAsync(block);
 
             return ExecutionResult.Next();
         }

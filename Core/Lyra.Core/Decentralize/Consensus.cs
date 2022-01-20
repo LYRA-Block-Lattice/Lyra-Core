@@ -716,9 +716,6 @@ namespace Lyra.Core.Decentralize
 
         public async Task LeaderSendBlockToConsensusAndForgetAsync(Block block)
         {
-            if (!IsThisNodeLeader)
-                return;
-
             if (block == null)
                 throw new ArgumentNullException();
 
