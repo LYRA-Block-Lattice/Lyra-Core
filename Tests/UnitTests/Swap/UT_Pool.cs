@@ -354,7 +354,7 @@ namespace UnitTests.Swap
                 var otherResult = await w2.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, otherAmount, cal1.MinimumReceived);
                 Assert.IsTrue(otherResult.ResultCode == APIResultCodes.Success, $"Failed to swap other account {LyraGlobal.OFFICIALTICKERCODE}: {otherResult.ResultCode}");
 
-                await Task.Delay(4000);
+                await Task.Delay(6000);
 
                 // then the slippage is triggered
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
@@ -372,7 +372,7 @@ namespace UnitTests.Swap
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal4.MinimumReceived);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
 
-                await Task.Delay(4000);
+                await Task.Delay(6000);
 
                 var amountToGet = cal4.MinimumReceived;
                 await w1.SyncAsync(client);
@@ -474,8 +474,8 @@ namespace UnitTests.Swap
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
                 var lyrBalance2 = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
-                //Assert.AreEqual(testTokenBalance + amountToGet, testTokenBalance2);
-                //Assert.AreEqual(lyrBalance - 1 - amount, lyrBalance2);
+                Assert.AreEqual(testTokenBalance + amountToGet, testTokenBalance2);
+                Assert.AreEqual(lyrBalance - 1 - amount, lyrBalance2);
 
             }
             finally

@@ -13,6 +13,11 @@ using WorkflowCore.Models;
 
 namespace Lyra.Core.WorkFlow
 {
+    public interface IWorkflowExt : IWorkflow<LyraContext>
+    {
+        BrokerRecvType RecvVia { get; }
+    }
+
     #region crypto OTC
     public class CreateDaoWorkflow : DebiWorkflow, IWorkflowExt
     {

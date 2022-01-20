@@ -16,18 +16,18 @@ using WorkflowCore.Services;
 
 namespace Lyra.Core.WorkFlow
 {
-    public class ReqReceiver : StepBodyAsync
-    {
-        public ReceiveTransferBlock ConfirmSvcReq { get; set; }
+    //public class ReqReceiver : StepBodyAsync
+    //{
+    //    public ReceiveTransferBlock ConfirmSvcReq { get; set; }
 
-        public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
-        {            
-            var ctx = context.Workflow.Data as LyraContext;
-            Console.WriteLine($"ReqReceiver for {ctx.SendBlock.Hash}");
-            ConfirmSvcReq = await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.SendBlock);
-            return ExecutionResult.Next();
-        }
-    }
+    //    public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
+    //    {            
+    //        var ctx = context.Workflow.Data as LyraContext;
+    //        Console.WriteLine($"ReqReceiver for {ctx.SendBlock.Hash}");
+    //        ConfirmSvcReq = await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.SendBlock);
+    //        return ExecutionResult.Next();
+    //    }
+    //}
 
     public class Repeator : StepBodyAsync
     {
@@ -35,8 +35,11 @@ namespace Lyra.Core.WorkFlow
         public bool finished;
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            var ctx = context.Workflow.Data as LyraContext;            
-            block = await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock);
+            var ctx = context.Workflow.Data as LyraContext;
+
+            block = await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.SendBlock);
+            if(block == null)
+                block = await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock);
             if (block == null)
                 block = await ctx.SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendBlock.Hash);
             Console.WriteLine($"BrokerOpsAsync for {ctx.SendBlock.Hash} called and generated {block}");
@@ -48,11 +51,6 @@ namespace Lyra.Core.WorkFlow
             block = b;
             return Task.CompletedTask;
         }
-    }
-
-    public interface IWorkflowExt : IWorkflow<LyraContext>
-    {
-        BrokerRecvType RecvVia { get; }
     }
 
     public enum WFState { Init, Running, Finished, ConsensusTimeout, Error };
@@ -72,6 +70,9 @@ namespace Lyra.Core.WorkFlow
     {
         protected List<string> LockingIds { get; init; } = new List<string>();
         public abstract BrokerRecvType RecvVia { get; }
+
+        // submit block to consensus network
+        // monitor timeout and return result 
         public Action<IWorkflowBuilder<LyraContext>> letConsensus => new Action<IWorkflowBuilder<LyraContext>>(branch => branch
                 
                 .If(data => data.LastBlock != null).Do(then => then
@@ -127,18 +128,6 @@ namespace Lyra.Core.WorkFlow
                     return ExecutionResult.Next();
                     })
                     .Output(data => data.State, step => WFState.Running)
-                .If(a => RecvVia != BrokerRecvType.None)
-                    .Do(a => a
-                        .StartWith<ReqReceiver>()
-                            .Output(data => data.LastBlock, step => step.ConfirmSvcReq)                            
-                        .Then<CustomMessage>()
-                            .Name("Log")
-                            .Input(step => step.Message, data => $"{this.GetType().Name} generated {data.LastBlock}.")
-                        .If(a => true).Do(letConsensus)
-                )
-                .Then<CustomMessage>()
-                        .Name("Log")
-                        .Input(step => step.Message, data => $"In the middle. InRuning: {data.State}")
                 .While(a => a.State != WFState.Finished && a.State != WFState.Error)
                     .Do(x => x
                         .If(data => data.State == WFState.Running).Do(then => then
