@@ -1633,11 +1633,12 @@ namespace Lyra.Core.Decentralize
                     .Where(x => x.State != null && x.State.InputMsg?.Block is TransactionBlock)
                     .Select(x => new
                     {
+                        x.IsTimeout,
                         x.State.IsCommited,
                         x.State.CommitConsensus,
                         tx = x.State.InputMsg.Block as TransactionBlock
                     })
-                    .Where(a => !a.IsCommited && a.tx.AccountID == tx.AccountID && a.tx.Height == tx.Height)
+                    .Where(a => !a.IsTimeout && !a.IsCommited && a.tx.AccountID == tx.AccountID && a.tx.Height == tx.Height)
                     .FirstOrDefault();
 
                 if(doubleSpend != null)
@@ -1787,11 +1788,16 @@ namespace Lyra.Core.Decentralize
         {
             var wfhost = _hostEnv.GetWorkflowHost();
 
-            var Id = _workFlows[reltx];
-            var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
-            var ctx = wf.Data as LyraContext;
+            if (_workFlows.ContainsKey(reltx))
+            {
+                var Id = _workFlows[reltx];
+                var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
+                var ctx = wf.Data as LyraContext;
 
-            return ctx.LastBlock;
+                return ctx.LastBlock;
+            }
+            else
+                return null;
         }
 
         public string GetHashForWorkflow(string id)
