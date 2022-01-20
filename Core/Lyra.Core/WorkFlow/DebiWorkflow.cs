@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
@@ -93,7 +94,7 @@ namespace Lyra.Core.WorkFlow
                             .StartWith<CustomMessage>()
                                 .Name("Log")
                                 .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus is monitored.")
-                            .Delay(data => TimeSpan.FromSeconds(5))
+                            .Delay(data => TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
                             .Then<CustomMessage>()
                                 .Name("Log")
                                 .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus is timeout.")
