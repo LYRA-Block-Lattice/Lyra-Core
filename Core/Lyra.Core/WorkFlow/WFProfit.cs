@@ -229,7 +229,6 @@ namespace Lyra.Core.WorkFlow
                 AccountType = AccountTypes.Profiting,
                 AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
-                PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

@@ -74,6 +74,9 @@ namespace Lyra.Core.Authorizers
             }
             else
             {
+                if (block.PreviousHash != null)
+                    return APIResultCodes.InvalidPreviousBlock;
+
                 if(block.Height != 1)
                     return APIResultCodes.InvalidBlockSequence;
             }

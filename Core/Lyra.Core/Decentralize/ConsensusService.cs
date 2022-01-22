@@ -1775,8 +1775,22 @@ namespace Lyra.Core.Decentralize
                 var Id = _workFlows[reltx];
                 var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
                 var ctx = wf.Data as LyraContext;
+                return ctx.GetLastBlock();
 
-                return  ctx.GetLastBlock();
+                //var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
+
+                //var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
+                //    as SendTransferBlock;
+                //var block =
+                //    await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
+                //        ??
+                //    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
+                //        ??
+                //    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+                //Console.WriteLine($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
+
+                //ctx.SetLastBlock(block);
+                //return block;
             }
             else
                 return null;
