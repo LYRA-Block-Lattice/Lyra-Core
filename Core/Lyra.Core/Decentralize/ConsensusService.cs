@@ -1804,7 +1804,6 @@ namespace Lyra.Core.Decentralize
                     SendHash = send.Hash,
                     SvcRequest = svcreqtag,
                     State = WFState.Init,
-                    LastTime = DateTime.Now,
                 };
                 var id = await wfhost.StartWorkflow(svcreqtag, ctx);
                 _workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);

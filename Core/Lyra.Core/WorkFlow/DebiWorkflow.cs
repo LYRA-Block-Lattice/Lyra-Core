@@ -60,6 +60,7 @@ namespace Lyra.Core.WorkFlow
         }
     }
 
+    [BsonIgnoreExtraElements]
     public class LyraContext
     {
         public string SvcRequest { get; set; }
@@ -70,7 +71,7 @@ namespace Lyra.Core.WorkFlow
         public BlockTypes LastBlockType { get; set; }
         public string LastBlockJson { get; set; }
         public ConsensusResult? LastResult { get; set; }
-        public DateTime LastTime { get; set; }
+        public long TimeTicks { get; set; }
 
         public TransactionBlock GetLastBlock()
         {
@@ -111,7 +112,7 @@ namespace Lyra.Core.WorkFlow
                     .StartWith<CustomMessage>()
                         .Name("Log")
                         .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash} Block is {data.LastBlockType} Let's consensus")
-                        .Output(data => data.LastTime, step => DateTime.UtcNow)
+                        .Output(data => data.TimeTicks, step => DateTime.UtcNow.Ticks)
                         .Output(data => data.LastResult, step => null)
                     .Parallel()
                         .Do(then => then
@@ -120,7 +121,7 @@ namespace Lyra.Core.WorkFlow
                                 .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Submiting block {data.GetLastBlock().Hash}...")
                             .Then<SubmitBlock>()
                                 .Input(step => step.block, data => data.GetLastBlock())
-                            .WaitFor("MgBlkDone", data => data.SendHash, data => data.LastTime)
+                            .WaitFor("MgBlkDone", data => data.SendHash, data => new DateTime(data.TimeTicks, DateTimeKind.Utc))
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
                                 .Name("Log")

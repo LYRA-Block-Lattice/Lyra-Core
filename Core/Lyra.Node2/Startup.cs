@@ -34,6 +34,7 @@ using Lyra.Core.Blocks;
 using System.Linq;
 using WorkflowCore.Services;
 using System.Reflection;
+using MongoDB.Bson.Serialization;
 
 namespace Lyra.Node2
 {
@@ -113,6 +114,13 @@ namespace Lyra.Node2
 
             services.AddMvc();
             services.AddControllers();
+
+            // workflow need this
+            BsonClassMap.RegisterClassMap<LyraContext>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIsRootClass(false);
+            });
 
             //services.AddGrpc();
             services.AddWorkflow(cfg =>
