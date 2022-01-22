@@ -39,8 +39,8 @@ namespace Lyra.Core.WorkFlow
 
     public class LyraContext
     {
-        public SendTransferBlock SendBlock { get; init; }
-        public WorkFlowBase SubWorkflow { get; init; }
+        public SendTransferBlock SendBlock { get; set; }
+        public WorkFlowBase SubWorkflow { get; set; }
 
         public WFState State { get; set; }
         public TransactionBlock LastBlock { get; set; }
