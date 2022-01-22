@@ -4,7 +4,11 @@ using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Serializers;
 using Neo;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,28 +28,77 @@ namespace Lyra.Core.WorkFlow
         {
             var ctx = context.Workflow.Data as LyraContext;
 
+            var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
+                as SendTransferBlock;
             block = 
-                await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.SendBlock)
+                await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
                     ??
-                await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, ctx.SendBlock)
+                await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
                     ??
-                await ctx.SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendBlock.Hash);
-            Console.WriteLine($"BrokerOpsAsync for {ctx.SendBlock.Hash} called and generated {block}");
+                await ctx.SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+            Console.WriteLine($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
             return ExecutionResult.Next();
         }
     }
 
     public enum WFState { Init, Running, Finished, ConsensusTimeout, Error };
 
+    public class ContextSerializer : SerializerBase<LyraContext>
+    {
+        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, LyraContext value)
+        {
+            base.Serialize(context, args, value);
+        }
+
+        public override LyraContext Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+        {
+            return base.Deserialize(context, args);
+        }
+    }
+
     public class LyraContext
     {
-        public SendTransferBlock SendBlock { get; set; }
-        public WorkFlowBase SubWorkflow { get; set; }
+        public string Request { get; set; }
+        public string SendHash { get; set; }
 
         public WFState State { get; set; }
-        public TransactionBlock LastBlock { get; set; }
+
+        public BlockTypes LastBlockType { get; set; }
+        public string LastBlockJson { get; set; }
         public ConsensusResult? LastResult { get; set; }
         public DateTime LastTime { get; set; }
+
+        [BsonIgnore]
+        public WorkFlowBase SubWorkflow => BrokerFactory.DynWorkFlows[Request];
+
+        [BsonIgnore]
+        public TransactionBlock LastBlock
+        {
+            get
+            {
+                if (LastBlockType == BlockTypes.Null)
+                    return null;
+
+                var br = new BlockAPIResult
+                {
+                    ResultBlockType = LastBlockType,
+                    BlockData = LastBlockJson,
+                };
+                return br.GetBlock() as TransactionBlock;
+            }
+            set
+            {
+                if(value == null)
+                {
+                    LastBlockType = BlockTypes.Null;
+                }
+                else
+                {
+                    LastBlockType = value.GetBlockType();
+                    LastBlockJson = JsonConvert.SerializeObject(value);
+                }
+            }
+        }
     }
 
     public abstract class DebiWorkflow
@@ -60,30 +113,30 @@ namespace Lyra.Core.WorkFlow
                 .If(data => data.LastBlock != null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash} Block is {data.LastBlock.GetBlockType()} Let's consensus")
+                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash} Block is {data.LastBlockType} Let's consensus")
                         .Output(data => data.LastTime, step => DateTime.UtcNow)
                         .Output(data => data.LastResult, step => null)
                     .Parallel()
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Submiting block {data.LastBlock.Hash}...")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Submiting block {data.LastBlock.Hash}...")
                             .Then<SubmitBlock>()
                                 .Input(step => step.block, data => data.LastBlock)
-                            .WaitFor("MgBlkDone", data => data.SendBlock.Hash, data => data.LastTime)
+                            .WaitFor("MgBlkDone", data => data.SendHash, data => data.LastTime)
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus event is {data.LastResult}.")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Consensus event is {data.LastResult}.")
                             )                        
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus is monitored.")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Consensus is monitored.")
                             .Delay(data => TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
                             .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus is timeout.")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Consensus is timeout.")
                                 .Output(data => data.LastResult, step => ConsensusResult.Uncertain)
                                 .Output(data => data.State, step => WFState.ConsensusTimeout)
                             )
@@ -91,12 +144,12 @@ namespace Lyra.Core.WorkFlow
                         .CancelCondition(data => data.LastResult != null, true)
                     .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Consensus completed with {data.LastResult}")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Consensus completed with {data.LastResult}")
                     )
                 .If(data => data.LastBlock == null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendBlock.Hash}, Block is null. Terminate.")
+                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, Block is null. Terminate.")
                     .Output(data => data.State, step => WFState.Finished)
                 ));
 

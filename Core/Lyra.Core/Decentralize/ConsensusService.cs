@@ -1766,7 +1766,7 @@ namespace Lyra.Core.Decentralize
                 await ProcessManagedBlockAsync(block as TransactionBlock, result);
         }
 
-        public async Task<object> GetBlockForRelatedTxAsync(string reltx)
+        public async Task<TransactionBlock> GetBlockForRelatedTxAsync(string reltx)
         {
             var wfhost = _hostEnv.GetWorkflowHost();
 
@@ -1776,7 +1776,7 @@ namespace Lyra.Core.Decentralize
                 var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
                 var ctx = wf.Data as LyraContext;
 
-                return ctx.LastBlock;
+                return  ctx.LastBlock;
             }
             else
                 return null;
@@ -1801,8 +1801,8 @@ namespace Lyra.Core.Decentralize
                 var wfhost = _hostEnv.GetWorkflowHost();
                 var ctx = new LyraContext
                 {
-                    SendBlock = send,
-                    SubWorkflow = BrokerFactory.DynWorkFlows[svcreqtag],
+                    SendHash = send.Hash,
+                    Request = svcreqtag,
                     State = WFState.Init,
                     LastTime = DateTime.Now,
                 };
