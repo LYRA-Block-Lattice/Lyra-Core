@@ -1776,7 +1776,7 @@ namespace Lyra.Core.Decentralize
                 var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
                 var ctx = wf.Data as LyraContext;
 
-                return  ctx.LastBlock;
+                return  ctx.GetLastBlock();
             }
             else
                 return null;
