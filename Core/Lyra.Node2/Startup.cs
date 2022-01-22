@@ -102,6 +102,7 @@ namespace Lyra.Node2
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();
             services.AddSingleton<IHostEnv, HostEnvService>();
+            services.AddSingleton<IAccountCollectionAsync, MongoAccountCollection>();
 
             services.AddMvc();
             services.AddControllers();
@@ -117,8 +118,8 @@ namespace Lyra.Node2
                 var fn = $"{Utilities.GetLyraDataDir(networkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}workflow.db";
                 if(networkId == "devnet" && File.Exists(fn))
                     File.Delete(fn);
-                //cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("lyra", "workflows"), "workflows");
-                cfg.UseSqlite($"Data Source={fn};", true);
+                cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("lyra", "workflows"), "workflows");
+                //cfg.UseSqlite($"Data Source={fn};", true);
                 cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
             });

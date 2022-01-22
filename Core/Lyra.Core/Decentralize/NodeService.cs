@@ -30,12 +30,13 @@ namespace Lyra.Core.Decentralize
         AutoResetEvent _waitOrder;
         ILogger _log;
         IHostEnv _hostEnv;
+        IAccountCollectionAsync _store;
 
         public string Leader { get; private set; }
 
         public static DagSystem Dag;
 
-        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv)
+        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv, IAccountCollectionAsync store)
         {
             //if (Instance == null)
             //    Instance = this;
@@ -44,6 +45,7 @@ namespace Lyra.Core.Decentralize
 
             _log = logger;
             _hostEnv = hostEnv;
+            _store = store;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -86,10 +88,8 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"Staking wallet: {PosWallet.AccountId}");
                 PosWallet.SetVoteFor(PosWallet.AccountId);
 
-                var store = new MongoAccountCollection(Settings.Default.LyraNode.Lyra.Database.DBConnect,
-                    Settings.Default.LyraNode.Lyra.Database.DatabaseName);
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
-                Dag = new DagSystem(_hostEnv, store, PosWallet, localNode);
+                Dag = new DagSystem(_hostEnv, _store, PosWallet, localNode);
                 _ = Task.Run(async () => await Dag.StartAsync()).ConfigureAwait(false);
                 await Task.Delay(30000);
 

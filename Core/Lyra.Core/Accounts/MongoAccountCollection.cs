@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Globalization;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Shared;
+using Neo;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -48,6 +49,13 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
         private string _networkId;
+
+        public MongoAccountCollection()
+            : this(Settings.Default.LyraNode.Lyra.Database.DBConnect,
+                    Settings.Default.LyraNode.Lyra.Database.DatabaseName)
+        {
+
+        }
 
         public MongoAccountCollection(string connStr, string dbName)
         {
