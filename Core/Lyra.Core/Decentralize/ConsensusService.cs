@@ -578,25 +578,6 @@ namespace Lyra.Core.Decentralize
                         await DeclareConsensusNodeAsync();
 
                     await InitJobSchedulerAsync();
-                    BrokerFactory.Load(_sys.Storage);
-                    BrokerFactory.OnFinished += (bp) =>
-                    {
-                        if(IsThisNodeLeader && bp.brokerAccount != null)
-                        {
-                            // queued tasks, which has same brokeraccount
-                            var blueprints = BrokerFactory.GetAllBlueprints();
-                            var bpx = blueprints
-                                        .OrderBy(a => a.start)
-                                        .Where(a => a.brokerAccount == bp.brokerAccount)
-                                        .FirstOrDefault();
-
-                            if (bpx != null)
-                            {
-                                _log.LogInformation($"BrokerFactory.OnFinished try next in queue {bpx.svcReqHash} for brk: {bp.brokerAccount}");
-                                //ExecuteBlueprint(bpx, "OnFinished Leader");
-                            }                            
-                        }
-                    };
 
                     do
                     {

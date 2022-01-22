@@ -186,12 +186,12 @@ namespace Lyra.Core.WorkFlow
                     if (pft == null)
                         return APIResultCodes.InvalidAccountId;
 
-                    // check busy
+                    //TODO: check busy
                     //var brkacct = BrokerFactory.GetBrokerAccountID(block);
                     //if (brkacct != null)
                     //{
-                    if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
-                        return APIResultCodes.SystemBusy;
+                    //if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
+                    //    return APIResultCodes.SystemBusy;
                     //}
 
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
@@ -424,12 +424,12 @@ namespace Lyra.Core.WorkFlow
                     if (pft == null)
                         return APIResultCodes.InvalidAccountId;
 
-                    // check busy
+                    // TODO: check busy
                     //var brkacct = BrokerFactory.GetBrokerAccountID(block);
                     //if (brkacct != null)
                     //{
-                    if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
-                        return APIResultCodes.SystemBusy;
+                    //if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
+                    //    return APIResultCodes.SystemBusy;
                     //}
 
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);

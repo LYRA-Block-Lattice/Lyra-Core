@@ -110,11 +110,7 @@ namespace Lyra.Core.Accounts
         /// Used for unit testing.
         /// </summary>
         void Delete(bool backup);
-        void CreateBlueprint(BrokerBlueprint blueprint);
-        BrokerBlueprint GetBlueprint(string relatedTx);
-        void RemoveBlueprint(string hash);
-        long UpdateBlueprint(BrokerBlueprint bp);
-        List<BrokerBlueprint> GetAllBlueprints();
+
         Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end);
         List<Staker> FindAllStakings(string pftid, DateTime timeBefore);
         Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId);

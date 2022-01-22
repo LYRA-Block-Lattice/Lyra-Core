@@ -21,6 +21,7 @@ using Lyra.Core.Decentralize;
 using System.Reflection;
 using System.Globalization;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Shared;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -33,11 +34,11 @@ namespace Lyra.Core.Accounts
         private MongoClient _Client;
 
         private IMongoCollection<Block> _blocks;
-        private IMongoCollection<BrokerBlueprint> _blueprints;
+        private IMongoCollection<TransactionBlock> _snapshots;
         private IMongoCollection<AccountChange> _accountChanges;
 
         readonly string _blocksCollectionName;
-        readonly string _blueprintCollectionName;
+        readonly string _snapshotsCollectionName;
         readonly string _accountChangesCollectionName;
 
         IMongoDatabase _db;
@@ -54,7 +55,7 @@ namespace Lyra.Core.Accounts
             _Client = new MongoClient(connStr);
             _DatabaseName = dbName;
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
-            _blueprintCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blueprints";
+            _snapshotsCollectionName = $"{LyraNodeConfig.GetNetworkId()}_snapshots";
             _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // hack
@@ -70,8 +71,8 @@ namespace Lyra.Core.Accounts
 
                 if (db.ListCollectionNames().ToList().Contains(_blocksCollectionName))
                     db.DropCollection(_blocksCollectionName);
-                if (db.ListCollectionNames().ToList().Contains(_blueprintCollectionName))
-                    db.DropCollection(_blueprintCollectionName);
+                if (db.ListCollectionNames().ToList().Contains(_snapshotsCollectionName))
+                    db.DropCollection(_snapshotsCollectionName);
                 if (db.ListCollectionNames().ToList().Contains(_accountChangesCollectionName))
                     db.DropCollection(_accountChangesCollectionName);
             }
@@ -83,12 +84,6 @@ namespace Lyra.Core.Accounts
             {
                 cm.AutoMap();
                 cm.SetIsRootClass(true);
-            });
-
-            BsonClassMap.RegisterClassMap<BrokerBlueprint>(cm =>
-            {
-                cm.AutoMap();
-                cm.SetIsRootClass(false);
             });
 
             BsonClassMap.RegisterClassMap<AccountChange>(cm =>
@@ -151,7 +146,7 @@ namespace Lyra.Core.Accounts
             //BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
-            _blueprints = GetDatabase().GetCollection<BrokerBlueprint>(_blueprintCollectionName);
+            _snapshots = GetDatabase().GetCollection<TransactionBlock>(_snapshotsCollectionName);
             _accountChanges = GetDatabase().GetCollection<AccountChange>(_accountChangesCollectionName);
 
             Cluster = GetDatabase().Client.Cluster.ToString();
@@ -255,6 +250,11 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_accountChanges, "TxHash", true);
                     await CreateNoneStringIndex(_accountChanges, "LyrChg", false);
                     await CreateNoneStringIndex(_accountChanges, "ConsHeight", false);
+
+                    // snapshots
+                    await CreateIndexes(_snapshots, "Hash", true);
+                    await CreateIndexes(_snapshots, "AccountID", true);
+                    await CreateIndexes(_snapshots, "BlockType", false);
                 }
                 catch(Exception e)
                 {
@@ -274,8 +274,33 @@ namespace Lyra.Core.Accounts
             BsonClassMap.LookupClassMap(type);
         }
 
+        private async Task<bool> UpdateSnapshotsAsync()
+        {
+            var importedAccounts = FindAllImportedAccountID();
+
+            // find last one tx block
+            var latests = _blocks.OfType<TransactionBlock>()//atrVotes
+                .AsQueryable()
+
+                //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
+                .OrderByDescending(a => a.Height)
+                .GroupBy(a => a.AccountID)      // this time select the latest block of account
+                .Select(g => g.First())
+                .Where(x => !importedAccounts.Contains(x.AccountID))
+
+                .ToList();
+
+            foreach(var acct in latests)
+            {
+                await UpdateSnapshotAsync(acct);
+            }
+            return true;
+        }
+
         public async Task UpdateStatsAsync()
         {
+            await StopWatcher.TrackAsync(UpdateSnapshotsAsync, "UpdateSnapshotsAsync");
+
             var options = new FindOptions<AccountChange, AccountChange>
             {
                 Limit = 1,
@@ -414,7 +439,7 @@ namespace Lyra.Core.Accounts
 
             _blocks = db.GetCollection<Block>(_blocksCollectionName);
 
-            db.DropCollection(_blueprintCollectionName);
+            db.DropCollection(_snapshotsCollectionName);
         }
 
         private MongoClient GetClient()
@@ -1439,19 +1464,27 @@ namespace Lyra.Core.Accounts
             return block as ExecuteTradeOrderBlock;
         }
 
+        private Task UpdateSnapshotAsync(TransactionBlock tx)
+        {
+            return _snapshots.ReplaceOneAsync(p => p.AccountID == tx.AccountID,
+                tx,
+                new ReplaceOptions { IsUpsert = true });
+        }
+
         public async Task<bool> AddBlockAsync(Block block)
         {
             //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
 
-            if (FindBlockByHash(block.Hash) != null)
+            if (await FindBlockByHashAsync(block.Hash) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
                 return false;
             }
 
-            if (block is TransactionBlock block1)
+            var tx = block as TransactionBlock;
+            if (tx != null)
             {
-                if (await FindBlockByIndexAsync(block1.AccountID, block1.Height) != null)
+                if (await FindBlockByIndexAsync(tx.AccountID, tx.Height) != null)
                 {
                     _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
                     return false;
@@ -1460,7 +1493,11 @@ namespace Lyra.Core.Accounts
 
             try
             {
-                _blocks.InsertOne(block);
+                await _blocks.InsertOneAsync(block);
+
+                if(tx != null)
+                    await UpdateSnapshotAsync(tx);
+
                 return true;
             }
             catch(Exception e)
@@ -1475,7 +1512,8 @@ namespace Lyra.Core.Accounts
             var ret = await _blocks.DeleteOneAsync(a => a.Hash == hash);
             if (ret.IsAcknowledged && ret.DeletedCount == 1)
             {
-               // _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
+                // _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
+                await _snapshots.DeleteOneAsync(a => a.Hash == hash);
             }
             else
                 _log.LogWarning($"RemoveBlockAsync Block {hash} failed.");
@@ -1886,38 +1924,6 @@ namespace Lyra.Core.Accounts
             var finds = await _blocks.FindAsync(filterDefination);
             var gens = finds.ToList();
             return gens;
-        }
-
-        public void CreateBlueprint(BrokerBlueprint blueprint)
-        {
-            var exists = _blueprints.Find(a => a.svcReqHash == blueprint.svcReqHash);
-            if(!exists.Any())
-            {
-                _blueprints.InsertOne(blueprint);
-            }    
-        }
-
-        public BrokerBlueprint GetBlueprint(string relatedTx)
-        {
-            var exists = _blueprints.Find(a => a.svcReqHash == relatedTx);
-            return exists.FirstOrDefault();
-        }
-
-        public void RemoveBlueprint(string relatedTx)
-        {
-            _blueprints.DeleteOne(a => a.svcReqHash == relatedTx);
-        }
-
-        public long UpdateBlueprint(BrokerBlueprint bp)
-        {
-            var filter = Builders<BrokerBlueprint>.Filter.Eq(a => a.svcReqHash, bp.svcReqHash);
-            var result = _blueprints.ReplaceOne(filter, bp);
-            return result.ModifiedCount;
-        }
-
-        public List<BrokerBlueprint> GetAllBlueprints()
-        {
-            return _blueprints.Find(a => true).ToList();
         }
 
         public long GetCurrentView()

@@ -2131,6 +2131,9 @@ namespace Lyra.Core.Accounts
         #region OTC
         public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCCryptoOrder order)
         {
+            if (LyraGlobal.OFFICIALTICKERCODE.Equals(order.crypto, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentOutOfRangeException("Order for LYR is not supported.");
+
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRODR },

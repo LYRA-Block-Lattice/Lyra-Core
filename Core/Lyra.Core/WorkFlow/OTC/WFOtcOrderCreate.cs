@@ -147,6 +147,7 @@ namespace Lyra.Core.WorkFlow
 
                 // otc
                 Order = order,
+                Status = OtcOrderStatus.Open,
             };
 
             otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());

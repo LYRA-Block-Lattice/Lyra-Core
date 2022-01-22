@@ -86,7 +86,7 @@ deactivate db
 
     */
 
-    [BsonIgnoreExtraElements]
+/*    [BsonIgnoreExtraElements]
     public class BrokerBlueprint
     {
         // properties
@@ -119,7 +119,7 @@ deactivate db
 
         }
 
-/*        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit, string caller)
+        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit, string caller)
         {
             //Console.WriteLine($"execute bp by {caller}: {svcReqHash} for {action}");
             // execute work flow
@@ -171,8 +171,8 @@ deactivate db
                 Console.WriteLine($"WF: {send.Hash.Shorten()} extraDone: {false}");
             }
             return FullDone;
-        }*/
-    }
+        }
+    }*/
 
     public class LyraWorkFlowAttribute : Attribute
     {
@@ -183,9 +183,9 @@ deactivate db
     {
         public static Dictionary<string, WorkFlowBase> DynWorkFlows;
         
-        public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
+        //public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
 
-        public static event Action<BrokerBlueprint> OnFinished;
+        //public static event Action<BrokerBlueprint> OnFinished;
 
         private void AddWorkFlow(AuthorizersFactory af, IAccountCollectionAsync store, WorkFlowBase workflow)
         {
@@ -221,7 +221,7 @@ deactivate db
                 //throw new InvalidOperationException("Already initialized.");
 
             DynWorkFlows = new Dictionary<string, WorkFlowBase>();
-            Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
+            //Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
 
             foreach(var type in GetTypesWithMyAttribute(Assembly.GetExecutingAssembly()))
             {
@@ -229,7 +229,7 @@ deactivate db
                 AddWorkFlow(af, store, lyrawf);
             }
         }
-
+        /*
         public static void CreateBlueprint(BrokerBlueprint blueprint)
         {
             Console.WriteLine($"create bp: {blueprint.svcReqHash}");
@@ -303,7 +303,7 @@ deactivate db
                 else
                     stor.CreateBlueprint(n.Value);
             }    
-        }
+        }*/
 
         public static string GetBrokerAccountID(SendTransferBlock send)
         {

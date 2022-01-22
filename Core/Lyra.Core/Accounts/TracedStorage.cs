@@ -239,31 +239,6 @@ namespace Lyra.Core.Accounts
             _store.Delete(backup);
         }
 
-        public void CreateBlueprint(BrokerBlueprint blueprint)
-        {
-            _store.CreateBlueprint(blueprint);
-        }
-
-        public BrokerBlueprint GetBlueprint(string relatedTx)
-        {
-            return StopWatcher.Track(() => _store.GetBlueprint(relatedTx), "GetBlueprint");
-        }
-
-        public void RemoveBlueprint(string hash)
-        {
-            _store.RemoveBlueprint(hash);
-        }
-
-        public long UpdateBlueprint(BrokerBlueprint bp)
-        {
-            return StopWatcher.Track(() => _store.UpdateBlueprint(bp), "UpdateBlueprint");
-        }
-
-        public List<BrokerBlueprint> GetAllBlueprints()
-        {
-            return StopWatcher.Track(() => _store.GetAllBlueprints(), "GetAllBlueprints");
-        }
-
         public Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
         {
             return StopWatcher.TrackAsync(() => _store.FindAllProfitingAccountsAsync(begin, end), StopWatcher.GetCurrentMethod());
