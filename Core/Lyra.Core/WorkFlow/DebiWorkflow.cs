@@ -58,7 +58,7 @@ namespace Lyra.Core.WorkFlow
 
     public class LyraContext
     {
-        public string Request { get; set; }
+        public string SvcRequest { get; set; }
         public string SendHash { get; set; }
 
         public WFState State { get; set; }
@@ -69,7 +69,7 @@ namespace Lyra.Core.WorkFlow
         public DateTime LastTime { get; set; }
 
         [BsonIgnore]
-        public WorkFlowBase SubWorkflow => BrokerFactory.DynWorkFlows[Request];
+        public WorkFlowBase SubWorkflow => BrokerFactory.DynWorkFlows[SvcRequest];
 
         [BsonIgnore]
         public TransactionBlock LastBlock

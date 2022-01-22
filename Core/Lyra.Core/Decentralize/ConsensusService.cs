@@ -1802,7 +1802,7 @@ namespace Lyra.Core.Decentralize
                 var ctx = new LyraContext
                 {
                     SendHash = send.Hash,
-                    Request = svcreqtag,
+                    SvcRequest = svcreqtag,
                     State = WFState.Init,
                     LastTime = DateTime.Now,
                 };
