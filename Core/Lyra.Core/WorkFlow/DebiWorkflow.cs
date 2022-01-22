@@ -27,15 +27,16 @@ namespace Lyra.Core.WorkFlow
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
+            var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
 
             var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
                 as SendTransferBlock;
             block = 
-                await BrokerOperations.ReceiveViaCallback[ctx.SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
+                await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
                     ??
-                await ctx.SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
+                await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
                     ??
-                await ctx.SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+                await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
             Console.WriteLine($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
             return ExecutionResult.Next();
         }
@@ -67,9 +68,6 @@ namespace Lyra.Core.WorkFlow
         public string LastBlockJson { get; set; }
         public ConsensusResult? LastResult { get; set; }
         public DateTime LastTime { get; set; }
-
-        [BsonIgnore]
-        public WorkFlowBase SubWorkflow => BrokerFactory.DynWorkFlows[SvcRequest];
 
         [BsonIgnore]
         public TransactionBlock LastBlock
