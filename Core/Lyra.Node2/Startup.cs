@@ -125,7 +125,7 @@ namespace Lyra.Node2
                 var fn = $"{Utilities.GetLyraDataDir(networkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}workflow.db";
                 if(networkId == "devnet" && File.Exists(fn))
                     File.Delete(fn);
-                cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("lyra", "workflows"), "workflows");
+                cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect, Neo.Settings.Default.LyraNode.Lyra.Database.DatabaseName);
                 //cfg.UseSqlite($"Data Source={fn};", true);
                 cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
