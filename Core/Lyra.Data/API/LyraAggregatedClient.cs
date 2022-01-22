@@ -181,21 +181,59 @@ namespace Lyra.Data.API
             ////
         }
 
-        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T : APIResult, new()
+        public Task<ResultOrException<T>[]> WhenAllOrExceptionAsync<T>(IEnumerable<Task<T>> tasks)
         {
-            await Task.WhenAll(tasks);
+            return Task.WhenAll(tasks.Select(task => WrapResultOrExceptionAsync(task)));
+        }
 
-            var expectedCount = LyraGlobal.GetMajority(tasks.Count);
+        private async Task<ResultOrException<T>> WrapResultOrExceptionAsync<T>(Task<T> task)
+        {
+            try
+            {
+                var result = await task;
+                return new ResultOrException<T>(result);
+            }
+            catch (Exception ex)
+            {
+                return new ResultOrException<T>(ex);
+            }
+        }
+
+
+        public class ResultOrException<T>
+        {
+            public ResultOrException(T result)
+            {
+                IsSuccess = true;
+                Result = result;
+            }
+
+            public ResultOrException(Exception ex)
+            {
+                IsSuccess = false;
+                Exception = ex;
+            }
+
+            public bool IsSuccess { get; }
+            public T Result { get; }
+            public Exception Exception { get; }
+        }
+
+        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> taskss) where T : APIResult, new()
+        {
+            var results = await WhenAllOrExceptionAsync(taskss);
+
+            var expectedCount = LyraGlobal.GetMajority(taskss.Count);
             if (_seedsOnly)    // seed stage
                 expectedCount = 2;
 
 
-            var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted);
+            var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
 
             if (compeletedCount >= expectedCount)
             {
-                var coll = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
+                var coll = results.Where(a => a.IsSuccess)
                     .Select(a => a.Result)
                     .GroupBy(b => b)
                     .Select(g => new
@@ -209,8 +247,8 @@ namespace Lyra.Data.API
 
                 if (best.Count >= expectedCount)
                 {
-                    var x = tasks.First(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result == best.Data);
-                    return await x;
+                    var x = results.First(a => a.IsSuccess && a.Result == best.Data);
+                    return x.Result;
                 }
                 else
                 {
