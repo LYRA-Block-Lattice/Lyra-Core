@@ -50,11 +50,11 @@ namespace Lyra.Core.Accounts
         public string Cluster { get; set; }
         private string _networkId;
 
-        public MongoAccountCollection()
+        public MongoAccountCollection(ILogger<MongoAccountCollection> logger)
             : this(Settings.Default.LyraNode.Lyra.Database.DBConnect,
                     Settings.Default.LyraNode.Lyra.Database.DatabaseName)
         {
-
+            _log = logger;
         }
 
         public MongoAccountCollection(string connStr, string dbName)
@@ -84,7 +84,6 @@ namespace Lyra.Core.Accounts
                 if (db.ListCollectionNames().ToList().Contains(_accountChangesCollectionName))
                     db.DropCollection(_accountChangesCollectionName);
             }
-            _log = new SimpleLogger("Mongo").Logger;
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Utc, BsonType.Document));
 
@@ -220,7 +219,7 @@ namespace Lyra.Core.Accounts
 
             _ = Task.Run(async () =>
             {
-                _log.LogInformation("ensure mongodb index...");
+                Console.WriteLine("ensure mongodb index...");
 
                 try
                 {
@@ -268,7 +267,7 @@ namespace Lyra.Core.Accounts
                 }
                 catch(Exception e)
                 {
-                    _log.LogError("In create index: " + e.ToString());
+                    Console.WriteLine("In create index: " + e.ToString());
                 }
             }).ConfigureAwait(false);
         }
