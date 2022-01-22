@@ -802,6 +802,18 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntry(() =>
                     {
+                        var host = _hostEnv.GetWorkflowHost();
+
+                        BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+                        FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
+                        bool shutdown = (bool)finfo.GetValue(host);
+                        if (shutdown)
+                        {
+                            host.OnStepError += Host_OnStepError;
+                            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
+                            host.Start();
+                        }
+
                         _ = Task.Run(async () =>
                         {
                             try
@@ -855,18 +867,6 @@ namespace Lyra.Core.Decentralize
                 {
                     var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                     _viewChangeHandler.ShiftView(lsb.Height + 1);
-
-                    var host = _hostEnv.GetWorkflowHost();
-
-                    BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-                    FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
-                    bool shutdown = (bool)finfo.GetValue(host);
-                    if (shutdown)
-                    {
-                        host.OnStepError += Host_OnStepError;
-                        host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
-                        host.Start();
-                    }
 
                 }).ConfigureAwait(false))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
@@ -1356,8 +1356,9 @@ namespace Lyra.Core.Decentralize
                 me.LastActive = DateTime.Now;
             }
 
-            if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == _sys.PosWallet.AccountId))
-                _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
+            var node = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
+            if (node != null)
+                node.LastActive = DateTime.Now;
 
             // declare to the network
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
