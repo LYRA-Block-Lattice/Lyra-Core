@@ -22,8 +22,9 @@ namespace Lyra.Core.WorkFlow
 {
     public class Repeator : StepBodyAsync
     {
-        public TransactionBlock block;
-        public bool finished;
+        public TransactionBlock block { get; set; }
+        public int count { get; set; }
+
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
@@ -37,9 +38,10 @@ namespace Lyra.Core.WorkFlow
                 await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
                     ??
                 await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-            Console.WriteLine($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
+            Console.WriteLine($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
-            ctx.SetLastBlock(block);
+            if(block != null)
+                count++;
 
             return ExecutionResult.Next();
         }
@@ -73,7 +75,7 @@ namespace Lyra.Core.WorkFlow
         public ConsensusResult? LastResult { get; set; }
         public long TimeTicks { get; set; }
 
-        private int count { get; set; }
+        public int Count { get; set; }
 
         public TransactionBlock GetLastBlock()
         {
@@ -87,20 +89,25 @@ namespace Lyra.Core.WorkFlow
             };
             return br.GetBlock() as TransactionBlock;
         }
-        public void SetLastBlock(TransactionBlock block)
+        //public void SetLastBlock(TransactionBlock block)
+        //{
+        //    if (block == null)
+        //    {
+        //        LastBlockType = BlockTypes.Null;
+        //    }
+        //    else
+        //    {
+        //        LastBlockType = block.GetBlockType();
+        //        LastBlockJson = JsonConvert.SerializeObject(block);
+        //    }
+        //}
+        public static (BlockTypes type, string json) ParseBlock(TransactionBlock tx)
         {
-            if (block == null)
-            {
-                LastBlockType = BlockTypes.Null;
-            }
-            else
-            {
-                LastBlockType = block.GetBlockType();
-                LastBlockJson = JsonConvert.SerializeObject(block);
-                count++;
-            }
+            if (tx == null)
+                return (BlockTypes.Null, null);
+
+            return (tx.GetBlockType(), JsonConvert.SerializeObject(tx));
         }
-        public int GetCount() => count;
     }
 
     public abstract class DebiWorkflow
@@ -115,30 +122,30 @@ namespace Lyra.Core.WorkFlow
                 .If(data => data.GetLastBlock() != null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/, Block is {data.LastBlockType} Let's consensus")
+                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Block is {data.LastBlockType} Let's consensus")
                         .Output(data => data.TimeTicks, step => DateTime.UtcNow.Ticks)
                         .Output(data => data.LastResult, step => null)
                     .Parallel()
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/, Submiting block {data.GetLastBlock().Hash}...")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Submiting block {data.GetLastBlock().Hash}...")
                             .Then<SubmitBlock>()
                                 .Input(step => step.block, data => data.GetLastBlock())
                             .WaitFor("MgBlkDone", data => data.SendHash, data => new DateTime(data.TimeTicks, DateTimeKind.Utc))
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/,Consensus event is {data.LastResult}.")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/,Consensus event is {data.LastResult}.")
                             )                        
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/,Consensus is monitored.")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/,Consensus is monitored.")
                             .Delay(data => TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
                             .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/,Consensus is timeout.")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/,Consensus is timeout.")
                                 .Output(data => data.LastResult, step => ConsensusResult.Uncertain)
                                 .Output(data => data.State, step => WFState.ConsensusTimeout)
                             )
@@ -146,12 +153,12 @@ namespace Lyra.Core.WorkFlow
                         .CancelCondition(data => data.LastResult != null, true)
                     .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/, Consensus completed with {data.LastResult}")
+                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Consensus completed with {data.LastResult}")
                     )
                 .If(data => data.GetLastBlock() == null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.GetCount()}/, Block is null. Terminate.")
+                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Block is null. Terminate.")
                     .Output(data => data.State, step => WFState.Finished)
                 ));
 
@@ -169,7 +176,10 @@ namespace Lyra.Core.WorkFlow
                     .Do(x => x
                         .If(data => data.State == WFState.Running).Do(then => then
                             .StartWith<Repeator>()
-                                //.Output(data => data.LastBlock, step => step.block) // already set
+                                .Input(step => step.count, data => data.Count)
+                                .Output(data => data.Count, step => step.count)
+                                .Output(data => data.LastBlockType, step => LyraContext.ParseBlock(step.block).type)
+                                .Output(data => data.LastBlockJson, step => LyraContext.ParseBlock(step.block).json)
                             .If(a => true).Do(letConsensus)
                             )
                         .If(data => data.LastResult == ConsensusResult.Nay).Do(then => then
