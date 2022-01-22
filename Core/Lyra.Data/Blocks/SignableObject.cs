@@ -37,15 +37,15 @@ namespace Lyra.Core.Blocks
                 //// debug only, temp code
                 //if (record.Contains("LyraTokenGenesis"))
                 //    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
-                try
-                {
-                    rwl.AcquireWriterLock(1000);
-                    File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
-                }
-                finally
-                {
-                    rwl.ReleaseWriterLock();
-                }                
+                //try
+                //{
+                //    rwl.AcquireWriterLock(1000);
+                //    File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
+                //}
+                //finally
+                //{
+                //    rwl.ReleaseWriterLock();
+                //}                
 
                 return hash;
             }
