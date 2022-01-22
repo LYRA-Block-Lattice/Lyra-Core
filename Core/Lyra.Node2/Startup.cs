@@ -53,6 +53,13 @@ namespace Lyra.Node2
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            // lyra network ID must be set early
+            var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
+            if (networkId == null)
+                networkId = "devnet";   // for dev convenient
+
+            LyraNodeConfig.Init(networkId);
+
             //services.AddHsts(options =>
             //{
             //    options.Preload = true;
@@ -157,13 +164,6 @@ namespace Lyra.Node2
             App = app;
             _env = env;
             //app.UseCors("my");
-
-            // lyra network ID must be set early
-            var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
-            if (networkId == null)
-                networkId = "devnet";   // for dev convenient
-
-            LyraNodeConfig.Init(networkId);
 
             if (env.IsDevelopment())
             {
