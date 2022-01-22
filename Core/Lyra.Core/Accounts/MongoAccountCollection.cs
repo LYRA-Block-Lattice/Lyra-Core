@@ -255,6 +255,8 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_snapshots, "Hash", true);
                     await CreateIndexes(_snapshots, "AccountID", true);
                     await CreateIndexes(_snapshots, "BlockType", false);
+
+                    await SnapshotAllAsync();
                 }
                 catch(Exception e)
                 {
@@ -274,32 +276,47 @@ namespace Lyra.Core.Accounts
             BsonClassMap.LookupClassMap(type);
         }
 
-        private async Task<bool> UpdateSnapshotsAsync()
+        private async Task<bool> SnapshotAllAsync()
         {
             var importedAccounts = FindAllImportedAccountID();
 
             // find last one tx block
-            var latests = _blocks.OfType<TransactionBlock>()//atrVotes
-                .AsQueryable()
+            //var latests = _blocks.OfType<TransactionBlock>()//atrVotes
+            //    .AsQueryable()
 
-                //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
-                .OrderByDescending(a => a.Height)
-                .GroupBy(a => a.AccountID)      // this time select the latest block of account
-                .Select(g => g.First())
-                .Where(x => !importedAccounts.Contains(x.AccountID))
+            //    //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
+            //    .OrderByDescending(a => a.Height)
+            //    .GroupBy(a => a.AccountID)      // this time select the latest block of account
+            //    .Select(g => g.First())               
 
-                .ToList();
+            //    .ToList();
+            var latests = _blocks
+                .OfType<TransactionBlock>()
+                .Aggregate()
+                .SortByDescending(a => a.Height)
+                .Group(a => a.AccountID,
+                    g => new { g.Key, hash = g.First().Hash })
+
+                // we got all hashes. so look for missing ones
+                //.Lookup(_networkId + "_blocks", "hash", "Hash", "asBlock")
+                // now we have all blocks
+                .Lookup(_networkId + "_snapshots", "hash", "Hash", "as")
+                //.Match()
+                .ToList()
+                .Where(a => a["as"].AsBsonArray.Capacity == 0);
 
             foreach(var acct in latests)
             {
-                await UpdateSnapshotAsync(acct);
+                var block = await FindBlockByHashAsync(acct["hash"].AsString) as TransactionBlock;
+                if (!importedAccounts.Contains(block.AccountID))
+                    await UpdateSnapshotAsync(block);
             }
             return true;
         }
 
         public async Task UpdateStatsAsync()
         {
-            await StopWatcher.TrackAsync(UpdateSnapshotsAsync, "UpdateSnapshotsAsync");
+            await StopWatcher.TrackAsync(SnapshotAllAsync, "SnapshotAllAsync");
 
             var options = new FindOptions<AccountChange, AccountChange>
             {
