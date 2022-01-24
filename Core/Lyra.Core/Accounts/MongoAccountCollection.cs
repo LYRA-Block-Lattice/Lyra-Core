@@ -287,16 +287,6 @@ namespace Lyra.Core.Accounts
         {
             var importedAccounts = FindAllImportedAccountID();
 
-            // find last one tx block
-            //var latests = _blocks.OfType<TransactionBlock>()//atrVotes
-            //    .AsQueryable()
-
-            //    //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
-            //    .OrderByDescending(a => a.Height)
-            //    .GroupBy(a => a.AccountID)      // this time select the latest block of account
-            //    .Select(g => g.First())               
-
-            //    .ToList();
             var latests = _blocks
                 .OfType<TransactionBlock>()
                 .Aggregate()
