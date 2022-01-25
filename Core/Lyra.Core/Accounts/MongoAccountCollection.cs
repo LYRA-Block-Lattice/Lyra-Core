@@ -67,7 +67,7 @@ namespace Lyra.Core.Accounts
             _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // hack
-            if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
+            if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
             {
                 if (GetClient() == null)
                     return;
@@ -262,6 +262,8 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_snapshots, "Hash", true);
                     await CreateIndexes(_snapshots, "AccountID", true);
                     await CreateIndexes(_snapshots, "BlockType", false);
+                    await CreateIndexes(_snapshots, "OOStatus", false);
+                    await CreateIndexes(_snapshots, "OTStatus", false);
 
                     await SnapshotAllAsync();
                 }
