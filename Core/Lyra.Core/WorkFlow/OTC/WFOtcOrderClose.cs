@@ -48,8 +48,8 @@ namespace Lyra.Core.WorkFlow.OTC
             if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotSellerOfTrade;
 
-            if ((orderblk as IOtcOrder).Status != OtcOrderStatus.Open &&
-                (orderblk as IOtcOrder).Status != OtcOrderStatus.Partial)
+            if ((orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Open &&
+                (orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Partial)
                 return APIResultCodes.InvalidOrderStatus;
 
             return APIResultCodes.Success;
@@ -64,7 +64,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var order = (lastblock as IOtcOrder).Order;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToTradeBlock = new OtcCryptoOrderSendBlock
+            var sendToTradeBlock = new OtcOrderSendBlock
             {
                 // block
                 ServiceHash = sb.Hash,
@@ -85,7 +85,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 RelatedTx = send.Hash,
 
                 // otc
-                Order = new OTCCryptoOrder
+                Order = new OTCOrder
                 {
                     daoid = ((IOtcOrder)lastblock).Order.daoid,
                     dir = ((IOtcOrder)lastblock).Order.dir,
@@ -96,7 +96,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     amount = 0,
                     collateral = 0,
                 },
-                Status = OtcOrderStatus.Closed,
+                OOStatus = OTCOrderStatus.Closed,
             };
 
             sendToTradeBlock.Balances[order.crypto] = 0;

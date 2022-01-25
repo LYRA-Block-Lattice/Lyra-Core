@@ -10,7 +10,7 @@ namespace Lyra.Data.API.WorkFlow
     // type
     public enum TradeDirection { Buy, Sell };
     public enum PriceType { Fixed, Float }
-    public class OTCCryptoTrade
+    public class OTCTrade
     {
         // data
         public string daoid { get; set; }   // DAO account ID
@@ -34,7 +34,7 @@ namespace Lyra.Data.API.WorkFlow
             if (this.GetType() != obOther.GetType())
                 return false;
 
-            var ob = obOther as OTCCryptoTrade;
+            var ob = obOther as OTCTrade;
             return daoid == ob.daoid &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&

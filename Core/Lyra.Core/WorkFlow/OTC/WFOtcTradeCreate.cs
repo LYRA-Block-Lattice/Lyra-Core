@@ -40,10 +40,10 @@ namespace Lyra.Core.WorkFlow
                 )
                 return APIResultCodes.InvalidBlockTags;
 
-            OTCCryptoTrade trade;
+            OTCTrade trade;
             try
             {
-                trade = JsonConvert.DeserializeObject<OTCCryptoTrade>(send.Tags["data"]);
+                trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace Lyra.Core.WorkFlow
 
         async Task<TransactionBlock> SendTokenFromOrderToTradeAsync(DagSystem sys, SendTransferBlock send)
         {
-            var trade = JsonConvert.DeserializeObject<OTCCryptoTrade>(send.Tags["data"]);
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderid) as TransactionBlock;
 
@@ -87,7 +87,7 @@ namespace Lyra.Core.WorkFlow
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToTradeBlock = new OtcCryptoOrderSendBlock
+            var sendToTradeBlock = new OtcOrderSendBlock
             {
                 // block
                 ServiceHash = sb.Hash,
@@ -107,7 +107,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash,
 
                 // otc
-                Order = new OTCCryptoOrder
+                Order = new OTCOrder
                 {
                     daoid = ((IOtcOrder)lastblock).Order.daoid,
                     dir = ((IOtcOrder)lastblock).Order.dir,
@@ -134,13 +134,13 @@ namespace Lyra.Core.WorkFlow
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
-            var trade = JsonConvert.DeserializeObject<OTCCryptoTrade>(send.Tags["data"]);
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{trade.crypto},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var otcblock = new OtcCryptoTradeGenesisBlock
+            var otcblock = new OtcTradeGenesisBlock
             {
                 ServiceHash = sb.Hash,
                 Fee = 0,

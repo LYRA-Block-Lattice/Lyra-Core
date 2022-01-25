@@ -9,38 +9,38 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum OtcOrderStatus { Open, Partial, Closed, Dispute };
+    public enum OTCOrderStatus { Open, Partial, Closed, Dispute };
     public interface IOtcOrder : IBrokerAccount
     {
-        OTCCryptoOrder Order { get; set; }
-        OtcOrderStatus Status { get; set; }
+        OTCOrder Order { get; set; }
+        OTCOrderStatus OOStatus { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class OtcCryptoOrderRecvBlock : BrokerAccountRecv, IOtcOrder
+    public class OtcOrderRecvBlock : BrokerAccountRecv, IOtcOrder
     {
-        public OTCCryptoOrder Order { get; set; }
-        public OtcOrderStatus Status { get; set; }
+        public OTCOrder Order { get; set; }
+        public OTCOrderStatus OOStatus { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCCryptoOrderRecv;
+            return BlockTypes.OTCOrderRecv;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcCryptoOrderRecvBlock;
+            var ob = other as OtcOrderRecvBlock;
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order) &&
-                    Status.Equals(ob.Status);
+                    OOStatus.Equals(ob.OOStatus);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Order.GetExtraData() + "|";
-            extraData += $"{Status}|";
+            extraData += $"{OOStatus}|";
             return extraData;
         }
 
@@ -48,36 +48,36 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"{Order}\n";
-            result += $"Status: {Status}\n";
+            result += $"Status: {OOStatus}\n";
             return result;
         }
     }
 
     [BsonIgnoreExtraElements]
-    public class OtcCryptoOrderSendBlock : BrokerAccountSend, IOtcOrder
+    public class OtcOrderSendBlock : BrokerAccountSend, IOtcOrder
     {
-        public OTCCryptoOrder Order { get; set; }
-        public OtcOrderStatus Status { get; set; }
+        public OTCOrder Order { get; set; }
+        public OTCOrderStatus OOStatus { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCCryptoOrderSend;
+            return BlockTypes.OTCOrderSend;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OtcCryptoOrderSendBlock;
+            var ob = other as OtcOrderSendBlock;
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order) &&
-                    Status.Equals(ob.Status);
+                    OOStatus.Equals(ob.OOStatus);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Order.GetExtraData() + "|";
-            extraData += $"{Status}|";
+            extraData += $"{OOStatus}|";
             return extraData;
         }
 
@@ -85,25 +85,25 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"{Order}\n";
-            result += $"Status: {Status}\n";
+            result += $"Status: {OOStatus}\n";
             return result;
         }
     }
 
 
     [BsonIgnoreExtraElements]
-    public class OTCCryptoOrderGenesisBlock : OtcCryptoOrderRecvBlock, IOpeningBlock
+    public class OTCOrderGenesisBlock : OtcOrderRecvBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCCryptoOrderGenesis;
+            return BlockTypes.OTCOrderGenesis;
         }
 
         public override bool AuthCompare(Block other)
         {
-            var ob = other as OTCCryptoOrderGenesisBlock;
+            var ob = other as OTCOrderGenesisBlock;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

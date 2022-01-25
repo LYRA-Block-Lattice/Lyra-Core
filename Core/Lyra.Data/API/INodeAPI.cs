@@ -99,6 +99,7 @@ namespace Lyra.Core.API
         // DAO
         Task<BlockAPIResult> GetDaoByNameAsync(string name);
         Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId);
+        Task<MultiBlockAPIResult> FindTradableOtcOrdersAsync();
     }
 
     public interface INodeTransactionAPI

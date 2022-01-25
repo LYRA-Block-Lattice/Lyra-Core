@@ -659,6 +659,14 @@ namespace LyraLexWeb2
             return await _node.GetOtcOrdersByOwnerAsync(accountId);
         }
 
+        [Route("FindTradableOtcOrders")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindTradableOtcOrdersAsync()
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindTradableOtcOrdersAsync();
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

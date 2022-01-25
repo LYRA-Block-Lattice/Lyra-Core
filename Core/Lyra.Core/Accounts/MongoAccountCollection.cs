@@ -2152,7 +2152,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
-            var q = _blocks.OfType<OTCCryptoOrderGenesisBlock>()
+            var q = _blocks.OfType<OTCOrderGenesisBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .ToList();
 
@@ -2163,6 +2163,20 @@ namespace Lyra.Core.Accounts
                 blks.Add(b);
             }
             return blks;
+        }
+
+        public async Task<List<TransactionBlock>> FindTradableOtcOrdersAsync()
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Or(
+                filter.Eq("OOStatus", OTCOrderStatus.Open),
+                filter.Eq("OOStatus", OTCOrderStatus.Partial)
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
         }
     }
     public static class MyExtensions

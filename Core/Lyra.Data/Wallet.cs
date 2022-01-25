@@ -2129,7 +2129,7 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region OTC
-        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCCryptoOrder order)
+        public async Task<AuthorizationAPIResult> CreateOTCOrderAsync(OTCOrder order)
         {
             if (LyraGlobal.OFFICIALTICKERCODE.Equals(order.crypto, StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentOutOfRangeException("Order for LYR is not supported.");
@@ -2150,7 +2150,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCCryptoTrade trade)
+        public async Task<AuthorizationAPIResult> CreateOTCTradeAsync(OTCTrade trade)
         {
             var tags = new Dictionary<string, string>
             {
