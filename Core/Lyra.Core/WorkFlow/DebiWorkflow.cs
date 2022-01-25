@@ -32,16 +32,20 @@ namespace Lyra.Core.WorkFlow
 
             var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
                 as SendTransferBlock;
-            block = 
-                await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
-                    ??
-                await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
-                    ??
-                await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-            Console.WriteLine($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
-            if(block != null)
-                count++;
+            if(sendBlock != null)
+            {
+                block =
+                    await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
+                        ??
+                    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
+                        ??
+                    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+                Console.WriteLine($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+
+                if (block != null)
+                    count++;
+            }
 
             return ExecutionResult.Next();
         }
