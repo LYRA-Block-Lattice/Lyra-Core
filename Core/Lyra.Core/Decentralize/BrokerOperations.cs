@@ -37,6 +37,9 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+            if (prevSend == null)
+                return null;        // HACK: process missing block
+
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
