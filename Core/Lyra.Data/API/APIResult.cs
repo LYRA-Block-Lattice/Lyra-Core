@@ -188,12 +188,59 @@ namespace Lyra.Core.API
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ListDataSerialized);
     }
 
-    //// returns the auhtorization signatures for send or receive blocks
-    //public class NewTransferAPIResult : APIResult
-    //{
-    //    public Block SendTransferBlock { get; set; }
-    //    public Block TransactionBlock { get; set; }
-    //}
+    public class ContainerAPIResult : APIResult
+    {
+        public Dictionary<string, List<(BlockTypes type, string text)>> Container { get; set; }
+
+        public ContainerAPIResult()
+        {
+            Container = new Dictionary<string, List<(BlockTypes, string)>>();
+        }
+        public void AddBlocks(string name, List<Block> blocks)
+        {
+            var blockDatas = blocks.Select(a => 
+                (
+                a.GetBlockType(),
+                JsonConvert.SerializeObject(a))
+                )
+                .ToList();
+            Container.Add(name, blockDatas);
+        }
+
+        public IEnumerable<Block> GetBlocks(string name)
+        {
+            if(Container.ContainsKey(name))
+            {
+                var BlockDatas = Container[name];
+                foreach (var data in BlockDatas)
+                {
+                    var block = new BlockAPIResult { BlockData = data.text, ResultBlockType = data.type };
+                    yield return block.GetBlock();
+                }
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                if(null != Container)
+                {
+                    foreach(var kvp in Container)
+                    {
+                        hash = hash * 31 + (kvp.Key == null ? 0 : kvp.Key.GetHashCode());
+                        foreach(var tup in kvp.Value)
+                        {
+                            hash = hash * 31 + tup.type.GetHashCode() + tup.text.GetHashCode();
+                        }
+                    }
+                }
+                return hash;
+            }
+        }
+    }
+
     public class MultiBlockAPIResult : APIResult
     {
         public string[] BlockDatas { get; set; }

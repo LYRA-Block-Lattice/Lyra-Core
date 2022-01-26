@@ -659,12 +659,12 @@ namespace LyraLexWeb2
             return await _node.GetOtcOrdersByOwnerAsync(accountId);
         }
 
-        [Route("FindTradableOtcOrders")]
+        [Route("FindTradableOtc")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> FindTradableOtcOrdersAsync()
+        public async Task<ContainerAPIResult> FindTradableOtcAsync()
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.FindTradableOtcOrdersAsync();
+            return await _node.FindTradableOtcAsync();
         }
 
         //[HttpPost]

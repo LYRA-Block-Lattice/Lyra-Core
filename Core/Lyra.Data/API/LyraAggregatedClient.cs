@@ -609,9 +609,9 @@ namespace Lyra.Data.API
             return SeedClient.GetOtcOrdersByOwnerAsync(accountId);
         }
 
-        public Task<MultiBlockAPIResult> FindTradableOtcOrdersAsync()
+        public Task<ContainerAPIResult> FindTradableOtcAsync()
         {
-            return SeedClient.FindTradableOtcOrdersAsync();
+            return SeedClient.FindTradableOtcAsync();
         }
     }
 }

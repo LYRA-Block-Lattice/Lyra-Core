@@ -731,14 +731,14 @@ namespace Lyra.Core.API
             return await GetAsync<MultiBlockAPIResult>("GetOtcOrdersByOwner", args);
         }
 
-        public async Task<MultiBlockAPIResult> FindTradableOtcOrdersAsync()
+        public async Task<ContainerAPIResult> FindTradableOtcAsync()
         {
             var args = new Dictionary<string, string>
             {
                
             };
 
-            return await GetAsync<MultiBlockAPIResult>("FindTradableOtcOrders", args);
+            return await GetAsync<ContainerAPIResult>("FindTradableOtc", args);
         }
     }
 }

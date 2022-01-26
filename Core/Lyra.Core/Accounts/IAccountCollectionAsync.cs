@@ -29,7 +29,7 @@ namespace Lyra.Core.Accounts
         // DAO and OTC
         Block GetDaoByName(string name);
         Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId);
-        Task<List<TransactionBlock>> FindTradableOtcOrdersAsync();
+        Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync();
 
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Block FindBlockByHash(string hash);

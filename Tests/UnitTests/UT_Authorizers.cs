@@ -306,8 +306,8 @@ namespace UnitTests
                 .Returns<string>(name => Task.FromResult(api.GetDaoByNameAsync(name)).Result);
             mock.Setup(x => x.GetOtcOrdersByOwnerAsync(It.IsAny<string>()))
                 .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
-            mock.Setup(x => x.FindTradableOtcOrdersAsync())
-                .Returns(() => Task.FromResult(api.FindTradableOtcOrdersAsync()).Result);
+            mock.Setup(x => x.FindTradableOtcAsync())
+                .Returns(() => Task.FromResult(api.FindTradableOtcAsync()).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
@@ -483,9 +483,9 @@ namespace UnitTests
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
 
             // here comes a buyer, he who want to buy 1 BTC.
-            var tradableret = await testWallet.RPC.FindTradableOtcOrdersAsync();
+            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
             Assert.IsTrue(tradableret.Successful(), $"Can't find tradableorders: {tradableret.ResultCode}: {tradableret.ResultMessage}");
-            var ords = tradableret.GetBlocks();
+            var ords = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, ords.Count(), "Order count not right");
             Assert.IsTrue((ords.First() as IOtcOrder).Order.Equals(order), "OTC order not equal.");
 

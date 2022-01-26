@@ -2167,7 +2167,7 @@ namespace Lyra.Core.Accounts
             return blks;
         }
 
-        public async Task<List<TransactionBlock>> FindTradableOtcOrdersAsync()
+        private async Task<List<TransactionBlock>> FindTradableOtcOrdersAsync()
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.Or(
@@ -2179,6 +2179,26 @@ namespace Lyra.Core.Accounts
                 .FindAsync(filterDefination);
 
             return q.ToList();
+        }
+
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync()
+        {
+            var ords = await FindTradableOtcOrdersAsync();
+            var daoIds = ords.Cast<IOtcOrder>()
+                .Select(a => a.Order.daoid)
+                .Distinct()
+                .ToList();
+
+            var daos = _snapshots
+                .AsQueryable()
+                .Where(a => daoIds.Contains(a.AccountID))
+                .ToList();
+
+            return new Dictionary<string, List<TransactionBlock>>
+            {
+                { "orders", ords },
+                { "daos", daos },
+            };
         }
     }
     public static class MyExtensions
