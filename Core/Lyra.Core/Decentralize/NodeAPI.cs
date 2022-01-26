@@ -1219,7 +1219,7 @@ namespace Lyra.Core.Decentralize
             {
                 var dict = await NodeService.Dag.Storage.FindTradableOtcAsync();
                 foreach (var kvp in dict)
-                    result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToList());
+                    result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToArray());
 
                 result.ResultCode = APIResultCodes.Success;
             }

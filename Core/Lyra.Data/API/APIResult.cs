@@ -190,21 +190,15 @@ namespace Lyra.Core.API
 
     public class ContainerAPIResult : APIResult
     {
-        public Dictionary<string, List<(BlockTypes type, string text)>> Container { get; set; }
+        public Dictionary<string, MultiBlockAPIResult> Container { get; set; }
 
         public ContainerAPIResult()
         {
-            Container = new Dictionary<string, List<(BlockTypes, string)>>();
+            Container = new Dictionary<string, MultiBlockAPIResult>();
         }
-        public void AddBlocks(string name, List<Block> blocks)
+        public void AddBlocks(string name, Block[] blocks)
         {
-            var blockDatas = blocks.Select(a => 
-                (
-                a.GetBlockType(),
-                JsonConvert.SerializeObject(a))
-                )
-                .ToList();
-            Container.Add(name, blockDatas);
+            Container.Add(name, new MultiBlockAPIResult(blocks));
         }
 
         public IEnumerable<Block> GetBlocks(string name)
@@ -212,12 +206,10 @@ namespace Lyra.Core.API
             if(Container.ContainsKey(name))
             {
                 var BlockDatas = Container[name];
-                foreach (var data in BlockDatas)
-                {
-                    var block = new BlockAPIResult { BlockData = data.text, ResultBlockType = data.type };
-                    yield return block.GetBlock();
-                }
+                return BlockDatas.GetBlocks();
             }
+            else
+                return Enumerable.Empty<Block>();
         }
 
         public override int GetHashCode()
@@ -230,10 +222,7 @@ namespace Lyra.Core.API
                     foreach(var kvp in Container)
                     {
                         hash = hash * 31 + (kvp.Key == null ? 0 : kvp.Key.GetHashCode());
-                        foreach(var tup in kvp.Value)
-                        {
-                            hash = hash * 31 + tup.type.GetHashCode() + tup.text.GetHashCode();
-                        }
+                        hash = hash * 31 + kvp.Value.GetHashCode();
                     }
                 }
                 return hash;
@@ -245,6 +234,15 @@ namespace Lyra.Core.API
     {
         public string[] BlockDatas { get; set; }
         public BlockTypes[] ResultBlockTypes { get; set; }
+
+        public MultiBlockAPIResult()
+        {
+        }
+
+        public MultiBlockAPIResult(Block[] blocks)
+        {
+            SetBlocks(blocks);
+        }
 
         public void SetBlocks(Block[] blocks)
         {
