@@ -17,7 +17,11 @@ namespace Lyra.Data.API.WorkFlow
         public PriceType priceType { get; set; }
         public decimal price { get; set; }
         public decimal amount { get; set; }
+        public decimal limitmin { get; set; }
+        public decimal limitmax { get; set; }
+        public string[] payby { get; set; }
         public decimal collateral { get; set; }
+
 
         public override bool Equals(object obOther)
         {

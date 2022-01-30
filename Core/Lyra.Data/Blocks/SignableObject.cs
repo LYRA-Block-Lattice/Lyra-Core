@@ -21,7 +21,7 @@ namespace Lyra.Core.Blocks
 
         protected abstract string GetExtraData();
 
-        static ReaderWriterLock rwl = new ReaderWriterLock();
+        //static ReaderWriterLock rwl = new ReaderWriterLock();
 
         // Calculate object's SHA256 hash 
         public string CalculateHash()
