@@ -38,6 +38,8 @@ namespace Lyra.Core.WorkFlow
 
                 if (sendBlock != null)
                     break;
+
+                await Task.Delay(100);
             }
 
             if(sendBlock == null)
