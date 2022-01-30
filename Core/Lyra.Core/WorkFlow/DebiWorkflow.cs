@@ -30,18 +30,33 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
             var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
 
-            var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
-                as SendTransferBlock;
-            block = 
-                await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
-                    ??
-                await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
-                    ??
-                await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-            Console.WriteLine($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+            SendTransferBlock sendBlock = null;
+            for (int i = 0; i < 100; i++)
+            {
+                sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
+                    as SendTransferBlock;
 
-            if(block != null)
-                count++;
+                if (sendBlock != null)
+                    break;
+            }
+
+            if(sendBlock == null)
+            {
+
+            }
+            else
+            {
+                block =
+                    await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
+                        ??
+                    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
+                        ??
+                    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+                Console.WriteLine($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+
+                if (block != null)
+                    count++;
+            }
 
             return ExecutionResult.Next();
         }
