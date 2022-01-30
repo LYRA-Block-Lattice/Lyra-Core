@@ -262,6 +262,8 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_snapshots, "Hash", true);
                     await CreateIndexes(_snapshots, "AccountID", true);
                     await CreateIndexes(_snapshots, "BlockType", false);
+                    await CreateIndexes(_snapshots, "OOStatus", false);
+                    await CreateIndexes(_snapshots, "OTStatus", false);
 
                     await SnapshotAllAsync();
                 }
@@ -287,16 +289,6 @@ namespace Lyra.Core.Accounts
         {
             var importedAccounts = FindAllImportedAccountID();
 
-            // find last one tx block
-            //var latests = _blocks.OfType<TransactionBlock>()//atrVotes
-            //    .AsQueryable()
-
-            //    //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
-            //    .OrderByDescending(a => a.Height)
-            //    .GroupBy(a => a.AccountID)      // this time select the latest block of account
-            //    .Select(g => g.First())               
-
-            //    .ToList();
             var latests = _blocks
                 .OfType<TransactionBlock>()
                 .Aggregate()
@@ -2162,7 +2154,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
-            var q = _blocks.OfType<OTCCryptoOrderGenesisBlock>()
+            var q = _blocks.OfType<OTCOrderGenesisBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .ToList();
 
@@ -2173,6 +2165,40 @@ namespace Lyra.Core.Accounts
                 blks.Add(b);
             }
             return blks;
+        }
+
+        private async Task<List<TransactionBlock>> FindTradableOtcOrdersAsync()
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Or(
+                filter.Eq("OOStatus", OTCOrderStatus.Open),
+                filter.Eq("OOStatus", OTCOrderStatus.Partial)
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync()
+        {
+            var ords = await FindTradableOtcOrdersAsync();
+            var daoIds = ords.Cast<IOtcOrder>()
+                .Select(a => a.Order.daoid)
+                .Distinct()
+                .ToList();
+
+            var daos = _snapshots
+                .AsQueryable()
+                .Where(a => daoIds.Contains(a.AccountID))
+                .ToList();
+
+            return new Dictionary<string, List<TransactionBlock>>
+            {
+                { "orders", ords },
+                { "daos", daos },
+            };
         }
     }
     public static class MyExtensions

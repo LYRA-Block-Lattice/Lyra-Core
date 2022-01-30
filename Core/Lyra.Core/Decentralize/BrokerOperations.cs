@@ -37,6 +37,9 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+            if (prevSend == null)
+                return null;        // HACK: process missing block
+
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
@@ -134,7 +137,7 @@ namespace Lyra.Core.Decentralize
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var receiveBlock = new OtcCryptoTradeRecvBlock
+            var receiveBlock = new OtcTradeRecvBlock
             {
                 // block
                 ServiceHash = lsb.Hash,
@@ -153,7 +156,7 @@ namespace Lyra.Core.Decentralize
                 RelatedTx = sendBlock.Hash,
 
                 // trade     
-                Trade = ((IOtcCryptoTrade)lastblock).Trade,
+                Trade = ((IOtcTrade)lastblock).Trade,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

@@ -129,7 +129,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetServiceGenesisBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -159,7 +159,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetLyraTokenGenesisBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -187,7 +187,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = ex.Message;
             }
             return result;
@@ -219,7 +219,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetTokenNames: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -246,7 +246,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
             return result;
@@ -271,7 +271,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetLastBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -302,7 +302,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -340,7 +340,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetServiceBlockByIndex: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -376,7 +376,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlock(Hash): " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -402,7 +402,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlock(Hash): " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -428,7 +428,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlockBySourceHash(Hash): " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -455,7 +455,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlocksByRelatedTxAsync(Hash): " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -488,7 +488,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetNonFungibleTokens: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -522,7 +522,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetTokenTokenGenesisBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -551,7 +551,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetLastServiceBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -577,7 +577,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetLastConsolidationBlock: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -640,7 +640,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlocksByTimeRange: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -664,7 +664,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlockHashesByTimeRange: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -688,7 +688,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in SearchTransactions: " + e.ToString());
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -712,7 +712,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlocksByTimeRange: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -736,7 +736,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetBlockHashesByTimeRange: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -766,7 +766,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetConsolidationBlocks: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -796,7 +796,7 @@ namespace Lyra.Core.Decentralize
         //    catch (Exception e)
         //    {
         //        Console.WriteLine("Exception in GetUnConsolidatedBlocks: " + e.Message);
-        //        result.ResultCode = APIResultCodes.UnknownError;
+        //        result.ResultCode = APIResultCodes.StorageAPIFailure;
         //    }
 
         //    return result;
@@ -838,7 +838,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                transfer_info.ResultCode = APIResultCodes.UnknownError;
+                transfer_info.ResultCode = APIResultCodes.StorageAPIFailure;
                 transfer_info.ResultMessage = e.ToString();
             }
             return transfer_info;
@@ -880,7 +880,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                transfer_info.ResultCode = APIResultCodes.UnknownError;
+                transfer_info.ResultCode = APIResultCodes.StorageAPIFailure;
                 transfer_info.ResultMessage = e.ToString();
             }
             return transfer_info;
@@ -905,7 +905,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                fbs.ResultCode = APIResultCodes.UnknownError;
+                fbs.ResultCode = APIResultCodes.StorageAPIFailure;
                 fbs.ResultMessage = ex.Message;
                 return fbs;
             }
@@ -966,7 +966,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetActiveTradeOrders: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -999,7 +999,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
             return result;
@@ -1047,7 +1047,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                result.ResultCode = APIResultCodes.UndefinedError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
             return result;
@@ -1072,7 +1072,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetAllBrokerAccountsForOwner: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -1126,7 +1126,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetAllDexWalletsAsync(Hash): " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -1151,7 +1151,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in FindDexWalletAsync: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -1177,7 +1177,7 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetDaoByNameAsync: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 
@@ -1204,7 +1204,29 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetDaoByNameAsync: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        {
+            var result = new ContainerAPIResult();
+
+            try
+            {
+                var dict = await NodeService.Dag.Storage.FindTradableOtcAsync();
+                foreach (var kvp in dict)
+                    result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToArray());
+
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindTradableOtcAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
 

@@ -188,16 +188,61 @@ namespace Lyra.Core.API
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ListDataSerialized);
     }
 
-    //// returns the auhtorization signatures for send or receive blocks
-    //public class NewTransferAPIResult : APIResult
-    //{
-    //    public Block SendTransferBlock { get; set; }
-    //    public Block TransactionBlock { get; set; }
-    //}
+    public class ContainerAPIResult : APIResult
+    {
+        public Dictionary<string, MultiBlockAPIResult> Container { get; set; }
+
+        public ContainerAPIResult()
+        {
+            Container = new Dictionary<string, MultiBlockAPIResult>();
+        }
+        public void AddBlocks(string name, Block[] blocks)
+        {
+            Container.Add(name, new MultiBlockAPIResult(blocks));
+        }
+
+        public IEnumerable<Block> GetBlocks(string name)
+        {
+            if(Container.ContainsKey(name))
+            {
+                var BlockDatas = Container[name];
+                return BlockDatas.GetBlocks();
+            }
+            else
+                return Enumerable.Empty<Block>();
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                if(null != Container)
+                {
+                    foreach(var kvp in Container)
+                    {
+                        hash = hash * 31 + (kvp.Key == null ? 0 : kvp.Key.GetHashCode());
+                        hash = hash * 31 + kvp.Value.GetHashCode();
+                    }
+                }
+                return hash;
+            }
+        }
+    }
+
     public class MultiBlockAPIResult : APIResult
     {
         public string[] BlockDatas { get; set; }
         public BlockTypes[] ResultBlockTypes { get; set; }
+
+        public MultiBlockAPIResult()
+        {
+        }
+
+        public MultiBlockAPIResult(Block[] blocks)
+        {
+            SetBlocks(blocks);
+        }
 
         public void SetBlocks(Block[] blocks)
         {

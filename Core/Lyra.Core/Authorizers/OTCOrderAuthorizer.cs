@@ -10,19 +10,19 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class OTCCryptoOrderRecvAuthorizer : BrokerAccountRecvAuthorizer
+    public class OTCOrderRecvAuthorizer : BrokerAccountRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCCryptoOrderRecv;
+            return BlockTypes.OTCOrderRecv;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is OtcCryptoOrderRecvBlock))
+            if (!(tblock is OtcOrderRecvBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as OtcCryptoOrderRecvBlock;
+            var block = tblock as OtcOrderRecvBlock;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
@@ -53,19 +53,19 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class OTCCryptoOrderSendAuthorizer : BrokerAccountSendAuthorizer
+    public class OTCOrderSendAuthorizer : BrokerAccountSendAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCCryptoOrderSend;
+            return BlockTypes.OTCOrderSend;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is OtcCryptoOrderSendBlock))
+            if (!(tblock is OtcOrderSendBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as OtcCryptoOrderSendBlock;
+            var block = tblock as OtcOrderSendBlock;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
@@ -96,19 +96,19 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class OTCCryptoOrderGenesisAuthorizer : OTCCryptoOrderRecvAuthorizer
+    public class OTCOrderGenesisAuthorizer : OTCOrderRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OTCCryptoOrderGenesis;
+            return BlockTypes.OTCOrderGenesis;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is OTCCryptoOrderGenesisBlock))
+            if (!(tblock is OTCOrderGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as OTCCryptoOrderGenesisBlock;
+            var block = tblock as OTCOrderGenesisBlock;
 
             if(block.AccountType != AccountTypes.OTC)
             {

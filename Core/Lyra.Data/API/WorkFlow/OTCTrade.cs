@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public class OTCCryptoOrder
+    // type
+    public enum TradeDirection { Buy, Sell };
+    public enum PriceType { Fixed, Float }
+    public class OTCTrade
     {
         // data
         public string daoid { get; set; }   // DAO account ID
+        public string orderid { get; set; }   // Order account ID
         public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
@@ -30,7 +34,7 @@ namespace Lyra.Data.API.WorkFlow
             if (this.GetType() != obOther.GetType())
                 return false;
 
-            var ob = obOther as OTCCryptoOrder;
+            var ob = obOther as OTCTrade;
             return daoid == ob.daoid &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&
@@ -43,7 +47,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, collateral);
+            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, amount, collateral);
         }
 
         public string GetExtraData()
@@ -70,7 +74,7 @@ namespace Lyra.Data.API.WorkFlow
             result += $"Price Type: {priceType}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
-            result += $"Seller Collateral: {collateral}\n";
+            result += $"Buyer Collateral: {collateral} {LyraGlobal.OFFICIALTICKERCODE}\n";
             return result;
         }
     }
