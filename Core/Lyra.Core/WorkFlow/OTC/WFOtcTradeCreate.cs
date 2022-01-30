@@ -61,7 +61,7 @@ namespace Lyra.Core.WorkFlow
             var order = orderblk.Order;
             if (order.crypto != trade.crypto ||
                 order.fiat != trade.fiat ||
-                order.amount <= trade.amount ||
+                order.amount < trade.amount ||
                 order.dir == trade.dir
                 )
                 return APIResultCodes.InvalidTrade;
