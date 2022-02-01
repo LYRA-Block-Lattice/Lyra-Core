@@ -667,6 +667,14 @@ namespace LyraLexWeb2
             return await _node.FindTradableOtcAsync();
         }
 
+        [Route("FindOtcTrade")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindOtcTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

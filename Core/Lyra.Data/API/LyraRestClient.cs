@@ -740,5 +740,18 @@ namespace Lyra.Core.API
 
             return await GetAsync<ContainerAPIResult>("FindTradableOtc", args);
         }
+
+        public Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "onlyOpenTrade", onlyOpenTrade.ToString() },
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindOtcTrade", args);
+        }
     }
 }

@@ -313,5 +313,10 @@ namespace Lyra.Core.Accounts
         {
             return StopWatcher.Track(() => _store.FindTradableOtcAsync(), "FindTradableOtcAsync");
         }
+
+        public Task<List<TransactionBlock>> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            return StopWatcher.Track(() => _store.FindOtcTradeAsync(accountId, onlyOpenTrade, page, pageSize), "FindOtcTradeAsync");
+        }
     }
 }

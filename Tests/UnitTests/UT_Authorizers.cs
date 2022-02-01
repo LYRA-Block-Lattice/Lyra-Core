@@ -308,6 +308,9 @@ namespace UnitTests
                 .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
             mock.Setup(x => x.FindTradableOtcAsync())
                 .Returns(() => Task.FromResult(api.FindTradableOtcAsync()).Result);
+            mock.Setup(x => x.FindOtcTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) => 
+                    Task.FromResult(api.FindOtcTradeAsync(accountId, isOpen, page, pagesize)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
@@ -525,6 +528,19 @@ namespace UnitTests
             Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
             Assert.AreEqual(trade, tradgen.Trade);
             Assert.AreEqual(OTCTradeStatus.Open, tradgen.OTStatus);
+
+            // verify by api
+            var tradeQueryRet = await test2Wallet.RPC.FindOtcTradeAsync(test2Wallet.AccountId, false, 0, 10);
+            Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
+            var tradeQueryResultBlocks = tradeQueryRet.GetBlocks();
+            Assert.AreEqual(1, tradeQueryResultBlocks.Count());
+            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks.First() as TransactionBlock).AccountID);
+
+            var tradeQueryRet2 = await testWallet.RPC.FindOtcTradeAsync(testWallet.AccountId, false, 0, 10);
+            Assert.IsTrue(tradeQueryRet2.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet2.ResultCode}");
+            var tradeQueryResultBlocks2 = tradeQueryRet2.GetBlocks();
+            Assert.AreEqual(1, tradeQueryResultBlocks2.Count());
+            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks2.First() as TransactionBlock).AccountID);
 
             // buyer send payment indicator
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);

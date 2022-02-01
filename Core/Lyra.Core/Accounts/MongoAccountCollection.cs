@@ -67,7 +67,7 @@ namespace Lyra.Core.Accounts
             _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // hack
-            if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
+            if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
             {
                 if (GetClient() == null)
                     return;
@@ -2199,6 +2199,23 @@ namespace Lyra.Core.Accounts
                 { "orders", ords },
                 { "daos", daos },
             };
+        }
+
+        public async Task<List<TransactionBlock>> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.And(
+                filter.Exists("OTStatus"),
+                filter.Or(
+                    filter.Eq("OwnerAccountId", accountId),
+                    filter.Eq("Trade.orderOwnerId", accountId)
+                    )                
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
         }
     }
     public static class MyExtensions

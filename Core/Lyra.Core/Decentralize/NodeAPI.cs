@@ -1232,5 +1232,32 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public async Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindOtcTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindOtcTradeAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
     }
 }
