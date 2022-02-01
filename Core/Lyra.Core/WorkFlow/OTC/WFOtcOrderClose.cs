@@ -42,7 +42,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var daoblk = await sys.Storage.FindLatestBlockAsync(daoid);
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if (daoblk == null || orderblk == null || 
-                (orderblk as IOtcOrder).Order.daoid != (daoblk as TransactionBlock).AccountID)
+                (orderblk as IOtcOrder).Order.daoId != (daoblk as TransactionBlock).AccountID)
                 return APIResultCodes.InvalidTrade;
 
             if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
@@ -87,7 +87,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 // otc
                 Order = new OTCOrder
                 {
-                    daoid = ((IOtcOrder)lastblock).Order.daoid,
+                    daoId = ((IOtcOrder)lastblock).Order.daoId,
                     dir = ((IOtcOrder)lastblock).Order.dir,
                     crypto = ((IOtcOrder)lastblock).Order.crypto,
                     fiat = ((IOtcOrder)lastblock).Order.fiat,
@@ -114,7 +114,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var tradelatest = await sys.Storage.FindFirstBlockAsync(orderid) as TransactionBlock;
 
             var order = (tradelatest as IOtcOrder).Order;
-            var daolastblock = await sys.Storage.FindLatestBlockAsync(order.daoid) as TransactionBlock;
+            var daolastblock = await sys.Storage.FindLatestBlockAsync(order.daoId) as TransactionBlock;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendCollateral = new DaoSendBlock

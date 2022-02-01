@@ -2146,7 +2146,7 @@ namespace Lyra.Core.Accounts
                 { order.crypto, order.amount }
             };
 
-            var result = await SendExAsync(order.daoid, amounts, tags);
+            var result = await SendExAsync(order.daoId, amounts, tags);
             return result;
         }
 
@@ -2163,7 +2163,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.collateral },
             };
 
-            var result = await SendExAsync(trade.daoid, amounts, tags);
+            var result = await SendExAsync(trade.daoId, amounts, tags);
             return result;
         }
 

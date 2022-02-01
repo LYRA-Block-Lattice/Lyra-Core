@@ -13,8 +13,9 @@ namespace Lyra.Data.API.WorkFlow
     public class OTCTrade
     {
         // data
-        public string daoid { get; set; }   // DAO account ID
-        public string orderid { get; set; }   // Order account ID
+        public string daoId { get; set; }   // DAO account ID
+        public string orderId { get; set; }   // Order account ID
+        public string orderOwnerId { get; set; } // order's owner account ID
         public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
@@ -35,7 +36,7 @@ namespace Lyra.Data.API.WorkFlow
                 return false;
 
             var ob = obOther as OTCTrade;
-            return daoid == ob.daoid &&
+            return daoId == ob.daoId &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&
                 fiat == ob.fiat &&
@@ -47,13 +48,13 @@ namespace Lyra.Data.API.WorkFlow
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(daoid, dir, crypto, fiat, price, priceType, amount, collateral);
+            return HashCode.Combine(daoId, dir, crypto, fiat, price, priceType, amount, collateral);
         }
 
         public string GetExtraData()
         {
             string extraData = "";
-            extraData += daoid + "|";
+            extraData += daoId + "|";
             extraData += $"{dir}|";
             extraData += $"{crypto}|";
             extraData += $"{fiat}|";
@@ -67,7 +68,7 @@ namespace Lyra.Data.API.WorkFlow
         public override string ToString()
         {
             string result = base.ToString();
-            result += $"DAO ID: {daoid}\n";
+            result += $"DAO ID: {daoId}\n";
             result += $"Direction: {dir}\n";
             result += $"Crypto: {crypto}\n";
             result += $"Fiat: {fiat}\n";

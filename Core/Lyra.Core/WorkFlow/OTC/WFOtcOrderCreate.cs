@@ -50,7 +50,7 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidBlockTags;
             }
 
-            var dao = await sys.Storage.FindLatestBlockAsync(order.daoid);
+            var dao = await sys.Storage.FindLatestBlockAsync(order.daoId);
             if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
@@ -72,7 +72,7 @@ namespace Lyra.Core.WorkFlow
         {
             var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
 
-            var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoid) as TransactionBlock;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoId) as TransactionBlock;
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{order.crypto},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());

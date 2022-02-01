@@ -50,11 +50,11 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidBlockTags;
             }
 
-            var dao = await sys.Storage.FindLatestBlockAsync(trade.daoid);
+            var dao = await sys.Storage.FindLatestBlockAsync(trade.daoId);
             if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
-            var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderid) as IOtcOrder;
+            var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderId) as IOtcOrder;
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
 
@@ -62,7 +62,8 @@ namespace Lyra.Core.WorkFlow
             if (order.crypto != trade.crypto ||
                 order.fiat != trade.fiat ||
                 order.amount < trade.amount ||
-                order.dir == trade.dir
+                order.dir == trade.dir ||
+                orderblk.OwnerAccountId != trade.orderOwnerId
                 )
                 return APIResultCodes.InvalidTrade;
 
@@ -81,7 +82,7 @@ namespace Lyra.Core.WorkFlow
         {
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
-            var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderid) as TransactionBlock;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{trade.crypto},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
@@ -109,7 +110,7 @@ namespace Lyra.Core.WorkFlow
                 // otc
                 Order = new OTCOrder
                 {
-                    daoid = ((IOtcOrder)lastblock).Order.daoid,
+                    daoId = ((IOtcOrder)lastblock).Order.daoId,
                     dir = ((IOtcOrder)lastblock).Order.dir,
                     crypto = ((IOtcOrder)lastblock).Order.crypto,
                     fiat = ((IOtcOrder)lastblock).Order.fiat,

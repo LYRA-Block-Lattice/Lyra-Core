@@ -42,7 +42,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidTradeStatus;
 
             // check if seller is the order's owner
-            var orderid = (tradeblk as IOtcTrade).Trade.orderid;
+            var orderid = (tradeblk as IOtcTrade).Trade.orderId;
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
@@ -70,7 +70,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var tradelatest = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
             var trade = (tradelatest as IOtcTrade).Trade;
-            var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoid) as TransactionBlock;
+            var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendCollateral = new DaoSendBlock

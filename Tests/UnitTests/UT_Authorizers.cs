@@ -452,7 +452,7 @@ namespace UnitTests
 
             var order = new OTCOrder
             {
-                daoid = dao1.AccountID,
+                daoId = dao1.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = "USD",
@@ -491,8 +491,9 @@ namespace UnitTests
 
             var trade = new OTCTrade
             {
-                daoid = dao1.AccountID,
-                orderid = otcg.AccountID,
+                daoId = dao1.AccountID,
+                orderId = otcg.AccountID,
+                orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
                 fiat = "USD",

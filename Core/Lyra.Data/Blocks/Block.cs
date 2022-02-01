@@ -607,5 +607,7 @@ namespace Lyra.Core.Blocks
         InputTooLong,
         Exception,
         StorageAPIFailure,
+
+        DealerRoomNotExists,
     }
 }
