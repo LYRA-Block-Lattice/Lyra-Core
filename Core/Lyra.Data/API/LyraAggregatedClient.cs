@@ -57,13 +57,14 @@ namespace Lyra.Data.API
             {
                 try
                 {
-                    Console.WriteLine("LyraAggregatedClient.InitAsync");
+                    Console.WriteLine($"LyraAggregatedClient.InitAsync Seed Only: {_seedsOnly}");
                     foreach (var sd in seedNodes)
                     {
                         try
                         {
                             var apiClient = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{sd}:{peerPort}/api/Node/");
                             currentBillBoard = await apiClient.GetBillBoardAsync();
+                            Console.WriteLine($"LyraAggregatedClient.InitAsync Got billboard from {sd}");
                             break;
                         }
                         catch (Exception e)
