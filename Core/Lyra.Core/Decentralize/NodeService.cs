@@ -87,6 +87,7 @@ namespace Lyra.Core.Decentralize
                     LyraRestClient.Create(networkId, "", "NodeService", "1.0", LyraGlobal.SelectNode(networkId) + "Node/"));
                 _log.LogInformation($"Staking wallet: {PosWallet.AccountId}");
                 PosWallet.SetVoteFor(PosWallet.AccountId);
+                await PosWallet.SyncAsync(null);
 
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
                 Dag = new DagSystem(_hostEnv, _store, PosWallet, localNode);
