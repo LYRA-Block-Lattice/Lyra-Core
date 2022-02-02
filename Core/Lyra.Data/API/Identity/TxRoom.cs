@@ -17,9 +17,9 @@ namespace Lyra.Data.API.Identity
         [BsonRepresentation(BsonType.ObjectId)]
         public string? Id { get; set; }
 
-        public string LyraTxHash { get; set; } = null!;
+        public string TradeId { get; set; } = null!;
 
-        // tag -> user id. i.e "seller": aaaaa, "buyer": bbbbb, "dealer": ccccc, etc.
-        public Dictionary<string, string> Members { get; set; }
+        // add full user document as a snapshot
+        public LyraUser[] Members { get; set; }
     }
 }
