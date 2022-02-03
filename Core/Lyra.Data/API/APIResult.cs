@@ -346,6 +346,11 @@ namespace Lyra.Core.API
             BlockData = JsonConvert.SerializeObject(block);
         }
 
+        public T As<T>() where T : class
+        {
+            return Successful() ? GetBlock() as T : null;
+        }
+
         public Block GetBlock()
         {
             Block block = null;

@@ -20,6 +20,8 @@ namespace Lyra.Data.API.Identity
         [BsonElement("RegistedTime")]
         public DateTime RegistedTime { get; set; }
 
+        public string UserName { get; set; }
+
         [BsonElement("FirstName")]
         public string FirstName { get; set; } = null!;
 
