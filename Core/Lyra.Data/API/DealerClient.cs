@@ -1,5 +1,5 @@
 ﻿using DexServer.Ext;
-using Lyra.Data.API.Identity;
+using Lyra.Core.API;
 using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
@@ -64,18 +64,33 @@ namespace Lyra.Data.API
             _cancel = new CancellationTokenSource();
         }
 
-        public async Task<LyraUser> GetUserByAccountIdAsync(string accountId)
+        public async Task<APIResult> GetUserByAccountIdAsync(string accountId)
         {
             var args = new Dictionary<string, string>
             {
                 { "accountId", accountId },
             };
-            return await GetAsync<LyraUser>("GetUserByAccountId", args);
+            return await GetAsync<APIResult>("GetUserByAccountId", args);
         }
 
-        public async Task<bool> RegisterAsync(LyraUser user)
+        public async Task<APIResult> RegisterAsync(string accountId,
+            string userName, string firstName, string middleName, string lastName,
+            string email, string mibilePhone, string avatarId
+            )
         {
-            return await PostBlockAsync<bool>("Register", user);
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "userName", userName },
+                { "firstName", firstName },
+                { "middleName", middleName },
+                { "lastName", lastName },
+                { "email", email },
+                { "mibilePhone", mibilePhone },
+                { "avatarId", avatarId },
+            };
+            return await GetAsync<APIResult>("Register", args);
+            //return await PostBlockAsync<bool>("Register", user);
         }
 
         private async Task<T> PostBlockAsync<T>(string action, object obj)

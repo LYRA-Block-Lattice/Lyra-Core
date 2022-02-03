@@ -26,6 +26,8 @@ namespace Lyra.Core.API
             //ResultMessage = string.Empty;
         }
 
+        public static APIResult Success => new APIResult { ResultCode = APIResultCodes.Success };
+
         public bool Successful()
         {
             return ResultCode == APIResultCodes.Success;

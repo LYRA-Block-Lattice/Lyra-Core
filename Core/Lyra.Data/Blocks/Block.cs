@@ -609,5 +609,6 @@ namespace Lyra.Core.Blocks
         StorageAPIFailure,
 
         DealerRoomNotExists,
+        NotFound,
     }
 }
