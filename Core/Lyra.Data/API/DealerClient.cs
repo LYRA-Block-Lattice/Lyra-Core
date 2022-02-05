@@ -21,7 +21,7 @@ namespace Lyra.Data.API
             _cancel = new CancellationTokenSource();
 
             if (networkid == "devnet")
-                _url = "https://localhost:7070/api/Dealer/";
+                _url = "https://192.168.3.91:7070/api/Dealer/";
             else if (networkid == "testnet")
                 _url = "https://dealertestnet.lyra.live/api/Dealer/";
             else
