@@ -493,4 +493,10 @@ namespace Lyra.Core.API
         public string Token1 { get; set; }
         //public long SwapRito { get; set; }    // token0 / token1
     }
+
+    public class ImageUploadResult : APIResult
+    {
+        public string Hash { get; set; } = null!;
+        public string Url { get; set; } = null!;
+    }
 }
