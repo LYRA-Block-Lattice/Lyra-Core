@@ -29,7 +29,7 @@ namespace Lyra.Data.API
     }
 
     /// <summary> SignalR Hub invoke interface (signature for Clients invoking methods on server Hub) </summary>
-    public interface IHubInvokeMethods
+    public interface ILyraEventRegister
     {
         //Task SendFile(FileMessage fm);
         //Task<JoinRoomResponse> JoinRoom(JoinRoomRequest req);

@@ -14,13 +14,11 @@ namespace Lyra.Core.API
 {
     // inherit Hub<T>, where T is your interface defining the messages
     // client call this
-    public class LyraEventHub : Hub<ILyraEvent>, IHubInvokeMethods
+    public class LyraEventHub : Hub<ILyraEvent>, ILyraEventRegister
     {
-        private readonly IHubContext<LyraEventHub> _hubContext;
-
-        public LyraEventHub(IHubContext<LyraEventHub> hubContext)
+        public LyraEventHub()
         {
-            _hubContext = hubContext;
+
         }
 
         public override async Task OnConnectedAsync()
