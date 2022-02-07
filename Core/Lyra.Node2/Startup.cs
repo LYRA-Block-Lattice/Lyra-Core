@@ -114,6 +114,7 @@ namespace Lyra.Node2
 
             services.AddMvc();
             services.AddControllers();
+            services.AddSignalR();
 
             // workflow need this
             BsonClassMap.RegisterClassMap<LyraContext>(cm =>
@@ -271,12 +272,13 @@ namespace Lyra.Node2
             evn.SetWorkflowHost(host);
 
             app.UseRouting();
-            app.UseCors();
+            //app.UseCors();
             app.UseAuthorization();
             app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<LyraEventHub>("/events");
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {

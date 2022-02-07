@@ -19,6 +19,7 @@ using Lyra.Core.Authorizers;
 using Lyra.Data.API;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Lyra
 {
@@ -54,14 +55,15 @@ namespace Lyra
 
         public BlockChainState ConsensusState { get; private set; }
         public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
-
+        IHubContext<LyraEventHub, ILyraEvent> _hub;
         public static DagSystem Singleton { get; private set; }
 
-        public DagSystem(IHostEnv hostEnv, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
+        public DagSystem(IHostEnv hostEnv, IAccountCollectionAsync store, IHubContext<LyraEventHub, ILyraEvent> hub, Wallet posWallet, IActorRef localNode)
         {
             _hostEnv = hostEnv;
             _log = new SimpleLogger("DagSystem").Logger;
             FullStarted = false;
+            _hub = hub;
 
             Storage = new TracedStorage(store);
             PosWallet = posWallet;
@@ -119,7 +121,7 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this._hostEnv, this.LocalNode, TheBlockchain));
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this._hostEnv, this._hub, this.LocalNode, TheBlockchain));
             Consensus.Tell(new ConsensusService.Startup { }, TheBlockchain);
         }
 

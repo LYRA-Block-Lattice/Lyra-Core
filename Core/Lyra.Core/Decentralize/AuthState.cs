@@ -12,10 +12,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
-    public enum ConsensusResult { Uncertain, Yea, Nay }
     public class ConsensusState
     {
         public DateTime Created { get; set; } = DateTime.Now;

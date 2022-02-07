@@ -17,6 +17,7 @@ using Lyra.Data.Crypto;
 using Newtonsoft.Json;
 using System.Web.Http;
 using Newtonsoft.Json.Converters;
+using Microsoft.AspNetCore.SignalR;
 
 namespace Lyra.Core.Decentralize
 {
@@ -31,12 +32,14 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
         IHostEnv _hostEnv;
         IAccountCollectionAsync _store;
+        IHubContext<LyraEventHub, ILyraEvent> _lyraEventContext { get; }
 
         public string Leader { get; private set; }
 
         public static DagSystem Dag;
 
-        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv, IAccountCollectionAsync store)
+        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv, IAccountCollectionAsync store,
+            IHubContext<LyraEventHub, ILyraEvent> lyraEventContext)
         {
             //if (Instance == null)
             //    Instance = this;
@@ -46,6 +49,7 @@ namespace Lyra.Core.Decentralize
             _log = logger;
             _hostEnv = hostEnv;
             _store = store;
+            _lyraEventContext = lyraEventContext;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -90,7 +94,7 @@ namespace Lyra.Core.Decentralize
                 await PosWallet.SyncAsync(null);
 
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
-                Dag = new DagSystem(_hostEnv, _store, PosWallet, localNode);
+                Dag = new DagSystem(_hostEnv, _store, _lyraEventContext, PosWallet, localNode);
                 _ = Task.Run(async () => await Dag.StartAsync()).ConfigureAwait(false);
                 await Task.Delay(30000);
 

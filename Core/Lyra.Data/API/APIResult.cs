@@ -65,6 +65,15 @@ namespace Lyra.Core.API
         public string JsonString { get; set; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), JsonString);
+
+        public static SimpleJsonAPIResult Create(object o)
+        {
+            return new SimpleJsonAPIResult
+            {
+                ResultCode = APIResultCodes.Success,
+                JsonString = JsonConvert.SerializeObject(o),
+            };
+        }
     }
 
     public class TransactionsAPIResult : APIResult
