@@ -1706,11 +1706,12 @@ namespace Lyra.Core.Decentralize
 
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {
-            await _hubContext.Clients.All.OnConsensus(new ConsensusEvent
+            await _hubContext.Clients.All.OnEvent(new EventContainer(
+                new ConsensusEvent
             {
                 BlockAPIResult = BlockAPIResult.Create(block),
                 Consensus = result,
-            });
+            }));
 
             if(result != ConsensusResult.Uncertain)
                 _successBlockCount++;
