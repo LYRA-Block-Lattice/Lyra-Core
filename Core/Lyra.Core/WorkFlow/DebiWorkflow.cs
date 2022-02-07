@@ -265,13 +265,22 @@ namespace Lyra.Core.WorkFlow
         }
     }
 
-    public class CustomMessage : StepBody
+    public class CustomMessage : StepBodyAsync
     {
         public string Message { get; set; }
 
-        public override ExecutionResult Run(IStepExecutionContext context)
+        public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             Console.WriteLine(Message);
+
+            var ctx = context.Workflow.Data as LyraContext;
+            await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
+            {
+                Name = ctx.SvcRequest,
+                Key = ctx.SendHash,
+                Action = ctx.LastBlockType.ToString(),
+                Result = Message,
+            });
             return ExecutionResult.Next();
         }
     }

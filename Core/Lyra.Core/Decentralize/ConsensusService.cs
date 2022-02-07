@@ -1704,6 +1704,10 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public async Task FireSignalrWorkflowEventAsync(WorkflowEvent wfevent)
+        {
+            await _hubContext.Clients.All.OnEvent(new EventContainer(wfevent));
+        }
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {
             await _hubContext.Clients.All.OnEvent(new EventContainer(
