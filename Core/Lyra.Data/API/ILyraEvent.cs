@@ -13,7 +13,7 @@ namespace Lyra.Data.API
     // Define the hub methods
     public class ConsensusEvent
     {
-        public ConsensusResult Result { get; set; }
+        public ConsensusResult? Consensus { get; set; }
         public BlockAPIResult BlockAPIResult { get; set; } = null!;
     }
 

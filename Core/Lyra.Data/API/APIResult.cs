@@ -351,6 +351,14 @@ namespace Lyra.Core.API
             }
         }
 
+        public static BlockAPIResult Create(Block block)
+        {
+            var result = new BlockAPIResult();
+            result.SetBlock(block);
+            result.ResultCode = APIResultCodes.Success;
+            return result;
+        }
+
         public void SetBlock(Block block)
         {
             ResultBlockType = block.GetBlockType();

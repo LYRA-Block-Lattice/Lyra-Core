@@ -131,9 +131,6 @@ namespace Lyra.Node2
                 if (networkId == null)
                     networkId = "devnet";   // for dev convenient
 
-                var fn = $"{Utilities.GetLyraDataDir(networkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}workflow.db";
-                if(networkId == "devnet" && File.Exists(fn))
-                    File.Delete(fn);
                 cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect.Replace("/lyra", "/Workflow_" + networkId), "Workflow_" + networkId);
                 //cfg.UseSqlite($"Data Source={fn};", true);
                 cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
