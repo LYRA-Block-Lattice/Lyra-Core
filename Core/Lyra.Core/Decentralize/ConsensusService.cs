@@ -1830,6 +1830,7 @@ namespace Lyra.Core.Decentralize
                 var wfhost = _hostEnv.GetWorkflowHost();
                 var ctx = new LyraContext
                 {
+                    OwnerAccountId = send.AccountID,
                     SendHash = send.Hash,
                     SvcRequest = svcreqtag,
                     State = WFState.Init,

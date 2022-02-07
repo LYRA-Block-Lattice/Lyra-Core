@@ -82,6 +82,7 @@ namespace Lyra.Core.WorkFlow
     [BsonIgnoreExtraElements]
     public class LyraContext
     {
+        public string OwnerAccountId { get; set; }
         public string SvcRequest { get; set; }
         public string SendHash { get; set; }
 
@@ -276,6 +277,8 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
             {
+                Owner = ctx.OwnerAccountId,
+                State = ctx.State.ToString(),
                 Name = ctx.SvcRequest,
                 Key = ctx.SendHash,
                 Action = ctx.LastBlockType.ToString(),

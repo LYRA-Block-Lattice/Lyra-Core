@@ -19,8 +19,10 @@ namespace Lyra.Data.API
 
     public class WorkflowEvent
     {
+        public string Owner { get; set; }   // request account ID
         public string Name { get; set; }        // = svcreq tag
         public string Key { get; set; }         // request sendblock's hash
+        public string State { get; set; }   
         public string Action { get; set; }
         public string Result { get; set; }
     }
