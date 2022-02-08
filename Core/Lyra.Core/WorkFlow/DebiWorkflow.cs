@@ -42,7 +42,7 @@ namespace Lyra.Core.WorkFlow
                 await Task.Delay(100);
             }
 
-            if(sendBlock == null)
+            if (sendBlock == null)
             {
 
             }
@@ -136,60 +136,70 @@ namespace Lyra.Core.WorkFlow
         // submit block to consensus network
         // monitor timeout and return result 
         public Action<IWorkflowBuilder<LyraContext>> letConsensus => new Action<IWorkflowBuilder<LyraContext>>(branch => branch
-                
+
                 .If(data => data.GetLastBlock() != null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Block is {data.LastBlockType} Let's consensus")
+                        .Input(step => step.Message, data => $"Block is {data.LastBlockType} Let's consensus")
                         .Output(data => data.TimeTicks, step => DateTime.UtcNow.Ticks)
                         .Output(data => data.LastResult, step => null)
                     .Parallel()
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Submiting block {data.GetLastBlock().Hash}...")
+                                .Input(step => step.Message, data => $"Submiting block {data.GetLastBlock().Hash}...")
                             .Then<SubmitBlock>()
                                 .Input(step => step.block, data => data.GetLastBlock())
                             .WaitFor("MgBlkDone", data => data.SendHash, data => new DateTime(data.TimeTicks, DateTimeKind.Utc))
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/,Consensus event is {data.LastResult}.")
-                            )                        
+                                .Input(step => step.Message, data => $"Consensus event is {data.LastResult}.")
+                            )
                         .Do(then => then
                             .StartWith<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/,Consensus is monitored.")
+                                .Input(step => step.Message, data => $"Consensus is monitored.")
                             .Delay(data => TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
                             .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/,Consensus is timeout.")
+                                .Input(step => step.Message, data => $"Consensus is timeout.")
                                 .Output(data => data.LastResult, step => ConsensusResult.Uncertain)
                                 .Output(data => data.State, step => WFState.ConsensusTimeout)
+                            .Then<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"State Changed.")
                             )
                     .Join()
                         .CancelCondition(data => data.LastResult != null, true)
                     .Then<CustomMessage>()
                                 .Name("Log")
-                                .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Consensus completed with {data.LastResult}")
+                                .Input(step => step.Message, data => $"Consensus completed with {data.LastResult}")
                     )
                 .If(data => data.GetLastBlock() == null).Do(then => then
                     .StartWith<CustomMessage>()
                         .Name("Log")
-                        .Input(step => step.Message, data => $"Key is ({DateTime.Now:mm:ss.ff}): {data.SendHash}, {data.Count}/, Block is null. Terminate.")
+                        .Input(step => step.Message, data => $"Block is null. Terminate.")
                     .Output(data => data.State, step => WFState.Finished)
+                    .Then<CustomMessage>()
+                         .Name("Log")
+                         .Input(step => step.Message, data => $"State Changed.")
                 ));
 
         public void Build(IWorkflowBuilder<LyraContext> builder)
         {
             builder
-                .StartWith(a => {
+                .StartWith(a =>
+                {
                     a.Workflow.Reference = "start";
                     //Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
                     //ConsensusService.Singleton.LockIds(LockingIds);
                     return ExecutionResult.Next();
-                    })
+                })
                     .Output(data => data.State, step => WFState.Running)
+                    .Then<CustomMessage>()
+                        .Name("Log")
+                        .Input(step => step.Message, data => $"State Changed.")
                 .While(a => a.State != WFState.Finished && a.State != WFState.Error)
                     .Do(x => x
                         .If(data => data.State == WFState.Running).Do(then => then
@@ -205,6 +215,9 @@ namespace Lyra.Core.WorkFlow
                                 .Name("Log")
                                 .Input(step => step.Message, data => $"Consensus Nay. workflow failed.")
                                 .Output(data => data.State, step => WFState.Error)
+                            .Then<CustomMessage>()
+                                  .Name("Log")
+                                  .Input(step => step.Message, data => $"State Changed.")
                             )
                         .If(data => data.State == WFState.ConsensusTimeout).Do(then => then
                             .Parallel()
@@ -215,7 +228,11 @@ namespace Lyra.Core.WorkFlow
                                         .Output(data => data.State, step => WFState.Running)
                                     .Then<CustomMessage>()
                                             .Name("Log")
-                                            .Input(step => step.Message, data => $"View changed."))
+                                            .Input(step => step.Message, data => $"View changed.")
+                                    .Then<CustomMessage>()
+                                        .Name("Log")
+                                        .Input(step => step.Message, data => $"State Changed.")
+                                    )
                                 .Do(then => then
                                     .StartWith<CustomMessage>()
                                         .Name("Log")
@@ -225,12 +242,16 @@ namespace Lyra.Core.WorkFlow
                                         .Name("Log")
                                         .Input(step => step.Message, data => $"View change is timeout.")
                                         .Output(data => data.State, step => WFState.Running)
+                                    .Then<CustomMessage>()
+                                        .Name("Log")
+                                        .Input(step => step.Message, data => $"State Changed.")
                                     )
                                 .Join()
                                     .CancelCondition(data => data.State == WFState.Running, true)
                             )
                         )
-                .Then(a => {
+                .Then(a =>
+                {
                     //Console.WriteLine("Ends.");
                     a.Workflow.Reference = "end";
                     //ConsensusService.Singleton.UnLockIds(LockingIds);
@@ -259,7 +280,7 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
 
             //Console.WriteLine($"In SubmitBlock: {block}");
-            if(ConsensusService.Singleton.IsThisNodeLeader)
+            if (ConsensusService.Singleton.IsThisNodeLeader)
                 await ConsensusService.Singleton.LeaderSendBlockToConsensusAndForgetAsync(block);
 
             return ExecutionResult.Next();
@@ -272,9 +293,10 @@ namespace Lyra.Core.WorkFlow
 
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            Console.WriteLine(Message);
-
             var ctx = context.Workflow.Data as LyraContext;
+            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.SendHash}, {ctx.Count}/, {Message}";
+            Console.WriteLine(log);
+
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
             {
                 Owner = ctx.OwnerAccountId,
@@ -282,7 +304,8 @@ namespace Lyra.Core.WorkFlow
                 Name = ctx.SvcRequest,
                 Key = ctx.SendHash,
                 Action = ctx.LastBlockType.ToString(),
-                Result = Message,
+                Result = ctx.LastResult.ToString(),
+                Message = Message,
             });
             return ExecutionResult.Next();
         }

@@ -25,6 +25,7 @@ namespace Lyra.Data.API
         public string State { get; set; }   
         public string Action { get; set; }
         public string Result { get; set; }
+        public string Message { get; set; }
     }
 
     public enum EventTypes { Null, Consensus, Workflow }
