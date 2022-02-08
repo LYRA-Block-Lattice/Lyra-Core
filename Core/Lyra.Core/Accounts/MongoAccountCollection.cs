@@ -107,51 +107,6 @@ namespace Lyra.Core.Accounts
                 Register(type);
             }
 
-            //BsonClassMap.RegisterClassMap<TransactionBlock>();
-            //BsonClassMap.RegisterClassMap<SendTransferBlock>();
-            //BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
-            //BsonClassMap.RegisterClassMap<OpenWithReceiveTransferBlock>();
-            //BsonClassMap.RegisterClassMap<LyraTokenGenesisBlock>();
-            //BsonClassMap.RegisterClassMap<TokenGenesisBlock>();
-            //BsonClassMap.RegisterClassMap<TradeBlock>();
-            //BsonClassMap.RegisterClassMap<TradeOrderBlock>();
-            //BsonClassMap.RegisterClassMap<ExecuteTradeOrderBlock>();
-            //BsonClassMap.RegisterClassMap<CancelTradeOrderBlock>();
-            //BsonClassMap.RegisterClassMap<ReceiveNodeProfitBlock>();
-            //BsonClassMap.RegisterClassMap<ConsolidationBlock>();
-            //BsonClassMap.RegisterClassMap<ServiceBlock>();
-            //BsonClassMap.RegisterClassMap<AuthorizationSignature>();
-            //BsonClassMap.RegisterClassMap<ImportAccountBlock>();
-            //BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
-            //BsonClassMap.RegisterClassMap<ReceiveAsFeeBlock>();
-            //BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
-
-            // all dynamically add
-
-            //BsonClassMap.RegisterClassMap<PoolGenesisBlock>();
-            //BsonClassMap.RegisterClassMap<PoolDepositBlock>();
-            //BsonClassMap.RegisterClassMap<PoolWithdrawBlock>();
-            //BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
-            //BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
-            //BsonClassMap.RegisterClassMap<ProfitingGenesis>();
-            //BsonClassMap.RegisterClassMap<ProfitingBlock>();
-            //BsonClassMap.RegisterClassMap<BenefitingBlock>();
-            //BsonClassMap.RegisterClassMap<StakingGenesis>();
-            //BsonClassMap.RegisterClassMap<StakingBlock>();
-            //BsonClassMap.RegisterClassMap<UnStakingBlock>();
-
-
-            // DEX
-            //BsonClassMap.RegisterClassMap<DexReceiveBlock>();
-            //BsonClassMap.RegisterClassMap<DexSendBlock>();
-            //BsonClassMap.RegisterClassMap<DexWalletGenesis>();
-            //BsonClassMap.RegisterClassMap<TokenMintBlock>();
-            //BsonClassMap.RegisterClassMap<TokenBurnBlock>();
-            //BsonClassMap.RegisterClassMap<TokenWithdrawBlock>();
-
-            // obsolete, but needed for compatiblity
-            //BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
-
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
             _snapshots = GetDatabase().GetCollection<TransactionBlock>(_snapshotsCollectionName);
             _accountChanges = GetDatabase().GetCollection<AccountChange>(_accountChangesCollectionName);
