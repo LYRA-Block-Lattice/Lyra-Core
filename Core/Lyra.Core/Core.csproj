@@ -9,6 +9,7 @@
     <Company>lyra.core</Company>
     <Product>lyra.core</Product>
     <RootNamespace>Lyra.Core</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

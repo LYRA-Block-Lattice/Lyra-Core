@@ -386,9 +386,9 @@ namespace UnitTests
 
             await TestOTCTrade();
             await TestOTCTradeDispute();   // test for dispute
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish

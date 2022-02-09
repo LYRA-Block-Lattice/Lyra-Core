@@ -98,7 +98,7 @@ namespace Lyra.Core.Blocks
 
         // This is the non-fungible token being transacted.
         // It can be in either send or recive block.
-        public NonFungibleToken NonFungibleToken { get; set; }
+        public NonFungibleToken? NonFungibleToken { get; set; }
 
         ///// <summary>
         ///// When fee is zero and replaced by client-calculated proof of work
@@ -108,7 +108,7 @@ namespace Lyra.Core.Blocks
         /// <summary>
         /// the account ID of target authorizer
         /// </summary>
-        public string VoteFor { get; set; }
+        public string? VoteFor { get; set; }
 
         public override bool AuthCompare(Block other)
         {

@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,16 +126,21 @@ namespace Lyra.Core.API
         {
             using var client = CreateClient();
             client.Timeout = _timeout;
+
             HttpResponseMessage response = await client.PostAsJsonAsync(
                 action, obj, _cancel.Token).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
+
+            //response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<T>();
                 return result;
             }
             else
-                throw new Exception("Web Api Failed.");
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed: {resp}");
+            }
         }
 
         private async Task<T> GetAsync<T>(string action, Dictionary<string, string> args)

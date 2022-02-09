@@ -43,7 +43,7 @@ namespace Lyra.Core.Blocks
         /// Custom metadata in key/value format.
         /// </summary>
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, string> Tags { get; set; }
+        public Dictionary<string, string>? Tags { get; set; }
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
