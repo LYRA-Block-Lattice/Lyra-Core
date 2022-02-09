@@ -158,7 +158,10 @@ namespace Lyra.Core.API
                 return result;
             }
             else
-                throw new Exception($"Web Api Failed for {_url}");
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed: {resp}");
+            }
         }
 
         private async Task<BlockAPIResult> GetBlockByUrlAsync(string url)
