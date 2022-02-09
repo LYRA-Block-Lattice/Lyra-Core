@@ -53,7 +53,7 @@ namespace Lyra.Core.Blocks
         public int Edition { get; set; }
 
         // Free text
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         // Number of digits after decimal point, can be 0 - 8.
         public sbyte Precision { get; set; }
@@ -90,11 +90,11 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string? NonFungibleKey { get; set; }
 
-        public string Owner { get; set; }
+        public string? Owner { get; set; }
 
-        public string Address { get; set; }
+        public string? Address { get; set; }
 
-        public string Currency { get; set; }
+        public string? Currency { get; set; }
 
         public string? Icon { get; set; }
 
