@@ -8,7 +8,7 @@ namespace Lyra.Core.Blocks
     public class ReceiveTransferBlock : TransactionBlock
     {
         // Hash of the send block
-        public string SourceHash { get; set; }
+        public string? SourceHash { get; set; }
 
         public override bool AuthCompare(Block other)
         {

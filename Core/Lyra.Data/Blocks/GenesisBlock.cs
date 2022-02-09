@@ -88,7 +88,7 @@ namespace Lyra.Core.Blocks
         /// To simplify things it can be set to AccountId of the owner's account, so the same account's private key can be used to sign the tokens as well.
         /// But the owner might want to generate tokens from multiple accounts, so this key can be used to separate the token signing from block signing.
         /// </summary>
-        public string NonFungibleKey { get; set; }
+        public string? NonFungibleKey { get; set; }
 
         public string Owner { get; set; }
 
@@ -96,15 +96,15 @@ namespace Lyra.Core.Blocks
 
         public string Currency { get; set; }
 
-        public string Icon { get; set; }
+        public string? Icon { get; set; }
 
-        public string Image { get; set; }
+        public string? Image { get; set; }
 
-        public string Custom1 { get; set; }
+        public string? Custom1 { get; set; }
 
-        public string Custom2 { get; set; }
+        public string? Custom2 { get; set; }
 
-        public string Custom3 { get; set; }
+        public string? Custom3 { get; set; }
 
         // TO DO - add image, renewaldate
         protected override string GetExtraData()
