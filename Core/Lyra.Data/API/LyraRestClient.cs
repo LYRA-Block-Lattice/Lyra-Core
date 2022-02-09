@@ -174,7 +174,10 @@ namespace Lyra.Core.API
                 return result;
             }
             else
-                throw new Exception("Web Api Failed.");
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed: {resp}");
+            }
         }
 
         private async Task<MultiBlockAPIResult> GetMultiBlockByUrlAsync(string url)
@@ -187,7 +190,10 @@ namespace Lyra.Core.API
                 return result;
             }
             else
-                throw new Exception("Web Api Failed.");
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed: {resp}");
+            }
         }
 
         private async Task<bool> CheckApiVersionAsync()
