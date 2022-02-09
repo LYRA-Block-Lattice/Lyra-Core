@@ -35,7 +35,7 @@ namespace Lyra.Core.Blocks
 
         public BlockTypes BlockType { get; set; }
 
-        public string PreviousHash { get; set; }
+        public string? PreviousHash { get; set; }
         
         public string ServiceHash { get; set; }
 
