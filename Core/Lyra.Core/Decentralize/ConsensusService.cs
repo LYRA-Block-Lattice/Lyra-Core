@@ -459,6 +459,12 @@ namespace Lyra.Core.Decentralize
             InDBCC = true;
             try
             {
+                var blcokcount = await _sys.Storage.GetBlockCountAsync();
+                if(blcokcount == 0) //genesis
+                {
+                    return true;
+                }
+
                 _log.LogInformation($"Database consistent check... It may take a while.");
 
                 var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
