@@ -22,7 +22,7 @@ namespace Lyra.Data.API.WorkFlow
         public OTCTrade Trade { get; set; }
         public OTCTradeStatus OTStatus { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OTCTradeRecv;
         }
@@ -59,7 +59,7 @@ namespace Lyra.Data.API.WorkFlow
         public OTCTrade Trade { get; set; }
         public OTCTradeStatus OTStatus { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OTCTradeSend;
         }
@@ -96,7 +96,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OTCTradeGenesis;
         }

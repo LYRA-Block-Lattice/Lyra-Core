@@ -124,7 +124,7 @@ namespace Lyra.Core.WorkFlow
             if (tx == null)
                 return (BlockTypes.Null, null);
 
-            return (tx.GetBlockType(), JsonConvert.SerializeObject(tx));
+            return (tx.BlockType, JsonConvert.SerializeObject(tx));
         }
     }
 

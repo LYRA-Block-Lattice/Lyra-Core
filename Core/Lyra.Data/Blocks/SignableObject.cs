@@ -34,18 +34,20 @@ namespace Lyra.Core.Blocks
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
                 string hash = Base58Encoding.Encode(hash_bytes);
 
-                //// debug only, temp code
-                //if (record.Contains("LyraTokenGenesis"))
+                // debug only, temp code
+                //if (record.Contains("OTCOrderSend"))
+                //{
                 //    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
-                //try
-                //{
-                //    rwl.AcquireWriterLock(1000);
-                //    File.AppendAllText(@"c:\tmp\hash.txt", $"{hash} {record}\n");
+                //    try
+                //    {
+                //        rwl.AcquireWriterLock(1000);
+                //        File.AppendAllText(@"c:\tmp\hash.txt", $"SHA: {hash} {record}\n");
+                //    }
+                //    finally
+                //    {
+                //        rwl.ReleaseWriterLock();
+                //    }
                 //}
-                //finally
-                //{
-                //    rwl.ReleaseWriterLock();
-                //}                
 
                 return hash;
             }

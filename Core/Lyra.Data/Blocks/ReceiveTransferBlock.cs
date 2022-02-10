@@ -26,7 +26,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.ReceiveTransfer;
         }
@@ -139,7 +139,7 @@ namespace Lyra.Core.Blocks
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OpenAccountWithReceiveTransfer;
         }
@@ -157,7 +157,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ReceiveAsFeeBlock : ReceiveTransferBlock
     {
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.ReceiveAsFee;
         }

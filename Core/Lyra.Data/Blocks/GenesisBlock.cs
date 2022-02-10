@@ -132,7 +132,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.TokenGenesis;
         }
@@ -276,7 +276,7 @@ namespace Lyra.Core.Blocks
     //    public string UniqueCode { get; set; }
     //    public DateTime ExpirationDate { get; set; }
 
-    //    public override BlockTypes GetBlockType()
+    //    protected override BlockTypes GetBlockType()
     //    {
     //        return BlockTypes.NonFungibleGenesis;
     //    }
@@ -288,7 +288,7 @@ namespace Lyra.Core.Blocks
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.LyraTokenGenesis;
         }

@@ -195,6 +195,7 @@ namespace UnitTests
                     {
                         _authResult = false;
                         _sbAuthResults.Append($"{result.Item1}, ");
+                        Console.WriteLine($"Auth failed: {result.Item1}");
                         await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Nay, true);
                     }
 
@@ -464,6 +465,9 @@ namespace UnitTests
                 price = 2000,
                 amount = 10,
                 collateral = 1000000,
+                payBy = new string[] { "Paypal" },
+                limitMin = 2000,
+                limitMax = 20000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -501,10 +505,10 @@ namespace UnitTests
                 dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
                 fiat = "USD",
-                priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                collateral = 1000000
+                collateral = 1000000,
+                payVia = "PayPal",
             };
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
@@ -642,6 +646,9 @@ namespace UnitTests
                 price = 2000,
                 amount = 10,
                 collateral = 1000000,
+                payBy = new string[] { "Paypal" },
+                limitMin = 2000,
+                limitMax = 20000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -679,10 +686,10 @@ namespace UnitTests
                 dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
                 fiat = "USD",
-                priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                collateral = 1000000
+                collateral = 1000000,
+                payVia = "PayPal",
             };
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;

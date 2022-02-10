@@ -19,7 +19,7 @@ namespace Lyra.Core.Blocks
 
         public string createdBy { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.Consolidation;
         }
@@ -94,7 +94,7 @@ namespace Lyra.Core.Blocks
     //{
     //    public string LastServiceBlockHash { get; set; }
 
-    //    public override BlockTypes GetBlockType()
+    //    protected override BlockTypes GetBlockType()
     //    {
     //        return BlockTypes.Sync;
     //    }

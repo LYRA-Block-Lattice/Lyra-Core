@@ -20,7 +20,7 @@ namespace Lyra.Core.Blocks
     public class PoolDepositBlock : ReceiveTransferBlock, IPool
     {
         public string RelatedTx { get; set; }
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolDeposit;
         }
@@ -64,7 +64,7 @@ namespace Lyra.Core.Blocks
         /// on pool action to one send/recv combine
         /// </summary>
         public string RelatedTx { get; set; }
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolWithdraw;
         }
@@ -125,7 +125,7 @@ namespace Lyra.Core.Blocks
     public class PoolSwapInBlock : ReceiveTransferBlock, IPool
     {
         public string RelatedTx { get; set; }
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolSwapIn;
         }
@@ -184,7 +184,7 @@ namespace Lyra.Core.Blocks
     public class PoolSwapOutBlock : SendTransferBlock, IPool
     {
         public string RelatedTx { get; set; }
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolSwapOut;
         }
@@ -252,7 +252,7 @@ namespace Lyra.Core.Blocks
         public string RelatedTx { get; set; }
         public Dictionary<string, long> Shares { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolGenesis;
         }

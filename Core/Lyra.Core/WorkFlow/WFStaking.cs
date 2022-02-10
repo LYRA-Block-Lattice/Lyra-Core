@@ -274,7 +274,7 @@ namespace Lyra.Core.WorkFlow
                         if (!lastStk.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() == 0)
                             return APIResultCodes.InvalidUnstaking;
 
-                        if (lastStk.GetBlockType() == BlockTypes.UnStaking)
+                        if (lastStk.BlockType == BlockTypes.UnStaking)
                             return APIResultCodes.InvalidUnstaking;
                     }
                     else

@@ -67,7 +67,7 @@ namespace Lyra.Core.Accounts
             _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // hack
-            if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
+            if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
             {
                 if (GetClient() == null)
                     return;
@@ -362,7 +362,7 @@ namespace Lyra.Core.Accounts
                     }
                     else
                     {
-                        _log.LogCritical($"Unprocessed block type: {blk.GetBlockType()} Height: {blk.Height}");
+                        _log.LogCritical($"Unprocessed block type: {blk.BlockType} Height: {blk.Height}");
                         return; // just abort. no data cruption. (because of batch insert)
                     }
 

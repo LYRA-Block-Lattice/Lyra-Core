@@ -22,7 +22,7 @@ namespace Lyra.Core.Blocks
 
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolFactory;
         }

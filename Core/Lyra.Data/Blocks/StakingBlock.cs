@@ -33,7 +33,7 @@ namespace Lyra.Core.Blocks
         public DateTime Start { get; set; }
         public bool CompoundMode { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.Staking;
         }
@@ -90,7 +90,7 @@ namespace Lyra.Core.Blocks
         public DateTime Start { get; set; }
         public bool CompoundMode { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.UnStaking;
         }
@@ -136,7 +136,7 @@ namespace Lyra.Core.Blocks
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.StakingGenesis;
         }

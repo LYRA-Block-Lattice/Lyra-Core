@@ -19,10 +19,10 @@ namespace Lyra.Data.API.WorkFlow
         public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
-        public PriceType priceType { get; set; }
         public decimal price { get; set; }
         public decimal amount { get; set; }
         public decimal collateral { get; set; }
+        public string payVia { get; set; }
 
         public override bool Equals(object obOther)
         {
@@ -37,31 +37,36 @@ namespace Lyra.Data.API.WorkFlow
 
             var ob = obOther as OTCTrade;
             return daoId == ob.daoId &&
+                orderId == ob.orderId &&
+                orderOwnerId == ob.orderOwnerId &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&
                 fiat == ob.fiat &&
-                priceType == ob.priceType &&
+                price == ob.price &&
                 amount == ob.amount &&
                 collateral == ob.collateral &&
-                price == ob.price;
+                payVia == ob.payVia;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(daoId, dir, crypto, fiat, price, priceType, amount, collateral);
+            return HashCode.Combine(HashCode.Combine(daoId, orderId, orderOwnerId, dir, crypto, fiat, price, amount), 
+                HashCode.Combine(collateral, payVia));
         }
 
         public string GetExtraData()
         {
             string extraData = "";
             extraData += daoId + "|";
+            extraData += $"{orderId}|";
+            extraData += $"{orderOwnerId}|";
             extraData += $"{dir}|";
             extraData += $"{crypto}|";
             extraData += $"{fiat}|";
-            extraData += $"{priceType}|";
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
             extraData += $"{collateral.ToBalanceLong()}|";
+            extraData += $"{payVia}|";
             return extraData;
         }
 
@@ -69,13 +74,15 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.ToString();
             result += $"DAO ID: {daoId}\n";
+            result += $"Order ID: {orderId}\n";
+            result += $"Order Owner ID: {orderOwnerId}\n";
             result += $"Direction: {dir}\n";
             result += $"Crypto: {crypto}\n";
             result += $"Fiat: {fiat}\n";
-            result += $"Price Type: {priceType}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
             result += $"Buyer Collateral: {collateral} {LyraGlobal.OFFICIALTICKERCODE}\n";
+            result += $"Pay Via: {payVia}\n";
             return result;
         }
     }

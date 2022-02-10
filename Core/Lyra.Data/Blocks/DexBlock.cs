@@ -30,7 +30,7 @@ namespace Lyra.Core.Blocks
         public string ExtProvider { get; set; }
         public string ExtAddress { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.DexRecvToken;
         }
@@ -84,7 +84,7 @@ namespace Lyra.Core.Blocks
         public string ExtProvider { get; set; }
         public string ExtAddress { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.DexSendToken;
         }
@@ -127,7 +127,7 @@ namespace Lyra.Core.Blocks
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.DexWalletGenesis;
         }

@@ -69,7 +69,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.TradeOrder;
         }
@@ -102,7 +102,7 @@ namespace Lyra.Core.Blocks
 
     //    public long NewOrderAmount { get; set; }
 
-    //    public override BlockTypes GetBlockType()
+    //    protected override BlockTypes GetBlockType()
     //    {
     //        return BlockTypes.UpdateTradeOrder;
     //    }
@@ -144,7 +144,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.Trade;
         }
@@ -203,7 +203,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.ExecuteTradeOrder;
         }

@@ -73,7 +73,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.DexTokenBurn;
         }
@@ -101,7 +101,7 @@ namespace Lyra.Core.Blocks
     {
         public string WithdrawToExtAddress { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.DexWithdrawToken;
         }

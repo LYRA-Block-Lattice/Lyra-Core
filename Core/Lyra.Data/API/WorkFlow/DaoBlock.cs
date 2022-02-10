@@ -29,7 +29,7 @@ namespace Lyra.Data.API.WorkFlow
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Treasure { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OrgnizationRecv;
         }
@@ -77,7 +77,7 @@ namespace Lyra.Data.API.WorkFlow
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Treasure { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OrgnizationSend;
         }
@@ -121,7 +121,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OrgnizationGenesis;
         }

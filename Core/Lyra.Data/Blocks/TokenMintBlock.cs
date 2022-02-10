@@ -72,7 +72,7 @@ namespace Lyra.Core.Blocks
             return extraData;
         }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.DexTokenMint;
         }

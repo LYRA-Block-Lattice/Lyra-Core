@@ -27,7 +27,7 @@ namespace Lyra.Data.Blocks
         [BsonIgnore]
         public string ProfitHash { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.Profiting;
         }
@@ -67,7 +67,7 @@ namespace Lyra.Data.Blocks
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.ProfitingGenesis;
         }
@@ -109,7 +109,7 @@ namespace Lyra.Data.Blocks
         // staking -> last profiting -> this profiting -> unstaking
         public string StakingAccountId { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.Benefiting;
         }

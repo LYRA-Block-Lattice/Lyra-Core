@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Converto;
+using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
@@ -9,6 +10,7 @@ using Lyra.Data.Crypto;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -88,47 +90,36 @@ namespace Lyra.Core.WorkFlow
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToTradeBlock = new OtcOrderSendBlock
-            {
-                // block
-                ServiceHash = sb.Hash,
 
-                // trans
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                AccountID = lastblock.AccountID,
-
-                // send
-                DestinationAccountId = AccountId,
-
-                // broker
-                Name = ((IBrokerAccount)lastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
-                RelatedTx = send.Hash,
-
-                // otc
-                Order = new OTCOrder
+            var nextblock = lastblock.GenInc<OtcOrderSendBlock>();  //gender change
+            var sendtotrade = nextblock
+                .With(new
                 {
-                    daoId = ((IOtcOrder)lastblock).Order.daoId,
-                    dir = ((IOtcOrder)lastblock).Order.dir,
-                    crypto = ((IOtcOrder)lastblock).Order.crypto,
-                    fiat = ((IOtcOrder)lastblock).Order.fiat,
-                    priceType = ((IOtcOrder)lastblock).Order.priceType,
-                    price = ((IOtcOrder)lastblock).Order.price,
-                    amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
-                }
-            };
+                    // generic
+                    ServiceHash = sb.Hash,
+                    BlockType = BlockTypes.OTCOrderSend,
+
+                    // send & recv
+                    DestinationAccountId = AccountId,
+
+                    // broker
+                    RelatedTx = send.Hash,
+
+                    // business object
+                    Order = nextblock.Order.With(new
+                    {
+                        amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
+                    }),
+                    OOStatus = ((IOtcOrder)lastblock).Order.amount - trade.amount == 0 ?
+                        OTCOrderStatus.Closed : OTCOrderStatus.Partial,
+                });
 
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
             dict[trade.crypto] -= trade.amount;
-            sendToTradeBlock.Balances = dict.ToLongDict();
-
-            sendToTradeBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-            sendToTradeBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendToTradeBlock;
+            sendtotrade.Balances = dict.ToLongDict();
+            sendtotrade.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return sendtotrade;
         }
 
         async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, SendTransferBlock send)

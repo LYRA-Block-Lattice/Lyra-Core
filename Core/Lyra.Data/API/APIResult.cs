@@ -342,9 +342,12 @@ namespace Lyra.Core.API
                 BlockTypes bt;
                 try
                 {
-                    bt = entry.b.GetBlockType();
+                    MethodInfo dynMethod = entry.t.GetMethod("GetBlockType",
+                        BindingFlags.NonPublic | BindingFlags.Instance);                    
+
+                    bt = (BlockTypes)dynMethod.Invoke(entry.b, new object[] { });
                     //Console.WriteLine($"{bt}: {entry.t.Name}");
-                    if(bt != BlockTypes.Null)
+                    if (bt != BlockTypes.Null)
                         Register(bt, entry.t);
                 }
                 catch { }
@@ -361,7 +364,7 @@ namespace Lyra.Core.API
 
         public void SetBlock(Block block)
         {
-            ResultBlockType = block.GetBlockType();
+            ResultBlockType = block.BlockType;
             BlockData = JsonConvert.SerializeObject(block);
         }
 
@@ -384,8 +387,9 @@ namespace Lyra.Core.API
             }
             else
             {
-                Console.WriteLine($">>>>>\n{BlockData}\n>>>>");
                 //File.AppendAllText(@"c:\tmp\hash.txt", $"Block {block.Hash} New txt: {block.GetHashInput()}\n");
+
+                Console.WriteLine($">>>>>Block Hash Verification Error\n{BlockData}\n>>>>");
                 return null;
             }
                 

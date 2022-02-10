@@ -42,12 +42,16 @@ namespace Lyra.Data.API.WorkFlow
                 priceType == ob.priceType &&
                 amount == ob.amount &&
                 collateral == ob.collateral &&
-                price == ob.price;
+                price == ob.price &&
+                limitMin == ob.limitMin &&
+                limitMax == ob.limitMax &&
+                Enumerable.SequenceEqual(payBy, ob.payBy);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(daoId, dir, crypto, fiat, price, priceType, collateral);
+            return HashCode.Combine(HashCode.Combine(daoId, dir, crypto, fiat, price, priceType),
+                HashCode.Combine(amount, collateral, limitMin, limitMax, payBy));
         }
 
         public string GetExtraData()
@@ -61,6 +65,9 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
             extraData += $"{collateral.ToBalanceLong()}|";
+            extraData += $"{limitMin}|";
+            extraData += $"{limitMax}|";
+            extraData += $"{string.Join(",", payBy)}|";
             return extraData;
         }
 
@@ -75,6 +82,9 @@ namespace Lyra.Data.API.WorkFlow
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
             result += $"Seller Collateral: {collateral}\n";
+            result += $"limitMin: {limitMin}\n";
+            result += $"limitMax: {limitMax}\n";
+            result += $"Pay By: {string.Join(", ", payBy)}\n";
             return result;
         }
     }

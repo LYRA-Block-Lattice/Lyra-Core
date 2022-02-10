@@ -1741,7 +1741,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
+        private async Task<string?[]> GetProperTokenNameAsync(string[] tokenNames)
         {
             var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlockAsync(AccountId, a, SignAPICall()));
             return result.Select(a => a.GetBlock() as TokenGenesisBlock)

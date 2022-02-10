@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Converto;
 using Lyra.Core.API;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -45,11 +47,22 @@ namespace Lyra.Core.Blocks
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, string>? Tags { get; set; }
 
-        public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
+        protected virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
         public Block()
         {
             TimeStamp = DateTime.UtcNow;
+        }
+
+        public virtual T GenInc<T>() where T : Block
+        {
+            return this.ConvertTo<T>()  //gender change
+                .With(new
+                {
+                    // most necessary!
+                    Hash = "",
+                    TimeStamp = DateTime.UtcNow,
+                });
         }
 
         public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
@@ -71,6 +84,8 @@ namespace Lyra.Core.Blocks
             BlockType = GetBlockType();
 
             Sign(PrivateKey, AccountId);
+
+            //File.AppendAllText(@"c:\tmp\hash.txt", $"Sign Block {Hash} New txt: {GetHashInput()}\n");
         }
 
         public async Task InitializeBlockAsync(Block prevBlock, Func<string, Task<string>> signr)
@@ -94,6 +109,7 @@ namespace Lyra.Core.Blocks
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
             Signature = await signr(Hash);
+            //File.AppendAllText(@"c:\tmp\hash.txt", $"Sign Block {Hash} New txt: {GetHashInput()}\n");
         }
 
         public virtual bool AuthCompare(Block other)

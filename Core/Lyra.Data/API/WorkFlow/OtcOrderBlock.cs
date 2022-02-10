@@ -22,7 +22,7 @@ namespace Lyra.Data.API.WorkFlow
         public OTCOrder Order { get; set; }
         public OTCOrderStatus OOStatus { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OTCOrderRecv;
         }
@@ -59,7 +59,7 @@ namespace Lyra.Data.API.WorkFlow
         public OTCOrder Order { get; set; }
         public OTCOrderStatus OOStatus { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OTCOrderSend;
         }
@@ -96,7 +96,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public AccountTypes AccountType { get; set; }
 
-        public override BlockTypes GetBlockType()
+        protected override BlockTypes GetBlockType()
         {
             return BlockTypes.OTCOrderGenesis;
         }
