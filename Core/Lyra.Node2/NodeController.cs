@@ -174,7 +174,7 @@ namespace LyraLexWeb2
 
         [Route("GetBlockByHash")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string? Signature)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetBlockByHashAsync(AccountId, Hash, Signature);

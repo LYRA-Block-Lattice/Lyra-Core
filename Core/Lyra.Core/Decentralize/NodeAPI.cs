@@ -347,7 +347,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string? Signature)
         {
             var result = new BlockAPIResult();
 
