@@ -58,7 +58,8 @@ namespace Lyra.Data.API
                 try
                 {
                     Console.WriteLine($"LyraAggregatedClient.InitAsync Seed Only: {_seedsOnly}");
-                    foreach (var sd in seedNodes)
+                    var rand = new Random();
+                    foreach (var sd in seedNodes.OrderBy(a => rand.Next()))
                     {
                         try
                         {
