@@ -93,6 +93,10 @@ namespace Lyra.Core.Authorizers
                 var duplicate_block = await sys.Storage.FindBlockBySourceHashAsync(block.SourceHash);
                 if (duplicate_block != null)
                     return APIResultCodes.DuplicateReceiveBlock;
+
+                var srcblk = sys.Storage.FindBlockByHash(block.SourceHash);
+                if (srcblk is not SendTransferBlock)
+                    return APIResultCodes.SourceSendBlockNotFound;
             }
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ReceiveTransferAuthorizer->TransactionAuthorizer");
