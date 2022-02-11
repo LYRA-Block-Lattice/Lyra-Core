@@ -257,7 +257,10 @@ namespace Lyra.Data.API
                 }
             }
 
-            var msg = $"Success {compeletedCount}/{expectedCount}";
+            var failed = results.Where(a => !a.IsSuccess)
+                .Select(a => a.Result.ResultCode.ToString())
+                .Aggregate((a, b) => a + "," + b);
+            var msg = $"Success {compeletedCount}/{expectedCount}, Failed: {failed}";
             Console.WriteLine(msg);
             return new T { 
                 ResultCode = APIResultCodes.APIRouteFailed,
