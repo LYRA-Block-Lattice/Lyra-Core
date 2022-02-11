@@ -308,7 +308,7 @@ namespace LyraLexWeb2
 
         [Route("GetConsolidationBlocks")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string? Signature, long startHeight, int count)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetConsolidationBlocksAsync(AccountId, Signature, startHeight, count);
