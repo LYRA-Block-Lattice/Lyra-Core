@@ -258,7 +258,7 @@ namespace Lyra.Data.API
             }
 
             var failed = results.Where(a => !a.IsSuccess)
-                .Select(a => a.Result.ResultCode.ToString())
+                .Select(a => a.Exception.Message)
                 .Aggregate((a, b) => a + "," + b);
             var msg = $"Success {compeletedCount}/{expectedCount}, Failed: {failed}";
             Console.WriteLine(msg);
