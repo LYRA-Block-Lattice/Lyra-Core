@@ -229,7 +229,6 @@ namespace Lyra.Data.API
             if (_seedsOnly)    // seed stage
                 expectedCount = 2;
 
-
             var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
 
@@ -258,7 +257,12 @@ namespace Lyra.Data.API
                 }
             }
 
-            return new T { ResultCode = APIResultCodes.APIRouteFailed };
+            var msg = $"Success {compeletedCount}/{expectedCount}";
+            Console.WriteLine(msg);
+            return new T { 
+                ResultCode = APIResultCodes.APIRouteFailed,
+                ResultMessage = msg,
+            };
         }
 
         public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
