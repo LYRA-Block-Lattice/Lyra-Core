@@ -145,7 +145,7 @@ namespace Lyra.Core.WorkFlow
                 Balances = new Dictionary<string, long>(),
 
                 // receive
-                SourceHash = (blocks.First() as TransactionBlock).Hash,
+                SourceHash = (blocks.Last() as TransactionBlock).Hash,
 
                 // broker
                 Name = "no name",

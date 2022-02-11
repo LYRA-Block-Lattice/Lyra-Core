@@ -104,6 +104,7 @@ namespace Lyra.Core.WorkFlow
                 Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
             };
 
+            
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
             dict[order.crypto] -= order.amount;
