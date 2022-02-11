@@ -139,7 +139,7 @@ namespace Lyra.Core.API
             else
             {
                 var resp = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Web Api Failed: {resp}");
+                throw new Exception($"Web Api Failed for {action}: {resp}");
             }
         }
 
@@ -160,7 +160,7 @@ namespace Lyra.Core.API
             else
             {
                 var resp = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Web Api Failed: {resp}");
+                throw new Exception($"Web Api Failed for {action}: {resp}");
             }
         }
 
@@ -176,7 +176,7 @@ namespace Lyra.Core.API
             else
             {
                 var resp = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Web Api Failed: {resp}");
+                throw new Exception($"Web Api Failed for {url}: {resp}");
             }
         }
 
@@ -192,7 +192,7 @@ namespace Lyra.Core.API
             else
             {
                 var resp = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Web Api Failed: {resp}");
+                throw new Exception($"Web Api Failed for {url}: {resp}");
             }
         }
 
