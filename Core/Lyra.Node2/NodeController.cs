@@ -643,6 +643,14 @@ namespace LyraLexWeb2
             return await _node.FindDexWalletAsync(owner, symbol, provider);
         }
 
+        [Route("GetAllDaos")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetAllDaosAsync(page, pageSize);
+        }
+
         [Route("GetDaoByName")]
         [HttpGet]
         public async Task<BlockAPIResult> GetDaoByNameAsync(string name)

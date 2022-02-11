@@ -97,6 +97,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> FindDexWalletAsync(string owner, string symbol, string provider);
 
         // DAO
+        Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize);
         Task<BlockAPIResult> GetDaoByNameAsync(string name);
         Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId);
         Task<ContainerAPIResult> FindTradableOtcAsync();

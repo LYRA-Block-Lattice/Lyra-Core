@@ -726,6 +726,17 @@ namespace Lyra.Core.API
             return await GetAsync<BlockAPIResult>("FindDexWallet", args);
         }
 
+        public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetAllDaos", args);
+        }
+
         public async Task<BlockAPIResult> GetDaoByNameAsync(string name)
         {
             var args = new Dictionary<string, string>

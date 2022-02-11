@@ -269,8 +269,10 @@ namespace UnitTests
             client = mock.Object;
             mock.Setup(x => x.SendTransferAsync(It.IsAny<SendTransferBlock>()))
                 .Returns<SendTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
+            AccountHeightAPIResult ahr = null;
             mock.Setup(x => x.GetSyncHeightAsync())
-                .ReturnsAsync(await api.GetSyncHeightAsync());
+                .Callback(async () => { ahr = await api.GetSyncHeightAsync(); })
+                .ReturnsAsync(() => ahr);
 
             mock.Setup(x => x.GetLastServiceBlockAsync())
                 .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
@@ -305,6 +307,8 @@ namespace UnitTests
             // dao
             mock.Setup(x => x.GetDaoByNameAsync(It.IsAny<string>()))
                 .Returns<string>(name => Task.FromResult(api.GetDaoByNameAsync(name)).Result);
+            mock.Setup(x => x.GetAllDaosAsync(It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<int, int>((page, pageSize) => Task.FromResult(api.GetAllDaosAsync(page, pageSize)).Result);
             mock.Setup(x => x.GetOtcOrdersByOwnerAsync(It.IsAny<string>()))
                 .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
             mock.Setup(x => x.FindTradableOtcAsync())
@@ -444,11 +448,19 @@ namespace UnitTests
             Assert.AreEqual(name, daoblk.Name);
             Assert.AreEqual(desc, daoblk.Description);
 
-            var dcretx = await testWallet.CreateDAOAsync(name, desc);
-            Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
+            //var dcretx = await testWallet.CreateDAOAsync(name, desc);
+            //Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
 
-            await WaitBlock("CreateDAOAsync Wrong");
-            ResetAuthFail();
+            //await WaitBlock("CreateDAOAsync Wrong");
+            //ResetAuthFail();
+
+            // test getalldao api
+            var alldaoret = await testWallet.RPC.GetAllDaosAsync(0, 10);
+            Assert.IsTrue(alldaoret.Successful(), $"can get all dao: {alldaoret.ResultCode}");
+            var daos = alldaoret.GetBlocks();
+            Assert.AreEqual(1, daos.Count(), $"can't find dao by GetAllDaosAsync");
+            var dao0 = alldaoret.GetBlocks().First() as DaoGenesisBlock;
+            Assert.IsTrue(daoblk.AuthCompare(dao0));
 
             // get dao by the IBroker api
             var brkblksret = await testWallet.RPC.GetAllBrokerAccountsForOwnerAsync(testWallet.AccountId);

@@ -219,6 +219,7 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_snapshots, "BlockType", false);
                     await CreateIndexes(_snapshots, "OOStatus", false);
                     await CreateIndexes(_snapshots, "OTStatus", false);
+                    await CreateIndexes(_snapshots, "Treasure", false);
 
                     await SnapshotAllAsync();
                 }
@@ -2085,6 +2086,18 @@ namespace Lyra.Core.Accounts
             return all.Cast<IDexWallet>()
                 .FirstOrDefault(a => a.ExtSymbol == symbol && a.ExtProvider == provider)
                 as TransactionBlock;
+        }
+
+        public async Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Exists("Treasure", true);
+
+            var result = await _snapshots
+                .Find(filterDefination)
+                .ToListAsync();
+
+            return result;
         }
 
         public Block GetDaoByName(string name)

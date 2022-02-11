@@ -608,6 +608,11 @@ namespace Lyra.Data.API
             return SeedClient.FindDexWalletAsync(owner, symbol, provider);
         }
 
+        public Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
+        {
+            return SeedClient.GetAllDaosAsync(page, pageSize);
+        }
+
         public Task<BlockAPIResult> GetDaoByNameAsync(string name)
         {
             return SeedClient.GetDaoByNameAsync(name);

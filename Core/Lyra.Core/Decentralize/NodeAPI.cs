@@ -1158,6 +1158,33 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetAllDaosAsync(page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetAllDaosAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
         public Task<BlockAPIResult> GetDaoByNameAsync(string name)
         {
             var result = new BlockAPIResult();

@@ -299,6 +299,11 @@ namespace Lyra.Core.Accounts
             _store.Dispose();
         }
 
+        public Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize)
+        {
+            return StopWatcher.Track(() => _store.GetAllDaosAsync(page, pageSize), "GetAllDaosAsync");
+        }
+
         public Block GetDaoByName(string name)
         {
             return StopWatcher.Track(() => _store.GetDaoByName(name), "GetDaoByName");
