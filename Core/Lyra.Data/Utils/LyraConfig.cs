@@ -61,12 +61,15 @@ namespace Lyra.Data.Utils
     {
         public string DatabaseName { get; }
         public string DBConnect { get; }
-        public string ContractDB { get; }
         public LyraDatabaseConfig(IConfigurationSection section)
         {
             DatabaseName = section.GetSection("DatabaseName").Value;
-            DBConnect = section.GetSection("DBConnect").Value;
-            ContractDB = section.GetSection("ContractDB").Value;
+            var dbstr = section.GetSection("DBConnect").Value;
+            if (dbstr.EndsWith("/lyra"))    // old config ends with /lyra
+                dbstr = dbstr.Replace("/lyra", "");
+            if (dbstr.EndsWith("/"))        // prevent dummy error
+                dbstr = dbstr.TrimEnd('/');
+            DBConnect = dbstr;
         }
     }
 }

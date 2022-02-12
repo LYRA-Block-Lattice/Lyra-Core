@@ -67,7 +67,7 @@ or see step 12
 	export ASPNETCORE_URLS=http://*:4505\;https://*:4504
 	export ASPNETCORE_HTTPS_PORT=4504
 	# optional mongodb credential if not specified in config*.json
-	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name=poswallet
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password=P@ssw0rd
 	dotnet lyra.noded.dll
@@ -83,7 +83,7 @@ or see step 12
 	export ASPNETCORE_URLS=http://*:5505\;https://*:5504
 	export ASPNETCORE_HTTPS_PORT=5504
 	# optional mongodb credential if not specified in config*.json
-	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name=poswallet
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password=P@ssw0rd
 	dotnet lyra.noded.dll
@@ -135,7 +135,7 @@ use "votefor" command in wallet cli.
 	Environment=ASPNETCORE_ENVIRONMENT=Production
 	Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 	# optional mongodb credential if not specified in config*.json
-	# Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
+	# Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1
 
 	# for mainnet
 	# Environment=LYRA_NETWORK=mainnet

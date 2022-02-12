@@ -51,7 +51,7 @@ namespace Lyra.Core.Accounts
         private string _networkId;
 
         public MongoAccountCollection(ILogger<MongoAccountCollection> logger)
-            : this(Settings.Default.LyraNode.Lyra.Database.DBConnect,
+            : this(Settings.Default.LyraNode.Lyra.Database.DBConnect + "/lyra",
                     Settings.Default.LyraNode.Lyra.Database.DatabaseName)
         {
             _log = logger;

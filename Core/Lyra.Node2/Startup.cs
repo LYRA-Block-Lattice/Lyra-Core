@@ -131,7 +131,7 @@ namespace Lyra.Node2
                 if (networkId == null)
                     networkId = "devnet";   // for dev convenient
 
-                cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.ContractDB + "/Workflow_" + networkId, "Workflow_" + networkId);
+                cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect + "/Workflow_" + networkId, "Workflow_" + networkId);
                 //cfg.UseSqlite($"Data Source={fn};", true);
                 cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");

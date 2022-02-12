@@ -5,8 +5,7 @@
         "NetworkId": "xtest",
         "Database": {
           "DatabaseName": "lyra",
-          "DBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/lyra",
-          "ContractDB": "mongodb://lexuser:alongpassword@127.0.0.1/"
+          "DBConnect": "mongodb://lexuser:alongpassword@127.0.0.1"
         },
         "Wallet": {
           "Name": "poswallet",

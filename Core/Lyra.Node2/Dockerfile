@@ -23,7 +23,7 @@ ENV LYRA_API_PORT ${LYRA_API_PORT}
 
 ENV ASPNETCORE_URLS https://*:${LYRA_API_PORT}
 ENV ASPNETCORE_HTTPS_PORT ${LYRA_API_PORT}
-ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@127.0.0.1/${LYRA_DB_NAME}
+ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@127.0.0.1
 ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name ${LYRA_POS_WALLET_NAME}
 ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password ${LYRA_POS_WALLET_PASSWORD}
 
