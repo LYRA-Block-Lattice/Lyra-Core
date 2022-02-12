@@ -94,6 +94,7 @@ namespace Lyra.Core.WorkFlow
         public long TimeTicks { get; set; }
 
         public int Count { get; set; }
+        public int ViewChangeReqCount { get; set; }
 
         public TransactionBlock GetLastBlock()
         {
@@ -264,7 +265,15 @@ namespace Lyra.Core.WorkFlow
     {
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
-            //var ctx = context.Workflow.Data as LyraContext;
+            var ctx = context.Workflow.Data as LyraContext;
+
+            ctx.ViewChangeReqCount++;
+            if (ctx.ViewChangeReqCount > 10)
+            {
+                Console.WriteLine($"View change req more than 10 times. Permanent error. Key: {ctx.SvcRequest}: {ctx.SendHash}");
+                ctx.State = WFState.Error;
+            }                
+
             Console.WriteLine($"Request View Change.");
             await ConsensusService.Singleton.BeginChangeViewAsync("WF Engine", ViewChangeReason.ConsensusTimeout);
             return ExecutionResult.Next();
