@@ -30,7 +30,7 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
             var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
 
-            SendTransferBlock sendBlock = null;
+            SendTransferBlock? sendBlock = null;
             for (int i = 0; i < 100; i++)
             {
                 sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)

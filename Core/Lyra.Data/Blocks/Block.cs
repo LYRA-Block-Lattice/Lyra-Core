@@ -626,5 +626,7 @@ namespace Lyra.Core.Blocks
 
         DealerRoomNotExists,
         NotFound,
+        InvalidTagParameters,
+        InputTooShort,
     }
 }

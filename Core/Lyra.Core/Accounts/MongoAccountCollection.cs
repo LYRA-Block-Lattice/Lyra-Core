@@ -2102,12 +2102,6 @@ namespace Lyra.Core.Accounts
 
         public Block GetDaoByName(string name)
         {
-            //var q = _blocks.OfType<DaoRecvBlock>()
-            //    .Find(a => a.Name == name)
-            //    .SortByDescending(a => a.Height)
-            //    .FirstOrDefault();
-            //return q;
-
             var regexFilter = Regex.Escape(name);
             var filter = Builders<DaoGenesisBlock>.Filter.Regex(u => u.Name, new BsonRegularExpression("/^" + regexFilter + "$/i"));
             var genResult = _blocks.OfType<DaoGenesisBlock>()

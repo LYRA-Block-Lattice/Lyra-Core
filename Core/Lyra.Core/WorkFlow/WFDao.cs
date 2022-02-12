@@ -30,6 +30,8 @@ namespace Lyra.Core.WorkFlow
         {
             var name = send.Tags["name"];
             var desc = send.Tags["desc"];
+            var sellerPar = int.Parse(send.Tags["sellerPar"]);
+            var buyerPar = int.Parse(send.Tags["buyerPar"]);
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
@@ -61,8 +63,8 @@ namespace Lyra.Core.WorkFlow
 
                 // dao
                 Description = desc,
-                SellerCollateralPercentage = 200,
-                ByerCollateralPercentage = 150,
+                SellerPar = sellerPar,
+                BuyerPar = buyerPar,
                 Treasure = new Dictionary<string, long>(),
             };
 
@@ -77,18 +79,26 @@ namespace Lyra.Core.WorkFlow
         {
             if (
                 send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"]) &&
-                send.Tags.ContainsKey("desc") && !string.IsNullOrWhiteSpace(send.Tags["desc"])
-                && send.Tags.Count == 3
+                send.Tags.ContainsKey("desc") && !string.IsNullOrWhiteSpace(send.Tags["desc"]) &&
+                send.Tags.ContainsKey("sellerPar") && int.TryParse(send.Tags["sellerPar"], out int sellerPar) &&
+                send.Tags.ContainsKey("buyerPar") && int.TryParse(send.Tags["sellerPar"], out int buyerPar)
+                && send.Tags.Count == 5
                 )
             {
                 var name = send.Tags["name"];
                 var desc = send.Tags["desc"];
+
+                if(name.Length < 3)
+                    return Task.FromResult(APIResultCodes.InputTooShort);
 
                 if (name.Length > 100 || desc.Length > 300)
                     return Task.FromResult(APIResultCodes.InputTooLong);
 
                 if (send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
                     return Task.FromResult(APIResultCodes.InvalidServiceRequest);
+
+                if(sellerPar < 0 || sellerPar > 1000 || buyerPar < 0 || buyerPar > 1000)
+                    return Task.FromResult(APIResultCodes.InvalidTagParameters);
 
                 // check name dup
                 var existsdao = sys.Storage.GetDaoByName(name);
@@ -98,7 +108,7 @@ namespace Lyra.Core.WorkFlow
                 return Task.FromResult(APIResultCodes.Success);
             }
             else
-                return Task.FromResult(APIResultCodes.InvalidBlockTags);
+                return Task.FromResult(APIResultCodes.InvalidTagParameters);
         }
     }
 }

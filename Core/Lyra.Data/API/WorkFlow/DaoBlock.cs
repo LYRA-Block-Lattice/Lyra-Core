@@ -13,8 +13,8 @@ namespace Lyra.Data.API.WorkFlow
     public interface IDao : IBrokerAccount
     {
         // percentage, 0 ~ 1000%
-        public int SellerCollateralPercentage { get; set; }
-        public int ByerCollateralPercentage { get; set; }
+        public int SellerPar { get; set; }
+        public int BuyerPar { get; set; }
         public Dictionary<string, long> Treasure { get; set; }
         public string Description { get; set; }    // dao configuration record hash, in other db collection
     }
@@ -22,8 +22,8 @@ namespace Lyra.Data.API.WorkFlow
     [BsonIgnoreExtraElements]
     public class DaoRecvBlock : BrokerAccountRecv, IDao
     {
-        public int SellerCollateralPercentage { get; set; }
-        public int ByerCollateralPercentage { get; set; }
+        public int SellerPar { get; set; }
+        public int BuyerPar { get; set; }
         public string Description { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
@@ -39,8 +39,8 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as DaoRecvBlock;
 
             return base.AuthCompare(ob) &&
-                SellerCollateralPercentage == ob.SellerCollateralPercentage &&
-                ByerCollateralPercentage == ob.ByerCollateralPercentage &&
+                SellerPar == ob.SellerPar &&
+                BuyerPar == ob.BuyerPar &&
                 Description == ob.Description &&
                 CompareDict(Treasure, ob.Treasure)
                 ;
@@ -49,8 +49,8 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += $"{SellerCollateralPercentage}|";
-            extraData += $"{ByerCollateralPercentage}|";
+            extraData += $"{SellerPar}|";
+            extraData += $"{BuyerPar}|";
             extraData += DictToStr(Treasure) + "|";
             extraData += Description + "|";
             return extraData;
@@ -70,8 +70,8 @@ namespace Lyra.Data.API.WorkFlow
     [BsonIgnoreExtraElements]
     public class DaoSendBlock : BrokerAccountSend, IDao
     {
-        public int SellerCollateralPercentage { get; set; }
-        public int ByerCollateralPercentage { get; set; }
+        public int SellerPar { get; set; }
+        public int BuyerPar { get; set; }
         public string Description { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
@@ -87,8 +87,8 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as DaoSendBlock;
 
             return base.AuthCompare(ob) &&
-                SellerCollateralPercentage == ob.SellerCollateralPercentage &&
-                ByerCollateralPercentage == ob.ByerCollateralPercentage &&
+                SellerPar == ob.SellerPar &&
+                BuyerPar == ob.BuyerPar &&
                 Description == ob.Description &&
                 CompareDict(Treasure, ob.Treasure)
                 ;
@@ -97,8 +97,8 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += $"{SellerCollateralPercentage}|";
-            extraData += $"{ByerCollateralPercentage}|";
+            extraData += $"{SellerPar}|";
+            extraData += $"{BuyerPar}|";
             extraData += DictToStr(Treasure) + "|";
             extraData += Description + "|";
             return extraData;

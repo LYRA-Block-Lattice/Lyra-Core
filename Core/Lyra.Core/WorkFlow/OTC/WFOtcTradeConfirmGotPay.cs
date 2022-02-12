@@ -93,8 +93,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 RelatedTx = sendBlock.Hash,
 
                 // dao
-                SellerCollateralPercentage = ((IDao)daolastblock).SellerCollateralPercentage,
-                ByerCollateralPercentage = ((IDao)daolastblock).ByerCollateralPercentage,
+                SellerPar = ((IDao)daolastblock).SellerPar,
+                BuyerPar = ((IDao)daolastblock).BuyerPar,
                 Description = ((IDao)daolastblock).Description,
                 Treasure = ((IDao)daolastblock).Treasure.ToDecimalDict().ToLongDict(),
             };

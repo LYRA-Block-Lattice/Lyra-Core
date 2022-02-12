@@ -437,7 +437,7 @@ namespace UnitTests
             // first create a DAO
             var name = "First DAO";
             var desc = "Doing great business!";
-            var dcret = await testWallet.CreateDAOAsync(name, desc);
+            var dcret = await testWallet.CreateDAOAsync(name, desc, 120, 120);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await WaitWorkflow("CreateDAOAsync");
@@ -626,7 +626,7 @@ namespace UnitTests
             // first create a DAO
             var name = "Second DAO";
             var desc = "Doing bad business!";
-            var dcret = await testWallet.CreateDAOAsync(name, desc);
+            var dcret = await testWallet.CreateDAOAsync(name, desc, 120, 120);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await WaitWorkflow("CreateDAOAsync");
@@ -637,7 +637,7 @@ namespace UnitTests
             Assert.AreEqual(name, daoblk.Name);
             Assert.AreEqual(desc, daoblk.Description);
 
-            var dcretx = await testWallet.CreateDAOAsync(name, desc);
+            var dcretx = await testWallet.CreateDAOAsync(name, desc, 120, 120);
             Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
 
             await WaitBlock("CreateDAOAsync Wrong");

@@ -100,8 +100,8 @@ namespace Lyra.Core.Decentralize
                 RelatedTx = sendBlock.Hash,
 
                 // dao     
-                SellerCollateralPercentage = ((IDao)lastblock).SellerCollateralPercentage,
-                ByerCollateralPercentage = ((IDao)lastblock).ByerCollateralPercentage,
+                SellerPar = ((IDao)lastblock).SellerPar,
+                BuyerPar = ((IDao)lastblock).BuyerPar,
                 Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
                 Description = ((IDao)lastblock).Description,
             };
