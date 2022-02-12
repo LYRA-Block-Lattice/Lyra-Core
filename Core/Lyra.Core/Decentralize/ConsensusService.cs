@@ -1141,7 +1141,6 @@ namespace Lyra.Core.Decentralize
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
                 IPAddress = $"{_myIpAddress}",
-                //PftAccountID = Settings.Default.LyraNode.Lyra.ProfitAccountID
             };
 
             //_log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");

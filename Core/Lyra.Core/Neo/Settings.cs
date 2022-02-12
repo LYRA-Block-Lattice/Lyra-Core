@@ -9,9 +9,7 @@ namespace Neo
     public class Settings
     {
         public LyraConfig LyraNode { get; }
-        public StorageSettings Storage { get; }
         public P2PSettings P2P { get; }
-        public UnlockWalletSettings UnlockWallet { get; }
         public string PluginURL { get; }
 
         static Settings _default;
@@ -43,20 +41,8 @@ namespace Neo
         public Settings(IConfigurationSection section)
         {
             this.LyraNode = new LyraConfig(section.GetSection("LyraNode"));
-            this.Storage = new StorageSettings(section.GetSection("Storage"));
             this.P2P = new P2PSettings(section.GetSection("P2P"));
-            this.UnlockWallet = new UnlockWalletSettings(section.GetSection("UnlockWallet"));
             this.PluginURL = section.GetSection("PluginURL").Value;
-        }
-    }
-
-    public class StorageSettings
-    {
-        public string Engine { get; }
-
-        public StorageSettings(IConfigurationSection section)
-        {
-            this.Engine = section.GetSection("Engine").Value;
         }
     }
 
@@ -79,25 +65,6 @@ namespace Neo
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
             this.MaxConnections = section.GetValue("MaxConnections", Peer.DefaultMaxConnections);
             this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 2);
-        }
-    }
-
-    public class UnlockWalletSettings
-    {
-        public string Path { get; }
-        public string Password { get; }
-        public bool StartConsensus { get; }
-        public bool IsActive { get; }
-
-        public UnlockWalletSettings(IConfigurationSection section)
-        {
-            if (section.Exists())
-            {
-                this.Path = section.GetSection("Path").Value;
-                this.Password = section.GetSection("Password").Value;
-                this.StartConsensus = bool.Parse(section.GetSection("StartConsensus").Value);
-                this.IsActive = bool.Parse(section.GetSection("IsActive").Value);
-            }
         }
     }
 }

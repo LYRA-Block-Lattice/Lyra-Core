@@ -29,13 +29,12 @@ namespace Lyra.Data.Utils
         public LyraDatabaseConfig Database { get; }
         public LyraWalletConfig Wallet { get; }
         public NodeMode Mode { get; }
-        public string ProfitAccountID { get; }
 
         public LyraNodeConfig(IConfigurationSection section)
         {
             Database = new LyraDatabaseConfig(section.GetSection("Database"));
             Wallet = new LyraWalletConfig(section.GetSection("Wallet"));
-            ProfitAccountID = section.GetSection("ProfitAccountID").Value;
+
             try
             {
                 Mode = (NodeMode)Enum.Parse(typeof(NodeMode), section.GetSection("Mode").Value, true);
@@ -62,12 +61,12 @@ namespace Lyra.Data.Utils
     {
         public string DatabaseName { get; }
         public string DBConnect { get; }
-        public string DexDBConnect { get; }
+        public string ContractDB { get; }
         public LyraDatabaseConfig(IConfigurationSection section)
         {
             DatabaseName = section.GetSection("DatabaseName").Value;
             DBConnect = section.GetSection("DBConnect").Value;
-            DexDBConnect = section.GetSection("DexDBConnect").Value;
+            ContractDB = section.GetSection("ContractDB").Value;
         }
     }
 }

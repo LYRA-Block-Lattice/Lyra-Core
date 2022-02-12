@@ -25,9 +25,6 @@ namespace Lyra.Core.Decentralize
     {
         //public static NodeService Instance { get; private set; } 
         //private INodeAPI _dataApi;
-        public MongoClient client;
-        private IMongoDatabase _db;
-
         AutoResetEvent _waitOrder;
         ILogger _log;
         IHostEnv _hostEnv;
@@ -102,12 +99,6 @@ namespace Lyra.Core.Decentralize
                 Dag = new DagSystem(_hostEnv, _store, _lyraEventContext, PosWallet, localNode);
                 _ = Task.Run(async () => await Dag.StartAsync()).ConfigureAwait(false);
                 await Task.Delay(30000);
-
-                if (_db == null)
-                {
-                    client = new MongoClient(Neo.Settings.Default.LyraNode.Lyra.Database.DexDBConnect);
-                    _db = client.GetDatabase("Dex");
-                }
             }
             catch (Exception ex)
             {

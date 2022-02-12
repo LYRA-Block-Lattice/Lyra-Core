@@ -6,14 +6,13 @@
         "Database": {
           "DatabaseName": "lyra",
           "DBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/lyra",
-          "DexDBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/wizdex"
+          "ContractDB": "mongodb://lexuser:alongpassword@127.0.0.1/"
         },
         "Wallet": {
           "Name": "poswallet",
           "Password": ""
         },
-        "Mode": "",
-        "ProfitAccountID": ""
+        "Mode": ""
       }
     },
     "Storage": {
@@ -23,12 +22,6 @@
       "Port": 5503,
       "WsPort": 0,
       "WebAPI": 5505
-    },
-    "UnlockWallet": {
-      "Path": "",
-      "Password": "",
-      "StartConsensus": false,
-      "IsActive": false
     },
     "PluginURL": ""
   }

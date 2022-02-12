@@ -74,7 +74,6 @@ namespace Lyra.Data.API
     public class PosNode
     {
         public string AccountID { get; set; }
-        public string PftAccountID { get; set; }
         public string IPAddress { get; set; }
         public decimal Votes { get; set; }
         public DateTime LastStaking { get; set; }
