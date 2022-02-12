@@ -524,7 +524,7 @@ namespace UnitTests
                 price = 2000,
                 amount = 1,
                 collateral = 1000000,
-                payVia = "PayPal",
+                payVia = "Paypal",
             };
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
@@ -705,7 +705,7 @@ namespace UnitTests
                 price = 2000,
                 amount = 1,
                 collateral = 1000000,
-                payVia = "PayPal",
+                payVia = "Paypal",
             };
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;

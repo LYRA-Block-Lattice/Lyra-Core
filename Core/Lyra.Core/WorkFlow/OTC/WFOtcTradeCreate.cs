@@ -63,9 +63,13 @@ namespace Lyra.Core.WorkFlow
             var order = orderblk.Order;
             if (order.crypto != trade.crypto ||
                 order.fiat != trade.fiat ||
+                order.price != trade.price ||
                 order.amount < trade.amount ||
                 order.dir == trade.dir ||
-                orderblk.OwnerAccountId != trade.orderOwnerId
+                orderblk.OwnerAccountId != trade.orderOwnerId ||
+                trade.amount * trade.price > order.limitMax ||
+                trade.amount * trade.price < order.limitMin ||
+                !order.payBy.Contains(trade.payVia)
                 )
                 return APIResultCodes.InvalidTrade;
 

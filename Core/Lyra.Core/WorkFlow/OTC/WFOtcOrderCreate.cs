@@ -55,7 +55,23 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidOrgnization;
 
             // check every field of Order
+            if (order.dir != TradeDirection.Sell ||
+                order.priceType != PriceType.Fixed)
+                return APIResultCodes.InvalidTagParameters;
 
+            var tokenGenesis = await sys.Storage.FindTokenGenesisBlockAsync(null, order.crypto);
+            if (tokenGenesis == null)
+                return APIResultCodes.TokenNotFound;
+
+            if (order.price <= 0.00001m || order.amount < 0.0001m)
+                return APIResultCodes.InvalidAmount;
+
+            if(order.limitMin <= 0 || order.limitMax < order.limitMin 
+                || order.limitMax > order.amount * order.price)
+                return APIResultCodes.InvalidAmount;
+
+            if(order.payBy == null || order.payBy.Length == 0)
+                return APIResultCodes.InvalidOrder;
 
             // verify collateral
             var chgs = send.GetBalanceChanges(last);

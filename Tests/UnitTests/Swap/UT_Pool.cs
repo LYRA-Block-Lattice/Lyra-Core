@@ -117,6 +117,7 @@ namespace UnitTests.Swap
 
         public async Task APoolSetupProperlyAsync()
         {
+            await Task.Delay(1000);
             var pool = await client.GetPoolAsync(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
             Assert.IsNotNull(pool.PoolAccountId);
             pool.PoolAccountId.Should().StartWith("L");
