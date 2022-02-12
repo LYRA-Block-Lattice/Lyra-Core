@@ -8,5 +8,5 @@ mongo -- "$MONGO_DB" <<EOF
 
     var user = '$MONGO_USER';
     var passwd = '${MONGO_PASSWORD}';
-    db.createUser({user: user, pwd: passwd, roles: [{ role: "readWrite", db: "lyra" },{ role: "readWrite", db: "Worflow_testnet" },{ role: "readWrite", db: "Worflow_mainnet" }]});
+    admin.createUser({user: user, pwd: passwd, roles: [{ role: "readWrite", db: "lyra" },{ role: "readWrite", db: "Worflow_testnet" },{ role: "readWrite", db: "Worflow_mainnet" }]});
 EOF
