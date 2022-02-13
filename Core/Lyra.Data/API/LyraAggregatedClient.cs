@@ -260,19 +260,19 @@ namespace Lyra.Data.API
             }
 
             var failedResult = results.Where(a => !a.IsSuccess);
-            string msg;
+            string msg = $"Success {compeletedCount}/{expectedCount}/{taskss.Count}, ";
             if(failedResult.Any())
             {
                 var failed = failedResult
                     .Select(a => a.Exception.Message)
                     .Aggregate((a, b) => a + "," + b);
-                msg = $"Success {compeletedCount}/{expectedCount}/{taskss.Count}, Failed: {failed}";
-                Console.WriteLine(msg);
+                msg += $"Failed: {failed}";
             }
             else
             {
-                msg = "Failed: None. Db inconsist.";
+                msg += $"Failed: None. Db inconsist for {tag}.";
             }
+            Console.WriteLine(msg);
 
             return new T { 
                 ResultCode = APIResultCodes.APIRouteFailed,
