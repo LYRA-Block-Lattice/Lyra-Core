@@ -247,7 +247,7 @@ namespace Lyra.Data.API
                 var best = coll.First();
 
                 // hack. testnet has a bad block. nutralize it.
-                if (best.Count >= expectedCount || tag == "5bAsMk9iEfA9Qa3sTEPzuh6gU2imvtfe87eeF3uFtXub")
+                if (best.Count >= expectedCount || (_networkId == "testnet" && tag == "5bAsMk9iEfA9Qa3sTEPzuh6gU2imvtfe87eeF3uFtXub"))
                 {
                     var x = results.First(a => a.IsSuccess && a.Result == best.Data);
                     return x.Result;
