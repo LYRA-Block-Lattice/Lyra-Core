@@ -323,7 +323,7 @@ namespace Lyra.Data.API
         {
             var tasks = _primaryClients.Select(client => client.GetBlockByHashAsync(AccountId, Hash, Signature)).ToList();
 
-            return await CheckResultAsync("GetBlockByHash", tasks);
+            return await CheckResultAsync("GetBlockByHash", tasks, Hash);
         }
 
         public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index)
