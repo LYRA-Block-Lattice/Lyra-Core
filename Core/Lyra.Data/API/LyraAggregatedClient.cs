@@ -253,15 +253,26 @@ namespace Lyra.Data.API
                 }
                 else
                 {
-                    Console.WriteLine($"Result count: {best.Count} / {expectedCount}");
+                    Console.WriteLine($"Result count: {best.Count} / {expectedCount} / {taskss.Count}");
+                    // print the unconsist ones
                 }
             }
 
-            var failed = results.Where(a => !a.IsSuccess)
-                .Select(a => a.Exception.Message)
-                .Aggregate((a, b) => a + "," + b);
-            var msg = $"Success {compeletedCount}/{expectedCount}, Failed: {failed}";
-            Console.WriteLine(msg);
+            var failedResult = results.Where(a => !a.IsSuccess);
+            string msg;
+            if(failedResult.Any())
+            {
+                var failed = failedResult
+                    .Select(a => a.Exception.Message)
+                    .Aggregate((a, b) => a + "," + b);
+                msg = $"Success {compeletedCount}/{expectedCount}/{taskss.Count}, Failed: {failed}";
+                Console.WriteLine(msg);
+            }
+            else
+            {
+                msg = "Failed: None. Db inconsist.";
+            }
+
             return new T { 
                 ResultCode = APIResultCodes.APIRouteFailed,
                 ResultMessage = msg,
