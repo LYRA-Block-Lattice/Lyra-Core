@@ -311,7 +311,7 @@ namespace Lyra.Core.Accounts
 
 
         #region Reward Trade Processing
-
+        /*
         public async Task<TradeAPIResult> LookForNewTradeAsync(string BuyTokenCode, string SellTokenCode)
         {
             try
@@ -473,7 +473,7 @@ namespace Lyra.Core.Accounts
                     result.ResultMessage = execute_block.GetHashInput();
             }
             return result;
-        }
+        }*/
 
         #endregion
 
@@ -982,7 +982,7 @@ namespace Lyra.Core.Accounts
 
             return result;
         }
-
+        /*
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(
             TradeOrderTypes orderType, string SellToken, string BuyToken, decimal MaxAmount, decimal MinAmount, decimal Price, bool CoverAnotherTradersFee, bool AnotherTraderWillCoverFee)
         {
@@ -1200,7 +1200,7 @@ namespace Lyra.Core.Accounts
         {
             var result = await _rpcClient.GetActiveTradeOrdersAsync(AccountId, SellToken, BuyToken, OrderType, SignAPICall());
             return result;
-        }
+        }*/
 
         //public async Task<string> PrintActiveTradeOrdersAsync()
         //{

@@ -11,6 +11,7 @@ using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
+    /*
     public class TradeAuthorizer : TransactionAuthorizer
     {
         public override BlockTypes GetBlockType()
@@ -106,5 +107,5 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.Success;
             }
         }
-    }
+    }*/
 }

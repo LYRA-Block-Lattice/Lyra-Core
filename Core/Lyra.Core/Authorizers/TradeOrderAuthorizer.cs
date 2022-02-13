@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class TradeOrderAuthorizer: TransactionAuthorizer
+/*    public class TradeOrderAuthorizer: TransactionAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
@@ -157,5 +157,5 @@ namespace Lyra.Core.Authorizers
 
         //    return precision;
         //}
-    }
+    }*/
 }

@@ -346,6 +346,7 @@ namespace LyraLexWeb2
             return await _node.LookForNewFeesAsync(AccountId, Signature);
         }
 
+        /*
         #region Reward trade methods
 
         [Route("GetActiveTradeOrders")]
@@ -399,8 +400,9 @@ namespace LyraLexWeb2
             if (! CheckServiceStatus()) return null;
             return await _trans.CancelTradeOrderAsync(block);
         }
-
+        
         #endregion
+        */
 
 
 

@@ -73,11 +73,11 @@ namespace Lyra.Core.API
         #endregion
 
         #region Reward trade methods
-
+        /*
         Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature);
 
         Task<TradeAPIResult> LookForNewTradeAsync(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature);
-
+        */
         #endregion
 
         #region Liquidate Pool
@@ -131,7 +131,7 @@ namespace Lyra.Core.API
         #endregion Authorization methods
 
         #region Reward Trade Athorization Methods
-        
+        /*
         Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(TradeOrderBlock block);
 
         Task<AuthorizationAPIResult> TradeAsync(TradeBlock block);
@@ -139,7 +139,7 @@ namespace Lyra.Core.API
         Task<AuthorizationAPIResult> ExecuteTradeOrderAsync(ExecuteTradeOrderBlock block);
 
         Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block);
-        
+        */
         #endregion
     }
 }

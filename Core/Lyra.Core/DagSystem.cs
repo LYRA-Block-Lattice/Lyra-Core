@@ -51,7 +51,7 @@ namespace Lyra
 
         public IAccountCollectionAsync Storage { get; private set; }
 
-        public TradeMatchEngine TradeEngine { get; private set; }
+        //public TradeMatchEngine TradeEngine { get; private set; }
 
         public BlockChainState ConsensusState { get; private set; }
         public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
@@ -76,7 +76,7 @@ namespace Lyra
                 TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, Storage));
                 TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
-                TradeEngine = new TradeMatchEngine(Storage);
+                //TradeEngine = new TradeMatchEngine(Storage);
             }
 
             Singleton = this;

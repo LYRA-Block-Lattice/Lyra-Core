@@ -237,9 +237,9 @@ namespace Lyra.Client.CLI
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                     //    ProcessTradeOrder();
                    //     break;
-                    case COMMAND_REDEEM_REWARDS:
-                        await ProcessRedeemRewardsTradeOrderAsync();
-                        break;
+                    //case COMMAND_REDEEM_REWARDS:
+                    //    await ProcessRedeemRewardsTradeOrderAsync();
+                    //    break;
                     case COMMAND_IMPORT_ACCOUNT:
                         Console.WriteLine("Please enter private key of the account to import: ");
                         string imported_private_key = Console.ReadLine();
@@ -815,7 +815,7 @@ Amount: {amountx}
                     //Console.Write(string.Format("{0}> ", _wallet.AccountName));
                 }
          */
-        async Task ProcessRedeemRewardsTradeOrderAsync()
+/*        async Task ProcessRedeemRewardsTradeOrderAsync()
         {
             string reward_token_code;
 
@@ -837,7 +837,7 @@ Amount: {amountx}
                     Console.WriteLine("Redemption failed:" + result.ResultMessage);
             }
         }
-      
+      */
         async Task ProcessSendAsync()
         {
             if (_wallet.GetNumberOfNonZeroBalances() < 1)

@@ -5,7 +5,7 @@ using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Authorizers
 {
-    public class ExecuteTradeOrderAuthorizer: SendTransferAuthorizer
+ /*   public class ExecuteTradeOrderAuthorizer: SendTransferAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
@@ -108,6 +108,6 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-    }
+    }*/
 }
 

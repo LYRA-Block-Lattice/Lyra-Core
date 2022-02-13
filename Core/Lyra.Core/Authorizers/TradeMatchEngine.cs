@@ -8,6 +8,7 @@ using Lyra.Core.API;
 
 namespace Lyra.Core.Authorizers
 {
+    /*
     public class TradeMatchEngine
     {
         protected IAccountCollectionAsync _AccountCollection { get; set; }
@@ -221,5 +222,5 @@ namespace Lyra.Core.Authorizers
         //        }
 
         //}
-    }
+    }*/
 }

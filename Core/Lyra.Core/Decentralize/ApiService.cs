@@ -250,7 +250,7 @@ namespace Lyra.Core.Decentralize
         }
 
         #region Reward Trade Athorization Methods 
-        
+        /*
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(TradeOrderBlock tradeOrderBlock)
         {
             var result = new TradeOrderAuthorizationAPIResult();
@@ -304,7 +304,7 @@ namespace Lyra.Core.Decentralize
         {
             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
-
+        */
         #endregion
 
         //public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)

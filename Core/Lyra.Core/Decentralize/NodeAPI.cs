@@ -938,7 +938,7 @@ namespace Lyra.Core.Decentralize
         }
 
         #region Reward trade methods
-
+        /*
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             var result = new ActiveTradeOrdersAPIResult();
@@ -1003,7 +1003,7 @@ namespace Lyra.Core.Decentralize
                 result.ResultMessage = e.ToString();
             }
             return result;
-        }
+        }*/
         #endregion
 
         #region pool
