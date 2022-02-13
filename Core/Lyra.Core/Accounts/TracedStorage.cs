@@ -19,6 +19,8 @@ namespace Lyra.Core.Accounts
         {
             _store = store;
         }
+
+        public IAccountCollectionAsync Store => _store;
         public async Task<List<Block>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.TrackAsync(() => _store.GetAllUnConsolidatedBlocksAsync(), StopWatcher.GetCurrentMethod());
         public async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.TrackAsync(() => _store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight, int count) => await StopWatcher.TrackAsync(() => _store.GetConsolidationBlocksAsync(startHeight, count), StopWatcher.GetCurrentMethod());

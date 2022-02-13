@@ -460,7 +460,7 @@ namespace Lyra.Core.Decentralize
             InDBCC = true;
             try
             {
-                (_sys.Storage as MongoAccountCollection).FixDbRecord();
+                await ((_sys.Storage as TracedStorage).Store as MongoAccountCollection).FixDbRecordAsync();
 
                 var blcokcount = await _sys.Storage.GetBlockCountAsync();
                 if(blcokcount == 0) //genesis

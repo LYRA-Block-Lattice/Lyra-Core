@@ -23,6 +23,7 @@ using System.Globalization;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Shared;
 using Neo;
+using Newtonsoft.Json;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -2182,7 +2183,7 @@ namespace Lyra.Core.Accounts
             return q.ToList();
         }
 
-        public void FixDbRecord()
+        public async Task FixDbRecordAsync()
         {
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Exists("TradeOrderId");
@@ -2196,7 +2197,20 @@ namespace Lyra.Core.Accounts
                 var tx = b as CancelTradeOrderBlock;
                 if(tx != null && tx.TradeOrderId == null)
                 {
-                    Console.WriteLine($"Will process {tx.Hash}");
+                    //Console.WriteLine($"Will process {tx.Hash}");
+                    var json = JsonConvert.SerializeObject(tx);
+                    var result = new BlockAPIResult
+                    {
+                        BlockData = json,
+                        ResultBlockType = tx.BlockType,
+                    };
+                    var txnew = result.GetBlock();
+
+                    await RemoveBlockAsync(tx.Hash);
+                    await Task.Delay(1);
+                    await AddBlockAsync(txnew);
+
+                    //Console.WriteLine($"Converted to {txnew.BlockType}");
                 }
             }
 
