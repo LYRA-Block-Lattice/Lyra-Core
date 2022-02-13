@@ -232,6 +232,11 @@ namespace Lyra.Core.Blocks
     {
         // The hash of the original order block
         public string TradeOrderId { get; set; }
+
+        protected override BlockTypes GetBlockType()
+        {
+            return BlockTypes.CancelTradeOrder;
+        }
     }
 
 

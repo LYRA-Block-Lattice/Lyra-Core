@@ -385,6 +385,10 @@ namespace Lyra.Core.API
             {
                 return block;
             }
+            else if(block != null && block.Hash == "5bAsMk9iEfA9Qa3sTEPzuh6gU2imvtfe87eeF3uFtXub") // test bad block
+            {
+                return block;
+            }
             else
             {
                 //File.AppendAllText(@"c:\tmp\hash.txt", $"Block {block.Hash} New txt: {block.GetHashInput()}\n");
