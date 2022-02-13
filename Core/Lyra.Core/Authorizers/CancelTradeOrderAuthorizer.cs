@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
+    /*
     public class CancelTradeOrderAuthorizer: ReceiveTransferAuthorizer
     {
         public override BlockTypes GetBlockType()
@@ -57,5 +58,5 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-    }
+    }*/
 }

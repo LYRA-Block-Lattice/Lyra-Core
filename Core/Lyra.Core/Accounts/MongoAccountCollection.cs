@@ -197,7 +197,7 @@ namespace Lyra.Core.Accounts
                     await CreateNoneStringIndex(_blocks, "OrderType", false);
                     await CreateIndexes(_blocks, "SellTokenCode", false);
                     await CreateIndexes(_blocks, "BuyTokenCode", false);
-                    await CreateIndexes(_blocks, "TradeOrderId", false);
+                    //await CreateIndexes(_blocks, "TradeOrderId", false);
 
                     await CreateIndexes(_blocks, "ImportedAccountId", false);
 
@@ -1277,7 +1277,7 @@ namespace Lyra.Core.Accounts
             };
             return ps;
         }
-
+        /*
         /// <summary>
         /// Returns the first unexecuted and incancelled trade aimed to an order created on the account.
         /// </summary>
@@ -1435,6 +1435,8 @@ namespace Lyra.Core.Accounts
             var block = await _blocks.Find(filterDefinition).FirstOrDefaultAsync();
             return block as ExecuteTradeOrderBlock;
         }
+
+        */
 
         private Task UpdateSnapshotAsync(TransactionBlock tx)
         {
@@ -2179,6 +2181,27 @@ namespace Lyra.Core.Accounts
 
             return q.ToList();
         }
+
+        public void FixDbRecord()
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Exists("TradeOrderId");
+
+            var q = _blocks
+                .Find(filterDefination)
+                .ToList();
+
+            foreach(var b in q)
+            {
+                var tx = b as CancelTradeOrderBlock;
+                if(tx != null && tx.TradeOrderId == null)
+                {
+                    Console.WriteLine($"Will process {tx.Hash}");
+                }
+            }
+
+        }
+
     }
     public static class MyExtensions
     {

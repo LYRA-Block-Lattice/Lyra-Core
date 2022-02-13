@@ -35,6 +35,7 @@ using Lyra.Core.WorkFlow;
 using System.Reflection;
 using WorkflowCore.Services;
 using Microsoft.AspNetCore.SignalR;
+using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Decentralize
 {
@@ -459,6 +460,8 @@ namespace Lyra.Core.Decentralize
             InDBCC = true;
             try
             {
+                (_sys.Storage as MongoAccountCollection).FixDbRecord();
+
                 var blcokcount = await _sys.Storage.GetBlockCountAsync();
                 if(blcokcount == 0) //genesis
                 {

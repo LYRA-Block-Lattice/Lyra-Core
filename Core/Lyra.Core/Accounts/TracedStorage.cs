@@ -129,6 +129,11 @@ namespace Lyra.Core.Accounts
             return StopWatcher.TrackAsync(() => _store.GetConsolidationBlocksAsync(belongToSvcHash), StopWatcher.GetCurrentMethod());
         }
 
+        public long GetCurrentView()
+        {
+            return StopWatcher.Track(() => _store.GetCurrentView(), "GetCurrentView");
+        }
+        /*
         public TradeBlock FindUnexecutedTrade(string AccountId, string BuyTokenCode, string SellTokenCode)
         {
             return StopWatcher.Track(() => _store.FindUnexecutedTrade(AccountId, BuyTokenCode, SellTokenCode), "FindUnexecutedTrade");
@@ -137,11 +142,6 @@ namespace Lyra.Core.Accounts
         public List<TradeOrderBlock> GetTradeOrderBlocks()
         {
             return StopWatcher.Track(() => _store.GetTradeOrderBlocks(), "GetTradeOrderBlocks");
-        }
-
-        public long GetCurrentView()
-        {
-            return StopWatcher.Track(() => _store.GetCurrentView(), "GetCurrentView");
         }
 
         public Task<List<TradeOrderBlock>> GetSellTradeOrdersForTokenAsync(string BuyTokenCode)
@@ -163,7 +163,7 @@ namespace Lyra.Core.Accounts
         {
             return StopWatcher.Track(() => _store.GetExecutedTradeOrderBlocks(), "GetExecutedTradeOrderBlocks");
         }
-
+        
         public Task<CancelTradeOrderBlock> GetCancelTradeOrderBlockAsync(string TradeOrderId)
         {
             return StopWatcher.TrackAsync(() => _store.GetCancelTradeOrderBlockAsync(TradeOrderId), StopWatcher.GetCurrentMethod());
@@ -172,7 +172,7 @@ namespace Lyra.Core.Accounts
         public Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlockAsync(string TradeOrderId)
         {
             return StopWatcher.TrackAsync(() => _store.GetExecuteTradeOrderBlockAsync(TradeOrderId), StopWatcher.GetCurrentMethod());
-        }
+        }*/
 
         public List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime)
         {

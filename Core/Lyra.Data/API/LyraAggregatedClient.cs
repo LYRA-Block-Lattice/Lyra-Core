@@ -221,6 +221,11 @@ namespace Lyra.Data.API
             public Exception Exception { get; }
         }
 
+        static List<string> _badTestnetBlocks = new List<string>
+        {
+            "5bAsMk9iEfA9Qa3sTEPzuh6gU2imvtfe87eeF3uFtXub",
+            "2cDLHFZKBtgBRwGRupuVqWoKfpjdbdKisBUHy7VDknU8"
+        };
         public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> taskss, string tag = null) where T : APIResult, new()
         {
             var results = await WhenAllOrExceptionAsync(taskss);
@@ -247,7 +252,7 @@ namespace Lyra.Data.API
                 var best = coll.First();
 
                 // hack. testnet has a bad block. nutralize it.
-                if (best.Count >= expectedCount || (_networkId == "testnet" && tag == "5bAsMk9iEfA9Qa3sTEPzuh6gU2imvtfe87eeF3uFtXub"))
+                if (best.Count >= expectedCount || (_networkId == "testnet" && _badTestnetBlocks.Contains(tag)))
                 {
                     var x = results.First(a => a.IsSuccess && a.Result == best.Data);
                     return x.Result;
