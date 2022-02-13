@@ -39,7 +39,7 @@ services:
       - mongo
 
   testnet:
-    image: wizdy/lyranoded:3.2.0.8
+    image: wizdy/lyranoded:3.2.0.9
     restart: always
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
