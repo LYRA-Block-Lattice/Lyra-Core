@@ -221,7 +221,7 @@ namespace Lyra.Data.API
             public Exception Exception { get; }
         }
 
-        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> taskss) where T : APIResult, new()
+        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> taskss, string tag = null) where T : APIResult, new()
         {
             var results = await WhenAllOrExceptionAsync(taskss);
 
@@ -246,7 +246,8 @@ namespace Lyra.Data.API
 
                 var best = coll.First();
 
-                if (best.Count >= expectedCount)
+                // hack. testnet has a bad block. nutralize it.
+                if (best.Count >= expectedCount || tag == "5bAsMk9iEfA9Qa3sTEPzuh6gU2imvtfe87eeF3uFtXub")
                 {
                     var x = results.First(a => a.IsSuccess && a.Result == best.Data);
                     return x.Result;
