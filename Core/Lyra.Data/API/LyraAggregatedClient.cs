@@ -271,6 +271,7 @@ namespace Lyra.Data.API
             else
             {
                 msg += $"Failed: None. Db inconsist for {tag}.";
+                await InitAsync();
             }
             Console.WriteLine(msg);
 
