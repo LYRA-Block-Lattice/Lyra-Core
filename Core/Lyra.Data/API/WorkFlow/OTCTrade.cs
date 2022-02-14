@@ -22,6 +22,7 @@ namespace Lyra.Data.API.WorkFlow
         public decimal price { get; set; }
         public decimal amount { get; set; }
         public decimal collateral { get; set; }
+        public decimal pay { get; set; }
         public string payVia { get; set; }
 
         public override bool Equals(object obOther)
@@ -45,13 +46,14 @@ namespace Lyra.Data.API.WorkFlow
                 price == ob.price &&
                 amount == ob.amount &&
                 collateral == ob.collateral &&
+                pay == ob.pay &&
                 payVia == ob.payVia;
         }
 
         public override int GetHashCode()
         {
             return HashCode.Combine(HashCode.Combine(daoId, orderId, orderOwnerId, dir, crypto, fiat, price, amount), 
-                HashCode.Combine(collateral, payVia));
+                HashCode.Combine(collateral, pay, payVia));
         }
 
         public string GetExtraData()
@@ -66,6 +68,10 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
             extraData += $"{collateral.ToBalanceLong()}|";
+            if(LyraGlobal.DatabaseVersion >= 6)
+            {
+                extraData += $"{pay.ToBalanceLong()}|";
+            }            
             extraData += $"{payVia}|";
             return extraData;
         }
@@ -82,6 +88,7 @@ namespace Lyra.Data.API.WorkFlow
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
             result += $"Buyer Collateral: {collateral} {LyraGlobal.OFFICIALTICKERCODE}\n";
+            result += $"Pay: {pay} {fiat}";
             result += $"Pay Via: {payVia}\n";
             return result;
         }

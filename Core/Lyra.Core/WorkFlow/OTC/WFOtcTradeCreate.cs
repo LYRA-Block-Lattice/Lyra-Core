@@ -67,11 +67,18 @@ namespace Lyra.Core.WorkFlow
                 order.amount < trade.amount ||
                 order.dir == trade.dir ||
                 orderblk.OwnerAccountId != trade.orderOwnerId ||
-                trade.amount * trade.price > order.limitMax ||
-                trade.amount * trade.price < order.limitMin ||
+                trade.pay > order.limitMax ||
+                trade.pay < order.limitMin ||
                 !order.payBy.Contains(trade.payVia)
                 )
                 return APIResultCodes.InvalidTrade;
+
+            if(trade.pay != Math.Round(trade.pay, 2))
+                return APIResultCodes.InvalidTradeAmount;
+
+            var got = Math.Round(trade.pay / order.price, 8);
+            if(got != trade.amount)
+                return APIResultCodes.InvalidTradeAmount;
 
             // verify collateral
             var chgs = send.GetBalanceChanges(last);
