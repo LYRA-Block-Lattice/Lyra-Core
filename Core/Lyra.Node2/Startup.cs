@@ -269,7 +269,7 @@ namespace Lyra.Node2
             evn.SetWorkflowHost(host);
 
             app.UseRouting();
-            //app.UseCors();
+            app.UseCors();
             app.UseAuthorization();
             app.UseWebSockets();
 
