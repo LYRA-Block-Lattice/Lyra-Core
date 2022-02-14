@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,7 +57,7 @@ namespace Lyra.Data.API.WorkFlow
                 HashCode.Combine(collateral, pay, payVia));
         }
 
-        public string GetExtraData()
+        public string GetExtraData(Block block)
         {
             string extraData = "";
             extraData += daoId + "|";
@@ -68,7 +69,7 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
             extraData += $"{collateral.ToBalanceLong()}|";
-            if(LyraGlobal.DatabaseVersion >= 6)
+            if(block.Version >= 6)
             {
                 extraData += $"{pay.ToBalanceLong()}|";
             }            

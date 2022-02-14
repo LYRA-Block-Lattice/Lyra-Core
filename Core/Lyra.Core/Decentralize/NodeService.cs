@@ -90,7 +90,7 @@ namespace Lyra.Core.Decentralize
                 PosWallet.SetVoteFor(PosWallet.AccountId);
 
                 var blcokcount = await _store.GetBlockCountAsync();
-                if (blcokcount > 0) // not genesis
+                if (blcokcount > 0 && networkId == "devnet") // not genesis
                 {
                     await PosWallet.SyncAsync(null);
                 }                

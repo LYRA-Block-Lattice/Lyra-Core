@@ -39,7 +39,7 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Trade.GetExtraData() + "|";
+            extraData += Trade.GetExtraData(this) + "|";
             extraData += $"{OTStatus}|";
             return extraData;
         }
@@ -76,7 +76,7 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Trade.GetExtraData() + "|";
+            extraData += Trade.GetExtraData(this) + "|";
             extraData += $"{OTStatus}|";
             return extraData;
         }
