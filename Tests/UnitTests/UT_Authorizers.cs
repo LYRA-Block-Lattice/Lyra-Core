@@ -142,6 +142,10 @@ namespace UnitTests
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
             });
 
+            services.AddTransient<Repeator>();
+            services.AddTransient<ReqViewChange>();
+            services.AddTransient<CustomMessage>();
+
             //services.AddTransient<DoSomething>();
             //services.AddTransient<IMyService, MyService>();
             services.AddSingleton<IHostEnv, TestEnv>();
