@@ -777,6 +777,10 @@ namespace Lyra.Core.Accounts
 
             if (result?.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;
+            else
+            {
+                 _lastTransactionBlock = null;
+            }
 
             return result;
         }
