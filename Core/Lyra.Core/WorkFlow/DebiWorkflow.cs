@@ -25,6 +25,13 @@ namespace Lyra.Core.WorkFlow
         public TransactionBlock block { get; set; }
         public int count { get; set; }
 
+        private ILogger _logger;
+
+        public Repeator(ILogger<Repeator> logger)
+        {
+            _logger = logger;
+        }
+
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
@@ -54,7 +61,7 @@ namespace Lyra.Core.WorkFlow
                     await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
                         ??
                     await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-                Console.WriteLine($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
                 if (block != null)
                     count++;
@@ -263,6 +270,13 @@ namespace Lyra.Core.WorkFlow
 
     public class ReqViewChange : StepBodyAsync
     {
+        private ILogger _logger;
+
+        public ReqViewChange(ILogger<ReqViewChange> logger)
+        {
+            _logger = logger;
+        }
+
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
@@ -270,11 +284,11 @@ namespace Lyra.Core.WorkFlow
             ctx.ViewChangeReqCount++;
             if (ctx.ViewChangeReqCount > 10)
             {
-                Console.WriteLine($"View change req more than 10 times. Permanent error. Key: {ctx.SvcRequest}: {ctx.SendHash}");
+                _logger.LogInformation($"View change req more than 10 times. Permanent error. Key: {ctx.SvcRequest}: {ctx.SendHash}");
                 ctx.State = WFState.Error;
-            }                
+            }
 
-            Console.WriteLine($"Request View Change.");
+            _logger.LogInformation($"Request View Change.");
             await ConsensusService.Singleton.BeginChangeViewAsync("WF Engine", ViewChangeReason.ConsensusTimeout);
             return ExecutionResult.Next();
         }
@@ -300,11 +314,18 @@ namespace Lyra.Core.WorkFlow
     {
         public string Message { get; set; }
 
+        private ILogger _logger;
+
+        public CustomMessage(ILogger<CustomMessage> logger)
+        {
+            _logger = logger;
+        }
+
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
             var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.SendHash}, {ctx.Count}/, {Message}";
-            Console.WriteLine(log);
+            _logger.LogInformation(log);
 
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
             {

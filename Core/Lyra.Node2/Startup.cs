@@ -137,6 +137,10 @@ namespace Lyra.Node2
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
             });
 
+            services.AddTransient<Repeator>();
+            services.AddTransient<ReqViewChange>();
+            services.AddTransient<CustomMessage>();
+
             services.AddApiVersioning(options => {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
                 options.AssumeDefaultVersionWhenUnspecified = true;
