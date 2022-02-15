@@ -498,10 +498,10 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
-        public async Task<string> GetDisplayBalancesAsync()
+        public string GetDisplayBalances()
         {
             string res = "0";
-            TransactionBlock lastBlock = await GetLatestBlockAsync();
+            TransactionBlock lastBlock = GetLastSyncBlock();
             if (lastBlock != null)
             {
                 res = $"\n";
@@ -509,12 +509,12 @@ namespace Lyra.Core.Accounts
                 {
                     res += $"    {balance.Value.ToBalanceDecimal()} {balance.Key}\n";
                 }
-                if (lastBlock.NonFungibleToken != null)
-                {
-                    var sent_or_receive = lastBlock is ReceiveTransferBlock ? "received" : "sent";
-                    res += $"Last Non-Fungible Token {sent_or_receive}: {lastBlock.NonFungibleToken.TokenCode}  \n";
-                    res += await GetDisplayNFTInstanceAsync(lastBlock.NonFungibleToken);
-                }
+                //if (lastBlock.NonFungibleToken != null)
+                //{
+                //    var sent_or_receive = lastBlock is ReceiveTransferBlock ? "received" : "sent";
+                //    res += $"Last Non-Fungible Token {sent_or_receive}: {lastBlock.NonFungibleToken.TokenCode}  \n";
+                //    res += await GetDisplayNFTInstanceAsync(lastBlock.NonFungibleToken);
+                //}
             }
             return res;
         }
@@ -1289,7 +1289,7 @@ namespace Lyra.Core.Accounts
             else
             {
                 PrintConLine($"Receive transfer block has been authorized successfully");
-                PrintConLine("Balance: " + await GetDisplayBalancesAsync());
+                PrintConLine("Balance: " + GetDisplayBalances());
             }
             //PrintCon(string.Format("{0}> ", AccountName));
             return result;
@@ -1351,7 +1351,7 @@ namespace Lyra.Core.Accounts
             else
             {
                 PrintConLine(OperationName + $": Operation success");
-                PrintConLine("Balance: " + await GetDisplayBalancesAsync());
+                PrintConLine("Balance: " + GetDisplayBalances());
             }
             //PrintCon(string.Format("{0}> ", AccountName));
         }

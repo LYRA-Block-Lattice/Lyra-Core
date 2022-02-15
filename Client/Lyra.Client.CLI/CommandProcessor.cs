@@ -130,7 +130,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:
-                        Console.WriteLine(await _wallet.GetDisplayBalancesAsync());
+                        Console.WriteLine(_wallet.GetDisplayBalances());
                         break;
                     case COMMAND_COUNT:
                         Console.WriteLine(_wallet.GetLocalAccountHeight());
@@ -140,7 +140,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
                         Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(Not Set)"}");
                         Console.WriteLine(string.Format("Number of Blocks: {0}", _wallet.GetLocalAccountHeight()));
-                        Console.WriteLine(              "Balance: " + await _wallet.GetDisplayBalancesAsync());
+                        Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalances());
                         //Console.WriteLine("Last Status Block: ");
                         //Console.WriteLine((await _wallet.GetLastServiceBlockAsync()).Print());
                         break;
@@ -873,7 +873,7 @@ Amount: {amountx}
             else
             {
                 Console.WriteLine($"Send Transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
         }
@@ -978,7 +978,7 @@ Amount: {amountx}
             else
             {
                 Console.WriteLine($"Token generation has been authorized successfully");
-                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 
@@ -1040,7 +1040,7 @@ Amount: {amountx}
             else
             {
                 Console.WriteLine($"NFT generation has been authorized successfully");
-                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
             }
         }
 
