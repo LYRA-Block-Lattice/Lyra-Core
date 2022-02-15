@@ -25,7 +25,10 @@ namespace Lyra.Core.API
         private readonly string _appVersion;
         private readonly string _url;
 
-        public string Host { get; private set; }
+        private string _lastServer;
+        private List<string> _servers;
+
+        public string Host => _lastServer;
         private CancellationTokenSource _cancel;
 
         private TimeSpan _timeout;
@@ -33,6 +36,50 @@ namespace Lyra.Core.API
         {
             _timeout = timeout;
         }
+
+        private string GetUrlBase()
+        {
+            var rand = new Random();
+            _lastServer = _servers.OrderBy(a => rand.Next()).First();
+            return $"https://{_lastServer}/api/Node/";
+        }
+
+ /*       public LyraRestClient(string networkId)
+        {
+            _servers = networkId switch
+            {
+                "devnet" => new List<string> { 
+                    "192.168.3.50:4504",
+                    "192.168.3.77:4504",
+                },
+                "testnet" => new List<string> { 
+                    "seed1.testnet.lyra.live:4504",
+                    "seed2.testnet.lyra.live:4504",
+                    "seed3.testnet.lyra.live:4504",
+                    "seed4.testnet.lyra.live:4504",
+                },
+                "mainnet" => new List<string> {
+                    "seed1.mainnet.lyra.live:5504",
+                    "seed2.mainnet.lyra.live:5504",
+                    "seed3.mainnet.lyra.live:5504",
+                    "seed4.mainnet.lyra.live:5504",
+                },
+                _ => throw new Exception("Not valid network ID"),
+            };
+
+            _timeout = TimeSpan.FromSeconds(10);
+            _cancel = new CancellationTokenSource();
+
+            try
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
+                {
+                    return true;
+                };
+            }
+            catch { }
+        }*/
+
         public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
             _timeout = TimeSpan.FromSeconds(10);
@@ -43,14 +90,14 @@ namespace Lyra.Core.API
 
             _cancel = new CancellationTokenSource();
 
+            var uri = new Uri(url);
+            _servers = new List<string> { $"{uri.Host}:{uri.Port}" };
+
             if (platform == "iOS" || platform == "Unix")
             {
                 System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
                 {
                     return true;
-                    //if (certificate.Issuer.Equals("CN=localhost"))
-                    //    return true;
-                    //return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
                 };
             }
         }
@@ -83,7 +130,7 @@ namespace Lyra.Core.API
             HttpClientHandler insecureHandler = GetInsecureHandler();
             var client = new HttpClient(insecureHandler)
             {
-                BaseAddress = new Uri(_url),
+                BaseAddress = new Uri(GetUrlBase()),
                 //_client.DefaultRequestHeaders.Accept.Clear();
                 //_client.DefaultRequestHeaders.Accept.Add(
                 //    new MediaTypeWithQualityHeaderValue("application/json"));
@@ -98,15 +145,12 @@ namespace Lyra.Core.API
 
         public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
         {
-            var url = apiUrl == null ? LyraGlobal.SelectNode(networkId) + "Node/" : apiUrl;
-            var uri = new Uri(url);
-            var restClient = new LyraRestClient(platform, appName, appVersion, url)
-            {
-                Host = uri.Host
-            };
-            //if (!await restClient.CheckApiVersion().ConfigureAwait(false))
-            //    throw new Exception("Unable to use API. Must upgrade your App.");
-            //else
+            //if (apiUrl == null)
+            //    return new LyraRestClient(networkId);
+
+            var url = apiUrl ?? LyraGlobal.SelectNode(networkId) + "Node/";
+            var restClient = new LyraRestClient(platform, appName, appVersion, url);
+
             return restClient;
         }
 
