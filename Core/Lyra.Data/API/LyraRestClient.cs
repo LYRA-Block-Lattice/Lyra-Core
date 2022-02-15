@@ -91,14 +91,21 @@ namespace Lyra.Core.API
             _cancel = new CancellationTokenSource();
 
             var uri = new Uri(url);
-            _servers = new List<string> { $"{uri.Host}:{uri.Port}" };
+            if(uri.Port == 443 || uri.Port == 80)
+                _servers = new List<string> { $"{uri.Host}" };
+            else
+                _servers = new List<string> { $"{uri.Host}:{uri.Port}" };
 
-            if (platform == "iOS" || platform == "Unix")
+            if (url != null)
             {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
+                try
                 {
-                    return true;
-                };
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
+                    {
+                        return true;
+                    };
+                }
+                catch { }
             }
         }
 
@@ -117,7 +124,7 @@ namespace Lyra.Core.API
                     return true;
                 };
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // wasm will throw platform unsupported exception
             }
@@ -127,20 +134,24 @@ namespace Lyra.Core.API
 
         private HttpClient CreateClient()
         {
-            HttpClientHandler insecureHandler = GetInsecureHandler();
-            var client = new HttpClient(insecureHandler)
+            var uri = new Uri(GetUrlBase());
+            if (uri.Host.Contains("lyra.live") && uri.Port == 443)
             {
-                BaseAddress = new Uri(GetUrlBase()),
-                //_client.DefaultRequestHeaders.Accept.Clear();
-                //_client.DefaultRequestHeaders.Accept.Add(
-                //    new MediaTypeWithQualityHeaderValue("application/json"));
-                //#if DEBUG
-                //            _client.Timeout = new TimeSpan(0, 0, 30);
-                //#else
-                Timeout = new TimeSpan(0, 0, 15)
-            };
-            //#endif
-            return client;
+                return new HttpClient()
+                {
+                    BaseAddress = uri,
+                    Timeout = new TimeSpan(0, 0, 15)
+                };
+            }
+            else
+            {
+                HttpClientHandler insecureHandler = GetInsecureHandler();
+                return new HttpClient(insecureHandler)
+                {
+                    BaseAddress = uri,
+                    Timeout = new TimeSpan(0, 0, 15)
+                };
+            }
         }
 
         public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
