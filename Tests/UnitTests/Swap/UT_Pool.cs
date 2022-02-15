@@ -64,7 +64,7 @@ namespace UnitTests.Swap
             var w1 = Restore(testPrivateKey);
             await w1.SyncAsync(client);
 
-            var balances = w1.GetLatestBlock().Balances;
+            var balances = w1.GetLastSyncBlock().Balances;
             Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 100000m, "Insufficient funds: LYR");
 
             // make sure we have 2 test token
@@ -98,7 +98,7 @@ namespace UnitTests.Swap
             }
 
             await w1.SyncAsync(client);
-            balances = w1.GetLatestBlock().Balances;
+            balances = w1.GetLastSyncBlock().Balances;
             Assert.IsTrue(balances[testTokenA].ToBalanceDecimal() > 100000m, "Insufficient funds: " + testTokenA);
         }
         
@@ -184,8 +184,8 @@ namespace UnitTests.Swap
                 if (!poolWithShare.Shares.ContainsKey(w1.AccountId))
                     return;
 
-                var token0BalanceBefore = w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal();
-                var token1BalanceBefore = w1.GetLatestBlock().Balances[pool.Token1].ToBalanceDecimal();
+                var token0BalanceBefore = w1.GetLastSyncBlock().Balances[pool.Token0].ToBalanceDecimal();
+                var token1BalanceBefore = w1.GetLastSyncBlock().Balances[pool.Token1].ToBalanceDecimal();
                 var myshare = poolWithShare.Shares[w1.AccountId].ToRitoDecimal();
                 var token0ShouldReceive = Math.Round(myshare * poolLatest.Balances[pool.Token0].ToBalanceDecimal(), 8);
                 var token1ShouldReceive = Math.Round(myshare * poolLatest.Balances[pool.Token1].ToBalanceDecimal(), 8);
@@ -207,8 +207,8 @@ namespace UnitTests.Swap
 
                 await w1.SyncAsync(client);
                 // token0 is lyr, and fee + 1m = 2
-                Assert.AreEqual(token0BalanceBefore + token0ShouldReceive - 2, w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal());
-                Assert.AreEqual(token1BalanceBefore + token1ShouldReceive, w1.GetLatestBlock().Balances[pool.Token1].ToBalanceDecimal());
+                Assert.AreEqual(token0BalanceBefore + token0ShouldReceive - 2, w1.GetLastSyncBlock().Balances[pool.Token0].ToBalanceDecimal());
+                Assert.AreEqual(token1BalanceBefore + token1ShouldReceive, w1.GetLastSyncBlock().Balances[pool.Token1].ToBalanceDecimal());
             }
             finally
             {
@@ -231,8 +231,8 @@ namespace UnitTests.Swap
                 var w1 = Restore(testPrivateKey);
                 await w1.SyncAsync(client);
 
-                var testTokenBalance = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
 
@@ -254,8 +254,8 @@ namespace UnitTests.Swap
 
                 await w1.SyncAsync(client);
 
-                var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance2 = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance2 = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance2 = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 Assert.AreEqual(testTokenBalance - amount, testTokenBalance2);
                 Assert.AreEqual(lyrBalance - 1 + amountToGet, lyrBalance2);
@@ -281,8 +281,8 @@ namespace UnitTests.Swap
                 var w1 = Restore(testPrivateKey);
                 await w1.SyncAsync(client);
 
-                var testTokenBalance = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
 
@@ -313,8 +313,8 @@ namespace UnitTests.Swap
 
                 await w1.SyncAsync(client);
 
-                var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance2 = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance2 = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance2 = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 Assert.AreEqual(testTokenBalance + amountToGet, testTokenBalance2);
                 Assert.AreEqual(lyrBalance - 1 - amount, lyrBalance2);
@@ -340,8 +340,8 @@ namespace UnitTests.Swap
                 var w1 = Restore(testPrivateKey);
                 await w1.SyncAsync(client);
 
-                var testTokenBalance = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 // ops, someone swapped
                 var w2 = Restore(otherAccountPrivateKey);
@@ -378,8 +378,8 @@ namespace UnitTests.Swap
                 var amountToGet = cal4.MinimumReceived;
                 await w1.SyncAsync(client);
 
-                var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance2 = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance2 = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance2 = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 Assert.IsTrue(testTokenBalance + amountToGet <= testTokenBalance2, 
                     $"testTokenBalance + amountToGet is {testTokenBalance + amountToGet}, testTokenBalance2 is {testTokenBalance2}");
@@ -406,8 +406,8 @@ namespace UnitTests.Swap
                 var w1 = Restore(testPrivateKey);
                 await w1.SyncAsync(client);
 
-                var testTokenBalance = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 // send wrong token
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
@@ -448,8 +448,8 @@ namespace UnitTests.Swap
                 await Task.Delay(3000);
                 await w1.SyncAsync(client);
                 // make sure the balance is not changed.
-                var testTokenBalancex = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalancex = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalancex = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalancex = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
                 Assert.AreEqual(testTokenBalance, testTokenBalancex);
                 Assert.AreEqual(lyrBalance, lyrBalancex);
 
@@ -472,8 +472,8 @@ namespace UnitTests.Swap
 
                 await w1.SyncAsync(client);
 
-                var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
-                var lyrBalance2 = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var testTokenBalance2 = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance2 = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 Assert.AreEqual(testTokenBalance + amountToGet, testTokenBalance2);
                 Assert.AreEqual(lyrBalance - 1 - amount, lyrBalance2);

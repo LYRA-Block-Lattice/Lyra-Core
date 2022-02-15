@@ -606,7 +606,7 @@ namespace UnitTests
             await testWallet.SyncAsync(null);
             var lyrshouldbe = testbalance - 10016;
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
-            var bal2 = testWallet.GetLatestBlock().Balances[crypto].ToBalanceDecimal();
+            var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
             Assert.AreEqual(100000m - 1m, bal2,
                 $"testwallet balance of crypto should be {100000m - 1m} but {bal2}");
 
@@ -788,7 +788,7 @@ namespace UnitTests
             await testWallet.SyncAsync(null);
             var lyrshouldbe = testbalance - 10016;
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
-            var bal2 = testWallet.GetLatestBlock().Balances[crypto].ToBalanceDecimal();
+            var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
             Assert.AreEqual(100000m - 2m, bal2,
                 $"testwallet balance of crypto should be {100000m - 2m} but {bal2}");
 
@@ -856,7 +856,7 @@ namespace UnitTests
             Assert.IsTrue(getokret.Successful(), "error get ext token to own wallet");
             await Task.Delay(1500);
             await testWallet.SyncAsync(null);
-            Assert.AreEqual(500m, testWallet.GetLatestBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
+            Assert.AreEqual(500m, testWallet.GetLastSyncBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
 
             // put external token to dex wallet
             var putokret = await testWallet.DexPutTokenAsync(dexbrk1.AccountID, "tether/TRX", 500m);
@@ -1039,14 +1039,14 @@ namespace UnitTests
 
             await testWallet.SyncAsync(null);
 
-            var oldtkn0 = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal();
+            var oldtkn0 = testWallet.GetLastSyncBlock().Balances[token0].ToBalanceDecimal();
             var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, token0, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, 20, 0);
             var swapret = await testWallet.SwapTokenAsync("LYR", token0, "LYR", 20, cal2.SwapOutAmount);
             Assert.IsTrue(swapret.Successful());
             await WaitWorkflow("SwapTokenAsync");
             await testWallet.SyncAsync(null);
 
-            var gotamount = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal() - oldtkn0;
+            var gotamount = testWallet.GetLastSyncBlock().Balances[token0].ToBalanceDecimal() - oldtkn0;
             Console.WriteLine($"Got swapped amount {gotamount} {token0}");
 
             // remove liquidate from pool

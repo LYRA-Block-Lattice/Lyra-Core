@@ -1082,7 +1082,8 @@ Amount: {amountx}
         {
             const int MAX_TRANSACTIONS_TO_DISPLAY = 50;
             string res = "No transactions found";
-            TransactionBlock lastBlock = _wallet.GetLatestBlock();
+
+            TransactionBlock lastBlock = _wallet.GetLastSyncBlock();
             if (lastBlock == null)
                 return res;
 

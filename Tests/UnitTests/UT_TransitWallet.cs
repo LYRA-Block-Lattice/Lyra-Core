@@ -55,7 +55,7 @@ namespace UnitTests
             var syncResult = await w1.SyncAsync(client);
             Assert.AreEqual(APIResultCodes.Success, syncResult, $"Error Sycn: {syncResult}");
 
-            var balances = w1.GetLatestBlock().Balances;
+            var balances = w1.GetLastSyncBlock().Balances;
             Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 50000m, "Insufficient funds: LYR");
 
             // make sure we have 2 test token
