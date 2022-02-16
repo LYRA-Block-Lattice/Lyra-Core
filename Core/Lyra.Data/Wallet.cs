@@ -701,7 +701,10 @@ namespace Lyra.Core.Accounts
                     ? Amounts[LyraGlobal.OFFICIALTICKERCODE]
                     : 0)
                 )
-                return new AuthorizationAPIResult { ResultCode = APIResultCodes.InsufficientFunds };
+                return new AuthorizationAPIResult { 
+                    ResultCode = APIResultCodes.InsufficientFunds,
+                    ResultMessage = $"Sending {Amounts[LyraGlobal.OFFICIALTICKERCODE]} LYR",
+                };
 
             if (Amounts.Any(a => a.Value <= 0m))
                 throw new Exception("Amount must > 0");
