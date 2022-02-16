@@ -1,6 +1,7 @@
 ﻿using DexServer.Ext;
 using Lyra.Core.API;
 using Lyra.Data.Crypto;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,6 +24,15 @@ namespace Lyra.Data.API
                 UrlBase = "https://dealertestnet.lyra.live/api/Dealer/";
             else
                 UrlBase = "https://dealer.lyra.live/api/Dealer/";
+        }
+
+        public async Task<Dictionary<string, decimal>> GetPricesAsync()
+        {
+            var result = await GetAsync<SimpleJsonAPIResult>("GetPrices");
+            if (result.Successful())
+                return JsonConvert.DeserializeObject<Dictionary<string, decimal>>(result.JsonString);
+            else
+                throw new Exception($"Error GetPricesAsync: {result.ResultCode}, {result.ResultMessage}");
         }
 
         public async Task<SimpleJsonAPIResult> GetUserByAccountIdAsync(string accountId)
