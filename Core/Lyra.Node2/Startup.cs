@@ -61,52 +61,6 @@ namespace Lyra.Node2
 
             LyraNodeConfig.Init(networkId);
 
-            //services.AddHsts(options =>
-            //{
-            //    options.Preload = true;
-            //    options.IncludeSubDomains = true;
-            //    options.MaxAge = TimeSpan.FromDays(365);
-            //});
-
-            //if (!_env.IsDevelopment())
-            //{
-            //    services.AddHttpsRedirection(opts => {
-            //        opts.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-            //        opts.HttpsPort = 4504;
-            //    });
-            //}
-            //else
-            //{
-            //    services.AddHttpsRedirection(opts =>
-            //    {
-            //        opts.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-            //        opts.HttpsPort = 4504;
-            //    });
-            //}
-            //services.AddCors(options =>
-            //{
-            //    options.AddPolicy("my", builder =>
-            //                      {
-            //                          builder.WithOrigins("http://lyra.live/",
-            //                                          "http://seed.devnet", "https://localhost:44324/")
-            //                          .AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-            //                      });
-            //});
-
-            services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(builder =>
-                builder.WithOrigins(
-                    "https://localhost:8098",
-                    "http://localhost:5098",
-                    "https://lyra.live",
-                    "https://apptestnet.lyra.live",
-                    "https://app.lyra.live"
-                    )
-                .AllowAnyHeader()
-                .AllowAnyMethod());
-            });
-
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();
@@ -211,6 +165,13 @@ namespace Lyra.Node2
                 //});
                 //app.UseHsts();
             }
+
+            app.UseCors(builder =>
+                builder
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                );
 
             var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
             loggerFactory.AddFile(logPath + "noded-{Date}.txt");
