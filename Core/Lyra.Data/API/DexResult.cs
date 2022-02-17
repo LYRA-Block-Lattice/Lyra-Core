@@ -17,6 +17,7 @@ namespace DexServer.Ext
     public class ExtAssert
     {
         public string Name { get; set; }
+        public string CoinGeckoName { get; set; }   // to get stats from coingecko
         public string Url { get; set; }
         public string Symbol { get; set; }
 

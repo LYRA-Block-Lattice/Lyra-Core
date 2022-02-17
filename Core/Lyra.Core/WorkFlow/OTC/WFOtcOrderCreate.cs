@@ -79,7 +79,10 @@ namespace Lyra.Core.WorkFlow
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.collateral)
                 return APIResultCodes.InvalidCollateral;
 
-            // TODO: check the price of order and collateral.
+            // check the price of order and collateral.
+            var dealer = new DealerClient(sys.PosWallet.NetworkId);
+            var prices = await dealer.GetPricesAsync();
+            //if(order.collateral * prices["lyra"] < order.crypto)
 
             return APIResultCodes.Success;
         }
