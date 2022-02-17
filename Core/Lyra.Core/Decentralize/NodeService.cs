@@ -92,7 +92,11 @@ namespace Lyra.Core.Decentralize
                 var blcokcount = await _store.GetBlockCountAsync();
                 if (blcokcount > 0 && networkId == "devnet") // not genesis
                 {
-                    await PosWallet.SyncAsync(null);
+                    try
+                    {
+                        await PosWallet.SyncAsync(null);
+                    }
+                    catch { }
                 }                
 
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
