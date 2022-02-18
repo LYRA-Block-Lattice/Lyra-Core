@@ -62,8 +62,8 @@ namespace Lyra.Node2
             LyraNodeConfig.Init(networkId);
 
             // the apis
-            services.AddSingleton<INodeAPI, NodeAPI>();
-            services.AddSingleton<INodeTransactionAPI, ApiService>();
+            services.AddScoped<INodeAPI, NodeAPI>();
+            services.AddScoped<INodeTransactionAPI, ApiService>();
             services.AddSingleton<IHostEnv, HostEnvService>();
             services.AddSingleton<IAccountCollectionAsync, MongoAccountCollection>();
 
