@@ -483,11 +483,11 @@ namespace UnitTests
                 fiat = "USD",
                 priceType = PriceType.Fixed,
                 price = 2000,
-                amount = 10,
-                collateral = 1000000,
+                amount = 1,
+                collateral = 15000000,
                 payBy = new string[] { "Paypal" },
-                limitMin = 2000,
-                limitMax = 20000,
+                limitMin = 100,
+                limitMax = 2000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -526,9 +526,9 @@ namespace UnitTests
                 crypto = "unittest/ETH",
                 fiat = "USD",
                 price = 2000,
-                amount = 1,
+                amount = 0.1m,
                 collateral = 1000000,
-                pay = 2000,
+                pay = 200,
                 payVia = "Paypal",
             };
             await test2Wallet.SyncAsync(null);
@@ -544,7 +544,7 @@ namespace UnitTests
             var otcs2 = otcret2.GetBlocks();
             Assert.IsTrue(otcs2.Count() == 1 && otcs2.First() is IOtcOrder, $"otc block count not = 1.");
             var otcorderx = otcs2.First() as IOtcOrder;
-            Assert.AreEqual(9, otcorderx.Order.amount, "order not processed");
+            Assert.AreEqual(0.9m, otcorderx.Order.amount, "order not processed");
 
             // get trade
             var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
@@ -607,8 +607,8 @@ namespace UnitTests
             var lyrshouldbe = testbalance - 10016;
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
-            Assert.AreEqual(100000m - 1m, bal2,
-                $"testwallet balance of crypto should be {100000m - 1m} but {bal2}");
+            Assert.AreEqual(100000m - 0.1m, bal2,
+                $"testwallet balance of crypto should be {100000m - 0.1m} but {bal2}");
 
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
@@ -665,11 +665,11 @@ namespace UnitTests
                 fiat = "USD",
                 priceType = PriceType.Fixed,
                 price = 2000,
-                amount = 10,
-                collateral = 1000000,
+                amount = 2,
+                collateral = 40000000,
                 payBy = new string[] { "Paypal" },
-                limitMin = 2000,
-                limitMax = 20000,
+                limitMin = 200,
+                limitMax = 4000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -726,7 +726,7 @@ namespace UnitTests
             var otcs2 = otcret2.GetBlocks();
             Assert.IsTrue(otcs2.Count() == 2 && otcs2.Last() is IOtcOrder, $"otc block count not = 1.");
             var otcorderx = otcs2.Last() as IOtcOrder;
-            Assert.AreEqual(9, otcorderx.Order.amount, "order not processed");
+            Assert.AreEqual(1m, otcorderx.Order.amount, "order not processed");
 
             // get trade
             var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
@@ -789,8 +789,8 @@ namespace UnitTests
             var lyrshouldbe = testbalance - 10016;
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
-            Assert.AreEqual(100000m - 2m, bal2,
-                $"testwallet balance of crypto should be {100000m - 2m} but {bal2}");
+            Assert.AreEqual(100000m - 1.1m, bal2,
+                $"testwallet balance of crypto should be {100000m - 1.1m} but {bal2}");
 
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");

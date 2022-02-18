@@ -20,8 +20,9 @@ namespace UnitTests
 
             var prices = await client.GetPricesAsync();
 
-            Assert.IsTrue(prices.ContainsKey("lyra"));
-            Assert.IsTrue(prices.ContainsKey("bitcoin"));
+            Assert.IsTrue(prices.ContainsKey("LYR"));
+            Assert.IsTrue(prices.ContainsKey("BTC"));
+            Assert.IsTrue(prices.ContainsKey("LYR_INT"));
         }
 
         //[TestMethod]

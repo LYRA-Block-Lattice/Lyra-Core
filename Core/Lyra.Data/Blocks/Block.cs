@@ -628,5 +628,6 @@ namespace Lyra.Core.Blocks
         NotFound,
         InvalidTagParameters,
         InputTooShort,
+        CollateralNotEnough,
     }
 }

@@ -82,7 +82,9 @@ namespace Lyra.Core.WorkFlow
             // check the price of order and collateral.
             var dealer = new DealerClient(sys.PosWallet.NetworkId);
             var prices = await dealer.GetPricesAsync();
-            //if(order.collateral * prices["lyra"] < order.crypto)
+            var tokenSymbol = order.crypto.Split('/')[1];
+            if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
+                return APIResultCodes.CollateralNotEnough;
 
             return APIResultCodes.Success;
         }
