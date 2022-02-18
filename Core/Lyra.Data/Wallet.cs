@@ -163,6 +163,9 @@ namespace Lyra.Core.Accounts
             }
 
             var blockResult = await _rpcClient.GetLastBlockAsync(AccountId);
+            if (blockResult == null)
+                return APIResultCodes.NotFound;
+
             if (blockResult.Successful())
                 _lastSyncBlock = blockResult.GetBlock() as TransactionBlock;
 
