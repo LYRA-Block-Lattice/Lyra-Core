@@ -260,6 +260,9 @@ namespace Lyra.Core.Accounts
                 var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
                 int max_counter = 0;
 
+                if (lookup_result == null)
+                    return APIResultCodes.NotFound;
+
                 while (!_cancel.IsCancellationRequested && lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
                 {
                     max_counter++;
