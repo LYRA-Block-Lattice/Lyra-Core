@@ -24,7 +24,6 @@ using Lyra.Data.API.WorkFlow;
 using Lyra.Shared;
 using Neo;
 using Newtonsoft.Json;
-//using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
 {
