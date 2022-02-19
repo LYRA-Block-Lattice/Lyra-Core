@@ -392,6 +392,11 @@ namespace Lyra.Core.Blocks
         OTCTradeRecv = 87,
         OTCTradeGenesis = 88,
         OTCTradeSend = 89,
+
+        // voting
+        VoteGenesis = 100,
+        Voting = 101,
+        VotedResult = 102,
     }
 
     public enum APIResultCodes

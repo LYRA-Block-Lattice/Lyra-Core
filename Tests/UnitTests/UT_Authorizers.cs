@@ -393,17 +393,17 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            await TestOTCTrade();
-            await TestOTCTradeDispute();   // test for dispute
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
-            await TestNodeFee();
+            await TestVoting();
+
+            //await TestOTCTrade();
+            //await TestOTCTradeDispute();   // test for dispute
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            //await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
-            await Task.Delay(1000);
-
-            
+            await Task.Delay(1000);            
         }
 
         private async Task WaitBlock(string target)
@@ -423,6 +423,37 @@ namespace UnitTests
 #endif
             Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");
+        }
+
+        private async Task TestVoting()
+        {
+            // simulate a court by node owners
+            // create a DAO for nodes
+            var name = "Node Owners Club";
+            var desc = "Doing great business!";
+            var dcret = await genesisWallet.CreateDAOAsync(name, desc, 120, 120);
+            Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
+
+            await WaitWorkflow("CreateDAOAsync");
+
+            var nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret.Successful());
+
+            var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+
+            VotingSubject subject = new VotingSubject
+            {
+                Type = SubjectType.OTCDispute,
+                DaoId = nodesdao.AccountID,
+                Issuer = genesisWallet.AccountId,
+                TimeSpan = 100,
+                Title = "Now let vote on case ID 111",
+                Description = "bla bla bla",
+                Options = new [] { "Yay", "Nay"},
+            };
+
+            var voteRet = await genesisWallet.CreateVoteSubject(subject);
+            Assert.IsTrue(voteRet.Successful(), "Create vote subject error");
         }
 
         private async Task TestOTCTrade()
@@ -527,7 +558,7 @@ namespace UnitTests
                 fiat = "USD",
                 price = 2000,
                 amount = 0.1m,
-                collateral = 1000000,
+                collateral = 15000000,
                 pay = 200,
                 payVia = "Paypal",
             };
@@ -709,7 +740,7 @@ namespace UnitTests
                 fiat = "USD",
                 price = 2000,
                 amount = 1,
-                collateral = 1000000,
+                collateral = 40000000,
                 pay = 2000,
                 payVia = "Paypal",
             };

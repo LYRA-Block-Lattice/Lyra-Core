@@ -18,6 +18,16 @@ namespace Lyra.Core.WorkFlow
         BrokerRecvType RecvVia { get; }
     }
 
+    #region Voting
+    public class CreateVotingWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_VOT_CREATE;
+        public override BrokerRecvType RecvVia => BrokerRecvType.DaoRecv;
+
+        public int Version => 1;
+    }
+    #endregion
+
     #region crypto OTC
     public class CreateDaoWorkflow : DebiWorkflow, IWorkflowExt
     {

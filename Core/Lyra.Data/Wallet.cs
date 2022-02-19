@@ -2213,6 +2213,25 @@ namespace Lyra.Core.Accounts
         }
         #endregion
 
+        #region Voting
+        public async Task<AuthorizationAPIResult> CreateVoteSubject(VotingSubject subject)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_VOT_CREATE },
+                { "data", JsonConvert.SerializeObject(subject) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(subject.DaoId, amounts, tags);
+            return result;
+        }
+        #endregion
+
         public TransactionBlock GetLastSyncBlock()
         {
             return _lastSyncBlock;

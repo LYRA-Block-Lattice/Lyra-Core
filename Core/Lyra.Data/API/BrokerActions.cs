@@ -38,5 +38,10 @@ namespace Lyra.Data.API
         public const string BRK_OTC_TRDPAYSENT = "TRDPAYSNT";
         public const string BRK_OTC_TRDPAYGOT = "TRDPAYGOT";
         public const string BRK_OTC_ORDCLOSE = "ORDCLOSE";
+
+        // Voting
+        public const string BRK_VOT_CREATE = "CRVOTS";
+        public const string BRK_VOT_VOTE = "VOTE";
+        public const string BRK_VOT_CLOSE = "VOTCLS";
     }
 }
