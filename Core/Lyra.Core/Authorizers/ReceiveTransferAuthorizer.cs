@@ -29,6 +29,7 @@ namespace Lyra.Core.Authorizers
             BlockTypes.OrgnizationGenesis,
             BlockTypes.OTCOrderGenesis,
             BlockTypes.OTCTradeGenesis,
+            BlockTypes.VoteGenesis,
         };
 
         

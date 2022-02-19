@@ -84,7 +84,7 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class VotingGenesisBlock : OtcOrderRecvBlock, IOpeningBlock
+    public class VotingGenesisBlock : BrokerAccountRecv, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
         public VotingSubject Subject { get; set; }

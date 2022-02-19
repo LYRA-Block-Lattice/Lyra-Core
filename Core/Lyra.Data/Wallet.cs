@@ -2230,6 +2230,23 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(subject.DaoId, amounts, tags);
             return result;
         }
+        public async Task<AuthorizationAPIResult> Vote(string daoid, string voteid, int voteIndex)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_VOT_VOTE },
+                { "voteid", voteid },
+                { "index", voteIndex.ToString() },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
         #endregion
 
         public TransactionBlock GetLastSyncBlock()

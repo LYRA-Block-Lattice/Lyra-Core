@@ -1,6 +1,8 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Data.Blocks;
+using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +44,48 @@ namespace Lyra.Core.WorkFlow
                 return null;
 
             return await operations[index](sys, send);
+        }
+
+        protected async Task<TransactionBlock> TransactionOperateAsync(
+            DagSystem sys,
+            SendTransferBlock sendBlock,
+            Func<TransactionBlock> GenBlock,
+            Action<TransactionBlock> ChangeBlock
+            )
+        {
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+
+            var lsb = await sys.Storage.GetLastServiceBlockAsync();
+
+            var nextblock = GenBlock();
+
+            // block
+            nextblock.ServiceHash = lsb.Hash;
+
+            // transaction
+            nextblock.AccountID = sendBlock.DestinationAccountId;
+            nextblock.Balances = new Dictionary<string, long>();
+            nextblock.Fee = 0;
+            nextblock.FeeCode = LyraGlobal.OFFICIALTICKERCODE;
+            nextblock.FeeType = AuthorizationFeeTypes.NoFee;
+
+            // broker
+            (nextblock as IBrokerAccount).Name = ((IBrokerAccount)lastblock).Name;
+            (nextblock as IBrokerAccount).OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId;
+            (nextblock as IBrokerAccount).RelatedTx = sendBlock.Hash;
+
+            nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            var latestBalances = lastblock.Balances.ToDecimalDict();
+            var recvBalances = lastblock.Balances.ToDecimalDict();
+            nextblock.Balances = recvBalances.ToLongDict();
+
+            if (ChangeBlock != null)
+                ChangeBlock(nextblock);
+
+            await nextblock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
+
+            return nextblock;
         }
     }
 }

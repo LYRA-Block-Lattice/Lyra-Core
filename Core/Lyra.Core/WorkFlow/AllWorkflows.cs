@@ -26,6 +26,13 @@ namespace Lyra.Core.WorkFlow
 
         public int Version => 1;
     }
+    public class VoteWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_VOT_VOTE;
+        public override BrokerRecvType RecvVia => BrokerRecvType.DaoRecv;
+
+        public int Version => 1;
+    }
     #endregion
 
     #region crypto OTC

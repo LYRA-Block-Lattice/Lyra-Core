@@ -452,8 +452,16 @@ namespace UnitTests
                 Options = new [] { "Yay", "Nay"},
             };
 
-            var voteRet = await genesisWallet.CreateVoteSubject(subject);
-            Assert.IsTrue(voteRet.Successful(), "Create vote subject error");
+            var voteCrtRet = await genesisWallet.CreateVoteSubject(subject);
+
+            await WaitWorkflow("Create Vote Subject Async");
+            Assert.IsTrue(voteCrtRet.Successful(), "Create vote subject error");
+
+            var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(voteCrtRet.TxHash);
+            var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
+            var voteRet = await testWallet.Vote(nodesdao.AccountID, voteblk.AccountID, 0);
+            await WaitWorkflow("Vote on Subject Async");
+            Assert.IsTrue(voteCrtRet.Successful(), $"Vote error: {voteRet.ResultCode}");
         }
 
         private async Task TestOTCTrade()
