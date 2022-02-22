@@ -45,6 +45,9 @@ namespace UnitTests
         readonly string test3PrivateKey = "2iWkVkodnhcvQvzQSnBKMU3PhMfhEfWVMRWC1S21qg4cNR9UxC";
         string test3PublicKey = "LUTnKnTaeZ95MaCCeA4Y7RZeLo5PrmAipuvaaHMvrpk3awbc7VBSWNRRuhQuA5qy5SGNh7imC71jaMCdttMN1a6DrSPTP6";
 
+        readonly string test4PrivateKey = "yEEj2uvCQji75Qps4jZdPRZj7KtFoeW2dh7pmfXjEuYXK9Uz3";
+        string test4PublicKey = "LUT5jYomQHCJQhG3Co7GadEtohpwwYtyYz1vABHGeDkLDpSJGXFfpYgD9XckRXQg2Hv2Yrb2Ade3jbecZpLf4hbVho6b5n";
+
         IHostEnv _env;
         private ConsensusService cs;
         private IAccountCollectionAsync store;
@@ -55,6 +58,7 @@ namespace UnitTests
         private Wallet testWallet;
         private Wallet test2Wallet;
         private Wallet test3Wallet;
+        private Wallet test4Wallet;
 
         Random _rand = new Random();
 
@@ -131,6 +135,7 @@ namespace UnitTests
         private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
         {
             Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
+            _workflowEnds.Set();
         }
 
         private static IServiceProvider ConfigureServices()
@@ -170,6 +175,7 @@ namespace UnitTests
         {
             _authResult = true;
             _sbAuthResults.Clear();
+            _workflowEnds.Reset();
         }
 
         [TestCleanup]
@@ -204,6 +210,7 @@ namespace UnitTests
                         _sbAuthResults.Append($"{result.Item1}, ");
                         Console.WriteLine($"Auth failed: {result.Item1}");
                         await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Nay, true);
+                        _workflowEnds.Set();
                     }
 
                     return new AuthorizationAPIResult
@@ -346,6 +353,8 @@ namespace UnitTests
             Assert.IsTrue(sendResult2.Successful(), $"send error {sendResult2.ResultCode}");
             var sendResult3 = await genesisWallet.SendAsync(tamount, test3PublicKey);
             Assert.IsTrue(sendResult3.Successful(), $"send error {sendResult3.ResultCode}");
+            var sendResult4 = await genesisWallet.SendAsync(tamount, test4PublicKey);
+            Assert.IsTrue(sendResult4.Successful(), $"send error {sendResult4.ResultCode}");
         }
 
         private async Task CreateDevnet()
@@ -393,7 +402,7 @@ namespace UnitTests
             Wallet.Create(walletStor3, "xunit2", "1234", networkId, test2PrivateKey);
             test2Wallet = Wallet.Open(walletStor3, "xunit2", "1234", client);
             test2Wallet.NoConsole = true;
-            Assert.AreEqual(test2Wallet.AccountId, test2PublicKey);
+            Assert.AreEqual(test2PublicKey, test2Wallet.AccountId);
 
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
@@ -402,9 +411,17 @@ namespace UnitTests
             Wallet.Create(walletStor4, "xunit2", "1234", networkId, test3PrivateKey);
             test3Wallet = Wallet.Open(walletStor4, "xunit2", "1234", client);
             test3Wallet.NoConsole = true;
-            Assert.AreEqual(test3Wallet.AccountId, test3PublicKey);
+            Assert.AreEqual(test3PublicKey, test3Wallet.AccountId);
 
             await test3Wallet.SyncAsync(client);
+
+            var walletStor5 = new AccountInMemoryStorage();
+            Wallet.Create(walletStor5, "xunit2", "1234", networkId, test4PrivateKey);
+            test4Wallet = Wallet.Open(walletStor5, "xunit2", "1234", client);
+            test4Wallet.NoConsole = true;
+            Assert.AreEqual(test4PublicKey, test4Wallet.AccountId);
+
+            await test4Wallet.SyncAsync(client);
 
             await TestVoting();
 
@@ -436,6 +453,7 @@ namespace UnitTests
 #endif
             Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");
+            _workflowEnds.Reset();
         }
 
         private async Task TestVoting()
@@ -499,7 +517,25 @@ namespace UnitTests
             var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
             var voteRet = await testWallet.Vote(voteblk.AccountID, 0);
             await WaitWorkflow("Vote on Subject Async");
-            Assert.IsTrue(voteCrtRet.Successful(), $"Vote error: {voteRet.ResultCode}");
+            Assert.IsTrue(voteRet.Successful(), $"Vote error: {voteRet.ResultCode}");
+
+            var voteRet2 = await test2Wallet.Vote(voteblk.AccountID, 0);
+            await WaitWorkflow("Vote on Subject Async 2");
+            Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
+
+            var voteRet2x = await test2Wallet.Vote(voteblk.AccountID, 0);
+            await WaitWorkflow("Vote on Subject Async 2x");
+            Assert.IsTrue(!voteRet2x.Successful(), $"Vote 2x should error: {voteRet2x.ResultCode}");
+
+            var voteRet3 = await test3Wallet.Vote(voteblk.AccountID, 1);
+            await WaitWorkflow("Vote on Subject Async 3");
+            Assert.IsTrue(voteRet3.Successful(), $"Vote error: {voteRet3.ResultCode}");
+
+            var voteRet4 = await test4Wallet.Vote(voteblk.AccountID, 1);
+            await WaitWorkflow("Vote on Subject Async 4");
+            Assert.IsTrue(!voteRet4.Successful(), $"Vote 4 should error: {voteRet4.ResultCode}");
+
+            ResetAuthFail();
         }
 
         private async Task TestOTCTrade()

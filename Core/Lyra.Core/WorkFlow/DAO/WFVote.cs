@@ -37,6 +37,33 @@ namespace Lyra.Core.WorkFlow.DAO
                 )
                 return APIResultCodes.InvalidBlockTags;
 
+            var voteid = send.Tags["voteid"];
+            var index = int.Parse(send.Tags["index"]);
+
+            var voteg = sys.Storage.FindFirstBlock(voteid) as VotingGenesisBlock;
+            var votel = await sys.Storage.FindLatestBlockAsync(voteid);
+
+            // index must in range
+            if(index < 0 || index > voteg.Subject.Options.Count() - 1)
+            {
+                return APIResultCodes.InvalidVote;
+            }
+
+            // voter should in treasure
+            var dao = await sys.Storage.FindLatestBlockAsync(voteg.Subject.DaoId);
+            if(!(dao as IDao).Treasure.ContainsKey(send.AccountID))
+            {
+                return APIResultCodes.InvalidVote;
+            }
+
+            // voter shouldn't multiple vote
+            for(var a = votel.Height; a > 1; a--)
+            {
+                var vx = await sys.Storage.FindBlockByHeightAsync(voteid, a);
+                if ((vx as VotingBlock).OwnerAccountId == send.AccountID)
+                    return APIResultCodes.InvalidVote;
+            }
+
             return APIResultCodes.Success;
         }
 

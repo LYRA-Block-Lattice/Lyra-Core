@@ -21,6 +21,7 @@ namespace Lyra.Core.Accounts
         //int GetTotalBlockCount();
         Task<bool> AccountExistsAsync(string AccountId);
         Task<Block> FindLatestBlockAsync();
+        Task<Block> FindBlockByHeightAsync(string AccountId, long height);
         Task<Block> FindLatestBlockAsync(string AccountId);
         Task<Block> FindFirstBlockAsync(string AccountId);
         TransactionBlock FindFirstBlock(string AccountId);

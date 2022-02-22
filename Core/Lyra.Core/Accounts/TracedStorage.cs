@@ -32,6 +32,7 @@ namespace Lyra.Core.Accounts
         //public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
+        public async Task<Block> FindBlockByHeightAsync(string AccountId, long height) => await StopWatcher.TrackAsync(() => _store.FindBlockByHeightAsync(AccountId, height), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
         public async Task<bool> AccountExistsAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.AccountExistsAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.AccountExistsAsync(AccountId);
         public async Task<Block> FindLatestBlockAsync() => await StopWatcher.TrackAsync(() => _store.FindLatestBlockAsync(), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync();
         public async Task<Block> FindLatestBlockAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.FindLatestBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);

@@ -637,5 +637,7 @@ namespace Lyra.Core.Blocks
         InvalidTagParameters,
         InputTooShort,
         CollateralNotEnough,
+
+        InvalidVote,
     }
 }
