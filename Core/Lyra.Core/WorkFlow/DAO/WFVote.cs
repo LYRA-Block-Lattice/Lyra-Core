@@ -22,7 +22,7 @@ namespace Lyra.Core.WorkFlow.DAO
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_VOT_VOTE,
-                RecvVia = BrokerRecvType.DaoRecv,
+                RecvVia = BrokerRecvType.None,
                 Steps = new[] { VoteAsync }
             };
         }
@@ -47,6 +47,8 @@ namespace Lyra.Core.WorkFlow.DAO
             var voteid = send.Tags["voteid"];
             var index = int.Parse(send.Tags["index"]);
 
+            var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
+
             var prevBlock = await sys.Storage.FindLatestBlockAsync(voteid) as TransactionBlock;
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var gens = new VotingBlock
@@ -61,7 +63,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 Balances = new Dictionary<string, long>(),
 
                 // recv
-                SourceHash = (blocks.Last() as TransactionBlock).Hash,
+                SourceHash = send.Hash,
 
                 // broker
                 Name = "no name",
@@ -71,6 +73,13 @@ namespace Lyra.Core.WorkFlow.DAO
                 // voting
                 OptionIndex = index,
             };
+
+            var oldbalance = prevBlock.Balances.ToDecimalDict();
+            if (oldbalance.ContainsKey("LYR"))
+                oldbalance["LYR"] += txInfo.Changes["LYR"];
+            else
+                oldbalance.Add("LYR", txInfo.Changes["LYR"]);
+            gens.Balances = oldbalance.ToLongDict();
 
             gens.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 

@@ -141,6 +141,7 @@ namespace Lyra.Core.Authorizers
                     || block.BlockType == BlockTypes.DexRecvToken
                     || block.BlockType == BlockTypes.OrgnizationRecv
                     || block.BlockType == BlockTypes.OTCTradeRecv
+                    || block.BlockType == BlockTypes.Voting
                     )  // temp code. should use getbalancechanges
                 {
                     if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)

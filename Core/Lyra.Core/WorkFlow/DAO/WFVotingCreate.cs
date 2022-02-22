@@ -60,7 +60,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 Balances = new Dictionary<string, long>(),
 
                 // recv
-                SourceHash = (blocks.Last() as TransactionBlock).Hash,
+                SourceHash = null,
 
                 // broker
                 Name = "no name",

@@ -408,8 +408,8 @@ namespace UnitTests
 
             await TestVoting();
 
-            //await TestOTCTrade();
-            //await TestOTCTradeDispute();   // test for dispute
+            await TestOTCTrade();
+            await TestOTCTradeDispute();   // test for dispute
             //await TestPoolAsync();
             //await TestProfitingAndStaking();
             //await TestNodeFee();
@@ -497,7 +497,7 @@ namespace UnitTests
 
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(voteCrtRet.TxHash);
             var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
-            var voteRet = await testWallet.Vote(nodesdao.AccountID, voteblk.AccountID, 0);
+            var voteRet = await testWallet.Vote(voteblk.AccountID, 0);
             await WaitWorkflow("Vote on Subject Async");
             Assert.IsTrue(voteCrtRet.Successful(), $"Vote error: {voteRet.ResultCode}");
         }
@@ -539,7 +539,7 @@ namespace UnitTests
             var alldaoret = await testWallet.RPC.GetAllDaosAsync(0, 10);
             Assert.IsTrue(alldaoret.Successful(), $"can get all dao: {alldaoret.ResultCode}");
             var daos = alldaoret.GetBlocks();
-            Assert.AreEqual(1, daos.Count(), $"can't find dao by GetAllDaosAsync");
+            Assert.AreEqual(2, daos.Count(), $"can't find dao by GetAllDaosAsync");
             var dao0 = alldaoret.GetBlocks().First() as DaoGenesisBlock;
             Assert.IsTrue(daoblk.AuthCompare(dao0));
 

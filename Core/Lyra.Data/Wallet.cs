@@ -2247,7 +2247,7 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(subject.DaoId, amounts, tags);
             return result;
         }
-        public async Task<AuthorizationAPIResult> Vote(string daoid, string voteid, int voteIndex)
+        public async Task<AuthorizationAPIResult> Vote(string voteid, int voteIndex)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2261,7 +2261,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, 1 },
             };
 
-            var result = await SendExAsync(daoid, amounts, tags);
+            var result = await SendExAsync(voteid, amounts, tags);
             return result;
         }
         #endregion
