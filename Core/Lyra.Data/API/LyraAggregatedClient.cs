@@ -465,7 +465,7 @@ namespace Lyra.Data.API
             return await CheckResultAsync("GetTokenGenesisBlock", tasks);
         }
 
-        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string? Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string? AccountId, string? Signature, string keyword)
         {
             var tasks = _primaryClients.Select(client => client.GetTokenNamesAsync(AccountId, Signature, keyword)).ToList();
 

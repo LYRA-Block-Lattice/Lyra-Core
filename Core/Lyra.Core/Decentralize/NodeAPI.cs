@@ -193,7 +193,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string? Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string? AccountId, string? Signature, string keyword)
         {
             var result = new GetListStringAPIResult();
             //if(!await VerifyClientAsync(AccountId, Signature))
