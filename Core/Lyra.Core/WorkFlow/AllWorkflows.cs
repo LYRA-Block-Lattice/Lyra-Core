@@ -18,7 +18,15 @@ namespace Lyra.Core.WorkFlow
         BrokerRecvType RecvVia { get; }
     }
 
-    #region Voting
+    #region DAO
+    public class JoinDaoWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DAO_JOIN;
+        public override BrokerRecvType RecvVia => BrokerRecvType.DaoRecv;
+
+        public int Version => 1;
+    }
+
     public class CreateVotingWorkflow : DebiWorkflow, IWorkflowExt
     {
         public string Id => BrokerActions.BRK_VOT_CREATE;

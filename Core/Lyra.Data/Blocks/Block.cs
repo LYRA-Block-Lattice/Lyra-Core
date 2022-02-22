@@ -258,6 +258,9 @@ namespace Lyra.Core.Blocks
             if (Tags == null)
                 Tags = new Dictionary<string, string>();
 
+            if(Tags.ContainsKey(tagKey))
+                Tags.Remove(tagKey);
+
             Tags.Add(tagKey, tagValue);
         }
 

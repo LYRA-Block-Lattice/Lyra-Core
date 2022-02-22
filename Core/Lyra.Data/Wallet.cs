@@ -2119,6 +2119,23 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
             return result;
         }
+        public async Task<AuthorizationAPIResult> JoinDAOAsync(string daoid, decimal amount)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DAO_JOIN },
+                { "daoid", daoid },
+                { "amount", amount.ToBalanceLong().ToString() },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, amount }
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
         #endregion
 
         #region OTC

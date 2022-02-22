@@ -13,8 +13,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Core.Decentralize;
 
-namespace Lyra.Core.Decentralize
+namespace Lyra.Core.WorkFlow
 {
     public class BrokerOperations
     {

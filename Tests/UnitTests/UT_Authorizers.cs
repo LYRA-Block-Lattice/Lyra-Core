@@ -438,8 +438,13 @@ namespace UnitTests
 
             var nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(nodesdaoret.Successful());
-
             var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+
+            // join DAO / invest
+            var invret = await testWallet.JoinDAOAsync(nodesdao.AccountID, 1000000m);
+            Assert.IsTrue(invret.Successful());
+
+            await WaitWorkflow("JoinDAOAsync");
 
             VotingSubject subject = new VotingSubject
             {

@@ -12,42 +12,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.WorkFlow.OTC
+namespace Lyra.Core.WorkFlow.DAO
 {
     [LyraWorkFlow]
-    public class WFVotingCreate : WorkFlowBase
+    public class WFVote : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
         {
             return new WorkFlowDescription
             {
-                Action = BrokerActions.BRK_VOT_CREATE,
+                Action = BrokerActions.BRK_VOT_VOTE,
                 RecvVia = BrokerRecvType.DaoRecv,
-                Steps = new[] { CreateGenesisAsync }
+                Steps = new[] { VoteAsync }
             };
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count != 2 ||
-                !send.Tags.ContainsKey("data") ||
-                string.IsNullOrWhiteSpace(send.Tags["data"]))
+            if (send.Tags.Count != 3 ||
+                !send.Tags.ContainsKey("voteid") ||
+                string.IsNullOrWhiteSpace(send.Tags["voteid"]) ||
+                !send.Tags.ContainsKey("index") ||
+                string.IsNullOrWhiteSpace(send.Tags["index"])
+                )
                 return APIResultCodes.InvalidBlockTags;
 
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> VoteAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
-            var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
+            var voteid = send.Tags["voteid"];
+            var index = int.Parse(send.Tags["index"]);
 
-            var keyStr = $"{send.Hash.Substring(0, 16)},{subject.Title},{send.AccountID}";
-            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
-
+            var prevBlock = await sys.Storage.FindLatestBlockAsync(voteid) as TransactionBlock;
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var gens = new VotingGenesisBlock
+            var gens = new VotingBlock
             {
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -55,8 +57,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = AccountTypes.Voting,
-                AccountID = AccountId,
+                AccountID = prevBlock.AccountID,
                 Balances = new Dictionary<string, long>(),
 
                 // recv
@@ -68,13 +69,13 @@ namespace Lyra.Core.WorkFlow.OTC
                 RelatedTx = send.Hash,
 
                 // voting
-                Subject  = subject,
+                OptionIndex = index,
             };
 
             gens.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
             // pool blocks are service block so all service block signed by leader node
-            gens.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            gens.InitializeBlock(prevBlock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return gens;
         }
 
