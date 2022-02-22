@@ -42,6 +42,9 @@ namespace UnitTests
         readonly string test2PrivateKey = "2XAGksPqMDxeSJVoE562TX7JzmCKna3i7AS9e4ZPmiTKQYATsy";
         string test2PublicKey = "LUTob2rWpFBZ6r3UxHhDYR8Utj4UDrmf1SFC25RpQxEfZNaA2WHCFtLVmURe1ty4ZNU9gBkCCrSt6ffiXKrRH3z9T3ZdXK";
 
+        readonly string test3PrivateKey = "2iWkVkodnhcvQvzQSnBKMU3PhMfhEfWVMRWC1S21qg4cNR9UxC";
+        string test3PublicKey = "LUTnKnTaeZ95MaCCeA4Y7RZeLo5PrmAipuvaaHMvrpk3awbc7VBSWNRRuhQuA5qy5SGNh7imC71jaMCdttMN1a6DrSPTP6";
+
         IHostEnv _env;
         private ConsensusService cs;
         private IAccountCollectionAsync store;
@@ -340,7 +343,9 @@ namespace UnitTests
             var sendResult = await genesisWallet.SendAsync(tamount, testPublicKey);
             Assert.IsTrue(sendResult.Successful(), $"send error {sendResult.ResultCode}");
             var sendResult2 = await genesisWallet.SendAsync(tamount, test2PublicKey);
-            Assert.IsTrue(sendResult2.Successful(), $"send error {sendResult.ResultCode}");
+            Assert.IsTrue(sendResult2.Successful(), $"send error {sendResult2.ResultCode}");
+            var sendResult3 = await genesisWallet.SendAsync(tamount, test3PublicKey);
+            Assert.IsTrue(sendResult3.Successful(), $"send error {sendResult3.ResultCode}");
         }
 
         private async Task CreateDevnet()
@@ -393,6 +398,14 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
+            var walletStor4 = new AccountInMemoryStorage();
+            Wallet.Create(walletStor4, "xunit2", "1234", networkId, test3PrivateKey);
+            test3Wallet = Wallet.Open(walletStor4, "xunit2", "1234", client);
+            test3Wallet.NoConsole = true;
+            Assert.AreEqual(test3Wallet.AccountId, test3PublicKey);
+
+            await test3Wallet.SyncAsync(client);
+
             await TestVoting();
 
             //await TestOTCTrade();
@@ -441,10 +454,30 @@ namespace UnitTests
             var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
 
             // join DAO / invest
-            var invret = await testWallet.JoinDAOAsync(nodesdao.AccountID, 1000000m);
+            var invret = await testWallet.JoinDAOAsync(nodesdao.AccountID, 800000m);
             Assert.IsTrue(invret.Successful());
 
-            await WaitWorkflow("JoinDAOAsync");
+            await WaitWorkflow("JoinDAOAsync 1");
+
+            // another join DAO
+            var invret2 = await test2Wallet.JoinDAOAsync(nodesdao.AccountID, 150000m);
+            Assert.IsTrue(invret2.Successful());
+
+            await WaitWorkflow("JoinDAOAsync 2");
+
+            var invret3 = await test3Wallet.JoinDAOAsync(nodesdao.AccountID, 50000m);
+            Assert.IsTrue(invret3.Successful());
+
+            await WaitWorkflow("JoinDAOAsync 3");
+
+            // then we expect the treasure rito
+            nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret.Successful());
+            nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+            var treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
+            Assert.AreEqual(0.8m, treasure[testPublicKey]);
+            Assert.AreEqual(0.15m, treasure[test2PublicKey]);
+            Assert.AreEqual(0.05m, treasure[test3PublicKey]);
 
             VotingSubject subject = new VotingSubject
             {
