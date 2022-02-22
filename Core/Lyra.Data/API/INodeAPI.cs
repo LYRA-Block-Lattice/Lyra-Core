@@ -21,7 +21,7 @@ namespace Lyra.Core.API
         // this one can be cached for a few milliseconds
         Task<AccountHeightAPIResult> GetSyncHeightAsync();
 
-        Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword);
+        Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string? Signature, string keyword);
 
         // this one can be cached for a few seconds
         Task<BlockAPIResult> GetLastServiceBlockAsync();

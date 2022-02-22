@@ -134,7 +134,7 @@ namespace LyraLexWeb2
 
         [Route("GetTokenNames")]
         [HttpGet]
-        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string? Signature, string keyword)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetTokenNamesAsync(AccountId, Signature, keyword);

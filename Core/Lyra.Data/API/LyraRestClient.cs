@@ -505,7 +505,7 @@ namespace Lyra.Core.API
             return await GetBlockByUrlAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}");
         }
 
-        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string? Signature, string keyword)
         {
             using var client = CreateClient();
             HttpResponseMessage response = await client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}", _cancel.Token);
