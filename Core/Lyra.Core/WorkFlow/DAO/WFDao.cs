@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.WorkFlow
+namespace Lyra.Core.WorkFlow.DAO
 {
     [LyraWorkFlow]
     public class WFDao : WorkFlowBase
@@ -23,10 +23,11 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_DAO_CRDAO,
                 RecvVia = BrokerRecvType.PFRecv,
+                Steps = new[] { GenesisAsync }
             };
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public async Task<TransactionBlock> GenesisAsync(DagSystem sys, SendTransferBlock send)
         {
             var name = send.Tags["name"];
             var desc = send.Tags["desc"];

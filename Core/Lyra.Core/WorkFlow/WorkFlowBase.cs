@@ -17,6 +17,8 @@ namespace Lyra.Core.WorkFlow
     {
         public string Action { get; set; }
         public BrokerRecvType RecvVia { get; set; }
+
+        // use steps to avoid checking block exists every time.
         public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] Steps { get; set; }
     }
 
@@ -39,7 +41,8 @@ namespace Lyra.Core.WorkFlow
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var desc = GetDescription();
 
-            var index = blocks.Count - (desc.RecvVia == BrokerRecvType.None ? 0 : 1);
+            var cnt = desc.RecvVia == BrokerRecvType.None || desc.RecvVia == BrokerRecvType.PFRecv;
+            var index = blocks.Count - (cnt ? 0 : 1);
             if (index >= operations.Length)
                 return null;
 

@@ -468,7 +468,7 @@ namespace UnitTests
             await WaitWorkflow("CreateDAOAsync");
 
             var nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
-            Assert.IsTrue(nodesdaoret.Successful());
+            Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");
             var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
 
             // join DAO / invest
