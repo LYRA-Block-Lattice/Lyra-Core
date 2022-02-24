@@ -639,5 +639,6 @@ namespace Lyra.Core.Blocks
         CollateralNotEnough,
 
         InvalidVote,
+        InvalidArgument,
     }
 }

@@ -47,11 +47,35 @@ namespace Lyra.Data.API.WorkFlow
             extraData += $"{string.Join(',', Options)}|";
             return extraData;
         }
+
+        public override string ToString()
+        {
+            string result = "";
+            result += $"Type: {Type}\n";
+            result += $"Issuer: {Issuer}\n";
+            result += $"DaoId: {DaoId}\n";
+            result += $"TimeSpan: {new TimeSpan(0, TimeSpan, 0)}\n";
+            result += $"Title: {Title}\n";
+            result += $"Description: {Description}\n";
+            result += $"Options: {string.Join(',', Options)}\n";
+            return result;
+        }
+    }
+
+    public enum VoteStatus { InProgress, Decided, Uncertain }
+    public interface IVoting
+    {
+        VoteStatus VoteState { get; set; }  
+        VotingSubject Subject { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class VotingBlock : BrokerAccountRecv
+    public class VotingBlock : BrokerAccountRecv, IVoting
     {
+        public VoteStatus VoteState { get; set; }
+        public VotingSubject Subject { get; set; } = null!;
+
+        public string VoterId { get; set; } = null!;
         public int OptionIndex { get; set; }
 
         protected override BlockTypes GetBlockType()
@@ -64,12 +88,18 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as VotingBlock;
 
             return base.AuthCompare(ob) &&
+                VoteState == ob.VoteState &&
+                Subject.GetExtraData() == ob.Subject.GetExtraData() &&
+                VoterId == ob.VoterId &&
                     OptionIndex.Equals(ob.OptionIndex);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
+            extraData += $"{VoteState}|";
+            extraData += $"{Subject.GetExtraData()}|";
+            extraData += $"{VoterId}|";
             extraData += $"{OptionIndex}|";
             return extraData;
         }
@@ -77,6 +107,9 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
+            result += $"State: {VoteState}\n";
+            result += $"Subject: {Subject}\n";
+            result += $"VoterId: {VoterId}\n";
             result += $"OptionIndex: {OptionIndex}\n";
             return result;
         }
@@ -84,10 +117,11 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class VotingGenesisBlock : BrokerAccountRecv, IOpeningBlock
+    public class VotingGenesisBlock : BrokerAccountRecv, IOpeningBlock, IVoting
     {
+        public VoteStatus VoteState { get; set; }
         public AccountTypes AccountType { get; set; }
-        public VotingSubject Subject { get; set; }
+        public VotingSubject Subject { get; set; } = null!;
 
         protected override BlockTypes GetBlockType()
         {
@@ -100,6 +134,7 @@ namespace Lyra.Data.API.WorkFlow
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType &&
+                VoteState == ob.VoteState &&
                 Subject.GetExtraData() == ob.Subject.GetExtraData()
                 ;
         }
@@ -108,6 +143,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = base.GetExtraData();
             extraData += AccountType + "|";
+            extraData += VoteState + "|";
             extraData += Subject.GetExtraData() + "|";
             return extraData;
         }
@@ -116,6 +152,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"AccountType: {AccountType}\n";
+            result += $"State: {VoteState}\n";
             result += $"Subject: {Subject}\n";
             return result;
         }

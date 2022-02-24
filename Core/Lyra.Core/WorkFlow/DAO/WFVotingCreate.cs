@@ -34,6 +34,37 @@ namespace Lyra.Core.WorkFlow.DAO
                 string.IsNullOrWhiteSpace(send.Tags["data"]))
                 return APIResultCodes.InvalidBlockTags;
 
+            var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
+            // verify subject
+            if (string.IsNullOrEmpty(subject.DaoId) ||
+                string.IsNullOrEmpty(subject.Issuer) ||
+                string.IsNullOrEmpty(subject.Title) ||
+                string.IsNullOrEmpty(subject.Description) ||
+                subject.Options == null ||
+                subject.Options.Length < 2 ||
+                subject.TimeSpan < 1 ||
+                subject.Type == SubjectType.None
+                )
+                return APIResultCodes.InvalidArgument;
+
+            // issuer should be the owner of DAO
+            var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
+            if (dao == null || dao.OwnerAccountId != subject.Issuer)
+                return APIResultCodes.InvalidAccountId;
+
+            // title can't repeat
+            var votes = await sys.Storage.FindAllVotesByDaoAsync(subject.DaoId, false);
+            if (votes.Any(a => a is VotingGenesisBlock vg && vg.Subject.Title == subject.Title))
+                return APIResultCodes.InvalidArgument;
+
+            // options can't repeat
+            if (subject.Options.Length != subject.Options.Distinct().Count())
+                return APIResultCodes.InvalidArgument;
+
+            // must has enough voter
+            if(dao.Treasure.Count() < 2)
+                return APIResultCodes.InvalidArgument;
+
             return APIResultCodes.Success;
         }
 
@@ -68,6 +99,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 RelatedTx = send.Hash,
 
                 // voting
+                VoteState = VoteStatus.InProgress,
                 Subject  = subject,
             };
 

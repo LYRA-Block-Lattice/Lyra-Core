@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Converto;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
@@ -60,9 +61,13 @@ namespace Lyra.Core.WorkFlow.DAO
             for(var a = votel.Height; a > 1; a--)
             {
                 var vx = await sys.Storage.FindBlockByHeightAsync(voteid, a);
-                if ((vx as VotingBlock).OwnerAccountId == send.AccountID)
+                if ((vx as VotingBlock).VoterId == send.AccountID)
                     return APIResultCodes.InvalidVote;
             }
+
+            // vote should be in progress
+            if ((votel as IVoting).VoteState != VoteStatus.InProgress)
+                return APIResultCodes.InvalidVote;
 
             return APIResultCodes.Success;
         }
@@ -78,42 +83,28 @@ namespace Lyra.Core.WorkFlow.DAO
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(voteid) as TransactionBlock;
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var gens = new VotingBlock
-            {
-                ServiceHash = sb.Hash,
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
 
-                // transaction
-                AccountID = prevBlock.AccountID,
-                Balances = new Dictionary<string, long>(),
+            var votblk = await TransactionOperateAsync(sys, send,
+                () => prevBlock.GenInc<VotingBlock>(),
+                (b) =>
+                {
+                    // recv
+                    (b as ReceiveTransferBlock).SourceHash = send.Hash;
 
-                // recv
-                SourceHash = send.Hash,
+                    (b as IBrokerAccount).RelatedTx = send.Hash;
 
-                // broker
-                Name = "no name",
-                OwnerAccountId = send.AccountID,
-                RelatedTx = send.Hash,
+                    // voting
+                    (b as VotingBlock).VoterId = send.AccountID;
+                    (b as VotingBlock).OptionIndex = index;
 
-                // voting
-                OptionIndex = index,
-            };
-
-            var oldbalance = prevBlock.Balances.ToDecimalDict();
-            if (oldbalance.ContainsKey("LYR"))
-                oldbalance["LYR"] += txInfo.Changes["LYR"];
-            else
-                oldbalance.Add("LYR", txInfo.Changes["LYR"]);
-            gens.Balances = oldbalance.ToLongDict();
-
-            gens.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-            // pool blocks are service block so all service block signed by leader node
-            gens.InitializeBlock(prevBlock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return gens;
+                    var oldbalance = prevBlock.Balances.ToDecimalDict();
+                    if (oldbalance.ContainsKey("LYR"))
+                        oldbalance["LYR"] += txInfo.Changes["LYR"];
+                    else
+                        oldbalance.Add("LYR", txInfo.Changes["LYR"]);
+                    b.Balances = oldbalance.ToLongDict();
+                });
+            return votblk;
         }
-
     }
 }

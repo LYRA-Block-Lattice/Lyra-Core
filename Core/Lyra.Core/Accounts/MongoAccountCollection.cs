@@ -67,7 +67,7 @@ namespace Lyra.Core.Accounts
             _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // hack
-            if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
+            if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
             {
                 if (GetClient() == null)
                     return;
@@ -2186,6 +2186,29 @@ namespace Lyra.Core.Accounts
                 );
 
             var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<List<Block>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
+        {
+            var filter = Builders<Block>.Filter;
+            FilterDefinition<Block> filterDefination;
+
+            if(openOnly)
+                filterDefination = filter.And(
+                    filter.Eq("BlockType", BlockTypes.VoteGenesis),
+                    filter.Eq("Subject.DaoId", daoid)
+                );
+            else
+                filterDefination = filter.And(
+                    filter.Eq("BlockType", BlockTypes.VoteGenesis),
+                    filter.Eq("Subject.DaoId", daoid),
+                    filter.Eq("VoteState", VoteStatus.InProgress)
+                );
+
+            var q = await _blocks
                 .FindAsync(filterDefination);
 
             return q.ToList();
