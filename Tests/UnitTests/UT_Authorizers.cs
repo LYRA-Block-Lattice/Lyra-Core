@@ -427,9 +427,9 @@ namespace UnitTests
 
             await TestOTCTrade();
             await TestOTCTradeDispute();   // test for dispute
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -447,7 +447,7 @@ namespace UnitTests
         {
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
 #if DEBUG
-            var ret = _workflowEnds.WaitOne(1000000);
+            var ret = _workflowEnds.WaitOne(200000);
 #else
             var ret = _workflowEnds.WaitOne(10000);
 #endif
@@ -597,7 +597,7 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                collateral = 15000000,
+                collateral = 25000000,
                 payBy = new string[] { "Paypal" },
                 limitMin = 100,
                 limitMax = 2000,

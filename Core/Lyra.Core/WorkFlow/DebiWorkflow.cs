@@ -35,36 +35,48 @@ namespace Lyra.Core.WorkFlow
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
-            var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
 
-            SendTransferBlock? sendBlock = null;
-            for (int i = 0; i < 100; i++)
+            try
             {
-                sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
-                    as SendTransferBlock;
+                var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
 
-                if (sendBlock != null)
-                    break;
+                SendTransferBlock? sendBlock = null;
+                for (int i = 0; i < 20; i++)
+                {
+                    sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
+                        as SendTransferBlock;
 
-                await Task.Delay(100);
+                    if (sendBlock != null)
+                        break;
+
+                    await Task.Delay(100);
+                }
+
+                if (sendBlock == null)
+                {
+
+                }
+                else
+                {
+                    block =
+                        await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
+                            ??
+                        await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
+                            ??
+                        await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+                    _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+
+                    if (block != null)
+                        count++;
+                    else
+                        ctx.State = WFState.Finished;
+                }
             }
-
-            if (sendBlock == null)
+            catch(Exception ex)
             {
-
-            }
-            else
-            {
-                block =
-                    await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
-                        ??
-                    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
-                        ??
-                    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
-
-                if (block != null)
-                    count++;
+                _logger.LogCritical($"Fatal: Workflow can't generate block: {ex}");
+                block = null;
+                ctx.State = WFState.Error;
             }
 
             return ExecutionResult.Next();
@@ -208,56 +220,57 @@ namespace Lyra.Core.WorkFlow
                     .Then<CustomMessage>()
                         .Name("Log")
                         .Input(step => step.Message, data => $"State Changed.")
-                .While(a => a.State != WFState.Finished && a.State != WFState.Error)
-                    .Do(x => x
-                        .If(data => data.State == WFState.Running).Do(then => then
-                            .StartWith<Repeator>()
-                                .Input(step => step.count, data => data.Count)
-                                .Output(data => data.Count, step => step.count)
-                                .Output(data => data.LastBlockType, step => LyraContext.ParseBlock(step.block).type)
-                                .Output(data => data.LastBlockJson, step => LyraContext.ParseBlock(step.block).json)
-                            .If(a => true).Do(letConsensus)
-                            )
-                        .If(data => data.LastResult == ConsensusResult.Nay).Do(then => then
-                            .StartWith<CustomMessage>()
-                                .Name("Log")
-                                .Input(step => step.Message, data => $"Consensus Nay. workflow failed.")
-                                .Output(data => data.State, step => WFState.Error)
-                            .Then<CustomMessage>()
-                                  .Name("Log")
-                                  .Input(step => step.Message, data => $"State Changed.")
-                            )
-                        .If(data => data.State == WFState.ConsensusTimeout).Do(then => then
-                            .Parallel()
+                    .While(a => a.State != WFState.Finished && a.State != WFState.Error)
+                        .Do(x => x
+                            .If(data => data.State == WFState.Running)
                                 .Do(then => then
-                                    .StartWith<ReqViewChange>()
-                                    .WaitFor("ViewChanged", data => data.GetLastBlock().ServiceHash, data => DateTime.Now)
-                                        .Output(data => data.LastResult, step => step.EventData)
-                                        .Output(data => data.State, step => WFState.Running)
-                                    .Then<CustomMessage>()
+                                .StartWith<Repeator>()
+                                    .Input(step => step.count, data => data.Count)
+                                    .Output(data => data.Count, step => step.count)
+                                    .Output(data => data.LastBlockType, step => LyraContext.ParseBlock(step.block).type)
+                                    .Output(data => data.LastBlockJson, step => LyraContext.ParseBlock(step.block).json)
+                                .If(data => data.LastBlockType != BlockTypes.Null).Do(letConsensus))
+                            .If(data => data.LastBlockType != BlockTypes.Null && data.LastResult == ConsensusResult.Nay).Do(then => then
+                                .StartWith<CustomMessage>()
+                                    .Name("Log")
+                                    .Input(step => step.Message, data => $"Consensus Nay. workflow failed.")
+                                    .Output(data => data.State, step => WFState.Error)
+                                .Then<CustomMessage>()
+                                      .Name("Log")
+                                      .Input(step => step.Message, data => $"State Changed.")
+                                )
+                            .If(data => data.LastBlockType != BlockTypes.Null && data.State == WFState.ConsensusTimeout)
+                                .Do(then => then
+                                .Parallel()
+                                    .Do(then => then
+                                        .StartWith<ReqViewChange>()
+                                        .WaitFor("ViewChanged", data => data.GetLastBlock().ServiceHash, data => DateTime.Now)
+                                            .Output(data => data.LastResult, step => step.EventData)
+                                            .Output(data => data.State, step => WFState.Running)
+                                        .Then<CustomMessage>()
+                                                .Name("Log")
+                                                .Input(step => step.Message, data => $"View changed.")
+                                        .Then<CustomMessage>()
                                             .Name("Log")
-                                            .Input(step => step.Message, data => $"View changed.")
-                                    .Then<CustomMessage>()
-                                        .Name("Log")
-                                        .Input(step => step.Message, data => $"State Changed.")
-                                    )
-                                .Do(then => then
-                                    .StartWith<CustomMessage>()
-                                        .Name("Log")
-                                        .Input(step => step.Message, data => $"View change is monitored.")
-                                    .Delay(data => TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
-                                    .Then<CustomMessage>()
-                                        .Name("Log")
-                                        .Input(step => step.Message, data => $"View change is timeout.")
-                                        .Output(data => data.State, step => WFState.Running)
-                                    .Then<CustomMessage>()
-                                        .Name("Log")
-                                        .Input(step => step.Message, data => $"State Changed.")
-                                    )
-                                .Join()
-                                    .CancelCondition(data => data.State == WFState.Running, true)
-                            )
-                        )
+                                            .Input(step => step.Message, data => $"State Changed.")
+                                        )
+                                    .Do(then => then
+                                        .StartWith<CustomMessage>()
+                                            .Name("Log")
+                                            .Input(step => step.Message, data => $"View change is monitored.")
+                                        .Delay(data => TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
+                                        .Then<CustomMessage>()
+                                            .Name("Log")
+                                            .Input(step => step.Message, data => $"View change is timeout.")
+                                            .Output(data => data.State, step => WFState.Running)
+                                        .Then<CustomMessage>()
+                                            .Name("Log")
+                                            .Input(step => step.Message, data => $"State Changed.")
+                                        )
+                                    .Join()
+                                        .CancelCondition(data => data.State == WFState.Running, true)
+                                )
+                            ) // do
                 .Then(a =>
                 {
                     //Console.WriteLine("Ends.");
