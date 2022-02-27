@@ -50,7 +50,7 @@ namespace Lyra.Core.WorkFlow.DAO
             // issuer should be the owner of DAO
             var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
             if (dao == null || dao.OwnerAccountId != subject.Issuer)
-                return APIResultCodes.InvalidAccountId;
+                return APIResultCodes.InvalidDAO;
 
             // title can't repeat
             var votes = await sys.Storage.FindAllVotesByDaoAsync(subject.DaoId, false);

@@ -641,5 +641,6 @@ namespace Lyra.Core.Blocks
         InvalidVote,
         InvalidArgument,
         Unauthorized,
+        InvalidDAO,
     }
 }

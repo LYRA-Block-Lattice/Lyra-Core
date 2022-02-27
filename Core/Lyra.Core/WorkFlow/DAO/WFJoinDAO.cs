@@ -38,6 +38,15 @@ namespace Lyra.Core.WorkFlow.DAO
                 )
                 return APIResultCodes.InvalidBlockTags;
 
+            // dao must exists
+            var dao = sys.Storage.FindLatestBlockAsync(send.Tags["daoid"]);
+            if (dao == null)
+                return APIResultCodes.InvalidDAO;
+
+            // min amount to invest
+            if (amount.ToBalanceDecimal() < 10000)
+                return APIResultCodes.InvalidAmount;
+
             return APIResultCodes.Success;
         }
 
