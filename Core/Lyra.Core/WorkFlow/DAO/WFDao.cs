@@ -64,6 +64,8 @@ namespace Lyra.Core.WorkFlow.DAO
 
                 // profiting
                 PType = ProfitingType.Orgnization,
+                ShareRito = decimal.Parse(send.Tags["share"]),
+                Seats = int.Parse(send.Tags["seats"]),
 
                 // dao
                 Description = desc,
