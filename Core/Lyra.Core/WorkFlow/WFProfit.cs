@@ -139,10 +139,10 @@ namespace Lyra.Core.WorkFlow
                                 return APIResultCodes.DuplicateAccountType;
 
                             if (shareRito == 0 && seats != 0)
-                                return APIResultCodes.InvalidAuthorizerCount;
+                                return APIResultCodes.InvalidShareRitio;
 
                             if (shareRito > 0 && seats == 0)
-                                return APIResultCodes.InvalidAuthorizerCount;
+                                return APIResultCodes.InvalidShareRitio;
 
                             var dupname = sys.Storage.FindProfitingAccountsByName(block.Tags["name"]);
                             if (dupname != null)

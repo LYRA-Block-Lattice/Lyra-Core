@@ -99,11 +99,21 @@ namespace Lyra.Core.WorkFlow.DAO
                 var desc = send.Tags["desc"];
 
                 // profiting
+                if (shareRito >= 0m && shareRito <= 1m && seats >= 0 && seats <= 100)
+                {
+
+                }
+                else
+                    return APIResultCodes.InvalidShareRitio;
+
                 if (shareRito == 0 && seats != 0)
-                    return APIResultCodes.InvalidAuthorizerCount;
+                    return APIResultCodes.InvalidShareRitio;
 
                 if (shareRito > 0 && seats == 0)
-                    return APIResultCodes.InvalidAuthorizerCount;
+                    return APIResultCodes.InvalidShareRitio;
+
+                if (shareRito > 1)
+                    return APIResultCodes.InvalidShareRitio;
 
                 if (name.Length < 3)
                     return APIResultCodes.InputTooShort;
