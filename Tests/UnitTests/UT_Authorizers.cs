@@ -1072,7 +1072,7 @@ namespace UnitTests
             Console.WriteLine("Profiting gen");
             var crpftret = await testWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 shareRito, 50);
-            Assert.IsTrue(crpftret.Successful());
+            Assert.IsTrue(crpftret.Successful(), $"Can't create profiting: {crpftret.ResultCode}");
             var pftblock = crpftret.GetBlock() as ProfitingBlock;
             Assert.IsTrue(pftblock.OwnerAccountId == testWallet.AccountId);
 
