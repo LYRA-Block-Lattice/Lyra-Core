@@ -2100,13 +2100,15 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region DAO
-        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name, string description, int sellerPar, int buyerPar)
+        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name, string description, decimal shareRito, int maxVoter, int sellerPar, int buyerPar)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CRDAO },
                 { "name", name },
                 { "desc", description },
+                { "share", $"{shareRito}" },
+                { "seats", $"{maxVoter}" },
                 { "sellerPar", sellerPar.ToString() },
                 { "buyerPar", buyerPar.ToString() },
             };

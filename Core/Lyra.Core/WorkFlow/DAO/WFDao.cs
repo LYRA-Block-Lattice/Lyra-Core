@@ -79,40 +79,53 @@ namespace Lyra.Core.WorkFlow.DAO
             return daogen;
         }
 
-        public override Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
+            decimal shareRito;
+            int seats;
+
             if (
                 send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"]) &&
                 send.Tags.ContainsKey("desc") && !string.IsNullOrWhiteSpace(send.Tags["desc"]) &&
                 send.Tags.ContainsKey("sellerPar") && int.TryParse(send.Tags["sellerPar"], out int sellerPar) &&
                 send.Tags.ContainsKey("buyerPar") && int.TryParse(send.Tags["sellerPar"], out int buyerPar)
-                && send.Tags.Count == 5
+                        && send.Tags.ContainsKey("share") && decimal.TryParse(send.Tags["share"], out shareRito)
+                        && send.Tags.ContainsKey("seats") && int.TryParse(send.Tags["seats"], out seats)
+
+                && send.Tags.Count == 7
                 )
             {
                 var name = send.Tags["name"];
                 var desc = send.Tags["desc"];
 
-                if(name.Length < 3)
-                    return Task.FromResult(APIResultCodes.InputTooShort);
+                // profiting
+                if (shareRito == 0 && seats != 0)
+                    return APIResultCodes.InvalidAuthorizerCount;
+
+                if (shareRito > 0 && seats == 0)
+                    return APIResultCodes.InvalidAuthorizerCount;
+
+                if (name.Length < 3)
+                    return APIResultCodes.InputTooShort;
 
                 if (name.Length > 100 || desc.Length > 300)
-                    return Task.FromResult(APIResultCodes.InputTooLong);
+                    return APIResultCodes.InputTooLong;
 
                 if (send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                    return Task.FromResult(APIResultCodes.InvalidServiceRequest);
+                    return APIResultCodes.InvalidServiceRequest;
 
                 if(sellerPar < 0 || sellerPar > 1000 || buyerPar < 0 || buyerPar > 1000)
-                    return Task.FromResult(APIResultCodes.InvalidTagParameters);
+                    return APIResultCodes.InvalidTagParameters;
 
                 // check name dup
                 var existsdao = sys.Storage.GetDaoByName(name);
                 if (existsdao != null)
-                    return Task.FromResult(APIResultCodes.DuplicateName);
+                    return APIResultCodes.DuplicateName;
 
-                return Task.FromResult(APIResultCodes.Success);
+                return APIResultCodes.Success;
             }
             else
-                return Task.FromResult(APIResultCodes.InvalidTagParameters);
+                return APIResultCodes.InvalidTagParameters;
         }
     }
 }
