@@ -49,7 +49,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             // issuer should be the owner of DAO
             var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
-            if (dao == null || dao.OwnerAccountId != subject.Issuer)
+            if (dao == null || (dao as IBrokerAccount).OwnerAccountId != subject.Issuer)
                 return APIResultCodes.InvalidDAO;
 
             // title can't repeat
@@ -63,7 +63,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             // must has enough voter
             if(dao.Treasure.Count() < 2)
-                return APIResultCodes.InvalidArgument;
+                return APIResultCodes.NotEnoughVoters;
 
             return APIResultCodes.Success;
         }

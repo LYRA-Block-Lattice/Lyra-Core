@@ -100,6 +100,11 @@ namespace Lyra.Core.WorkFlow
                 OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
                 RelatedTx = sendBlock.Hash,
 
+                // profiting
+                PType = ((IProfiting)lastblock).PType,
+                ShareRito = ((IProfiting)lastblock).ShareRito,
+                Seats = ((IProfiting)lastblock).Seats,
+
                 // dao     
                 SellerPar = ((IDao)lastblock).SellerPar,
                 BuyerPar = ((IDao)lastblock).BuyerPar,

@@ -24,6 +24,23 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as DaoRecvBlock;
 
+            // profiting
+            if (block.ShareRito < 0 || block.ShareRito > 1)
+                return APIResultCodes.InvalidShareRitio;
+
+            if (block.Seats < 0 || block.Seats > 100)
+                return APIResultCodes.InvalidSeatsCount;
+
+            if (block.ShareRito == 0 && block.Seats != 0)
+                return APIResultCodes.InvalidSeatsCount;
+
+            if (block.ShareRito > 0 && block.Seats == 0)
+                return APIResultCodes.InvalidSeatsCount;
+
+            // dao
+            if (block.PType != ProfitingType.Orgnization)
+                return APIResultCodes.InvalidDataType;
+
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
@@ -66,6 +83,23 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as DaoSendBlock;
+
+            // profiting
+            if (block.ShareRito < 0 || block.ShareRito > 1)
+                return APIResultCodes.InvalidShareRitio;
+
+            if (block.Seats < 0 || block.Seats > 100)
+                return APIResultCodes.InvalidSeatsCount;
+
+            if (block.ShareRito == 0 && block.Seats != 0)
+                return APIResultCodes.InvalidSeatsCount;
+
+            if (block.ShareRito > 0 && block.Seats == 0)
+                return APIResultCodes.InvalidSeatsCount;
+
+            // dao
+            if (block.PType != ProfitingType.Orgnization)
+                return APIResultCodes.InvalidDataType;
 
             //// related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

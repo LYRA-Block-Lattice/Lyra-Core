@@ -139,6 +139,11 @@ namespace Lyra.Core.WorkFlow.OTC
                 OwnerAccountId = ((IBrokerAccount)daolastblock).OwnerAccountId,
                 RelatedTx = send.Hash,
 
+                // profiting
+                PType = ((IProfiting)daolastblock).PType,
+                ShareRito = ((IProfiting)daolastblock).ShareRito,
+                Seats = ((IProfiting)daolastblock).Seats,
+
                 // dao
                 SellerPar = ((IDao)daolastblock).SellerPar,
                 BuyerPar = ((IDao)daolastblock).BuyerPar,

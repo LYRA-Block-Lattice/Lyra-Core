@@ -62,6 +62,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 OwnerAccountId = send.AccountID,
                 RelatedTx = send.Hash,
 
+                // profiting
+                PType = ProfitingType.Orgnization,
+
                 // dao
                 Description = desc,
                 SellerPar = sellerPar,

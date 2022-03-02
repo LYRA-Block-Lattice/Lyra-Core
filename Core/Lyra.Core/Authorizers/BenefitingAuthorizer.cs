@@ -22,6 +22,18 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as BenefitingBlock;
 
+            if (block.ShareRito < 0 || block.ShareRito > 1)
+                return APIResultCodes.InvalidShareRitio;
+
+            if (block.Seats < 0 || block.Seats > 100)
+                return APIResultCodes.InvalidSeatsCount;
+
+            if (block.ShareRito == 0 && block.Seats != 0)
+                return APIResultCodes.InvalidSeatsCount;
+
+            if (block.ShareRito > 0 && block.Seats == 0)
+                return APIResultCodes.InvalidSeatsCount;
+
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "BenefitingAuthorizer->BrokerAccountSendAuthorizer");
         }
 

@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public interface IDao : IBrokerAccount
+    public interface IDao : IProfiting
     {
         // percentage, 0 ~ 1000%
         public int SellerPar { get; set; }
@@ -22,6 +23,12 @@ namespace Lyra.Data.API.WorkFlow
     [BsonIgnoreExtraElements]
     public class DaoRecvBlock : BrokerAccountRecv, IDao
     {
+        // profiting
+        public ProfitingType PType { get; set; }
+        public decimal ShareRito { get; set; }
+        public int Seats { get; set; }
+
+        // dao
         public int SellerPar { get; set; }
         public int BuyerPar { get; set; }
         public string Description { get; set; }
@@ -38,6 +45,17 @@ namespace Lyra.Data.API.WorkFlow
         {
             var ob = other as DaoRecvBlock;
 
+            if(Version > 6)
+                return base.AuthCompare(ob) &&
+                    PType == ob.PType &&
+                    ShareRito == ob.ShareRito &&
+                    Seats == ob.Seats &&
+                    SellerPar == ob.SellerPar &&
+                    BuyerPar == ob.BuyerPar &&
+                    Description == ob.Description &&
+                    CompareDict(Treasure, ob.Treasure)
+                    ;
+            else
             return base.AuthCompare(ob) &&
                 SellerPar == ob.SellerPar &&
                 BuyerPar == ob.BuyerPar &&
@@ -49,6 +67,13 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
+
+            if(Version > 6)
+            {
+                extraData += PType.ToString() + "|";
+                extraData += ShareRito.ToBalanceLong().ToString() + "|";
+                extraData += Seats.ToString() + "|";
+            }
             extraData += $"{SellerPar}|";
             extraData += $"{BuyerPar}|";
             extraData += DictToStr(Treasure) + "|";
@@ -59,6 +84,12 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
+            if (Version > 6)
+            {
+                result += $"Profiting Type: {PType}\n";
+                result += $"Share Rito: {ShareRito}\n";
+                result += $"Seats: {Seats}\n";
+            }
             result += $"SellerCollateralPercentage: {Description}\n";
             result += $"ByerCollateralPercentage: {Description}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
@@ -70,6 +101,12 @@ namespace Lyra.Data.API.WorkFlow
     [BsonIgnoreExtraElements]
     public class DaoSendBlock : BrokerAccountSend, IDao
     {
+        // profiting
+        public ProfitingType PType { get; set; }
+        public decimal ShareRito { get; set; }
+        public int Seats { get; set; }
+
+        // dao
         public int SellerPar { get; set; }
         public int BuyerPar { get; set; }
         public string Description { get; set; }
@@ -86,7 +123,18 @@ namespace Lyra.Data.API.WorkFlow
         {
             var ob = other as DaoSendBlock;
 
-            return base.AuthCompare(ob) &&
+            if (Version > 6)
+                return base.AuthCompare(ob) &&
+                    PType == ob.PType &&
+                    ShareRito == ob.ShareRito &&
+                    Seats == ob.Seats &&
+                    SellerPar == ob.SellerPar &&
+                    BuyerPar == ob.BuyerPar &&
+                    Description == ob.Description &&
+                    CompareDict(Treasure, ob.Treasure)
+                    ;
+            else
+                return base.AuthCompare(ob) &&
                 SellerPar == ob.SellerPar &&
                 BuyerPar == ob.BuyerPar &&
                 Description == ob.Description &&
@@ -97,6 +145,12 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
+            if (Version > 6)
+            {
+                extraData += PType.ToString() + "|";
+                extraData += ShareRito.ToBalanceLong().ToString() + "|";
+                extraData += Seats.ToString() + "|";
+            }
             extraData += $"{SellerPar}|";
             extraData += $"{BuyerPar}|";
             extraData += DictToStr(Treasure) + "|";
@@ -107,6 +161,12 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
+            if (Version > 6)
+            {
+                result += $"Profiting Type: {PType}\n";
+                result += $"Share Rito: {ShareRito}\n";
+                result += $"Seats: {Seats}\n";
+            }
             result += $"SellerCollateralPercentage: {Description}\n";
             result += $"ByerCollateralPercentage: {Description}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
