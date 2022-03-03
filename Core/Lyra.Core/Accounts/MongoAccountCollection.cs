@@ -2208,7 +2208,7 @@ namespace Lyra.Core.Accounts
                     filter.Eq("VoteState", VoteStatus.InProgress)
                 );
 
-            var q = await _snapshots
+            var q = await _blocks.OfType<TransactionBlock>()
                 .FindAsync(filterDefination);
 
             return q.ToList();
