@@ -32,6 +32,7 @@ namespace Lyra.Data.API
         // DAO
         public const string BRK_DAO_CRDAO = "CRDAO";
         public const string BRK_DAO_JOIN = "JOINDAO";
+        public const string BRK_DAO_LEAVE = "LEAVEDAO";
 
         // OTC
         public const string BRK_OTC_CRODR = "CRODR";

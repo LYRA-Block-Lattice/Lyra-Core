@@ -2127,12 +2127,27 @@ namespace Lyra.Core.Accounts
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DAO_JOIN },
                 { "daoid", daoid },
-                { "amount", amount.ToBalanceLong().ToString() },
             };
 
             var amounts = new Dictionary<string, decimal>
             {
                 { LyraGlobal.OFFICIALTICKERCODE, amount }
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
+        public async Task<AuthorizationAPIResult> LeaveDAOAsync(string daoid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DAO_LEAVE },
+                { "daoid", daoid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1m }
             };
 
             var result = await SendExAsync(daoid, amounts, tags);

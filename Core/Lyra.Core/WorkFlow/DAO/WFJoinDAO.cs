@@ -29,23 +29,20 @@ namespace Lyra.Core.WorkFlow.DAO
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            long amount = 0;
-            if (send.Tags.Count != 3 ||
+            if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("daoid") ||
-                string.IsNullOrWhiteSpace(send.Tags["daoid"]) ||
-                !send.Tags.ContainsKey("amount") ||
-                !long.TryParse(send.Tags["amount"], out amount)
+                string.IsNullOrWhiteSpace(send.Tags["daoid"])
                 )
                 return APIResultCodes.InvalidBlockTags;
 
             // dao must exists
-            var dao = sys.Storage.FindLatestBlockAsync(send.Tags["daoid"]);
+            var dao = await sys.Storage.FindLatestBlockAsync(send.Tags["daoid"]);
             if (dao == null)
                 return APIResultCodes.InvalidDAO;
 
             // min amount to invest
-            if (amount.ToBalanceDecimal() < 10000)
-                return APIResultCodes.InvalidAmount;
+            //if (amount.ToBalanceDecimal() < 10000)
+            //    return APIResultCodes.InvalidAmount;
 
             return APIResultCodes.Success;
         }
@@ -58,7 +55,6 @@ namespace Lyra.Core.WorkFlow.DAO
                 return null;
 
             var daoid = send.Tags["daoid"];
-            var index = long.Parse(send.Tags["amount"]);
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(daoid) as TransactionBlock;
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);

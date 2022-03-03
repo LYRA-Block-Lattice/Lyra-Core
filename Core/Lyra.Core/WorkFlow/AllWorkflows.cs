@@ -27,6 +27,14 @@ namespace Lyra.Core.WorkFlow
         public int Version => 1;
     }
 
+    public class LeaveDaoWorkflow : DebiWorkflow, IWorkflowExt
+    {
+        public string Id => BrokerActions.BRK_DAO_LEAVE;
+        public override BrokerRecvType RecvVia => BrokerRecvType.DaoRecv;
+
+        public int Version => 1;
+    }
+
     public class CreateVotingWorkflow : DebiWorkflow, IWorkflowExt
     {
         public string Id => BrokerActions.BRK_VOT_CREATE;

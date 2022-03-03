@@ -425,11 +425,11 @@ namespace UnitTests
 
             await TestVoting();
 
-            await TestOTCTrade();
-            await TestOTCTradeDispute();   // test for dispute
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
-            await TestNodeFee();
+            //await TestOTCTrade();
+            //await TestOTCTradeDispute();   // test for dispute
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            //await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -534,6 +534,18 @@ namespace UnitTests
             var voteRet4 = await test4Wallet.Vote(voteblk.AccountID, 1);
             await WaitWorkflow("Vote on Subject Async 4");
             Assert.IsTrue(!voteRet4.Successful(), $"Vote 4 should error: {voteRet4.ResultCode}");
+
+            // test leave DAO
+            var leaveret3 = await test3Wallet.LeaveDAOAsync(nodesdao.AccountID);
+            Assert.IsTrue(leaveret3.Successful(), $"Can't leave DAO: {leaveret3.ResultCode}");
+            await WaitWorkflow("LeaveDAOAsync 3");
+
+            // then test3 should not exists in the treasure
+            var nodesdaoret2 = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret2.Successful());
+            var nodesdao2 = nodesdaoret2.GetBlock() as TransactionBlock;
+            var treasure2 = (nodesdao2 as IDao).Treasure.ToRitoDecimalDict();
+            Assert.IsFalse(treasure2.ContainsKey(test3PublicKey), $"test 3 still exists.");
 
             ResetAuthFail();
         }
