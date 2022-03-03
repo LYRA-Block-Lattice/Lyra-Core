@@ -91,6 +91,8 @@ namespace Lyra.Core.WorkFlow.DAO
                     // recv
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
 
+                    // broker
+                    (b as IBrokerAccount).OwnerAccountId = send.AccountID;
                     (b as IBrokerAccount).RelatedTx = send.Hash;
 
                     // voting
