@@ -2191,10 +2191,10 @@ namespace Lyra.Core.Accounts
             return q.ToList();
         }
 
-        public async Task<List<Block>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
+        public async Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
-            var filter = Builders<Block>.Filter;
-            FilterDefinition<Block> filterDefination;
+            var filter = Builders<TransactionBlock>.Filter;
+            FilterDefinition<TransactionBlock> filterDefination;
 
             if(openOnly)
                 filterDefination = filter.And(
@@ -2208,7 +2208,7 @@ namespace Lyra.Core.Accounts
                     filter.Eq("VoteState", VoteStatus.InProgress)
                 );
 
-            var q = await _blocks
+            var q = await _snapshots
                 .FindAsync(filterDefination);
 
             return q.ToList();

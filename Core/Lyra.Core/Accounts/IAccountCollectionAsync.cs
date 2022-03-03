@@ -28,7 +28,7 @@ namespace Lyra.Core.Accounts
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
 
         // DAO and OTC
-        Task<List<Block>> FindAllVotesByDaoAsync(string daoid, bool openOnly);
+        Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly);
         Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize);
         Block GetDaoByName(string name);
         Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId);

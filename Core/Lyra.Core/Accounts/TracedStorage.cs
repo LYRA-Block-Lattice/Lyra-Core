@@ -312,7 +312,7 @@ namespace Lyra.Core.Accounts
             return StopWatcher.Track(() => _store.GetDaoByName(name), "GetDaoByName");
         }
 
-        public Task<List<Block>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
+        public Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             return StopWatcher.Track(() => _store.FindAllVotesByDaoAsync(daoid, openOnly), "FindAllVotesByDaoAsync");
         }
