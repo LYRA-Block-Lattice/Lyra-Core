@@ -64,6 +64,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 () => prevBlock.GenInc<DaoRecvBlock>(),
                 (b) =>
                 {
+                    // recv
+                    (b as ReceiveTransferBlock).SourceHash = send.Hash;
+
                     // treasure change
                     var depositBalance = new Dictionary<string, decimal>();
                     var depositShares = new Dictionary<string, decimal>();
