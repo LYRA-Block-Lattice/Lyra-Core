@@ -1286,5 +1286,32 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public async Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindAllVotesByDaoAsync(daoid, openOnly);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindAllVotesByDaoAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
     }
 }

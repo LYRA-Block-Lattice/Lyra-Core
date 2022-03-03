@@ -330,6 +330,9 @@ namespace UnitTests
             mock.Setup(x => x.FindOtcTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) => 
                     Task.FromResult(api.FindOtcTradeAsync(accountId, isOpen, page, pagesize)).Result);
+            mock.Setup(x => x.FindAllVotesByDaoAsync(It.IsAny<string>(), It.IsAny<bool>()))
+                .Returns<string, bool>((daoid, openOnly) =>
+                    Task.FromResult(api.FindAllVotesByDaoAsync(daoid, openOnly)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
@@ -512,6 +515,14 @@ namespace UnitTests
 
             await WaitWorkflow("Create Vote Subject Async");
             Assert.IsTrue(voteCrtRet.Successful(), "Create vote subject error");
+
+            // then we will find the vote
+            var votefindret = await genesisWallet.RPC.FindAllVotesByDaoAsync(nodesdao.AccountID, true);
+            Assert.IsTrue(votefindret.Successful(), $"Can't find vote: {votefindret.ResultCode}");
+            var votes = votefindret.GetBlocks();
+            Assert.AreEqual(1, votes.Count());
+            var curvote = votes.First() as IVoting;
+            Assert.AreEqual(subject.Title, curvote.Subject.Title);
 
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(voteCrtRet.TxHash);
             var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;

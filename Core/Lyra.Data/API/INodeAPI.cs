@@ -102,6 +102,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId);
         Task<ContainerAPIResult> FindTradableOtcAsync();
         Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
+        Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly);
     }
 
     public interface INodeTransactionAPI

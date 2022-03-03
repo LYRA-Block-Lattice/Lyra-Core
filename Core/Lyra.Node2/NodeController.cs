@@ -685,6 +685,14 @@ namespace LyraLexWeb2
             return await _node.FindOtcTradeAsync(accountId, onlyOpenTrade, page, pageSize);
         }
 
+        [Route("FindAllVotesByDao")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindAllVotesByDaoAsync(daoid, openOnly);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 
