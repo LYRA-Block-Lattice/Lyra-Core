@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Data.API.ODR;
 using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
@@ -67,6 +68,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         VoteStatus VoteState { get; set; }  
         VotingSubject Subject { get; set; }
+        ODRResolution Resolution { get; set; }
     }
 
     [BsonIgnoreExtraElements]
@@ -74,6 +76,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public VoteStatus VoteState { get; set; }
         public VotingSubject Subject { get; set; } = null!;
+        public ODRResolution Resolution { get; set; } = null!;
 
         public string VoterId { get; set; } = null!;
         public int OptionIndex { get; set; }
@@ -90,6 +93,7 @@ namespace Lyra.Data.API.WorkFlow
             return base.AuthCompare(ob) &&
                 VoteState == ob.VoteState &&
                 Subject.GetExtraData() == ob.Subject.GetExtraData() &&
+                Resolution.GetExtraData() == ob.Resolution.GetExtraData() &&
                 VoterId == ob.VoterId &&
                     OptionIndex.Equals(ob.OptionIndex);
         }
@@ -99,6 +103,7 @@ namespace Lyra.Data.API.WorkFlow
             string extraData = base.GetExtraData();
             extraData += $"{VoteState}|";
             extraData += $"{Subject.GetExtraData()}|";
+            extraData += $"{Resolution.GetExtraData()}|";
             extraData += $"{VoterId}|";
             extraData += $"{OptionIndex}|";
             return extraData;
@@ -109,6 +114,7 @@ namespace Lyra.Data.API.WorkFlow
             string result = base.Print();
             result += $"State: {VoteState}\n";
             result += $"Subject: {Subject}\n";
+            result += $"Resolution: {Resolution}\n";
             result += $"VoterId: {VoterId}\n";
             result += $"OptionIndex: {OptionIndex}\n";
             return result;
@@ -122,6 +128,7 @@ namespace Lyra.Data.API.WorkFlow
         public VoteStatus VoteState { get; set; }
         public AccountTypes AccountType { get; set; }
         public VotingSubject Subject { get; set; } = null!;
+        public ODRResolution Resolution { get; set; } = null!;
 
         protected override BlockTypes GetBlockType()
         {
@@ -135,7 +142,8 @@ namespace Lyra.Data.API.WorkFlow
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType &&
                 VoteState == ob.VoteState &&
-                Subject.GetExtraData() == ob.Subject.GetExtraData()
+                Subject.GetExtraData() == ob.Subject.GetExtraData() &&
+                Resolution.GetExtraData() == ob.Resolution.GetExtraData()
                 ;
         }
 
@@ -145,6 +153,7 @@ namespace Lyra.Data.API.WorkFlow
             extraData += AccountType + "|";
             extraData += VoteState + "|";
             extraData += Subject.GetExtraData() + "|";
+            extraData += $"{Resolution.GetExtraData()}|";
             return extraData;
         }
 
@@ -154,6 +163,7 @@ namespace Lyra.Data.API.WorkFlow
             result += $"AccountType: {AccountType}\n";
             result += $"State: {VoteState}\n";
             result += $"Subject: {Subject}\n";
+            result += $"Resolution: {Resolution}\n";
             return result;
         }
     }

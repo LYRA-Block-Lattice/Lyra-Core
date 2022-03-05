@@ -41,6 +41,9 @@ namespace Lyra.Data.API
         public const string BRK_OTC_TRDPAYGOT = "TRDPAYGOT";
         public const string BRK_OTC_ORDCLOSE = "ORDCLOSE";
 
+        // OTC Dispute
+        public const string BRK_OTC_CRDPT = "ORDCRDPT";
+
         // Voting
         public const string BRK_VOT_CREATE = "CRVOTS";
         public const string BRK_VOT_VOTE = "VOTE";

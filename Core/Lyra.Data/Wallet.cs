@@ -15,6 +15,7 @@ using Lyra.Data.Utils;
 using System.Threading;
 using Lyra.Data.Blocks;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.ODR;
 
 namespace Lyra.Core.Accounts
 {
@@ -2245,15 +2246,34 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(daoid, amounts, tags);
             return result;
         }
+
+        public async Task<AuthorizationAPIResult> OTCTradeRaiseDisputeAsync(string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRDPT },
+                { "tradeid", tradeid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
         #endregion
 
         #region Voting
-        public async Task<AuthorizationAPIResult> CreateVoteSubject(VotingSubject subject)
+        public async Task<AuthorizationAPIResult> CreateVoteSubject(VotingSubject subject,
+            ODRResolution resolution)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_VOT_CREATE },
                 { "data", JsonConvert.SerializeObject(subject) },
+                { "extra", JsonConvert.SerializeObject(resolution) },
             };
 
             var amounts = new Dictionary<string, decimal>
@@ -2280,6 +2300,44 @@ namespace Lyra.Core.Accounts
 
             var result = await SendExAsync(voteid, amounts, tags);
             return result;
+        }
+
+        public async Task<VotingSummary> GetVoteSummary(string voteid)
+        {
+            // get all votes
+            var ret = await _rpcClient.GetLastBlockAsync(voteid);
+            if (ret.Successful())
+            {
+                var latestblk = ret.GetBlock();
+                var vt = latestblk as IVoting;
+                var blk = latestblk as TransactionBlock;
+
+                // load
+                var votes = new List<VotingBlock>();
+                var genret = await _rpcClient.GetBlockByIndexAsync(voteid, 1);
+                var vg = genret.GetBlock() as VotingGenesisBlock;
+
+                for (int i = 2; i <= blk.Height; i++)
+                {
+                    var vret = await _rpcClient.GetBlockByIndexAsync(voteid, i);
+                    votes.Add(vret.GetBlock() as VotingBlock);
+                }
+
+                return new VotingSummary
+                {
+                    Spec = vg,
+                    Votes = votes,
+                };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<bool> ExecuteResolution(ODRResolution resolution)
+        {
+            return false;
         }
         #endregion
 

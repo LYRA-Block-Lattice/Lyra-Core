@@ -417,7 +417,7 @@ namespace Lyra.Core.Decentralize
             }
 
             Singleton = this;
-            // hack for unit test
+            // for unit test
             if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
                 _localNode = null;
         }
@@ -1876,7 +1876,8 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var wfhost = _hostEnv.GetWorkflowHost();
-            Console.WriteLine($"Key is {key} Publish Consensus event {result} ");
+            if(result != ConsensusResult.Yea)
+                Console.WriteLine($"Key is {key} Publish Consensus event {result} ");
             await wfhost.PublishEvent("MgBlkDone", key, result);
             return;
         }

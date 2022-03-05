@@ -64,6 +64,7 @@ namespace Lyra.Core.WorkFlow
                         await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
                             ??
                         await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+                    
                     _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
                     if (block != null)

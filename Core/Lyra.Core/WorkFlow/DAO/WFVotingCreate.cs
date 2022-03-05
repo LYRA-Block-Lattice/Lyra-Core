@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
@@ -29,9 +30,12 @@ namespace Lyra.Core.WorkFlow.DAO
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count != 2 ||
+            if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("data") ||
-                string.IsNullOrWhiteSpace(send.Tags["data"]))
+                string.IsNullOrWhiteSpace(send.Tags["data"]) ||
+                !send.Tags.ContainsKey("extra") ||
+                string.IsNullOrWhiteSpace(send.Tags["extra"])
+                )
                 return APIResultCodes.InvalidBlockTags;
 
             var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
@@ -46,6 +50,16 @@ namespace Lyra.Core.WorkFlow.DAO
                 subject.Type == SubjectType.None
                 )
                 return APIResultCodes.InvalidArgument;
+
+            var resolution = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["extra"]);
+            // verify subject
+            if (string.IsNullOrEmpty(resolution.tradeid) ||
+                string.IsNullOrEmpty(resolution.creator) ||
+                resolution.actions.Length == 0
+                )
+                return APIResultCodes.InvalidArgument;
+
+            // TODO: verify trade id and creater id
 
             // issuer should be the owner of DAO
             var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
@@ -73,6 +87,7 @@ namespace Lyra.Core.WorkFlow.DAO
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
+            var reslution = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["extra"]);
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{subject.Title},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
@@ -101,6 +116,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 // voting
                 VoteState = VoteStatus.InProgress,
                 Subject  = subject,
+                Resolution = reslution,
             };
 
             gens.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

@@ -10,6 +10,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
+using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Shared;
@@ -196,7 +197,8 @@ namespace UnitTests
                     var auth = cs.AF.Create(block);
                     var result = await auth.AuthorizeAsync(sys, block);
 
-                    Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
+                    if(result.Item1 != APIResultCodes.Success)
+                        Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
                     //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
                     if (result.Item1 == APIResultCodes.Success)
@@ -292,6 +294,8 @@ namespace UnitTests
                 .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
             mock.Setup(x => x.GetLastConsolidationBlockAsync())
                 .Returns(() => Task.FromResult(api.GetLastConsolidationBlockAsync()).Result);
+            mock.Setup(x => x.GetBlockByIndexAsync(It.IsAny<string>(), It.IsAny<long>()))
+                .Returns<string, long>((id, height) => Task.FromResult(api.GetBlockByIndexAsync(id, height)).Result);
 
             mock.Setup(x => x.GetBlockHashesByTimeRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
                 .Returns<DateTime, DateTime>((acct, sign) => Task.FromResult(api.GetBlockHashesByTimeRangeAsync(acct, sign)).Result);
@@ -426,10 +430,10 @@ namespace UnitTests
 
             await test4Wallet.SyncAsync(client);
 
-            await TestVoting();
+            await TestOTCTrade();
+            var tradeid = await TestOTCTradeDispute();   // test for dispute
+            await TestVoting(tradeid);
 
-            //await TestOTCTrade();
-            //await TestOTCTradeDispute();   // test for dispute
             //await TestPoolAsync();
             //await TestProfitingAndStaking();
             //await TestNodeFee();
@@ -459,7 +463,7 @@ namespace UnitTests
             _workflowEnds.Reset();
         }
 
-        private async Task TestVoting()
+        private async Task TestVoting(string disputeTradeId)
         {
             // simulate a court by node owners
             // create a DAO for nodes
@@ -511,7 +515,24 @@ namespace UnitTests
                 Options = new [] { "Yay", "Nay"},
             };
 
-            var voteCrtRet = await genesisWallet.CreateVoteSubject(subject);
+            var resolution = new ODRResolution
+            {
+                RType = ResolutionType.OTCTrade,
+                creator = genesisWallet.AccountId,
+                tradeid = disputeTradeId,
+                actions = new []
+                {
+                    new TransMove
+                    {
+                        from = "",
+                        to = "",
+                        amount = 100,
+                        desc = "compensate"
+                    }
+                }
+            };
+
+            var voteCrtRet = await genesisWallet.CreateVoteSubject(subject, resolution);
 
             await WaitWorkflow("Create Vote Subject Async");
             Assert.IsTrue(voteCrtRet.Successful(), "Create vote subject error");
@@ -545,6 +566,22 @@ namespace UnitTests
             var voteRet4 = await test4Wallet.Vote(voteblk.AccountID, 1);
             await WaitWorkflow("Vote on Subject Async 4");
             Assert.IsTrue(!voteRet4.Successful(), $"Vote 4 should error: {voteRet4.ResultCode}");
+
+            // owner create resolution on vote result
+            // vote keep as is.
+            var summary = await test4Wallet.GetVoteSummary(voteblk.AccountID);
+            Assert.IsNotNull(summary, "can't get vote summary.");
+            Assert.IsTrue(summary.IsDecided, "should be decided.");
+            Assert.AreEqual(0, summary.DecidedIndex, $"voting decided wrong option: {summary.DecidedIndex}");
+
+            // trade should be dispute state
+            var latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(summary.Spec.Resolution.tradeid);
+            var latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
+            Assert.AreEqual(OTCTradeStatus.Dispute, latestTrade.OTStatus);
+
+            // then we execute the resolution depend on the voting result
+            var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.Resolution);
+            Assert.IsTrue(odrRet, "can't execute resolution.");
 
             // test leave DAO
             var leaveret3 = await test3Wallet.LeaveDAOAsync(nodesdao.AccountID);
@@ -598,7 +635,7 @@ namespace UnitTests
             var alldaoret = await testWallet.RPC.GetAllDaosAsync(0, 10);
             Assert.IsTrue(alldaoret.Successful(), $"can get all dao: {alldaoret.ResultCode}");
             var daos = alldaoret.GetBlocks();
-            Assert.AreEqual(2, daos.Count(), $"can't find dao by GetAllDaosAsync");
+            Assert.AreEqual(1, daos.Count(), $"can't find dao by GetAllDaosAsync");
             var dao0 = alldaoret.GetBlocks().First() as DaoGenesisBlock;
             Assert.IsTrue(daoblk.AuthCompare(dao0));
 
@@ -751,7 +788,7 @@ namespace UnitTests
             ResetAuthFail();
         }
 
-        private async Task TestOTCTradeDispute()
+        private async Task<string> TestOTCTradeDispute()
         {
             var crypto = "unittest/ETH";
             // init. create token to sell
@@ -897,40 +934,46 @@ namespace UnitTests
             Assert.AreEqual(OTCTradeStatus.FiatSent, (trdlatest.GetBlock() as IOtcTrade).OTStatus,
                 $"Trade statust not changed to BuyerPaid");
 
-            // seller got the payment
-            var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
-            Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
+            // seller not got the payment. seller raise a dispute
+            var crdptret = await testWallet.OTCTradeRaiseDisputeAsync(tradgen.AccountID);
+            Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
 
-            await WaitWorkflow("OTCTradeSellerGotPaymentAsync");
-            // status changed to BuyerPaid
-            var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
-            Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-            Assert.AreEqual(OTCTradeStatus.CryptoReleased, (trdlatest2.GetBlock() as IOtcTrade).OTStatus,
-                $"Trade status not changed to ProductReleased");
+            //// seller got the payment
+            //var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);
+            //Assert.IsTrue(payindret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            await test2Wallet.SyncAsync(null);
-            Assert.AreEqual(test2balance - 13, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
+            //await WaitWorkflow("OTCTradeSellerGotPaymentAsync");
+            //// status changed to BuyerPaid
+            //var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            //Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
+            //Assert.AreEqual(OTCTradeStatus.CryptoReleased, (trdlatest2.GetBlock() as IOtcTrade).OTStatus,
+            //    $"Trade status not changed to ProductReleased");
 
-            // trade is ok. now its time to close the order
-            var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
-            Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
+            //await test2Wallet.SyncAsync(null);
+            //Assert.AreEqual(test2balance - 13, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
 
-            await WaitWorkflow("CloseOTCOrderAsync");
-            var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
-            Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
-            Assert.AreEqual(OTCOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).OOStatus,
-                $"Order status not changed to Closed");
+            //// trade is ok. now its time to close the order
+            //var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
+            //Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
-            await testWallet.SyncAsync(null);
-            var lyrshouldbe = testbalance - 10016;
-            Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
-            var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
-            Assert.AreEqual(100000m - 1.1m, bal2,
-                $"testwallet balance of crypto should be {100000m - 1.1m} but {bal2}");
+            //await WaitWorkflow("CloseOTCOrderAsync");
+            //var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
+            //Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
+            //Assert.AreEqual(OTCOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).OOStatus,
+            //    $"Order status not changed to Closed");
 
-            await Task.Delay(100);
-            Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
-            ResetAuthFail();
+            //await testWallet.SyncAsync(null);
+            //var lyrshouldbe = testbalance - 10016;
+            //Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
+            //var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
+            //Assert.AreEqual(100000m - 1.1m, bal2,
+            //    $"testwallet balance of crypto should be {100000m - 1.1m} but {bal2}");
+
+            //await Task.Delay(100);
+            //Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
+            //ResetAuthFail();
+
+            return tradgen.AccountID;
         }
 
         private async Task TestDepositWithdraw()
