@@ -644,5 +644,7 @@ namespace Lyra.Core.Blocks
         InvalidDAO,
         NotEnoughVoters,
         InvalidDataType,
+        NotImplemented,
+        InvalidOperation,
     }
 }

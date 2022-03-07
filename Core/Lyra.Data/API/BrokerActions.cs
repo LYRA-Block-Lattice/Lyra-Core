@@ -43,6 +43,7 @@ namespace Lyra.Data.API
 
         // OTC Dispute
         public const string BRK_OTC_CRDPT = "ORDCRDPT";
+        public const string BRK_OTC_RSLDPT = "ORDRSLDPT";
 
         // Voting
         public const string BRK_VOT_CREATE = "CRVOTS";

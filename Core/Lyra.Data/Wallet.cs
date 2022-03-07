@@ -2334,9 +2334,21 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<bool> ExecuteResolution(ODRResolution resolution)
+        public async Task<APIResult> ExecuteResolution(ODRResolution resolution)
         {
-            return false;
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_RSLDPT },
+                { "data", JsonConvert.SerializeObject(resolution) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(resolution.tradeid, amounts, tags);
+            return result;
         }
         #endregion
 

@@ -434,9 +434,9 @@ namespace UnitTests
             var tradeid = await TestOTCTradeDispute();   // test for dispute
             await TestVoting(tradeid);
 
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -580,8 +580,15 @@ namespace UnitTests
             Assert.AreEqual(OTCTradeStatus.Dispute, latestTrade.OTStatus);
 
             // then we execute the resolution depend on the voting result
-            var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.Resolution);
-            Assert.IsTrue(odrRet, "can't execute resolution.");
+            //var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.Resolution);
+            //Assert.IsTrue(odrRet.Successful(), $"can't execute resolution: {odrRet.ResultCode}");
+
+            //await WaitWorkflow("ExecuteResolution");
+
+            // now the state should be Closed 
+            //latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(summary.Spec.Resolution.tradeid);
+            //latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
+            //Assert.AreEqual(OTCTradeStatus.Closed, latestTrade.OTStatus);
 
             // test leave DAO
             var leaveret3 = await test3Wallet.LeaveDAOAsync(nodesdao.AccountID);

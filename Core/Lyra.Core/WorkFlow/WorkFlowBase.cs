@@ -30,6 +30,10 @@ namespace Lyra.Core.WorkFlow
 
         // IDebiWorkflow
         public abstract WorkFlowDescription GetDescription();
+        public virtual Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context)
+        {
+            return BrokerOpsAsync(sys, send) ?? ExtraOpsAsync(sys, send.Hash);
+        }
         public virtual Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             return OneByOneAsync(sys, send, GetDescription().Steps);
