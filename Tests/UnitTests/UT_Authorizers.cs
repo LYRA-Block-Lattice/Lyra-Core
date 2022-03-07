@@ -434,9 +434,9 @@ namespace UnitTests
             var tradeid = await TestOTCTradeDispute();   // test for dispute
             await TestVoting(tradeid);
 
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             ////await TestDepositWithdraw();
 
             // let workflow to finish
@@ -935,8 +935,8 @@ namespace UnitTests
                 $"Trade status not changed to BuyerPaid");
 
             // seller not got the payment. seller raise a dispute
-            var crdptret = await testWallet.OTCTradeRaiseDisputeAsync(tradgen.AccountID);
-            Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
+            //var crdptret = await testWallet.OTCTradeRaiseDisputeAsync(tradgen.AccountID);
+            //Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
 
             //// seller got the payment
             //var gotpayret = await testWallet.OTCTradeSellerGotPaymentAsync(tradgen.AccountID);

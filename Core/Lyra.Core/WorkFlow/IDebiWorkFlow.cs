@@ -8,7 +8,7 @@ using WorkflowCore.Interface;
 
 namespace Lyra.Core.WorkFlow
 {
-    public interface IDebiWorkFlow : IWorkflow<LyraContext>
+    public interface IDebiWorkFlow
     {
         WorkFlowDescription GetDescription();
         Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);

@@ -151,9 +151,6 @@ namespace Lyra.Core.WorkFlow
 
     public abstract class DebiWorkflow
     {
-        protected List<string> LockingIds { get; init; } = new List<string>();
-        public abstract BrokerRecvType RecvVia { get; }
-
         // submit block to consensus network
         // monitor timeout and return result 
         public Action<IWorkflowBuilder<LyraContext>> letConsensus => new Action<IWorkflowBuilder<LyraContext>>(branch => branch

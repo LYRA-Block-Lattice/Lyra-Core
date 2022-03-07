@@ -22,12 +22,10 @@ namespace Lyra.Core.WorkFlow
         public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] Steps { get; set; }
     }
 
-    public abstract class WorkFlowBase : DebiWorkflow, IDebiWorkFlow
+    public abstract class WorkFlowBase : DebiWorkflow, IDebiWorkFlow, IWorkflow<LyraContext>
     {
         // IWorkflow<LyraContext>
         public string Id => GetDescription().Action;
-        public override BrokerRecvType RecvVia => GetDescription().RecvVia;
-
         public int Version => 1;
 
         // IDebiWorkflow
