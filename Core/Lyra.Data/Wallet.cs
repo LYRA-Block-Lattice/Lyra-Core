@@ -2252,7 +2252,6 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRDPT },
-                { "tradeid", tradeid },
             };
 
             var amounts = new Dictionary<string, decimal>
