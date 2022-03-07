@@ -22,8 +22,15 @@ namespace Lyra.Core.WorkFlow
         public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] Steps { get; set; }
     }
 
-    public abstract class WorkFlowBase : IDebiWorkFlow
+    public abstract class WorkFlowBase : DebiWorkflow, IDebiWorkFlow
     {
+        // IWorkflow<LyraContext>
+        public string Id => GetDescription().Action;
+        public override BrokerRecvType RecvVia => GetDescription().RecvVia;
+
+        public int Version => 1;
+
+        // IDebiWorkflow
         public abstract WorkFlowDescription GetDescription();
         public virtual Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {

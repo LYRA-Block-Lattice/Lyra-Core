@@ -932,7 +932,7 @@ namespace UnitTests
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
             Assert.AreEqual(OTCTradeStatus.FiatSent, (trdlatest.GetBlock() as IOtcTrade).OTStatus,
-                $"Trade statust not changed to BuyerPaid");
+                $"Trade status not changed to BuyerPaid");
 
             // seller not got the payment. seller raise a dispute
             var crdptret = await testWallet.OTCTradeRaiseDisputeAsync(tradgen.AccountID);

@@ -13,11 +13,11 @@ using WorkflowCore.Models;
 
 namespace Lyra.Core.WorkFlow
 {
-    public interface IWorkflowExt : IWorkflow<LyraContext>
-    {
-        BrokerRecvType RecvVia { get; }
-    }
-
+    //public interface IWorkflowExt : IWorkflow<LyraContext>
+    //{
+    //    BrokerRecvType RecvVia { get; }
+    //}
+/*
     #region DAO
     public class JoinDaoWorkflow : DebiWorkflow, IWorkflowExt
     {
@@ -212,4 +212,5 @@ namespace Lyra.Core.WorkFlow
         public int Version => 1;
     }
     #endregion
+*/
 }
