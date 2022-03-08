@@ -55,8 +55,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             foreach(var act in resolution.actions)
             {
-                if (string.IsNullOrWhiteSpace(act.from)
-                    || string.IsNullOrWhiteSpace(act.to)
+                if (string.IsNullOrWhiteSpace(act.to)
                     || act.amount <= 0)
                     return APIResultCodes.InvalidOperation;
             }

@@ -542,7 +542,6 @@ namespace UnitTests
                 {
                     new TransMove
                     {
-                        from = "dao",
                         to = trade.OwnerAccountId,
                         amount = 100,
                         desc = "compensate"
