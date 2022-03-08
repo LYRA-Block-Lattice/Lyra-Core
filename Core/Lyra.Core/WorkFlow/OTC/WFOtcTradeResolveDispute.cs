@@ -64,7 +64,7 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        public override Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context)
         {
             throw new NotImplementedException();
         }
