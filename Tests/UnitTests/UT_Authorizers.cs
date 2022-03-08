@@ -484,6 +484,12 @@ namespace UnitTests
 
             await WaitWorkflow("JoinDAOAsync 1");
 
+            nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret.Successful());
+            nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+            var treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
+            Assert.AreEqual(1m, treasure[testPublicKey]);
+
             // another join DAO
             var invret2 = await test2Wallet.JoinDAOAsync(nodesdao.AccountID, 150000m);
             Assert.IsTrue(invret2.Successful());
@@ -499,10 +505,22 @@ namespace UnitTests
             nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(nodesdaoret.Successful());
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
-            var treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
+            treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
             Assert.AreEqual(0.8m, treasure[testPublicKey]);
             Assert.AreEqual(0.15m, treasure[test2PublicKey]);
             Assert.AreEqual(0.05m, treasure[test3PublicKey]);
+
+            // get the dispute trade
+            var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(disputeTradeId);
+            Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
+            Assert.AreEqual(OTCTradeStatus.Dispute, (trdlatest.GetBlock() as IOtcTrade).OTStatus,
+                $"Trade statust is not dispute");
+            var trade = trdlatest.GetBlock() as IOtcTrade;
+
+            // dispute trade
+            // seller: testwallet
+            // buyer: test2wallet
+            // dispute created by: testwallet
 
             VotingSubject subject = new VotingSubject
             {
@@ -524,8 +542,8 @@ namespace UnitTests
                 {
                     new TransMove
                     {
-                        from = "",
-                        to = "",
+                        from = "dao",
+                        to = trade.OwnerAccountId,
                         amount = 100,
                         desc = "compensate"
                     }
@@ -579,16 +597,24 @@ namespace UnitTests
             var latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
             Assert.AreEqual(OTCTradeStatus.Dispute, latestTrade.OTStatus);
 
+            await test2Wallet.SyncAsync(null);
+            var beforeresolv = test2Wallet.BaseBalance;
+
             // then we execute the resolution depend on the voting result
-            //var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.Resolution);
-            //Assert.IsTrue(odrRet.Successful(), $"can't execute resolution: {odrRet.ResultCode}");
+            var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.Resolution);
+            Assert.IsTrue(odrRet.Successful(), $"can't execute resolution: {odrRet.ResultCode}");
 
-            //await WaitWorkflow("ExecuteResolution");
+            await WaitWorkflow("ExecuteResolution");
 
-            // now the state should be Closed 
-            //latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(summary.Spec.Resolution.tradeid);
-            //latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
-            //Assert.AreEqual(OTCTradeStatus.Closed, latestTrade.OTStatus);
+            // now the state should be DisputeClosed 
+            latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(summary.Spec.Resolution.tradeid);
+            latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
+            Assert.AreEqual(OTCTradeStatus.DisputeClosed, latestTrade.OTStatus);
+
+            // testwallet should receive the compensate
+            await test2Wallet.SyncAsync(null);
+            var afterresolv = test2Wallet.BaseBalance;
+            Assert.AreEqual(beforeresolv + 100m, afterresolv, $"compensate not received.");
 
             // test leave DAO
             var leaveret3 = await test3Wallet.LeaveDAOAsync(nodesdao.AccountID);

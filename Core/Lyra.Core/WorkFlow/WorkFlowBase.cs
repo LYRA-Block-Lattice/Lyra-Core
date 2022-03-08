@@ -60,42 +60,28 @@ namespace Lyra.Core.WorkFlow
 
         protected async Task<TransactionBlock> TransactionOperateAsync(
             DagSystem sys,
-            SendTransferBlock sendBlock,
+            string relatedHash,
+            Block prevBlock,
             Func<TransactionBlock> GenBlock,
             Action<TransactionBlock> ChangeBlock
             )
         {
-            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
-
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
             var nextblock = GenBlock();
 
             // block
             nextblock.ServiceHash = lsb.Hash;
-
-            // transaction
-            nextblock.AccountID = sendBlock.DestinationAccountId;
-            nextblock.Balances = new Dictionary<string, long>();
-            nextblock.Fee = 0;
-            nextblock.FeeCode = LyraGlobal.OFFICIALTICKERCODE;
-            nextblock.FeeType = AuthorizationFeeTypes.NoFee;
-
-            // broker
-            (nextblock as IBrokerAccount).Name = ((IBrokerAccount)lastblock).Name;
-            (nextblock as IBrokerAccount).OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId;
-            (nextblock as IBrokerAccount).RelatedTx = sendBlock.Hash;
-
+            nextblock.Tags?.Clear();
             nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
-            var latestBalances = lastblock.Balances.ToDecimalDict();
-            var recvBalances = lastblock.Balances.ToDecimalDict();
-            nextblock.Balances = recvBalances.ToLongDict();
+            // ibroker
+            (nextblock as IBrokerAccount).RelatedTx = relatedHash;
 
             if (ChangeBlock != null)
                 ChangeBlock(nextblock);
 
-            await nextblock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
+            await nextblock.InitializeBlockAsync(prevBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
 
             return nextblock;
         }

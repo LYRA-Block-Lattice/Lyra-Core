@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum OTCTradeStatus { Open, FiatSent, FiatReceived, CryptoReleased, Closed, Dispute };
+    public enum OTCTradeStatus { Open, FiatSent, FiatReceived, CryptoReleased, Closed, Dispute, DisputeClosed };
     public interface IOtcTrade : IBrokerAccount
     {
         OTCTrade Trade { get; set; }

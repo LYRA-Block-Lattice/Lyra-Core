@@ -60,7 +60,7 @@ namespace Lyra.Core.WorkFlow.DAO
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            return await TransactionOperateAsync(sys, send, 
+            return await TransactionOperateAsync(sys, send.Hash, prevBlock, 
                 () => prevBlock.GenInc<DaoRecvBlock>(),
                 (b) =>
                 {

@@ -61,6 +61,8 @@ namespace Lyra.Core.Blocks
                 {
                     // most necessary!
                     Hash = "",
+                    Signature = "",
+                    Height = 0,
                     TimeStamp = DateTime.UtcNow,
                 });
         }

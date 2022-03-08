@@ -64,19 +64,59 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        public override Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context)
+        public override async Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context)
         {
-            throw new NotImplementedException();
+            return await ChangeStateAsync(sys, send) ?? await GetBlocksAsync(sys, send);
+        }
+
+        private async Task<TransactionBlock> GetBlocksAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
+            if (blocks.Count < resolv.actions.Length + 1)
+            {
+                return await SlashCollateral(sys, send,
+                    resolv.actions[blocks.Count - 1].to, resolv.actions[blocks.Count - 1].amount);
+            }
+            else
+                return null;
+        }
+
+        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, SendTransferBlock send, string to, decimal amount)
+        {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
+
+            var tradelatest = await sys.Storage.FindLatestBlockAsync(resolv.tradeid) as IOtcTrade;
+            var daolatest = await sys.Storage.FindLatestBlockAsync(tradelatest.Trade.daoId) as TransactionBlock;
+
+            var daosendblk = await TransactionOperateAsync(sys, send.Hash, daolatest,
+                () => daolatest.GenInc<DaoSendBlock>(),
+                (b) =>
+                {
+                    // send
+                    (b as SendTransferBlock).DestinationAccountId = to;
+
+                    // broker
+                    (b as IBrokerAccount).RelatedTx = send.Hash;
+
+                    var oldbalance = daolatest.Balances.ToDecimalDict();
+                    oldbalance["LYR"] -= amount;
+                    b.Balances = oldbalance.ToLongDict();
+                });
+            return daosendblk;
         }
 
         protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            if (blocks.Count > 0)
+                return null;
 
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
-            var votblk = await TransactionOperateAsync(sys, send,
+            var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<OtcTradeRecvBlock>(),
                 (b) =>
                 {
@@ -87,7 +127,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     (b as IBrokerAccount).RelatedTx = send.Hash;
 
                     // trade
-                    (b as IOtcTrade).OTStatus = OTCTradeStatus.Dispute;
+                    (b as IOtcTrade).OTStatus = OTCTradeStatus.DisputeClosed;
 
                     var oldbalance = prevBlock.Balances.ToDecimalDict();
                     if (oldbalance.ContainsKey("LYR"))

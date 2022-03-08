@@ -84,7 +84,7 @@ namespace Lyra.Core.WorkFlow.DAO
             var prevBlock = await sys.Storage.FindLatestBlockAsync(voteid) as TransactionBlock;
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var votblk = await TransactionOperateAsync(sys, send,
+            var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<VotingBlock>(),
                 (b) =>
                 {
