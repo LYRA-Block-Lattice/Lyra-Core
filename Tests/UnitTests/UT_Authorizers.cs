@@ -549,7 +549,13 @@ namespace UnitTests
                 }
             };
 
-            var voteCrtRet = await genesisWallet.CreateVoteSubject(subject, resolution);
+            var proposal = new VoteProposal
+            {
+                pptype = ProposalType.DisputeResolution,
+                data = JsonConvert.SerializeObject(resolution),
+            };
+
+            var voteCrtRet = await genesisWallet.CreateVoteSubject(subject, proposal);
 
             await WaitWorkflow("Create Vote Subject Async");
             Assert.IsTrue(voteCrtRet.Successful(), "Create vote subject error");
@@ -592,7 +598,8 @@ namespace UnitTests
             Assert.AreEqual(0, summary.DecidedIndex, $"voting decided wrong option: {summary.DecidedIndex}");
 
             // trade should be dispute state
-            var latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(summary.Spec.Resolution.tradeid);
+            var res1 = summary.Spec.Proposal.Deserialize() as ODRResolution;
+            var latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(res1.tradeid);
             var latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
             Assert.AreEqual(OTCTradeStatus.Dispute, latestTrade.OTStatus);
 
@@ -600,13 +607,13 @@ namespace UnitTests
             var beforeresolv = test2Wallet.BaseBalance;
 
             // then we execute the resolution depend on the voting result
-            var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.Resolution);
+            var odrRet = await genesisWallet.ExecuteResolution(res1);
             Assert.IsTrue(odrRet.Successful(), $"can't execute resolution: {odrRet.ResultCode}");
 
             await WaitWorkflow("ExecuteResolution");
 
             // now the state should be DisputeClosed 
-            latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(summary.Spec.Resolution.tradeid);
+            latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(res1.tradeid);
             latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
             Assert.AreEqual(OTCTradeStatus.DisputeClosed, latestTrade.OTStatus);
 

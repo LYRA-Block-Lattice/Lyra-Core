@@ -68,7 +68,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         VoteStatus VoteState { get; set; }  
         VotingSubject Subject { get; set; }
-        ODRResolution Resolution { get; set; }
+        VoteProposal Proposal { get; set; }
     }
 
     [BsonIgnoreExtraElements]
@@ -76,7 +76,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         public VoteStatus VoteState { get; set; }
         public VotingSubject Subject { get; set; } = null!;
-        public ODRResolution Resolution { get; set; } = null!;
+        public VoteProposal Proposal { get; set; } = null!;
 
         public string VoterId { get; set; } = null!;
         public int OptionIndex { get; set; }
@@ -93,17 +93,22 @@ namespace Lyra.Data.API.WorkFlow
             return base.AuthCompare(ob) &&
                 VoteState == ob.VoteState &&
                 Subject.GetExtraData() == ob.Subject.GetExtraData() &&
-                Resolution.GetExtraData() == ob.Resolution.GetExtraData() &&
+                Proposal.pptype == ob.Proposal.pptype &&
+                Proposal.data == ob.Proposal.data &&
                 VoterId == ob.VoterId &&
                     OptionIndex.Equals(ob.OptionIndex);
         }
 
         protected override string GetExtraData()
         {
+            var plainTextBytes = Encoding.UTF8.GetBytes(Proposal.data);
+            var ppdataenc = Convert.ToBase64String(plainTextBytes);
+
             string extraData = base.GetExtraData();
             extraData += $"{VoteState}|";
             extraData += $"{Subject.GetExtraData()}|";
-            extraData += $"{Resolution.GetExtraData()}|";
+            extraData += $"{Proposal.pptype}|";
+            extraData += $"{ppdataenc}|";
             extraData += $"{VoterId}|";
             extraData += $"{OptionIndex}|";
             return extraData;
@@ -114,7 +119,7 @@ namespace Lyra.Data.API.WorkFlow
             string result = base.Print();
             result += $"State: {VoteState}\n";
             result += $"Subject: {Subject}\n";
-            result += $"Resolution: {Resolution}\n";
+            result += $"Proposal: {Proposal}\n";
             result += $"VoterId: {VoterId}\n";
             result += $"OptionIndex: {OptionIndex}\n";
             return result;
@@ -123,12 +128,9 @@ namespace Lyra.Data.API.WorkFlow
 
 
     [BsonIgnoreExtraElements]
-    public class VotingGenesisBlock : BrokerAccountRecv, IOpeningBlock, IVoting
+    public class VotingGenesisBlock : VotingBlock, IOpeningBlock
     {
-        public VoteStatus VoteState { get; set; }
         public AccountTypes AccountType { get; set; }
-        public VotingSubject Subject { get; set; } = null!;
-        public ODRResolution Resolution { get; set; } = null!;
 
         protected override BlockTypes GetBlockType()
         {
@@ -140,10 +142,7 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as VotingGenesisBlock;
 
             return base.AuthCompare(ob) &&
-                AccountType == ob.AccountType &&
-                VoteState == ob.VoteState &&
-                Subject.GetExtraData() == ob.Subject.GetExtraData() &&
-                Resolution.GetExtraData() == ob.Resolution.GetExtraData()
+                AccountType == ob.AccountType
                 ;
         }
 
@@ -151,9 +150,6 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = base.GetExtraData();
             extraData += AccountType + "|";
-            extraData += VoteState + "|";
-            extraData += Subject.GetExtraData() + "|";
-            extraData += $"{Resolution.GetExtraData()}|";
             return extraData;
         }
 
@@ -161,9 +157,6 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
             result += $"AccountType: {AccountType}\n";
-            result += $"State: {VoteState}\n";
-            result += $"Subject: {Subject}\n";
-            result += $"Resolution: {Resolution}\n";
             return result;
         }
     }

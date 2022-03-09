@@ -2266,13 +2266,14 @@ namespace Lyra.Core.Accounts
 
         #region Voting
         public async Task<AuthorizationAPIResult> CreateVoteSubject(VotingSubject subject,
-            ODRResolution resolution)
+            VoteProposal proposal)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_VOT_CREATE },
                 { "data", JsonConvert.SerializeObject(subject) },
-                { "extra", JsonConvert.SerializeObject(resolution) },
+                { "pptype", proposal.pptype.ToString() },
+                { "ppdata", proposal.data },
             };
 
             var amounts = new Dictionary<string, decimal>

@@ -30,11 +30,13 @@ namespace Lyra.Core.WorkFlow.DAO
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count != 3 ||
+            if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("data") ||
                 string.IsNullOrWhiteSpace(send.Tags["data"]) ||
-                !send.Tags.ContainsKey("extra") ||
-                string.IsNullOrWhiteSpace(send.Tags["extra"])
+                !send.Tags.ContainsKey("pptype") ||
+                string.IsNullOrWhiteSpace(send.Tags["pptype"]) ||
+                !send.Tags.ContainsKey("ppdata") ||
+                string.IsNullOrWhiteSpace(send.Tags["ppdata"])
                 )
                 return APIResultCodes.InvalidBlockTags;
 
@@ -51,9 +53,19 @@ namespace Lyra.Core.WorkFlow.DAO
                 )
                 return APIResultCodes.InvalidArgument;
 
-            var resolution = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["extra"]);
+            var pptype = (ProposalType)Enum.Parse(typeof(ProposalType), send.Tags["pptype"]);
+            var proposal = pptype switch
+            {
+                ProposalType.DisputeResolution => JsonConvert.DeserializeObject<ODRResolution>(send.Tags["ppdata"]),
+                _ => null
+            };
+
+            if (pptype != ProposalType.DisputeResolution || proposal == null)
+                return APIResultCodes.InvalidArgument;
+
+            var resolution = proposal as ODRResolution;
             // verify subject
-            if (string.IsNullOrEmpty(resolution.tradeid) ||
+            if (resolution == null || string.IsNullOrEmpty(resolution.tradeid) ||
                 string.IsNullOrEmpty(resolution.creator) ||
                 resolution.actions.Length == 0
                 )
@@ -87,7 +99,12 @@ namespace Lyra.Core.WorkFlow.DAO
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
-            var reslution = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["extra"]);
+            var pptype = (ProposalType)Enum.Parse(typeof(ProposalType), send.Tags["pptype"]);
+            var proposal = pptype switch
+            {
+                ProposalType.DisputeResolution => JsonConvert.DeserializeObject<ODRResolution>(send.Tags["ppdata"]),
+                _ => throw new InvalidOperationException("No such proposal supported")
+            };
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{subject.Title},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
@@ -116,7 +133,11 @@ namespace Lyra.Core.WorkFlow.DAO
                 // voting
                 VoteState = VoteStatus.InProgress,
                 Subject  = subject,
-                Resolution = reslution,
+                Proposal = new VoteProposal
+                {
+                    pptype = pptype,
+                    data = send.Tags["ppdata"]
+                },
             };
 
             gens.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

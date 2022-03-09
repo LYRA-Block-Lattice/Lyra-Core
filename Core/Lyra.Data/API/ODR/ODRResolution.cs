@@ -10,8 +10,9 @@ namespace Lyra.Data.API.ODR
     public enum ResolutionType { OTCTrade };
     public class ODRResolution
     {
-        public ResolutionType RType { get; set; }
         public string creator { get; set; }
+
+        public ResolutionType RType { get; set; }
         public string tradeid { get; set; }
 
         public TransMove[] actions { get; set; }
@@ -19,14 +20,15 @@ namespace Lyra.Data.API.ODR
         public string GetExtraData()
         {
             var actstr = string.Join("|", actions.Select(x => x.GetExtraData()));
-            return $"{RType}|{creator}|{tradeid}|{actstr}";
+            return $"{creator}|{RType}|{tradeid}|{actstr}";
         }
 
         public override string ToString()
         {
-            var result = $"Type: {RType}\n";
-            result += $"State: {creator}\n";
-            result += $"Subject: {tradeid}\n";
+            var result = $"Creator: {creator}\n";
+
+            result += $"Resolution Type: {RType}\n";            
+            result += $"On Trade: {tradeid}\n";
             foreach(var act in actions)
             {
                 result += $"Action: {act}\n";
