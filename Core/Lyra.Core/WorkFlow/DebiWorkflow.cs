@@ -296,9 +296,12 @@ namespace Lyra.Core.WorkFlow
                 _logger.LogInformation($"View change req more than 10 times. Permanent error. Key: {ctx.SvcRequest}: {ctx.SendHash}");
                 ctx.State = WFState.Error;
             }
+            else
+            {
+                _logger.LogInformation($"Request View Change.");
+                await ConsensusService.Singleton.BeginChangeViewAsync("WF Engine", ViewChangeReason.ConsensusTimeout);
+            }
 
-            _logger.LogInformation($"Request View Change.");
-            await ConsensusService.Singleton.BeginChangeViewAsync("WF Engine", ViewChangeReason.ConsensusTimeout);
             return ExecutionResult.Next();
         }
     }
