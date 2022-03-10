@@ -240,15 +240,13 @@ namespace Lyra.Core.WorkFlow
                                 .Parallel()
                                     .Do(then => then
                                         .StartWith<ReqViewChange>()
+                                            .Output(data => data.State, step => step.PermanentFailed ? WFState.Error : WFState.Running)
                                         .WaitFor("ViewChanged", data => data.GetLastBlock().ServiceHash, data => DateTime.Now)
                                             .Output(data => data.LastResult, step => step.EventData)
                                             .Output(data => data.State, step => WFState.Running)
                                         .Then<CustomMessage>()
                                                 .Name("Log")
                                                 .Input(step => step.Message, data => $"View changed.")
-                                        .Then<CustomMessage>()
-                                            .Name("Log")
-                                            .Input(step => step.Message, data => $"State Changed.")
                                         )
                                     .Do(then => then
                                         .StartWith<CustomMessage>()
@@ -258,10 +256,6 @@ namespace Lyra.Core.WorkFlow
                                         .Then<CustomMessage>()
                                             .Name("Log")
                                             .Input(step => step.Message, data => $"View change is timeout.")
-                                            .Output(data => data.State, step => WFState.Running)
-                                        .Then<CustomMessage>()
-                                            .Name("Log")
-                                            .Input(step => step.Message, data => $"State Changed.")
                                         )
                                     .Join()
                                         .CancelCondition(data => data.State == WFState.Running, true)
@@ -281,9 +275,12 @@ namespace Lyra.Core.WorkFlow
     {
         private ILogger _logger;
 
+        public bool PermanentFailed { get; set; }
+
         public ReqViewChange(ILogger<ReqViewChange> logger)
         {
             _logger = logger;
+            PermanentFailed = false;
         }
 
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
@@ -295,6 +292,7 @@ namespace Lyra.Core.WorkFlow
             {
                 _logger.LogInformation($"View change req more than 10 times. Permanent error. Key: {ctx.SvcRequest}: {ctx.SendHash}");
                 ctx.State = WFState.Error;
+                PermanentFailed = true;
             }
             else
             {
