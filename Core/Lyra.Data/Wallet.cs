@@ -2351,6 +2351,23 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(resolution.tradeid, amounts, tags);
             return result;
         }
+
+        public async Task<APIResult> ChangeDAO(string daoid, DAOChange change)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CHANGE },
+                { "data", JsonConvert.SerializeObject(change) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
         #endregion
 
         public TransactionBlock GetLastSyncBlock()

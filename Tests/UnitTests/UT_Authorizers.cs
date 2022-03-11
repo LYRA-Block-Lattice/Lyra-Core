@@ -478,6 +478,24 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");
             var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
 
+            // test dao change
+            var change = new DAOChange
+            {
+                creator = genesisWallet.AccountId,
+                settings = new Dictionary<string, string>
+                {
+                    { "ShareRito", "0.9" },
+                    { "Seats", "100" },
+                    { "SellerPar", "120" },
+                    { "BuyerPar", "20" },
+                }
+            };
+            var chgret = await genesisWallet.ChangeDAO(nodesdao.AccountID, change);
+            Assert.IsTrue(chgret.Successful(), $"Can't change DAO: {chgret.ResultCode}");
+
+            await WaitWorkflow("Change DAO");
+            Assert.IsTrue(_authResult);
+
             // join DAO / invest
             var invret = await testWallet.JoinDAOAsync(nodesdao.AccountID, 800000m);
             Assert.IsTrue(invret.Successful());
@@ -488,7 +506,7 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful());
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             var treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
-            Assert.AreEqual(1m, treasure[testPublicKey]);
+            Assert.AreEqual(1m, Math.Round(treasure[testPublicKey], 5));
 
             // another join DAO
             var invret2 = await test2Wallet.JoinDAOAsync(nodesdao.AccountID, 150000m);
@@ -506,9 +524,9 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful());
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
-            Assert.AreEqual(0.8m, treasure[testPublicKey]);
-            Assert.AreEqual(0.15m, treasure[test2PublicKey]);
-            Assert.AreEqual(0.05m, treasure[test3PublicKey]);
+            Assert.AreEqual(0.8m, Math.Round(treasure[testPublicKey], 5));
+            Assert.AreEqual(0.15m, Math.Round(treasure[test2PublicKey], 5));
+            Assert.AreEqual(0.05m, Math.Round(treasure[test3PublicKey], 5));
 
             // get the dispute trade
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(disputeTradeId);
@@ -633,7 +651,7 @@ namespace UnitTests
             var nodesdao2 = nodesdaoret2.GetBlock() as TransactionBlock;
             var treasure2 = (nodesdao2 as IDao).Treasure.ToRitoDecimalDict();
             Assert.IsFalse(treasure2.ContainsKey(test3PublicKey), $"test 3 still exists.");
-
+            
             ResetAuthFail();
         }
 
