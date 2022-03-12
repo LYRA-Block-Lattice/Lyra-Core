@@ -2352,11 +2352,12 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> ChangeDAO(string daoid, DAOChange change)
+        public async Task<APIResult> ChangeDAO(string daoid, string voteid, DAOChange change)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CHANGE },
+                { "voteid", voteid },
                 { "data", JsonConvert.SerializeObject(change) },
             };
 

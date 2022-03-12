@@ -30,9 +30,10 @@ namespace Lyra.Core.WorkFlow.DAO
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count != 2 ||
+            if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("data") ||
-                string.IsNullOrWhiteSpace(send.Tags["data"])
+                string.IsNullOrWhiteSpace(send.Tags["data"]) ||
+                !send.Tags.ContainsKey("voteid")
                 )
                 return APIResultCodes.InvalidBlockTags;
 
@@ -47,7 +48,8 @@ namespace Lyra.Core.WorkFlow.DAO
             if (change.creator != dao.OwnerAccountId)
                 return APIResultCodes.Unauthorized;
 
-            if(string.IsNullOrWhiteSpace(change.voteid))
+            var voteid = send.Tags["voteid"];
+            if(string.IsNullOrWhiteSpace(voteid))
             {
                 // only valid if no stake holders
                 if (dao.Treasure.Count > 0)
@@ -57,7 +59,8 @@ namespace Lyra.Core.WorkFlow.DAO
             {
                 // TODO: verify against the vote
                 // vote must contain the same changes
-                return APIResultCodes.Unauthorized;
+                
+                //return APIResultCodes.Unauthorized;
             }
 
             if (change.settings == null || change.settings.Count == 0)

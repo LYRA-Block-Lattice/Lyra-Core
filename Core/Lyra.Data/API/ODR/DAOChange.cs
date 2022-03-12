@@ -9,7 +9,6 @@ namespace Lyra.Data.API.ODR
     public class DAOChange
     {
         public string creator { get; set; }
-        public string voteid { get; set; }
         public Dictionary<string, string> settings { get; set; }
 
         public string GetExtraData()

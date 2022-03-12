@@ -54,22 +54,26 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidArgument;
 
             var pptype = (ProposalType)Enum.Parse(typeof(ProposalType), send.Tags["pptype"]);
-            var proposal = pptype switch
+            object? proposal = pptype switch
             {
                 ProposalType.DisputeResolution => JsonConvert.DeserializeObject<ODRResolution>(send.Tags["ppdata"]),
+                ProposalType.DAOSettingChanges => JsonConvert.DeserializeObject<DAOChange>(send.Tags["ppdata"]),
                 _ => null
             };
 
-            if (pptype != ProposalType.DisputeResolution || proposal == null)
+            if (pptype == ProposalType.None || proposal == null)
                 return APIResultCodes.InvalidArgument;
 
             var resolution = proposal as ODRResolution;
             // verify subject
-            if (resolution == null || string.IsNullOrEmpty(resolution.tradeid) ||
-                string.IsNullOrEmpty(resolution.creator) ||
-                resolution.actions.Length == 0
-                )
-                return APIResultCodes.InvalidArgument;
+            if(resolution != null)
+            {
+                if (string.IsNullOrEmpty(resolution.tradeid) ||
+                    string.IsNullOrEmpty(resolution.creator) ||
+                    resolution.actions.Length == 0
+                    )
+                    return APIResultCodes.InvalidArgument;
+            }
 
             // TODO: verify trade id and creater id
 
@@ -100,10 +104,11 @@ namespace Lyra.Core.WorkFlow.DAO
 
             var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
             var pptype = (ProposalType)Enum.Parse(typeof(ProposalType), send.Tags["pptype"]);
-            var proposal = pptype switch
+            object? proposal = pptype switch
             {
                 ProposalType.DisputeResolution => JsonConvert.DeserializeObject<ODRResolution>(send.Tags["ppdata"]),
-                _ => throw new InvalidOperationException("No such proposal supported")
+                ProposalType.DAOSettingChanges => JsonConvert.DeserializeObject<DAOChange>(send.Tags["ppdata"]),
+                _ => null
             };
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{subject.Title},{send.AccountID}";
