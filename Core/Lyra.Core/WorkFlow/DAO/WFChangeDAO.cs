@@ -111,6 +111,8 @@ namespace Lyra.Core.WorkFlow.DAO
                             dao.SellerPar = int.Parse(chg.Value);
                         else if (chg.Key == "BuyerPar")
                             dao.BuyerPar = int.Parse(chg.Value);
+                        else if (chg.Key == "Description")
+                            dao.Description = chg.Value;
                     }
                 });
         }
