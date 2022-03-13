@@ -46,7 +46,36 @@ namespace Lyra.Core.Decentralize
                     if (bt != BlockTypes.Null)
                         Register(bt, entry.t);
                 }
-                catch { }
+                catch (Exception ex)                
+                {
+                    Console.WriteLine($"Error register authorizer: {entry.t}");
+                }
+            }
+
+            var depreteds = new[]
+            {
+                BlockTypes.Null,
+                BlockTypes.Sync,
+                BlockTypes.OpenAccountWithReceiveFee,
+                BlockTypes.OpenAccountWithImport,
+                BlockTypes.ReceiveFee,
+                BlockTypes.ImportAccount,
+                BlockTypes.ReceiveMultipleFee,
+                BlockTypes.ReceiveAuthorizerFee,
+                BlockTypes.TradeOrder,
+                BlockTypes.Trade,
+                BlockTypes.ExecuteTradeOrder,
+                BlockTypes.CancelTradeOrder,
+            };
+
+            // make sure every blocktype has an authrorizer
+            foreach(var t in Enum.GetValues(typeof(BlockTypes)))
+            {
+                if (depreteds.Any(a => a == (BlockTypes)t))
+                    continue;
+
+                if (!_authorizers.ContainsKey((BlockTypes)t))
+                    Console.WriteLine($"Authorizers Missing {t}");
             }
 
             /*
@@ -124,6 +153,7 @@ namespace Lyra.Core.Decentralize
         {
             if(_authorizers.ContainsKey(blockType))
             {
+                Console.WriteLine($"Already registered {blockType}");
                 return;
             }
                 

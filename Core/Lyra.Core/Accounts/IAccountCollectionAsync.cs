@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 
@@ -29,6 +30,9 @@ namespace Lyra.Core.Accounts
 
         // DAO and OTC
         Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly);
+        Task<VotingSummary> GetVoteSummaryAsync(string voteid);
+        Task<TransactionBlock> FindExecForVoteAsync(string voteid);
+
         Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize);
         Block GetDaoByName(string name);
         Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId);

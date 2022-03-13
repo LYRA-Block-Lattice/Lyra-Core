@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Shared;
@@ -315,6 +316,16 @@ namespace Lyra.Core.Accounts
         public Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             return StopWatcher.Track(() => _store.FindAllVotesByDaoAsync(daoid, openOnly), "FindAllVotesByDaoAsync");
+        }
+
+        public Task<VotingSummary> GetVoteSummaryAsync(string voteid)
+        {
+            return StopWatcher.Track(() => _store.GetVoteSummaryAsync(voteid), "GetVoteSummaryAsync");
+        }
+
+        public Task<TransactionBlock> FindExecForVoteAsync(string voteid)
+        {
+            return StopWatcher.Track(() => _store.FindExecForVoteAsync(voteid), "FindExecForVoteAsync");
         }
 
         public Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)

@@ -34,6 +34,7 @@ namespace Lyra.Data.API
         public const string BRK_DAO_JOIN = "JOINDAO";
         public const string BRK_DAO_LEAVE = "LEAVEDAO";
         public const string BRK_DAO_CHANGE = "CHANGEDAO";
+        public const string BRK_DAO_VOTED_CHANGE = "VTCHGDAO";
 
         // OTC
         public const string BRK_OTC_CRODR = "CRODR";

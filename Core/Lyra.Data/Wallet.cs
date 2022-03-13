@@ -2302,48 +2302,12 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<VotingSummary> GetVoteSummary(string voteid)
-        {
-            // get all votes
-            var ret = await _rpcClient.GetLastBlockAsync(voteid);
-            if (ret.Successful())
-            {
-                var latestblk = ret.GetBlock();
-                if (latestblk.BlockType != BlockTypes.VoteGenesis
-                    && latestblk.BlockType != BlockTypes.Voting)
-                    throw new Exception("Invalid Vote ID");
-
-                var vt = latestblk as IVoting;
-                var blk = latestblk as TransactionBlock;
-
-                // load
-                var votes = new List<VotingBlock>();
-                var genret = await _rpcClient.GetBlockByIndexAsync(voteid, 1);
-                var vg = genret.GetBlock() as VotingGenesisBlock;
-
-                for (int i = 2; i <= blk.Height; i++)
-                {
-                    var vret = await _rpcClient.GetBlockByIndexAsync(voteid, i);
-                    votes.Add(vret.GetBlock() as VotingBlock);
-                }
-
-                return new VotingSummary
-                {
-                    Spec = vg,
-                    Votes = votes,
-                };
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public async Task<APIResult> ExecuteResolution(ODRResolution resolution)
+        public async Task<APIResult> ExecuteResolution(string voteid, ODRResolution resolution)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_RSLDPT },
+                { "voteid", voteid },
                 { "data", JsonConvert.SerializeObject(resolution) },
             };
 
@@ -2360,7 +2324,10 @@ namespace Lyra.Core.Accounts
         {
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CHANGE },
+                { Block.REQSERVICETAG, 
+                    string.IsNullOrEmpty(voteid) ? 
+                    BrokerActions.BRK_DAO_CHANGE :
+                    BrokerActions.BRK_DAO_VOTED_CHANGE},
                 { "voteid", voteid },
                 { "data", JsonConvert.SerializeObject(change) },
             };

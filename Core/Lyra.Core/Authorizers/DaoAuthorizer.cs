@@ -10,6 +10,26 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
+    public class DaoVoteExecAuthorizer : DaoRecvAuthorizer
+    {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.OrgnizationChange;
+        }
+
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            if (!(tblock is DaoVotedChangeBlock))
+                return APIResultCodes.InvalidBlockType;
+
+            var block = tblock as DaoVotedChangeBlock;
+            var vs = await sys.Storage.GetVoteSummaryAsync(block.voteid);
+            if(vs == null || !vs.IsDecided)
+                return APIResultCodes.InvalidVote;
+
+            return await base.AuthorizeImplAsync<T>(sys, tblock);
+        }
+    }
     public class DaoRecvAuthorizer : BrokerAccountRecvAuthorizer
     {
         public override BlockTypes GetBlockType()

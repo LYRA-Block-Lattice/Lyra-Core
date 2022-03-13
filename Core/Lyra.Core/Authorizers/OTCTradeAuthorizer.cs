@@ -10,6 +10,28 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
+    public class OTCTradeResolution : OTCTradeRecvAuthorizer
+    {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.OTCTradeResolutionRecv;
+        }
+
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            if (!(tblock is OtcVotedResolutionBlock))
+                return APIResultCodes.InvalidBlockType;
+
+            var block = tblock as OtcVotedResolutionBlock;
+            var vs = await sys.Storage.GetVoteSummaryAsync(block.voteid);
+            if (vs == null || !vs.IsDecided)
+                return APIResultCodes.InvalidVote;
+
+            return await base.AuthorizeImplAsync<T>(sys, tblock);
+        }
+    }
+
+
     public class OTCTradeRecvAuthorizer : BrokerAccountRecvAuthorizer
     {
         public override BlockTypes GetBlockType()

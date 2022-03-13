@@ -1,4 +1,5 @@
 ﻿using Lyra.Data.API.WorkFlow;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Lyra.Data.API.ODR
         public VotingGenesisBlock Spec { get; set; }
         public List<VotingBlock> Votes { get; set; }
 
+        [JsonIgnore]
         public bool IsDecided
         {
             get
@@ -31,6 +33,7 @@ namespace Lyra.Data.API.ODR
             }
         }
 
+        [JsonIgnore]
         public int DecidedIndex
         {
             get

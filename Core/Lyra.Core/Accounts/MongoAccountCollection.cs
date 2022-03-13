@@ -24,6 +24,7 @@ using Lyra.Data.API.WorkFlow;
 using Lyra.Shared;
 using Neo;
 using Newtonsoft.Json;
+using Lyra.Data.API.ODR;
 
 namespace Lyra.Core.Accounts
 {
@@ -2212,6 +2213,58 @@ namespace Lyra.Core.Accounts
                 .FindAsync(filterDefination);
 
             return q.ToList();
+        }
+
+        public async Task<VotingSummary> GetVoteSummaryAsync(string voteid)
+        {
+            // get all votes
+            var latestblk = await FindLatestBlockAsync(voteid);
+            if (latestblk != null)
+            {
+                if (latestblk.BlockType != BlockTypes.VoteGenesis
+                    && latestblk.BlockType != BlockTypes.Voting)
+                    throw new Exception("Invalid Vote ID");
+
+                var vt = latestblk as IVoting;
+                var blk = latestblk as TransactionBlock;
+
+                // load
+                var votes = new List<VotingBlock>();
+                var genret = await FindBlockByIndexAsync(voteid, 1);
+                var vg = genret as VotingGenesisBlock;
+
+                for (int i = 2; i <= blk.Height; i++)
+                {
+                    var vret = await FindBlockByIndexAsync(voteid, i);
+                    votes.Add(vret as VotingBlock);
+                }
+
+                return new VotingSummary
+                {
+                    Spec = vg,
+                    Votes = votes,
+                };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public async Task<TransactionBlock> FindExecForVoteAsync(string voteid)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            FilterDefinition<TransactionBlock> filterDefination;
+
+            filterDefination = filter.And(
+                    filter.Eq("BlockType", BlockTypes.OrgnizationChange),
+                    filter.Eq("voteid", voteid)
+                );
+
+            var q = await _blocks.OfType<TransactionBlock>()
+                .FindAsync(filterDefination);
+
+            return await q.FirstOrDefaultAsync();
         }
 
         public async Task FixDbRecordAsync()

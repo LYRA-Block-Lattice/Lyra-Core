@@ -337,6 +337,9 @@ namespace UnitTests
             mock.Setup(x => x.FindAllVotesByDaoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<string, bool>((daoid, openOnly) =>
                     Task.FromResult(api.FindAllVotesByDaoAsync(daoid, openOnly)).Result);
+            mock.Setup(x => x.GetVoteSummaryAsync(It.IsAny<string>()))
+                .Returns<string>((voteid) =>
+                    Task.FromResult(api.GetVoteSummaryAsync(voteid)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
@@ -485,7 +488,7 @@ namespace UnitTests
                 settings = new Dictionary<string, string>
                 {
                     { "ShareRito", "0.9" },
-                    { "Seats", "100" },
+                    { "Seats", "39" },
                     { "SellerPar", "120" },
                     { "BuyerPar", "20" },
                 }
@@ -563,23 +566,28 @@ namespace UnitTests
             await WaitWorkflow("Create Vote for dao change Async");           
             Assert.IsTrue(daoVoteCrtRet.Successful(), $"Create vote for dao error: {daoVoteCrtRet.ResultCode}");
 
-            await DoVote(daoVoteCrtRet.TxHash, false);
+            await DoVote(daoVoteCrtRet.TxHash, true);
 
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(daoVoteCrtRet.TxHash);
             var blockdvret = await genesisWallet.RPC.GetLastBlockAsync((voteblksRet.GetBlocks().Last() as TransactionBlock).AccountID);
             Assert.IsTrue(blockdvret.Successful(), $"Can't get vote {blockdvret.ResultCode}");
             var blockdv = blockdvret.GetBlock() as TransactionBlock;
 
-            var summaryx = await test4Wallet.GetVoteSummary(blockdv.AccountID);
+            var summaryxret = await test4Wallet.RPC.GetVoteSummaryAsync(blockdv.AccountID);
+            Assert.IsTrue(summaryxret.Successful(), $"failed to get vote summary: {summaryxret.ResultCode}, {summaryxret.ResultMessage}");
+            var summaryx = JsonConvert.DeserializeObject<VotingSummary>(summaryxret.JsonString);
             Assert.IsNotNull(summaryx, "can't get vote summary.");
-            Assert.IsFalse(summaryx.IsDecided, "should not be decided.");
+            //Assert.IsFalse(summaryx.IsDecided, "should not be decided.");
 
-
-            var chgret2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, daoVoteCrtRet.TxHash, change2);
+            var chgret2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
             Assert.IsTrue(chgret2.Successful(), $"Can't change DAO: {chgret2.ResultCode}");
-
             await WaitWorkflow("Change DAO 2 by vote");
             Assert.IsTrue(_authResult);
+
+            // test if dup exec detected
+            var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
+            Assert.IsTrue(chgret3.ResultCode == APIResultCodes.AlreadyExecuted, $"Can't change DAO: {chgret3.ResultCode}");
+            await WaitWorkflow("Change DAO 3 by vote");
 
             // get the dispute trade
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(disputeTradeId);
@@ -648,7 +656,10 @@ namespace UnitTests
 
             // owner create resolution on vote result
             // vote keep as is.
-            var summary = await test4Wallet.GetVoteSummary((curvote as TransactionBlock).AccountID);
+            var summaryret = await test4Wallet.RPC.GetVoteSummaryAsync((curvote as TransactionBlock).AccountID);
+            Assert.IsTrue(summaryret.Successful());
+            var summary = JsonConvert.DeserializeObject<VotingSummary>(summaryret.JsonString);
+
             Assert.IsNotNull(summary, "can't get vote summary.");
             Assert.IsTrue(summary.IsDecided, "should be decided.");
             Assert.AreEqual(0, summary.DecidedIndex, $"voting decided wrong option: {summary.DecidedIndex}");
@@ -663,7 +674,7 @@ namespace UnitTests
             var beforeresolv = test2Wallet.BaseBalance;
 
             // then we execute the resolution depend on the voting result
-            var odrRet = await genesisWallet.ExecuteResolution(res1);
+            var odrRet = await genesisWallet.ExecuteResolution(summary.Spec.AccountID, res1);
             Assert.IsTrue(odrRet.Successful(), $"can't execute resolution: {odrRet.ResultCode}");
 
             await WaitWorkflow("ExecuteResolution");

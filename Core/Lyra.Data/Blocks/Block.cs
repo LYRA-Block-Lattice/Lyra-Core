@@ -389,6 +389,7 @@ namespace Lyra.Core.Blocks
         OrgnizationRecv = 80,
         OrgnizationGenesis = 81,
         OrgnizationSend = 82,
+        OrgnizationChange = 83,
 
         // OTC
         OTCOrderRecv = 84,
@@ -397,6 +398,7 @@ namespace Lyra.Core.Blocks
         OTCTradeRecv = 87,
         OTCTradeGenesis = 88,
         OTCTradeSend = 89,
+        OTCTradeResolutionRecv = 90,
 
         // voting
         VoteGenesis = 100,
@@ -647,5 +649,6 @@ namespace Lyra.Core.Blocks
         InvalidDataType,
         NotImplemented,
         InvalidOperation,
+        AlreadyExecuted,
     }
 }

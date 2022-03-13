@@ -693,6 +693,14 @@ namespace LyraLexWeb2
             return await _node.FindAllVotesByDaoAsync(daoid, openOnly);
         }
 
+        [Route("GetVoteSummary")]
+        [HttpGet]
+        public async Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetVoteSummaryAsync(voteid);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

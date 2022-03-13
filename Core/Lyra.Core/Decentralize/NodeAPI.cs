@@ -1313,5 +1313,32 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public async Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetVoteSummaryAsync(voteid);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.JsonString = Json(blocks);
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetVoteSummaryAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
     }
 }

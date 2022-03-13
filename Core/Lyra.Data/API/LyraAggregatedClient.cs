@@ -649,5 +649,10 @@ namespace Lyra.Data.API
         {
             return SeedClient.FindAllVotesByDaoAsync(daoid, openOnly);
         }
+
+        public Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid)
+        {
+            return SeedClient.GetVoteSummaryAsync(voteid);
+        }
     }
 }

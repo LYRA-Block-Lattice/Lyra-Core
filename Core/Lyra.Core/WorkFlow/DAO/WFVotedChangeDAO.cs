@@ -16,13 +16,13 @@ using System.Threading.Tasks;
 namespace Lyra.Core.WorkFlow.DAO
 {
     [LyraWorkFlow]
-    public class WFChangeDAO : WorkFlowBase
+    public class WFVotedChangeDAO : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
         {
             return new WorkFlowDescription
             {
-                Action = BrokerActions.BRK_DAO_CHANGE,
+                Action = BrokerActions.BRK_DAO_VOTED_CHANGE,
                 RecvVia = BrokerRecvType.None,
                 Steps = new[] { MainAsync }
             };
@@ -49,18 +49,20 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.Unauthorized;
 
             var voteid = send.Tags["voteid"];
-            if(string.IsNullOrWhiteSpace(voteid))
+            if (string.IsNullOrWhiteSpace(voteid))
             {
-                // only valid if no stake holders
-                if (dao.Treasure.Count > 0)
-                    return APIResultCodes.Unauthorized;
+                return APIResultCodes.Unauthorized;
             }
             else
             {
-                // TODO: verify against the vote
-                // vote must contain the same changes
-                
-                return APIResultCodes.Unauthorized;
+                var vs = await sys.Storage.GetVoteSummaryAsync(voteid);
+                if(vs == null || !vs.IsDecided)
+                    return APIResultCodes.Unauthorized;
+
+                // should not execute more than once
+                var exec = await sys.Storage.FindExecForVoteAsync(voteid);
+                if (exec != null)
+                    return APIResultCodes.AlreadyExecuted;
             }
 
             if (change.settings == null || change.settings.Count == 0)
@@ -84,7 +86,7 @@ namespace Lyra.Core.WorkFlow.DAO
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
             return await TransactionOperateAsync(sys, send.Hash, prevBlock, 
-                () => prevBlock.GenInc<DaoRecvBlock>(),
+                () => prevBlock.GenInc<DaoVotedChangeBlock>(),
                 (b) =>
                 {
                     // recv
@@ -101,6 +103,9 @@ namespace Lyra.Core.WorkFlow.DAO
                     else
                         oldbalance.Add("LYR", txInfo.Changes["LYR"]);
                     b.Balances = oldbalance.ToLongDict();
+
+                    // vote
+                    (b as IVoteExec).voteid = send.Tags["voteid"];
 
                     // change config
                     var dao = b as IDao;

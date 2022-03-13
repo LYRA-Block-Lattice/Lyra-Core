@@ -30,8 +30,11 @@ namespace Lyra.Core.WorkFlow.OTC
         // user pay via off-chain ways and confirm payment in OTC trade.
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count != 2 || !send.Tags.ContainsKey("data") || 
-                string.IsNullOrEmpty(send.Tags["data"]))
+            if (send.Tags.Count != 3 || 
+                !send.Tags.ContainsKey("data") || 
+                string.IsNullOrEmpty(send.Tags["data"]) ||
+                !send.Tags.ContainsKey("voteid") ||
+                string.IsNullOrEmpty(send.Tags["voteid"]))
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.DestinationAccountId;
@@ -116,17 +119,16 @@ namespace Lyra.Core.WorkFlow.OTC
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
-                () => prevBlock.GenInc<OtcTradeRecvBlock>(),
+                () => prevBlock.GenInc<OtcVotedResolutionBlock>(),
                 (b) =>
                 {
                     // recv
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
 
-                    // broker
-                    (b as IBrokerAccount).RelatedTx = send.Hash;
-
                     // trade
                     (b as IOtcTrade).OTStatus = OTCTradeStatus.DisputeClosed;
+
+                    (b as IVoteExec).voteid = send.Tags["voteid"];
 
                     var oldbalance = prevBlock.Balances.ToDecimalDict();
                     if (oldbalance.ContainsKey("LYR"))
