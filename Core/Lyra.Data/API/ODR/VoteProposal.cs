@@ -26,6 +26,7 @@ namespace Lyra.Data.API.ODR
             return pptype switch
             {
                 ProposalType.None => null,
+                ProposalType.DAOSettingChanges => JsonConvert.DeserializeObject<DAOChange>(data),
                 ProposalType.DisputeResolution => JsonConvert.DeserializeObject<ODRResolution>(data),
                 _ => null,
             };
