@@ -2257,7 +2257,8 @@ namespace Lyra.Core.Accounts
             FilterDefinition<TransactionBlock> filterDefination;
 
             filterDefination = filter.And(
-                    filter.Eq("BlockType", BlockTypes.OrgnizationChange),
+                    filter.Or(filter.Eq("BlockType", BlockTypes.OrgnizationChange),
+                        filter.Eq("BlockType", BlockTypes.OTCTradeResolutionRecv)),
                     filter.Eq("voteid", voteid)
                 );
 

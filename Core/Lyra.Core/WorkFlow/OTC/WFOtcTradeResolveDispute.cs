@@ -63,6 +63,12 @@ namespace Lyra.Core.WorkFlow.OTC
                     return APIResultCodes.InvalidOperation;
             }
 
+            // should not execute more than once
+            var voteid = send.Tags["voteid"];
+            var exec = await sys.Storage.FindExecForVoteAsync(voteid);
+            if (exec != null)
+                return APIResultCodes.AlreadyExecuted;
+
             return APIResultCodes.Success;
         }
 
