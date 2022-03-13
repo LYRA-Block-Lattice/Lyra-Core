@@ -654,5 +654,10 @@ namespace Lyra.Data.API
         {
             return SeedClient.GetVoteSummaryAsync(voteid);
         }
+
+        public Task<BlockAPIResult> FindExecForVoteAsync(string voteid)
+        {
+            return SeedClient.FindExecForVoteAsync(voteid);
+        }
     }
 }

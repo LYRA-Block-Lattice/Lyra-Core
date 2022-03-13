@@ -855,5 +855,15 @@ namespace Lyra.Core.API
 
             return GetAsync<SimpleJsonAPIResult>("GetVoteSummary", args);
         }
+
+        public async Task<BlockAPIResult> FindExecForVoteAsync(string voteid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "voteid", voteid },
+            };
+
+            return await GetAsync<BlockAPIResult>("FindExecForVote", args);
+        }
     }
 }

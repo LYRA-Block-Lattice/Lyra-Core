@@ -340,6 +340,9 @@ namespace UnitTests
             mock.Setup(x => x.GetVoteSummaryAsync(It.IsAny<string>()))
                 .Returns<string>((voteid) =>
                     Task.FromResult(api.GetVoteSummaryAsync(voteid)).Result);
+            mock.Setup(x => x.FindExecForVoteAsync(It.IsAny<string>()))
+                .Returns<string>((voteid) =>
+                    Task.FromResult(api.FindExecForVoteAsync(voteid)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
@@ -583,6 +586,11 @@ namespace UnitTests
             Assert.IsTrue(chgret2.Successful(), $"Can't change DAO: {chgret2.ResultCode}");
             await WaitWorkflow("Change DAO 2 by vote");
             Assert.IsTrue(_authResult);
+
+            // test api
+            var execret = await genesisWallet.RPC.FindExecForVoteAsync(blockdv.AccountID);
+            Assert.IsTrue(execret.Successful());
+            Assert.AreEqual(BlockTypes.OrgnizationChange, execret.GetBlock().BlockType);
 
             // test if dup exec detected
             var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);

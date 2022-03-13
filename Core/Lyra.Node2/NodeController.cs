@@ -701,6 +701,14 @@ namespace LyraLexWeb2
             return await _node.GetVoteSummaryAsync(voteid);
         }
 
+        [Route("FindExecForVote")]
+        [HttpGet]
+        public async Task<BlockAPIResult> FindExecForVoteAsync(string voteid)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindExecForVoteAsync(voteid);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

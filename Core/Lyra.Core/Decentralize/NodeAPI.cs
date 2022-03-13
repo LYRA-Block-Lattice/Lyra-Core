@@ -1340,5 +1340,30 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public async Task<BlockAPIResult> FindExecForVoteAsync(string voteid)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag?.Storage.FindExecForVoteAsync(voteid);
+                if (block != null)
+                {
+                    result.SetBlock(block);
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindExecForVoteAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
     }
 }
