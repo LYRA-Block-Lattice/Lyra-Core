@@ -45,7 +45,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             // verify it
             var change = JsonConvert.DeserializeObject<DAOChange>(send.Tags["data"]);
-            if (change.creator != dao.OwnerAccountId)
+            if (change == null || change.creator != dao.OwnerAccountId)
                 return APIResultCodes.Unauthorized;
 
             var voteid = send.Tags["voteid"];
