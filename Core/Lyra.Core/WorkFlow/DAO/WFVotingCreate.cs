@@ -92,7 +92,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidArgument;
 
             // must has enough voter
-            if(dao.Treasure.Count() < 2)
+            if(dao.Treasure == null || dao.Treasure.Count < 1)
                 return APIResultCodes.NotEnoughVoters;
 
             return APIResultCodes.Success;
