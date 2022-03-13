@@ -401,7 +401,6 @@ namespace Lyra.Core.Blocks
         // voting
         VoteGenesis = 100,
         Voting = 101,
-        VotedResult = 102,
     }
 
     public enum APIResultCodes

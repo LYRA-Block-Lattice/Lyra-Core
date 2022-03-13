@@ -563,7 +563,17 @@ namespace UnitTests
             await WaitWorkflow("Create Vote for dao change Async");           
             Assert.IsTrue(daoVoteCrtRet.Successful(), $"Create vote for dao error: {daoVoteCrtRet.ResultCode}");
 
-            await DoVote(daoVoteCrtRet.TxHash);
+            await DoVote(daoVoteCrtRet.TxHash, false);
+
+            var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(daoVoteCrtRet.TxHash);
+            var blockdvret = await genesisWallet.RPC.GetLastBlockAsync((voteblksRet.GetBlocks().Last() as TransactionBlock).AccountID);
+            Assert.IsTrue(blockdvret.Successful(), $"Can't get vote {blockdvret.ResultCode}");
+            var blockdv = blockdvret.GetBlock() as TransactionBlock;
+
+            var summaryx = await test4Wallet.GetVoteSummary(blockdv.AccountID);
+            Assert.IsNotNull(summaryx, "can't get vote summary.");
+            Assert.IsFalse(summaryx.IsDecided, "should not be decided.");
+
 
             var chgret2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, daoVoteCrtRet.TxHash, change2);
             Assert.IsTrue(chgret2.Successful(), $"Can't change DAO: {chgret2.ResultCode}");
@@ -630,7 +640,7 @@ namespace UnitTests
             Assert.AreEqual(subject.Title, curvote.Subject.Title);
 
             // call vote
-            await DoVote(voteCrtRet.TxHash);
+            await DoVote(voteCrtRet.TxHash, true);
 
             var voteRet4 = await test4Wallet.Vote((curvote as TransactionBlock).AccountID, 1);
             await WaitWorkflow("Vote on Subject Async 4");
@@ -683,7 +693,7 @@ namespace UnitTests
             ResetAuthFail();
         }
 
-        private async Task DoVote(string votehash)
+        private async Task DoVote(string votehash, bool success)
         {
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(votehash);
             var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
@@ -691,7 +701,7 @@ namespace UnitTests
             await WaitWorkflow("Vote on Subject Async");
             Assert.IsTrue(voteRet.Successful(), $"Vote error: {voteRet.ResultCode}");
 
-            var voteRet2 = await test2Wallet.Vote(voteblk.AccountID, 0);
+            var voteRet2 = await test2Wallet.Vote(voteblk.AccountID, 1);
             await WaitWorkflow("Vote on Subject Async 2");
             Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
 
@@ -699,11 +709,14 @@ namespace UnitTests
             await WaitWorkflow("Vote on Subject Async 2x");
             Assert.IsTrue(!voteRet2x.Successful(), $"Vote 2x should error: {voteRet2x.ResultCode}");
 
-            var voteRet3 = await test3Wallet.Vote(voteblk.AccountID, 1);
-            await WaitWorkflow("Vote on Subject Async 3");
-            Assert.IsTrue(voteRet3.Successful(), $"Vote error: {voteRet3.ResultCode}");
-
             ResetAuthFail();
+
+            if (success)
+            {
+                var voteRet3 = await test3Wallet.Vote(voteblk.AccountID, 0);
+                await WaitWorkflow("Vote on Subject Async 3");
+                Assert.IsTrue(voteRet3.Successful(), $"Vote error: {voteRet3.ResultCode}");
+            }            
         }
 
         private async Task TestOTCTrade()

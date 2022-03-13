@@ -2309,6 +2309,10 @@ namespace Lyra.Core.Accounts
             if (ret.Successful())
             {
                 var latestblk = ret.GetBlock();
+                if (latestblk.BlockType != BlockTypes.VoteGenesis
+                    && latestblk.BlockType != BlockTypes.Voting)
+                    throw new Exception("Invalid Vote ID");
+
                 var vt = latestblk as IVoting;
                 var blk = latestblk as TransactionBlock;
 
