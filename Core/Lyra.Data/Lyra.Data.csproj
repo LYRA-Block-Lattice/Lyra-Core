@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>3.2.6.0</Version>
+    <Version>3.2.6.8</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Wizard Young</Authors>
     <Company>Lyra.Live</Company>
@@ -46,10 +46,6 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="API\Identity\" />
   </ItemGroup>
 
 </Project>

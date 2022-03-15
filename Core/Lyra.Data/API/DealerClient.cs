@@ -85,5 +85,16 @@ namespace Lyra.Data.API
             var postResponse = await PostRawAsync<ImageUploadResult>("UploadFile", form);
             return postResponse;
         }
+
+        public async Task<SimpleJsonAPIResult> GetTradeBriefAsync(string tradeId, string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "tradeId", tradeId },
+                { "accountId", accountId },
+                { "signature", signature },
+            };
+            return await GetAsync<SimpleJsonAPIResult>("GetTradeBrief", args);
+        }
     }
 }

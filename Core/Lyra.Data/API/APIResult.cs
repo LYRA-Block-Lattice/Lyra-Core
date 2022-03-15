@@ -74,6 +74,11 @@ namespace Lyra.Core.API
                 JsonString = JsonConvert.SerializeObject(o),
             };
         }
+
+        public T? Deserialize<T>()
+        {
+            return JsonConvert.DeserializeObject<T>(JsonString);
+        }
     }
 
     public class TransactionsAPIResult : APIResult
