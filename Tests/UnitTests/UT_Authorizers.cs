@@ -334,6 +334,10 @@ namespace UnitTests
             mock.Setup(x => x.FindOtcTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) => 
                     Task.FromResult(api.FindOtcTradeAsync(accountId, isOpen, page, pagesize)).Result);
+            mock.Setup(x => x.FindOtcTradeByStatusAsync(It.IsAny<string>(), It.IsAny<OTCTradeStatus>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<string, OTCTradeStatus, int, int>((daoid, status, page, pagesize) =>
+                    Task.FromResult(api.FindOtcTradeByStatusAsync(daoid, status, page, pagesize)).Result); 
+            
             mock.Setup(x => x.FindAllVotesByDaoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<string, bool>((daoid, openOnly) =>
                     Task.FromResult(api.FindAllVotesByDaoAsync(daoid, openOnly)).Result);
@@ -880,6 +884,12 @@ namespace UnitTests
             var tradeQueryResultBlocks2 = tradeQueryRet2.GetBlocks();
             Assert.AreEqual(1, tradeQueryResultBlocks2.Count());
             Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks2.First() as TransactionBlock).AccountID);
+
+            var tradeQueryRet3 = await testWallet.RPC.FindOtcTradeByStatusAsync(dao1.AccountID, OTCTradeStatus.Open, 0, 10);
+            Assert.IsTrue(tradeQueryRet3.Successful(), $"Can't query trade via FindOtcTradeByStatusAsync: {tradeQueryRet3.ResultCode}");
+            var tradeQueryResultBlocks3 = tradeQueryRet3.GetBlocks();
+            Assert.AreEqual(1, tradeQueryResultBlocks3.Count());
+            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks3.First() as TransactionBlock).AccountID);
 
             // buyer send payment indicator
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);

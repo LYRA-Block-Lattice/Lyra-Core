@@ -2,6 +2,7 @@
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Newtonsoft.Json;
 using System;
@@ -833,6 +834,19 @@ namespace Lyra.Core.API
             };
 
             return GetAsync<MultiBlockAPIResult>("FindOtcTrade", args);
+        }
+
+        public Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "daoid", daoid },
+                { "status", status.ToString() },
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindOtcTradeByStatus", args);
         }
 
         public Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)

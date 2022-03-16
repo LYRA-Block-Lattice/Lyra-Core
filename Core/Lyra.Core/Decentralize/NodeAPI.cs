@@ -18,6 +18,7 @@ using Lyra.Data.API;
 using Lyra.Data.Utils;
 using Lyra.Data.Crypto;
 using Lyra.Data.Blocks;
+using Lyra.Data.API.WorkFlow;
 
 namespace Lyra.Core.Decentralize
 {
@@ -1280,6 +1281,33 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in FindOtcTradeAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindOtcTradeByStatusAsync(daoid, status, page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindOtcTradeByStatusAsync: " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }

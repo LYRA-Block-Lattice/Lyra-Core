@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
@@ -102,6 +103,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId);
         Task<ContainerAPIResult> FindTradableOtcAsync();
         Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
+        Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize);
         Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly);
         Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid);
         Task<BlockAPIResult> FindExecForVoteAsync(string voteid);

@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
@@ -645,6 +646,12 @@ namespace Lyra.Data.API
         {
             return SeedClient.FindOtcTradeAsync(accountId, onlyOpenTrade, page, pageSize);
         }
+
+        public Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize)
+        {
+            return SeedClient.FindOtcTradeByStatusAsync(daoid, status, page, pageSize);
+        }
+
         public Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             return SeedClient.FindAllVotesByDaoAsync(daoid, openOnly);

@@ -12,6 +12,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Node2;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -683,6 +684,14 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             return await _node.FindOtcTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+        }
+
+        [Route("FindOtcTradeByStatus")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindOtcTradeByStatusAsync(daoid, status, page, pageSize);
         }
 
         [Route("FindAllVotesByDao")]
