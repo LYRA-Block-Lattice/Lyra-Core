@@ -979,7 +979,7 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 2,
-                collateral = 40000000,
+                collateral = 50000000,
                 payBy = new string[] { "Paypal" },
                 limitMin = 200,
                 limitMax = 4000,

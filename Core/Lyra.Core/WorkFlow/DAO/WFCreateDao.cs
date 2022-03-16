@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace Lyra.Core.WorkFlow.DAO
 {
     [LyraWorkFlow]
-    public class WFDao : WorkFlowBase
+    public class WFCreateDao : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
         {
