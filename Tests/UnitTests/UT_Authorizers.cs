@@ -633,6 +633,7 @@ namespace UnitTests
                 {
                     new TransMove
                     {
+                        source = FundSources.DAOTreasure,
                         to = trade.OwnerAccountId,
                         amount = 100,
                         desc = "compensate"

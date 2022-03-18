@@ -7,21 +7,23 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.ODR
 {
+    public enum FundSources { Buyer, Seller, DAOTreasure }
     public class TransMove
     {
-        // no from because it always send from DAO
-        public string to { get; set; }
+        public FundSources source { get; set; }
+        public string to { get; set; } = null!;
         public decimal amount { get; set; }
-        public string desc { get; set; }
+        public string? desc { get; set; }
 
         public string GetExtraData()
         {
-            return $"{to}|{amount.ToBalanceLong()}|{desc}";
+            return $"{source}|{to}|{amount.ToBalanceLong()}|{desc}";
         }
 
         public override string ToString()
         {
-            var result = $"to: {to}\n";
+            var result = $"from: {source}\n";
+            result += $"to: {to}\n";
             result += $"amount: {amount}\n";
             result += $"desc: {desc}\n";
             return result;
