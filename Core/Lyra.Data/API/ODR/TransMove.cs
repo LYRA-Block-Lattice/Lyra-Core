@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.ODR
 {
-    public enum Parties { Buyer, Seller, DAOTreasure }
+    public enum Parties { None, Buyer, Seller, DAOTreasure }
     public class TransMove
     {
         public Parties from { get; set; }
