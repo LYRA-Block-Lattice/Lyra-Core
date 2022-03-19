@@ -58,8 +58,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             foreach(var act in resolution.actions)
             {
-                if (string.IsNullOrWhiteSpace(act.to)
-                    || act.amount <= 0)
+                if (act.amount <= 0)
                     return APIResultCodes.InvalidOperation;
             }
 
@@ -83,8 +82,17 @@ namespace Lyra.Core.WorkFlow.OTC
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
             if (blocks.Count < resolv.actions.Length + 1)
             {
+                // populate tos
+                var tradegen = await sys.Storage.FindFirstBlockAsync(resolv.tradeid) as IOtcTrade;
+                var tos = new Dictionary<Parties, string>
+                {
+                    { Parties.Seller, tradegen.Trade.orderOwnerId },
+                    { Parties.Buyer, (tradegen as IBrokerAccount).OwnerAccountId },
+                    { Parties.DAOTreasure, (tradegen as TransactionBlock).AccountID }
+                };
+
                 return await SlashCollateral(sys, send,
-                    resolv.actions[blocks.Count - 1].to, resolv.actions[blocks.Count - 1].amount);
+                    tos[resolv.actions[blocks.Count - 1].to], resolv.actions[blocks.Count - 1].amount);
             }
             else
                 return null;

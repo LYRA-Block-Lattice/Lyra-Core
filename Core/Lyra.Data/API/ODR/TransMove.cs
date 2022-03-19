@@ -7,22 +7,22 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.ODR
 {
-    public enum FundSources { Buyer, Seller, DAOTreasure }
+    public enum Parties { Buyer, Seller, DAOTreasure }
     public class TransMove
     {
-        public FundSources source { get; set; }
-        public string to { get; set; } = null!;
+        public Parties from { get; set; }
+        public Parties to { get; set; }
         public decimal amount { get; set; }
         public string? desc { get; set; }
 
         public string GetExtraData()
         {
-            return $"{source}|{to}|{amount.ToBalanceLong()}|{desc}";
+            return $"{from}|{to}|{amount.ToBalanceLong()}|{desc}";
         }
 
         public override string ToString()
         {
-            var result = $"from: {source}\n";
+            var result = $"from: {from}\n";
             result += $"to: {to}\n";
             result += $"amount: {amount}\n";
             result += $"desc: {desc}\n";
