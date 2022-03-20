@@ -48,6 +48,16 @@ namespace Lyra.Core.WorkFlow.OTC
                 )
                 return APIResultCodes.Unauthorized;
 
+            var voteid = send.Tags["voteid"];
+            // check who execute the vote result
+            if (send.AccountID != LyraGlobal.LORDACCOUNTID)
+            {
+                // check vote status
+                var vs = await sys.Storage.GetVoteSummaryAsync(voteid);
+                if (!vs.IsDecided)
+                    return APIResultCodes.Unauthorized;
+            }
+
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Dispute)
                 return APIResultCodes.InvalidTradeStatus;
 
@@ -62,8 +72,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     return APIResultCodes.InvalidOperation;
             }
 
-            // should not execute more than once
-            var voteid = send.Tags["voteid"];
+            // should not execute more than once            
             var exec = await sys.Storage.FindExecForVoteAsync(voteid);
             if (exec != null)
                 return APIResultCodes.AlreadyExecuted;

@@ -34,7 +34,7 @@ namespace Lyra.Core.API
         public const decimal OFFICIALGENESISAMOUNT = 10000000000;
 
         public const string BURNINGACCOUNTID = "L11111111111111111111111111111111111111111111111111111111111111116oUsJe";
-
+        public const string LORDACCOUNTID = "LordPMWVwhnprsexZjNCoYG54BMkDC7B6UeVXV2HuoTHWbA5sdR8GRogktH5NGXjDwXCggkXaXRXbxCUxD76NvJMD6byE";
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
             "devnet"
