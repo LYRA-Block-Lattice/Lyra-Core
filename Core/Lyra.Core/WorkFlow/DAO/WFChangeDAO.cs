@@ -104,6 +104,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
                     // change config
                     var dao = b as IDao;
+                    dao.PType = ProfitingType.Orgnization; // not necessary, but for testnet compatibility
                     foreach(var chg in change.settings)
                     {
                         if(chg.Key == "ShareRito")
