@@ -275,6 +275,15 @@ namespace Lyra.Core.API
             }
         }
 
+        public IEnumerable<T> GetBlocks<T>() where T : Block
+        {
+            for (int i = 0; i < BlockDatas?.Length; i++)
+            {
+                var block = new BlockAPIResult { BlockData = BlockDatas[i], ResultBlockType = ResultBlockTypes[i] };
+                yield return (T)block.GetBlock();
+            }
+        }
+
         public override int GetHashCode()
         {
             unchecked
