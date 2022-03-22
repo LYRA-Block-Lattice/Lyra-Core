@@ -650,5 +650,6 @@ namespace Lyra.Core.Blocks
         NotImplemented,
         InvalidOperation,
         AlreadyExecuted,
+        InvalidToken,
     }
 }

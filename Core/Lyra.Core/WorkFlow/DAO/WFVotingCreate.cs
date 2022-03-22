@@ -73,6 +73,14 @@ namespace Lyra.Core.WorkFlow.DAO
                     resolution.actions.Length == 0
                     )
                     return APIResultCodes.InvalidArgument;
+
+                // trade's dao == subject' dao
+                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.tradeid) as IOtcTrade;
+                if(tradeblk == null)
+                    return APIResultCodes.InvalidArgument;
+
+                if(tradeblk.Trade.daoId != subject.DaoId)
+                    return APIResultCodes.InvalidDAO;
             }
 
             // TODO: verify trade id and creater id
@@ -80,7 +88,7 @@ namespace Lyra.Core.WorkFlow.DAO
             // issuer should be the owner of DAO
             var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
             if (dao == null || (dao as IBrokerAccount).OwnerAccountId != subject.Issuer)
-                return APIResultCodes.InvalidDAO;
+                return APIResultCodes.Unauthorized;
 
             // title can't repeat
             var votes = await sys.Storage.FindAllVotesByDaoAsync(subject.DaoId, false);

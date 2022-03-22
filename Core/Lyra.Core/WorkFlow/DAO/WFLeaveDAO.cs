@@ -65,30 +65,13 @@ namespace Lyra.Core.WorkFlow.DAO
 
                     // treasure change
                     var curBalance = b.Balances.ToDecimalDict();
-                    var curShares = (b as IDao).Treasure.ToRitoDecimalDict();
+                    var curShares = (b as IDao).Treasure.ToDecimalDict();
 
-                    var nextBalance = b.Balances.ToDecimalDict();
-                    var nextShares = (b as IDao).Treasure.ToRitoDecimalDict();
+                    curBalance["LYR"] -= curShares[send.AccountID];
+                    curShares.Remove(send.AccountID);
 
-                    var usersShare = curShares[send.AccountID];
-                    var amountsToSend = new Dictionary<string, decimal>
-                    {
-                        { LyraGlobal.OFFICIALTICKERCODE, curBalance[LyraGlobal.OFFICIALTICKERCODE] * usersShare },
-                    };
-
-                    nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= amountsToSend[LyraGlobal.OFFICIALTICKERCODE];
-                    nextShares.Remove(send.AccountID);
-
-                    foreach (var share in curShares)
-                    {
-                        if (share.Key == send.AccountID)
-                            continue;
-
-                        nextShares[share.Key] = (share.Value * curBalance[LyraGlobal.OFFICIALTICKERCODE]) / nextBalance[LyraGlobal.OFFICIALTICKERCODE];
-                    }
-
-                    b.Balances = nextBalance.ToLongDict();
-                    (b as IDao).Treasure = nextShares.ToRitoLongDict();
+                    b.Balances = curBalance.ToLongDict();
+                    (b as IDao).Treasure = curShares.ToLongDict();
                 });
         }
 

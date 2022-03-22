@@ -860,6 +860,16 @@ namespace Lyra.Core.API
             return GetAsync<MultiBlockAPIResult>("FindAllVotesByDao", args);
         }
 
+        public Task<MultiBlockAPIResult> FindAllVoteForTradeAsync(string tradeid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "tradeid", tradeid },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindAllVoteForTrade", args);
+        }
+
         public Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid)
         {
             var args = new Dictionary<string, string>

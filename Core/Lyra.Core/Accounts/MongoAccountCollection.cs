@@ -2229,6 +2229,28 @@ namespace Lyra.Core.Accounts
             return q.ToList();
         }
 
+        public async Task<List<TransactionBlock>> FindAllVoteForTradeAsync(string tradeid)
+        {
+            var myvotes = new List<TransactionBlock>();
+
+            var tradeblk = await FindLatestBlockAsync(tradeid) as IOtcTrade;
+            if (tradeblk == null)
+                return myvotes;
+
+            var allvotes = await FindAllVotesByDaoAsync(tradeblk.Trade.daoId, false);
+            foreach(var vote in allvotes)
+            {
+                if((vote as IVoting).Proposal.pptype == ProposalType.DisputeResolution)
+                {
+                    var pp = (vote as IVoting).Proposal.Deserialize() as ODRResolution;
+                    if (pp != null && pp.tradeid == tradeid)
+                        myvotes.Add(vote);
+                }
+            }
+
+            return myvotes;
+        }
+
         public async Task<VotingSummary> GetVoteSummaryAsync(string voteid)
         {
             // get all votes

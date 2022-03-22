@@ -341,6 +341,10 @@ namespace UnitTests
             mock.Setup(x => x.FindAllVotesByDaoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<string, bool>((daoid, openOnly) =>
                     Task.FromResult(api.FindAllVotesByDaoAsync(daoid, openOnly)).Result);
+            mock.Setup(x => x.FindAllVoteForTradeAsync(It.IsAny<string>()))
+                .Returns<string>((tradeid) =>
+                    Task.FromResult(api.FindAllVoteForTradeAsync(tradeid)).Result);
+            
             mock.Setup(x => x.GetVoteSummaryAsync(It.IsAny<string>()))
                 .Returns<string>((voteid) =>
                     Task.FromResult(api.GetVoteSummaryAsync(voteid)).Result);
@@ -441,6 +445,9 @@ namespace UnitTests
             await test4Wallet.SyncAsync(client);
 
             await TestOTCTrade();
+
+            await TestChangeDAO();
+
             var tradeid = await TestOTCTradeDispute();   // test for dispute
             await TestVoting(tradeid);
 
@@ -473,9 +480,8 @@ namespace UnitTests
             _workflowEnds.Reset();
         }
 
-        private async Task TestVoting(string disputeTradeId)
+        private async Task TestChangeDAO()
         {
-            // simulate a court by node owners
             // create a DAO for nodes
             var name = "Node Owners Club";
             var desc = "Doing great business!";
@@ -487,6 +493,8 @@ namespace UnitTests
             var nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");
             var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+
+            var daoid = nodesdao.AccountID;
 
             // test dao change
             var change = new DAOChange
@@ -506,37 +514,9 @@ namespace UnitTests
             await WaitWorkflow("Change DAO");
             Assert.IsTrue(_authResult);
 
-            // join DAO / invest
-            var invret = await testWallet.JoinDAOAsync(nodesdao.AccountID, 800000m);
-            Assert.IsTrue(invret.Successful());
+            await TestJoinDAO(daoid);
 
-            await WaitWorkflow("JoinDAOAsync 1");
 
-            nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
-            Assert.IsTrue(nodesdaoret.Successful());
-            nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
-            var treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
-            Assert.AreEqual(1m, Math.Round(treasure[testPublicKey], 5));
-
-            // another join DAO
-            var invret2 = await test2Wallet.JoinDAOAsync(nodesdao.AccountID, 150000m);
-            Assert.IsTrue(invret2.Successful());
-
-            await WaitWorkflow("JoinDAOAsync 2");
-
-            var invret3 = await test3Wallet.JoinDAOAsync(nodesdao.AccountID, 50000m);
-            Assert.IsTrue(invret3.Successful());
-
-            await WaitWorkflow("JoinDAOAsync 3");
-
-            // then we expect the treasure rito
-            nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
-            Assert.IsTrue(nodesdaoret.Successful());
-            nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
-            treasure = (nodesdao as IDao).Treasure.ToRitoDecimalDict();
-            Assert.AreEqual(0.8m, Math.Round(treasure[testPublicKey], 5));
-            Assert.AreEqual(0.15m, Math.Round(treasure[test2PublicKey], 5));
-            Assert.AreEqual(0.05m, Math.Round(treasure[test3PublicKey], 5));
 
             // test dao change by vote
             VotingSubject daochg = new VotingSubject
@@ -570,7 +550,7 @@ namespace UnitTests
             };
 
             var daoVoteCrtRet = await genesisWallet.CreateVoteSubject(daochg, daoprosl);
-            await WaitWorkflow("Create Vote for dao change Async");           
+            await WaitWorkflow("Create Vote for dao change Async");
             Assert.IsTrue(daoVoteCrtRet.Successful(), $"Create vote for dao error: {daoVoteCrtRet.ResultCode}");
 
             await DoVote(daoVoteCrtRet.TxHash, true);
@@ -600,13 +580,84 @@ namespace UnitTests
             var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
             Assert.IsTrue(chgret3.ResultCode == APIResultCodes.AlreadyExecuted, $"Can't change DAO: {chgret3.ResultCode}");
             await WaitWorkflow("Change DAO 3 by vote");
+        }
 
+        private async Task TestJoinDAO(string daoid)
+        {
+            // get dao
+            var nodesdaoret = await genesisWallet.RPC.GetLastBlockAsync(daoid);
+            Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");
+            var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+            var name = (nodesdao as IDao).Name;
+
+            // join DAO / invest
+            var invret = await testWallet.JoinDAOAsync(daoid, 800000m);
+            Assert.IsTrue(invret.Successful());
+
+            await WaitWorkflow("JoinDAOAsync 1");
+
+            nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret.Successful());
+            nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+            var treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
+            Assert.AreEqual(800000m, Math.Round(treasure[testPublicKey], 5));
+
+
+            // another join DAO
+            var invret2 = await test2Wallet.JoinDAOAsync(daoid, 150000m);
+            Assert.IsTrue(invret2.Successful());
+
+            await WaitWorkflow("JoinDAOAsync 2");
+
+            var invret3 = await test3Wallet.JoinDAOAsync(daoid, 50000m);
+            Assert.IsTrue(invret3.Successful());
+
+            await WaitWorkflow("JoinDAOAsync 3");
+
+            var invret4 = await test4Wallet.JoinDAOAsync(daoid, 50000m);
+            Assert.IsTrue(invret4.Successful());
+
+            await WaitWorkflow("JoinDAOAsync 4");
+
+            // then we expect the treasure rito
+            nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret.Successful());
+            nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
+            treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
+            Assert.AreEqual(800000m, Math.Round(treasure[testPublicKey], 5));
+            Assert.AreEqual(150000m, Math.Round(treasure[test2PublicKey], 5));
+            Assert.AreEqual(50000m, Math.Round(treasure[test3PublicKey], 5));
+            Assert.AreEqual(50000m, Math.Round(treasure[test4PublicKey], 5));
+
+            // test leave DAO
+            var leaveret4 = await test4Wallet.LeaveDAOAsync(daoid);
+            Assert.IsTrue(leaveret4.Successful(), $"Can't leave DAO: {leaveret4.ResultCode}");
+            await WaitWorkflow("LeaveDAOAsync 4");
+
+            // then test3 should not exists in the treasure
+            var nodesdaoret2 = await genesisWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(nodesdaoret2.Successful());
+            var nodesdao2 = nodesdaoret2.GetBlock() as TransactionBlock;
+            var treasure2 = (nodesdao2 as IDao).Treasure.ToDecimalDict();
+            Assert.IsFalse(treasure2.ContainsKey(test4PublicKey), $"test 4 still exists.");
+        }
+
+        private async Task TestVoting(string disputeTradeId)
+        {
             // get the dispute trade
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(disputeTradeId);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
             Assert.AreEqual(OTCTradeStatus.Dispute, (trdlatest.GetBlock() as IOtcTrade).OTStatus,
                 $"Trade statust is not dispute");
             var trade = trdlatest.GetBlock() as IOtcTrade;
+            var daoid = trade.Trade.daoId;
+
+            var daolatestret = await test2Wallet.RPC.GetLastBlockAsync(daoid);
+            Assert.IsTrue(daolatestret.Successful());
+            var daolatest = daolatestret.GetBlock() as IDao;
+            var name = daolatest.Name;
+
+            await TestJoinDAO((daolatest as TransactionBlock).AccountID);
 
             // dispute trade
             // seller: testwallet
@@ -616,8 +667,8 @@ namespace UnitTests
             VotingSubject subject = new VotingSubject
             {
                 Type = SubjectType.OTCDispute,
-                DaoId = nodesdao.AccountID,
-                Issuer = genesisWallet.AccountId,
+                DaoId = trade.Trade.daoId,
+                Issuer = testWallet.AccountId,
                 TimeSpan = 100,
                 Title = "Now let vote on case ID 111",
                 Description = "bla bla bla",
@@ -627,7 +678,7 @@ namespace UnitTests
             var resolution = new ODRResolution
             {
                 RType = ResolutionType.OTCTrade,
-                creator = genesisWallet.AccountId,
+                creator = testWallet.AccountId,
                 tradeid = disputeTradeId,
                 actions = new []
                 {
@@ -650,15 +701,23 @@ namespace UnitTests
             var voteCrtRet = await genesisWallet.CreateVoteSubject(subject, proposal);
 
             await WaitWorkflow("Create Vote Subject Async");
-            Assert.IsTrue(voteCrtRet.Successful(), "Create vote subject error");
+            Assert.IsTrue(voteCrtRet.Successful(), $"Create vote subject error {voteCrtRet.ResultCode}");
 
             // then we will find the vote
-            var votefindret = await genesisWallet.RPC.FindAllVotesByDaoAsync(nodesdao.AccountID, true);
+            var votefindret = await genesisWallet.RPC.FindAllVotesByDaoAsync(trade.Trade.daoId, true);
             Assert.IsTrue(votefindret.Successful(), $"Can't find vote: {votefindret.ResultCode}");
             var votes = votefindret.GetBlocks();
-            Assert.AreEqual(2, votes.Count());
+            Assert.AreEqual(1, votes.Count());
             var curvote = votes.Last() as IVoting;
             Assert.AreEqual(subject.Title, curvote.Subject.Title);
+
+            // find method 2
+            var votefindret2 = await genesisWallet.RPC.FindAllVoteForTradeAsync(disputeTradeId);
+            Assert.IsTrue(votefindret2.Successful(), $"Can't find vote: {votefindret2.ResultCode}");
+            var votes2 = votefindret2.GetBlocks();
+            Assert.AreEqual(1, votes2.Count());
+            var curvote2 = votes2.Last() as IVoting;
+            Assert.AreEqual(subject.Title, curvote2.Subject.Title);
 
             // call vote
             await DoVote(voteCrtRet.TxHash, true);
@@ -702,23 +761,12 @@ namespace UnitTests
             var afterresolv = test2Wallet.BaseBalance;
             Assert.AreEqual(beforeresolv + 100m, afterresolv, $"compensate not received.");
 
-            // test leave DAO
-            var leaveret3 = await test3Wallet.LeaveDAOAsync(nodesdao.AccountID);
-            Assert.IsTrue(leaveret3.Successful(), $"Can't leave DAO: {leaveret3.ResultCode}");
-            await WaitWorkflow("LeaveDAOAsync 3");
-
-            // then test3 should not exists in the treasure
-            var nodesdaoret2 = await genesisWallet.RPC.GetDaoByNameAsync(name);
-            Assert.IsTrue(nodesdaoret2.Successful());
-            var nodesdao2 = nodesdaoret2.GetBlock() as TransactionBlock;
-            var treasure2 = (nodesdao2 as IDao).Treasure.ToRitoDecimalDict();
-            Assert.IsFalse(treasure2.ContainsKey(test3PublicKey), $"test 3 still exists.");
-            
             ResetAuthFail();
         }
 
         private async Task DoVote(string votehash, bool success)
         {
+            Console.WriteLine($"Vote on {votehash} as {success}");
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(votehash);
             var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
             var voteRet = await testWallet.Vote(voteblk.AccountID, 0);

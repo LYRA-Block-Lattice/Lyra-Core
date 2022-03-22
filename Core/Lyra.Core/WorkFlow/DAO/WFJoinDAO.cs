@@ -40,6 +40,10 @@ namespace Lyra.Core.WorkFlow.DAO
             if (dao == null)
                 return APIResultCodes.InvalidDAO;
 
+            var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
+            if (txInfo.Changes.Count != 1 || !txInfo.Changes.ContainsKey("LYR"))
+                return APIResultCodes.InvalidToken;
+
             // min amount to invest
             //if (amount.ToBalanceDecimal() < 10000)
             //    return APIResultCodes.InvalidAmount;
@@ -66,50 +70,31 @@ namespace Lyra.Core.WorkFlow.DAO
                 {
                     // recv
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
+                    
+                    // balance record the real funds.
+                    // treasure record who invest what amount of LYR.
 
                     // treasure change
-                    var depositBalance = new Dictionary<string, decimal>();
-                    var depositShares = new Dictionary<string, decimal>();
-                    if (b.Balances.Any())
+                    var lastBalance = prevBlock.Balances.ToDecimalDict();
+                    var lastShares = ((IDao)prevBlock).Treasure.ToDecimalDict();
+
+                    if(lastBalance.ContainsKey("LYR"))
                     {
-                        var lastBalance = prevBlock.Balances.ToDecimalDict();
-                        var lastShares = ((IDao)prevBlock).Treasure.ToRitoDecimalDict();
-
-                        // the rito must be preserved for every deposition
-                        //var poolRito = lastBalance[LyraGlobal.OFFICIALTICKERCODE] / lastBalance[poolGenesis.Token1];
-                        foreach (var oldBalance in lastBalance)
-                        {
-                            depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
-                        }
-
-                        var prevBalance = lastBalance[LyraGlobal.OFFICIALTICKERCODE];
-                        var curBalance = depositBalance[LyraGlobal.OFFICIALTICKERCODE];
-
-                        foreach (var share in lastShares)
-                        {
-                            depositShares.Add(share.Key, (share.Value * prevBalance / curBalance));
-                        }
-
-                        // merge share if any
-                        var r0 = txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE] / curBalance;
-
-                        if (depositShares.ContainsKey(send.AccountID))
-                            depositShares[send.AccountID] += r0;
-                        else
-                            depositShares.Add(send.AccountID, r0);
+                        lastBalance["LYR"] += txInfo.Changes["LYR"];
                     }
                     else
                     {
-                        foreach (var token in txInfo.Changes)
-                        {
-                            depositBalance.Add(token.Key, token.Value);
-                        }
-
-                        depositShares.Add(send.AccountID, 1m);   // 100%
+                        lastBalance["LYR"] = txInfo.Changes["LYR"];
                     }
 
-                    b.Balances = depositBalance.ToLongDict();
-                    (b as IDao).Treasure = depositShares.ToRitoLongDict();
+                    if (lastShares.ContainsKey(send.AccountID))
+                        lastShares[send.AccountID] += txInfo.Changes["LYR"];
+                    else
+                        lastShares.Add(send.AccountID, txInfo.Changes["LYR"]);
+
+
+                    b.Balances = lastBalance.ToLongDict();
+                    (b as IDao).Treasure = lastShares.ToLongDict();
                 });
         }
 

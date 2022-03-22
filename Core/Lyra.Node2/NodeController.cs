@@ -702,6 +702,14 @@ namespace LyraLexWeb2
             return await _node.FindAllVotesByDaoAsync(daoid, openOnly);
         }
 
+        [Route("FindAllVoteForTrade")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindAllVoteForTradeAsync(string tradeid)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindAllVoteForTradeAsync(tradeid);
+        }
+
         [Route("GetVoteSummary")]
         [HttpGet]
         public async Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid)

@@ -30,6 +30,7 @@ namespace Lyra.Core.Accounts
 
         // DAO and OTC
         Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly);
+        Task<List<TransactionBlock>> FindAllVoteForTradeAsync(string tradeid);
         Task<VotingSummary> GetVoteSummaryAsync(string voteid);
         Task<TransactionBlock> FindExecForVoteAsync(string voteid);
 
