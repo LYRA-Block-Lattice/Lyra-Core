@@ -1093,6 +1093,33 @@ namespace Lyra.Core.Decentralize
             return NodeService.Dag.Storage.FindAllStakings(pftid, timeBefore);
         }
 
+        public async Task<SimpleJsonAPIResult> FindAllStakingsAsync(string pftid, DateTime timeBefore)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var blocks = NodeService.Dag.Storage.FindAllStakings(pftid, timeBefore);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.JsonString = Json(blocks);
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindAllStakings: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
         public Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end)
         {
             return NodeService.Dag.Storage.GetAccountStatsAsync(accountId, begin, end);

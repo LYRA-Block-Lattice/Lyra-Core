@@ -603,6 +603,14 @@ namespace LyraLexWeb2
             return _node.FindAllStakings(pftid, new DateTime(timeBeforeTicks, DateTimeKind.Utc));
         }
 
+        [Route("FindAllStakings2")]
+        [HttpGet]
+        public Task<SimpleJsonAPIResult> FindAllStakingsAsync(string pftid, long timeBeforeTicks)
+        {
+            if (!CheckServiceStatus()) return null;
+            return _node.FindAllStakingsAsync(pftid, new DateTime(timeBeforeTicks, DateTimeKind.Utc));
+        }
+
         [Route("GetAccountStats")]
         [HttpGet]
         public async Task<ProfitingStats> GetAccountStatsAsync(string accountId, long timeBeginTicks, long timeEndTicks)

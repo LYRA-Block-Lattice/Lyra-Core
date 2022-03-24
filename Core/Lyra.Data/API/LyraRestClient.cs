@@ -715,7 +715,7 @@ namespace Lyra.Core.API
             return await GetAsync<ProfitingGenesis>("FindProfitingAccountsByName", args);
         }
 
-        public async Task<List<Staker>> FindAllStakingsAsync(string pftid, DateTime timeBefore)
+        public async Task<SimpleJsonAPIResult> FindAllStakingsAsync(string pftid, DateTime timeBefore)
         {
             var args = new Dictionary<string, string>
             {
@@ -723,7 +723,7 @@ namespace Lyra.Core.API
                 { "timeBeforeTicks", timeBefore.Ticks.ToString() }
             };
 
-            return await GetAsync<List<Staker>>("FindAllStakings", args);
+            return await GetAsync<SimpleJsonAPIResult>("FindAllStakings2", args);
         }
 
         List<Staker> INodeAPI.FindAllStakings(string pftid, DateTime timeBefore)

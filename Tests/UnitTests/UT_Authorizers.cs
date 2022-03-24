@@ -1303,6 +1303,7 @@ namespace UnitTests
             var pftblock = crpftret.GetBlock() as ProfitingBlock;
             Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
 
+            Console.WriteLine("Generate dividends");
             await genesisWallet.CreateDividendsAsync(pftblock.AccountID);
             await Task.Delay(2 * 1000);
         }

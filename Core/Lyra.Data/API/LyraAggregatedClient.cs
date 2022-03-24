@@ -582,6 +582,11 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
+        public Task<SimpleJsonAPIResult> FindAllStakingsAsync(string pftid, DateTime timeBefore)
+        {
+            return SeedClient.FindAllStakingsAsync(pftid, timeBefore);
+        }
+
         public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {
             throw new NotImplementedException();
