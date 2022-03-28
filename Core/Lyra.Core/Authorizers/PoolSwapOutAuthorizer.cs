@@ -78,6 +78,8 @@ namespace Lyra.Core.Authorizers
 
             // calculate rito by prevBlock.prevBlock
             var prevprevBlock = await sys.Storage.FindBlockByHashAsync(previousBlock.PreviousHash) as TransactionBlock;
+            if (prevprevBlock == null)
+                return APIResultCodes.InvalidPoolOperation;
             var swapRito = Math.Round(prevprevBlock.Balances[poolGenesis.Token0].ToBalanceDecimal() / prevprevBlock.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
             if (chgs.Changes.Count != 1)
                 return APIResultCodes.InvalidPoolOperation;
