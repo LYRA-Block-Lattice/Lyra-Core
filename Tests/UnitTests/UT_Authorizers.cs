@@ -880,7 +880,13 @@ namespace UnitTests
             var test2balance = test2Wallet.BaseBalance;
 
             var tradgen = await CreateOTCTrade(dao1, otcg);
+            await CancelOTCTrade(dao1, tradgen);
+            await test2Wallet.SyncAsync(null);
+            var test2balanceA = test2Wallet.BaseBalance;
+            Assert.AreEqual(test2balance - 13m, test2balanceA, "Balance not ok after cancel trade.");
+
             tradgen = await CreateOTCTrade(dao1, otcg);
+            // cancel one
 
             // buyer send payment indicator
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
@@ -927,6 +933,23 @@ namespace UnitTests
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
             ResetAuthFail();
+        }
+
+        private async Task CancelOTCTrade(TransactionBlock dao, OtcTradeGenesisBlock tradgen)
+        {
+            // make sure the status of trade is Open
+            Assert.AreEqual(OTCTradeStatus.Open, tradgen.OTStatus, "Wrong trade status");
+
+            var cloret = await test2Wallet.CancelOTCTradeAsync(tradgen.AccountID);
+            await WaitWorkflow("CancelOTCTradeAsync");
+
+            Assert.IsTrue(cloret.Successful(), $"Unable to cancel trade: {cloret.ResultCode}");
+
+            // make sure the status of trade is Closed
+            var latestret = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            Assert.IsTrue(latestret.Successful());
+            var tradelst = latestret.GetBlock() as IOtcTrade;
+            Assert.AreEqual(OTCTradeStatus.Canceled, tradelst.OTStatus, "not close trade properly");
         }
 
         private async Task<OtcTradeGenesisBlock> CreateOTCTrade(TransactionBlock dao1, OTCOrderGenesisBlock otcg)
@@ -981,13 +1004,17 @@ namespace UnitTests
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
             var tradeQueryResultBlocks = tradeQueryRet.GetBlocks();
             Assert.IsTrue(tradeQueryResultBlocks.Count() >= 1);
-            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks.Last() as TransactionBlock).AccountID);
+            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks
+                .OrderBy(a => a.TimeStamp)
+                .Last() as TransactionBlock).AccountID);
 
             var tradeQueryRet2 = await testWallet.RPC.FindOtcTradeAsync(testWallet.AccountId, false, 0, 10);
             Assert.IsTrue(tradeQueryRet2.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet2.ResultCode}");
             var tradeQueryResultBlocks2 = tradeQueryRet2.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks2.Count());
-            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks2.Last() as TransactionBlock).AccountID);
+            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks2
+                .OrderBy(a => a.TimeStamp)
+                .Last() as TransactionBlock).AccountID);
 
             var tradeQueryRet3 = await testWallet.RPC.FindOtcTradeByStatusAsync(dao1.AccountID, OTCTradeStatus.Open, 0, 10);
             Assert.IsTrue(tradeQueryRet3.Successful(), $"Can't query trade via FindOtcTradeByStatusAsync: {tradeQueryRet3.ResultCode}");
