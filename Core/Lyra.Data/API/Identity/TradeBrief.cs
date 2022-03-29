@@ -15,6 +15,8 @@ namespace Lyra.Data.API.Identity
         // role -> account id
         public List<string> Members { get; set; } = null!;
 
+        public bool IsCancellable { get; set; }
+
         // dispute
         [JsonIgnore]
         public DisputeLevels DisputeLevel => DisputeHistory == null ? DisputeLevels.None : (DisputeLevels)DisputeHistory.Count;

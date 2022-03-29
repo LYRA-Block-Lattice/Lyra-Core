@@ -2,9 +2,11 @@
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.Identity;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Neo;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -47,6 +49,18 @@ namespace Lyra.Core.WorkFlow.OTC
 
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Open)
                 return APIResultCodes.InvalidTrade;
+
+            if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest")
+            {
+                // check if trade is cancellable
+                var lsb = sys.Storage.GetLastServiceBlock();
+                var wallet = sys.PosWallet;
+                var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
+                var dealer = new DealerClient(sys.PosWallet.NetworkId);
+                var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
+                if (!ret.Successful() || !ret.Deserialize<TradeBrief>().IsCancellable)
+                    return APIResultCodes.InvalidOperation;
+            }
 
             return APIResultCodes.Success;
         }
