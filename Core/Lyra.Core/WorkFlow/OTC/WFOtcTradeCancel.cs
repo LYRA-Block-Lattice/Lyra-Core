@@ -25,7 +25,10 @@ namespace Lyra.Core.WorkFlow.OTC
             {
                 Action = BrokerActions.BRK_OTC_TRDCANCEL,
                 RecvVia = BrokerRecvType.None,
-                Steps = new [] { SealTradeAsync, SendCollateralToBuyerAsync}
+                Steps = new [] { 
+                    SealTradeAsync, 
+                    SendTokenFromTradeToOrderAsync, 
+                    SendCollateralToBuyerAsync }
             };
         }
 
@@ -81,7 +84,6 @@ namespace Lyra.Core.WorkFlow.OTC
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
 
                     // broker
-                    (b as IBrokerAccount).OwnerAccountId = send.AccountID;
                     (b as IBrokerAccount).RelatedTx = send.Hash;
 
                     // balance
@@ -94,6 +96,34 @@ namespace Lyra.Core.WorkFlow.OTC
 
                     // Trade status
                     (b as IOtcTrade).OTStatus = OTCTradeStatus.Canceled;
+                });
+        }
+
+        async Task<TransactionBlock> SendTokenFromTradeToOrderAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var tradeid = send.Tags["tradeid"];
+
+            var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
+
+            var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<OtcTradeSendBlock>(),
+                (b) =>
+                {
+                    // send
+                    (b as SendTransferBlock).DestinationAccountId = (lastblock as IOtcTrade).Trade.orderId;
+
+                    // broker
+                    (b as IBrokerAccount).RelatedTx = send.Hash;
+
+                    // balance
+                    var oldbalance = b.Balances.ToDecimalDict();
+                    foreach(var key in b.Balances.Keys)
+                    {
+                        oldbalance[key] = 0;
+                    }
+                    b.Balances = oldbalance.ToLongDict();
                 });
         }
 
