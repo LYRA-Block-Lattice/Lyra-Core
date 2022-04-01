@@ -65,6 +65,9 @@ namespace Lyra.Core.Authorizers
 
             // get target accountId
             var originalSendBlock = await sys.Storage.FindBlockByHashAsync(swapOutBlock.RelatedTx) as SendTransferBlock;
+            if (originalSendBlock == null)
+                return APIResultCodes.InvalidOperation;
+
             var targetAccountId = originalSendBlock.AccountID;
 
             if (targetAccountId != swapOutBlock.DestinationAccountId)
