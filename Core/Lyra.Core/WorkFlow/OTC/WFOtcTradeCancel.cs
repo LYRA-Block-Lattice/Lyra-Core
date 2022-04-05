@@ -46,9 +46,12 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.Tags["tradeid"];
+            var orderid = send.Tags["orderid"];
+            var daoid = send.Tags["daoid"];
+
             var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
             var daoblk = await sys.Storage.FindLatestBlockAsync((tradeblk as IOtcTrade).Trade.daoId);
-            if (daoblk == null || tradeblk == null || 
+            if (daoblk == null || tradeblk == null || (daoblk as TransactionBlock).AccountID != daoid ||
                 (tradeblk as IOtcTrade).Trade.daoId != (daoblk as TransactionBlock).AccountID)
                 return APIResultCodes.InvalidTrade;
 
@@ -57,6 +60,13 @@ namespace Lyra.Core.WorkFlow.OTC
 
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Open)
                 return APIResultCodes.InvalidTrade;
+
+            var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
+            if(orderblk == null || (tradeblk as IOtcTrade).Trade.orderId != orderid
+                || (tradeblk as IOtcTrade).Trade.daoId != daoid)
+            {
+                return APIResultCodes.InvalidTrade;
+            }
 
             if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest")
             {

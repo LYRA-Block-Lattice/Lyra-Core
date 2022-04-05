@@ -52,7 +52,6 @@ namespace Lyra.Core.WorkFlow.OTC
                 (orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Partial)
                 return APIResultCodes.InvalidOrderStatus;
 
-            // TODO: verify no pending trade
             var trades = await sys.Storage.FindOtcTradeForOrderAsync(orderid);
             if(trades.Any())
             {
