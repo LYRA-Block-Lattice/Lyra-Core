@@ -274,14 +274,16 @@ namespace Lyra.Core.Decentralize
 
                 // check locked
                 var code = LocalAuthResult.Result;
-                foreach(var lockedId in LocalAuthResult.LockedIDs)
-                {
-                    if(_context.CheckIfIdIsLocked(lockedId))
-                    {
-                        code = APIResultCodes.SystemBusy;
-                        break;
-                    }    
-                }
+
+                // not needed. workflow already did it.
+                //foreach(var lockedId in LocalAuthResult.LockedIDs)
+                //{
+                //    if(_context.CheckIfIdIsLocked(lockedId))
+                //    {
+                //        code = APIResultCodes.SystemBusy;
+                //        break;
+                //    }    
+                //}
 
                 result = new AuthorizedMsg
                 {
