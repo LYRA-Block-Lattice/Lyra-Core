@@ -36,7 +36,7 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusWorkerStatus Status; 
 
-        public AuthResult LocalAuthResult { get; private set; }
+        public AuthResult? LocalAuthResult { get; private set; }
 
         private enum LocalAuthState { NotStarted, InProgress, Finished };
         private LocalAuthState _localAuthState = LocalAuthState.NotStarted;
