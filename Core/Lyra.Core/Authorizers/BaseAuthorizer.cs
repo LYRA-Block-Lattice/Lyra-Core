@@ -16,6 +16,7 @@ using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
 using Lyra.Data.Blocks;
+using System.Collections.Generic;
 
 namespace Lyra.Core.Authorizers
 {
@@ -34,21 +35,33 @@ namespace Lyra.Core.Authorizers
     public abstract class BaseAuthorizer : IAuthorizer
     {
         protected ILogger _log;
+        protected List<string> _lockedIds;
         public BaseAuthorizer()
         {
             _log = new SimpleLogger("BaseAuthorizer").Logger;
+            _lockedIds = new List<string>();
         }
 
         public abstract BlockTypes GetBlockType();
 
-        public async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block
+        public async Task<AuthResult> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block
         {
             var result = await AuthorizeImplAsync(sys, tblock);
 
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
+                return new AuthResult
+                {
+                    Result = APIResultCodes.Success,
+                    Signature = Sign(sys, tblock),
+                    LockedIDs = _lockedIds
+                };
             else
-                return (result, (AuthorizationSignature)null);
+                return new AuthResult
+                {
+                    Result = result,
+                    Signature = null,
+                    LockedIDs = _lockedIds
+                };
         }
 
         protected virtual async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock) where T : Block

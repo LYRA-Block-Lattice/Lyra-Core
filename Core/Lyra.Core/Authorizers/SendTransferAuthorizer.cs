@@ -115,7 +115,12 @@ namespace Lyra.Core.Authorizers
                 if (BrokerFactory.DynWorkFlows.ContainsKey(block.Tags[Block.REQSERVICETAG]))
                 {
                     var wf = BrokerFactory.DynWorkFlows[block.Tags[Block.REQSERVICETAG]];
-                    svcReqResult = await wf.PreSendAuthAsync(sys, block, lastBlock);
+
+                    var rl = await wf.PreAuthAsync(sys, block, lastBlock);
+                    svcReqResult = rl.Result;
+
+                    // lock IDs
+                    _lockedIds = rl.LockedIDs;
                 }
 
                 if (svcReqResult != APIResultCodes.Success)

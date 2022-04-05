@@ -197,11 +197,11 @@ namespace UnitTests
                     var auth = cs.AF.Create(block);
                     var result = await auth.AuthorizeAsync(sys, block);
 
-                    if(result.Item1 != APIResultCodes.Success)
-                        Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
+                    if(result.Result != APIResultCodes.Success)
+                        Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {result.Result} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
                     //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
-                    if (result.Item1 == APIResultCodes.Success)
+                    if (result.Result == APIResultCodes.Success)
                     {
                         await store.AddBlockAsync(block);
                         await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Yea, true);
@@ -209,15 +209,15 @@ namespace UnitTests
                     else
                     {
                         _authResult = false;
-                        _sbAuthResults.Append($"{result.Item1}, ");
-                        Console.WriteLine($"Auth failed: {result.Item1}");
+                        _sbAuthResults.Append($"{result.Result}, ");
+                        Console.WriteLine($"Auth failed: {result.Result}");
                         await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Nay, true);
                         _workflowEnds.Set();
                     }
 
                     return new AuthorizationAPIResult
                     {
-                        ResultCode = result.Item1,
+                        ResultCode = result.Result,
                         TxHash = block.Hash,
                     };
                 }
@@ -940,7 +940,8 @@ namespace UnitTests
             // make sure the status of trade is Open
             Assert.AreEqual(OTCTradeStatus.Open, tradgen.OTStatus, "Wrong trade status");
 
-            var cloret = await test2Wallet.CancelOTCTradeAsync(tradgen.AccountID);
+            
+            var cloret = await test2Wallet.CancelOTCTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
             await WaitWorkflow("CancelOTCTradeAsync");
 
             Assert.IsTrue(cloret.Successful(), $"Unable to cancel trade: {cloret.ResultCode}");

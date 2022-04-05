@@ -103,6 +103,8 @@ namespace Lyra.Core.Decentralize
 
         public static ConsensusService Singleton { get; private set; }
 
+        public bool CheckIfIdIsLocked(string id) => _activeConsensus.Values.Any(a => a.LocalAuthResult.LockedIDs.Contains(id));
+
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IHubContext<LyraEventHub, ILyraEvent> hubContext, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;

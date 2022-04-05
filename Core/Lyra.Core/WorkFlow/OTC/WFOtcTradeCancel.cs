@@ -34,9 +34,13 @@ namespace Lyra.Core.WorkFlow.OTC
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count != 2 ||
+            if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("tradeid") ||
-                string.IsNullOrWhiteSpace(send.Tags["tradeid"])
+                string.IsNullOrWhiteSpace(send.Tags["tradeid"]) ||
+                !send.Tags.ContainsKey("orderid") ||
+                string.IsNullOrWhiteSpace(send.Tags["orderid"]) ||
+                !send.Tags.ContainsKey("daoid") ||
+                string.IsNullOrWhiteSpace(send.Tags["daoid"])
                 )
                 return APIResultCodes.InvalidBlockTags;
 
@@ -126,6 +130,8 @@ namespace Lyra.Core.WorkFlow.OTC
                     b.Balances = oldbalance.ToLongDict();
                 });
         }
+
+        // TODO: order need receive the token.
 
         protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, SendTransferBlock send)
         {

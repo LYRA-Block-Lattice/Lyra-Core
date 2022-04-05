@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Lyra.Data.API;
+using Lyra.Core.Authorizers;
 
 namespace Lyra.Core.Decentralize
 {
@@ -34,6 +35,8 @@ namespace Lyra.Core.Decentralize
         }
 
         public ConsensusWorkerStatus Status; 
+
+        public AuthResult LocalAuthResult { get; private set; }
 
         private enum LocalAuthState { NotStarted, InProgress, Finished };
         private LocalAuthState _localAuthState = LocalAuthState.NotStarted;
@@ -232,6 +235,7 @@ namespace Lyra.Core.Decentralize
                 while (_context.Board.LeaderCandidate == null && waited < 5000)
                 {
                     await Task.Delay(100);
+                    waited += 100;
                 }
 
                 _log.LogInformation($"After waiting, LeaderCandidate is {_context.Board.LeaderCandidate?.Shorten()}");
@@ -256,7 +260,7 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
-                var (localAuthResult, localAuthSign) = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
+                LocalAuthResult = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
 
                 //// process service required send
                 //if (localAuthResult == APIResultCodes.Success
@@ -268,14 +272,25 @@ namespace Lyra.Core.Decentralize
                 //        localAuthSign = null;       // destroy it
                 //}
 
+                // check locked
+                var code = LocalAuthResult.Result;
+                foreach(var lockedId in LocalAuthResult.LockedIDs)
+                {
+                    if(_context.CheckIfIdIsLocked(lockedId))
+                    {
+                        code = APIResultCodes.SystemBusy;
+                        break;
+                    }    
+                }
+
                 result = new AuthorizedMsg
                 {
                     IsServiceBlock = State.InputMsg.IsServiceBlock,
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
-                    Result = localAuthResult,
-                    AuthSign = localAuthSign
+                    Result = code,
+                    AuthSign = code == APIResultCodes.Success ? LocalAuthResult.Signature : null,
                 };
 
                 _log.LogInformation($"Index {item.Block.Height} of block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
@@ -462,6 +477,10 @@ namespace Lyra.Core.Decentralize
                 }
 
                 await _state.CommitAsync();
+
+                // unlock IDs
+                LocalAuthResult.LockedIDs.Clear();
+
                 _log.LogInformation($"consensus commited. {block.Height}/{block.Hash} state close.");
             }
             catch(Exception ex)

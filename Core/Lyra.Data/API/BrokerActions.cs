@@ -26,6 +26,7 @@ namespace Lyra.Data.API
         public const string BRK_DEX_DPOREQ = "DPOREQ";
         public const string BRK_DEX_MINT = "MINT";
         public const string BRK_DEX_GETTKN = "GETTKN";
+
         public const string BRK_DEX_PUTTKN = "PUTTKN";
         public const string BRK_DEX_WDWREQ = "WDWREQ";
 

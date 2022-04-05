@@ -2247,12 +2247,14 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> CancelOTCTradeAsync(string tradeid)
+        public async Task<AuthorizationAPIResult> CancelOTCTradeAsync(string daoid, string orderid, string tradeid)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_TRDCANCEL },
                 { "tradeid", tradeid },
+                { "orderid", orderid },
+                { "daoid", daoid },
             };
 
             var amounts = new Dictionary<string, decimal>

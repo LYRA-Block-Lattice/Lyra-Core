@@ -163,14 +163,9 @@ namespace Lyra.Core.Decentralize
 
                             if (worker.IsTimeout)
                             {
-                                if(worker.State.IsCommited)
+                                if(worker.State.IsCommited || worker.State.InputMsg?.TimeStamp < DateTime.UtcNow.AddSeconds(-60))
                                 {
                                     // no close. use dotnet's dispose.
-                                    cs._activeConsensus.TryRemove(worker.Hash, out _);
-                                    worker.Dispose();
-                                }
-                                else if(worker.State.InputMsg?.TimeStamp < DateTime.UtcNow.AddSeconds(-60))
-                                {                                    
                                     cs._activeConsensus.TryRemove(worker.Hash, out _);
                                     worker.Dispose();
                                 }

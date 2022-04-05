@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Core.WorkFlow;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,7 +9,12 @@ namespace Lyra.Core.Authorizers
 {
     public interface IAuthorizer
     {
-        Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block ;
+        Task<AuthResult> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block ;
         BlockTypes GetBlockType();
+    }
+
+    public class AuthResult : WrokflowAuthResult
+    {
+        public AuthorizationSignature Signature { get; set; }
     }
 }

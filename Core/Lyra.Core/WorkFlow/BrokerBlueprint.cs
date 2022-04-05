@@ -181,7 +181,7 @@ deactivate db
     public enum BrokerRecvType { None, PFRecv, DaoRecv, TradeRecv }
     public class BrokerFactory
     {
-        public static Dictionary<string, WorkFlowBase> DynWorkFlows;
+        public static Dictionary<string, IDebiWorkFlow> DynWorkFlows;
         
         //public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
 
@@ -220,7 +220,7 @@ deactivate db
                 return;
                 //throw new InvalidOperationException("Already initialized.");
 
-            DynWorkFlows = new Dictionary<string, WorkFlowBase>();
+            DynWorkFlows = new Dictionary<string, IDebiWorkFlow>();
             //Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
 
             foreach(var type in GetTypesWithMyAttribute(Assembly.GetExecutingAssembly()))
@@ -304,35 +304,5 @@ deactivate db
                     stor.CreateBlueprint(n.Value);
             }    
         }*/
-
-        public static string GetBrokerAccountID(SendTransferBlock send)
-        {
-            string action = null;
-            if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
-                action = send.Tags[Block.REQSERVICETAG];
-
-            string brkaccount;
-            switch (action)
-            {
-                case BrokerActions.BRK_PFT_GETPFT:
-                    brkaccount = send.Tags["pftid"];
-                    break;
-                case BrokerActions.BRK_POOL_ADDLQ:
-                case BrokerActions.BRK_POOL_SWAP:
-                case BrokerActions.BRK_POOL_RMLQ:
-                    brkaccount = send.Tags["poolid"];
-                    break;
-                case BrokerActions.BRK_STK_ADDSTK:
-                    brkaccount = send.DestinationAccountId;
-                    break;
-                case BrokerActions.BRK_STK_UNSTK:
-                    brkaccount = send.Tags["stkid"];
-                    break;
-                default:
-                    brkaccount = null;
-                    break;
-            };
-            return brkaccount;
-        }
     }
 }
