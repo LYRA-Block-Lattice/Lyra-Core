@@ -2206,6 +2206,17 @@ namespace Lyra.Core.Accounts
             return q.ToList();
         }
 
+        public async Task<List<TransactionBlock>> FindOtcTradeForOrderAsync(string orderid)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Eq("Trade.orderId", orderid);
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
         public async Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             var filter = Builders<TransactionBlock>.Filter;

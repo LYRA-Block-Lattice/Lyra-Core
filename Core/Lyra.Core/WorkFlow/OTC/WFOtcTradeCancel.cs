@@ -27,7 +27,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 RecvVia = BrokerRecvType.None,
                 Steps = new [] { 
                     SealTradeAsync, 
-                    SendTokenFromTradeToOrderAsync, 
+                    SendTokenFromTradeToOrderAsync,
+                    OrderReceiveTokenFromTradeAsync,
                     SendCollateralToBuyerAsync }
             };
         }
@@ -131,7 +132,37 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        // TODO: order need receive the token.
+        async Task<TransactionBlock> OrderReceiveTokenFromTradeAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var tradeid = send.Tags["tradeid"];
+
+            var lastblocktrade = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
+            var lastblockorder = await sys.Storage.FindLatestBlockAsync((lastblocktrade as IOtcTrade).Trade.orderId) as TransactionBlock;
+
+            var txInfo = lastblocktrade.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(lastblocktrade.PreviousHash) as TransactionBlock);
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            return await TransactionOperateAsync(sys, send.Hash, lastblockorder,
+                () => lastblockorder.GenInc<OtcOrderRecvBlock>(),
+                (b) =>
+                {
+                    // send
+                    (b as ReceiveTransferBlock).SourceHash = lastblocktrade.Hash;
+
+                    // broker
+                    (b as IBrokerAccount).RelatedTx = send.Hash;
+
+                    // balance
+                    var oldbalance = b.Balances.ToDecimalDict();
+                    foreach (var chg in txInfo.Changes)
+                    {
+                        if(oldbalance.ContainsKey(chg.Key))
+                            oldbalance[chg.Key] += chg.Value;
+                        else
+                            oldbalance[chg.Key] = chg.Value;
+                    }
+                    b.Balances = oldbalance.ToLongDict();
+                });
+        }
 
         protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, SendTransferBlock send)
         {

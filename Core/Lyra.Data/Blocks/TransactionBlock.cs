@@ -152,7 +152,6 @@ namespace Lyra.Core.Blocks
 
             extraData += FeeCode + "|";
 
-            // TODO remove this once testnet reset
             if(Version < 3)
                 extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";

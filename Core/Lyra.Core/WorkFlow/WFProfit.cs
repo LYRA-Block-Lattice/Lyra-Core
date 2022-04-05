@@ -186,14 +186,6 @@ namespace Lyra.Core.WorkFlow
                     if (pft == null)
                         return APIResultCodes.InvalidAccountId;
 
-                    //TODO: check busy
-                    //var brkacct = BrokerFactory.GetBrokerAccountID(block);
-                    //if (brkacct != null)
-                    //{
-                    //if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
-                    //    return APIResultCodes.SystemBusy;
-                    //}
-
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
                     if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
                         return APIResultCodes.RequestNotPermited;
@@ -422,14 +414,6 @@ namespace Lyra.Core.WorkFlow
                     var pft = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
                     if (pft == null)
                         return APIResultCodes.InvalidAccountId;
-
-                    // TODO: check busy
-                    //var brkacct = BrokerFactory.GetBrokerAccountID(block);
-                    //if (brkacct != null)
-                    //{
-                    //if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
-                    //    return APIResultCodes.SystemBusy;
-                    //}
 
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
                     if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)

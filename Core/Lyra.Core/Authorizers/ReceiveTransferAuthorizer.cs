@@ -141,6 +141,7 @@ namespace Lyra.Core.Authorizers
                     || block.BlockType == BlockTypes.DexRecvToken
                     || block.BlockType == BlockTypes.OrgnizationRecv
                     || block.BlockType == BlockTypes.OrgnizationChange
+                    || block.BlockType == BlockTypes.OTCOrderRecv
                     || block.BlockType == BlockTypes.OTCTradeRecv
                     || block.BlockType == BlockTypes.OTCTradeResolutionRecv
                     || block.BlockType == BlockTypes.Voting

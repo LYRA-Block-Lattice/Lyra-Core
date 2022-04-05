@@ -53,7 +53,20 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidOrderStatus;
 
             // TODO: verify no pending trade
-
+            var trades = await sys.Storage.FindOtcTradeForOrderAsync(orderid);
+            if(trades.Any())
+            {
+                var opened = trades.Cast<IOtcTrade>()
+                    .Where(a => a.OTStatus != OTCTradeStatus.Canceled
+                        && a.OTStatus != OTCTradeStatus.Closed
+                        && a.OTStatus != OTCTradeStatus.DisputeClosed
+                        && a.OTStatus != OTCTradeStatus.CryptoReleased
+                    );
+                if(opened.Any())
+                {
+                    return APIResultCodes.TradesPending;
+                }
+            }
             return APIResultCodes.Success;
         }
 

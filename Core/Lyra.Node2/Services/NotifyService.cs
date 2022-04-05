@@ -49,7 +49,7 @@ namespace Lyra.Node2.Services
         }
         public async Task<GetNotificationAPIResult> GetNotificationAsync(string AccountID, string Signature)
         {
-            //TODO verify signature here
+            //verify signature here
             NotifyClient nc;
             if (_peers.ContainsKey(AccountID))
             {

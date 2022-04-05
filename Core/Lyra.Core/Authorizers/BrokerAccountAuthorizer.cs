@@ -38,6 +38,13 @@ namespace Lyra.Core.Authorizers
             if (block == null)
                 return APIResultCodes.InvalidBlockType;
 
+            // related tx must exist 
+            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (relTx == null)
+            {
+                return APIResultCodes.InvalidServiceRequest;
+            }
+
             // may have multiple receive. like profiting block.
             //var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
             //if (blocks.Count != 0)
@@ -62,6 +69,13 @@ namespace Lyra.Core.Authorizers
             var block = tblock as BrokerAccountSend;
             if (block == null)
                 return APIResultCodes.InvalidBlockType;
+
+            // related tx must exist 
+            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (relTx == null)
+            {
+                return APIResultCodes.InvalidServiceRequest;
+            }
 
             // benefiting may have multiple blocks
             //if(!(block is BenefitingBlock))

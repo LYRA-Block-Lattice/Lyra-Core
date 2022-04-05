@@ -652,5 +652,6 @@ namespace Lyra.Core.Blocks
         AlreadyExecuted,
         InvalidToken,
         ResourceIsBusy,
+        TradesPending,
     }
 }
