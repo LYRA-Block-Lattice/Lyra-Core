@@ -71,6 +71,7 @@ namespace Lyra.Core.Decentralize
         private readonly List<TransStats> _stats;
         private System.Net.IPAddress _myIpAddress;
         private string _lastServiceHash;
+        private ConsolidationBlock _lastCons;
 
         public bool IsThisNodePrimary => Board.PrimaryAuthorizers.Contains(_sys.PosWallet.AccountId);
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
@@ -603,6 +604,7 @@ namespace Lyra.Core.Decentralize
                             
                             await DeclareConsensusNodeAsync();  // important for cold start
 
+                            _lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                             if (lsb == null)
                             {
@@ -883,6 +885,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
+                    _lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                     var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                     _lastServiceHash = lsb.Hash;
                     _viewChangeHandler.ShiftView(lsb.Height + 1);
@@ -1017,7 +1020,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            var cons = await _sys.Storage.GetLastConsolidationBlockAsync();
+            //var cons = await _sys.Storage.GetLastConsolidationBlockAsync();
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
 
             var list1 = lsb.Authorizers.Keys.ToList();
@@ -1468,7 +1471,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                var lastCons = _lastCons;
                 if(pendingCons.Any(x => x.State.IsSaved && x.State.InputMsg.Block.Height > lastCons.Height))
                 {
                     _log.LogWarning($"Racing condition: pending cons height > last cons");
@@ -1774,8 +1777,9 @@ namespace Lyra.Core.Decentralize
 
                 return;
             }
-            else if (block is ConsolidationBlock cons)
+            else if (block is ConsolidationBlock cons && result == ConsensusResult.Yea)
             {
+                _lastCons = cons;
                 if(CurrentState == BlockChainState.Genesis)
                     _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); }).ConfigureAwait(false);
                 else
