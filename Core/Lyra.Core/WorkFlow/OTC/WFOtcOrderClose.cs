@@ -30,8 +30,7 @@ namespace Lyra.Core.WorkFlow.OTC
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
             if (send.Tags.Count != 3 ||
-                !send.Tags.ContainsKey("daoid") ||
-                string.IsNullOrWhiteSpace(send.Tags["daoid"]) ||
+                !send.Tags.ContainsKey("daoid") ||                                            
                 !send.Tags.ContainsKey("orderid") ||
                 string.IsNullOrWhiteSpace(send.Tags["orderid"])
                 )

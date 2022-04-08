@@ -134,6 +134,21 @@ namespace Lyra.Core.WorkFlow
                 case BrokerActions.BRK_DAO_CHANGE:
                 case BrokerActions.BRK_DAO_VOTED_CHANGE:
                     brkaccount = send.DestinationAccountId;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     break;
 
                 // OTC
@@ -144,7 +159,8 @@ namespace Lyra.Core.WorkFlow
 
                 case BrokerActions.BRK_OTC_CRTRD:
                     var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
-                    brkaccount = trade.orderId;
+                    brkaccount = trade.daoId;
+                    brkaccount2 = trade.orderId;
                     break;
 
                 case BrokerActions.BRK_OTC_TRDPAYSENT:
