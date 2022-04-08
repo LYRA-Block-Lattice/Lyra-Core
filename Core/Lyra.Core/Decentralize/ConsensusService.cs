@@ -884,6 +884,7 @@ namespace Lyra.Core.Decentralize
                 .OnEntry(() => Task.Run(async () =>
                 {
                     var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                    _lastServiceHash = lsb.Hash;
                     _viewChangeHandler.ShiftView(lsb.Height + 1);
 
                 }).ConfigureAwait(false))
