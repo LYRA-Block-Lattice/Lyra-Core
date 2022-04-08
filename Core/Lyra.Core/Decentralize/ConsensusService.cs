@@ -1174,6 +1174,7 @@ namespace Lyra.Core.Decentralize
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
 
+        // TODO: make it fast enough
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
             // dq any lower version
@@ -1187,6 +1188,7 @@ namespace Lyra.Core.Decentralize
             await OnNodeActiveAsync(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
         }
 
+        // TODO: make it fast enough
         private async Task OnNodeActiveAsync(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
