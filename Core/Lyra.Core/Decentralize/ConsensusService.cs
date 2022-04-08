@@ -70,6 +70,7 @@ namespace Lyra.Core.Decentralize
         private readonly BillBoard _board;
         private readonly List<TransStats> _stats;
         private System.Net.IPAddress _myIpAddress;
+        private string _lastServiceHash;
 
         public bool IsThisNodePrimary => Board.PrimaryAuthorizers.Contains(_sys.PosWallet.AccountId);
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
@@ -614,6 +615,8 @@ namespace Lyra.Core.Decentralize
                                 _board.CurrentLeader = lsb.Leader;
                                 _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
                                 _board.AllVoters = _board.PrimaryAuthorizers;
+
+                                _lastServiceHash = lsb.Hash;
                             }
 
                             // DBCC
@@ -1043,6 +1046,7 @@ namespace Lyra.Core.Decentralize
 
         internal void ServiceBlockCreated(ServiceBlock sb)
         {
+            _lastServiceHash = sb.Hash;
             //var lsb = _sys.Storage.GetLastServiceBlock();
             //if(sb.Height > lsb.Height)
             //{
@@ -1174,7 +1178,6 @@ namespace Lyra.Core.Decentralize
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
 
-        // TODO: make it fast enough
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
             // dq any lower version
@@ -1188,11 +1191,9 @@ namespace Lyra.Core.Decentralize
             await OnNodeActiveAsync(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
         }
 
-        // TODO: make it fast enough
         private async Task OnNodeActiveAsync(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
         {
-            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-            var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
+            var signAgainst = _lastServiceHash ?? ProtocolSettings.Default.StandbyValidators[0];
 
             // verify pftaccount !! genesis mode!!
             //if (!string.IsNullOrWhiteSpace(pftAccount))
