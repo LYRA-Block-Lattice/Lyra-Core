@@ -88,7 +88,7 @@ namespace Lyra.Node2
 
                 cfg.UseMongoDB(Neo.Settings.Default.LyraNode.Lyra.Database.DBConnect, "Workflow_" + networkId);
                 //cfg.UseSqlite($"Data Source={fn};", true);
-                cfg.UsePollInterval(new TimeSpan(0, 0, 0, 1));
+                cfg.UsePollInterval(new TimeSpan(0, 0, 0, 2));
                 //cfg.UseElasticsearch(new ConnectionSettings(new Uri("http://elastic:9200")), "workflows");
             });
 
