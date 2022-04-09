@@ -1177,12 +1177,12 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActiveAsync(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
+            OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
 
-        private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
+        private void OnHeartBeat(HeartBeatMessage heartBeat)
         {
             // dq any lower version
             var ver = new Version(heartBeat.NodeVersion);
@@ -1192,10 +1192,10 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActiveAsync(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
+            OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
         }
 
-        private async Task OnNodeActiveAsync(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
+        private void OnNodeActive(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
         {
             var signAgainst = _lastServiceHash ?? ProtocolSettings.Default.StandbyValidators[0];
 
@@ -1223,16 +1223,6 @@ namespace Lyra.Core.Decentralize
 
                 if (thumbPrint != null)
                     node.ThumbPrint = thumbPrint;
-
-                if(node.ProfitingAccountId == null)
-                {
-                    var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
-                    var pft = pfts.Where(a => a.PType == Blocks.ProfitingType.Node)
-                        .FirstOrDefault();
-
-                    if (pft != null)
-                        node.ProfitingAccountId = pft.AccountID;
-                }
             }
             else
             {
@@ -1246,13 +1236,6 @@ namespace Lyra.Core.Decentralize
 
                 if (thumbPrint != null)
                     node.ThumbPrint = thumbPrint;
-
-                var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
-                var pft = pfts.Where(a => a.PType == Blocks.ProfitingType.Node)
-                    .FirstOrDefault();
-
-                if (pft != null)
-                    node.ProfitingAccountId = pft.AccountID;
 
                 _board.ActiveNodes.Add(node);
             }
@@ -1425,7 +1408,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint);
+                OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint);
             }
             catch (Exception ex)
             {
@@ -1967,7 +1950,7 @@ namespace Lyra.Core.Decentralize
             switch (chat.MsgType)
             {
                 case ChatMessageType.HeartBeat:
-                    await OnHeartBeatAsync(chat as HeartBeatMessage);
+                    OnHeartBeat(chat as HeartBeatMessage);
                     break;
                 case ChatMessageType.NodeUp:
                     await OnNodeUpAsync(chat);

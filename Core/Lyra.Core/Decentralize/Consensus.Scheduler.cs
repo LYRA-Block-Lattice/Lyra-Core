@@ -228,6 +228,20 @@ namespace Lyra.Core.Decentralize
                 {
                     await cs.DeclareConsensusNodeAsync();
 
+                    // update profiting account
+                    foreach(var node in cs._board.ActiveNodes)
+                    {
+                        if (node.ProfitingAccountId == null)
+                        {
+                            var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(node.AccountID);
+                            var pft = pfts.Where(a => a.PType == Blocks.ProfitingType.Node)
+                                .FirstOrDefault();
+
+                            if (pft != null)
+                                node.ProfitingAccountId = pft.AccountID;
+                        }
+                    }
+
                     // make sure peers update its status
                     await Task.Delay(10000);
 
