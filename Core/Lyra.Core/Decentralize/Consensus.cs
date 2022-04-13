@@ -756,11 +756,17 @@ namespace Lyra.Core.Decentralize
 
             var state = CreateAuthringState(msg, true);
 
-            await SubmitToConsensusAsync(state);
+            var sent = await SubmitToConsensusAsync(state);
+            if(sent)
+            {
+                await state.WaitForCloseAsync();
 
-            await state.WaitForCloseAsync();
-
-            return (state.CommitConsensus, state.GetMajorErrorCode());
+                return (state.CommitConsensus, state.GetMajorErrorCode());
+            }
+            else
+            {
+                return (null, APIResultCodes.DoubleSpentDetected);
+            }
         }
 
         public AuthState CreateAuthringState(AuthorizingMsg msg, bool sourceValid)

@@ -1653,17 +1653,18 @@ namespace Lyra.Core.Decentralize
             return false;
         }
 
-        private async Task SubmitToConsensusAsync(AuthState state)
+        private async Task<bool> SubmitToConsensusAsync(AuthState state)
         {
             // unit test support
             if(Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
             {
                 await OnNewBlock(state.InputMsg.Block);
-                return;
+                return true;
             }
             if (IsBlockInQueue(state.InputMsg?.Block))
             {
-                throw new Exception("Block is already in queue.");
+                return false;
+                //throw new Exception("Block is already in queue.");
             }
 
             Send2P2pNetwork(state.InputMsg);
@@ -1672,7 +1673,9 @@ namespace Lyra.Core.Decentralize
             if (worker != null)
             {
                 await worker.ProcessStateAsync(state);
-            }            
+            }
+
+            return true;
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
