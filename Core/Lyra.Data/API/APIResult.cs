@@ -341,6 +341,19 @@ namespace Lyra.Core.API
         public string BlockData { get; set; }
         public BlockTypes ResultBlockType { get; set; }
 
+        private static Block Create(Type t)
+        {
+            try
+            {
+                return (Block)Activator.CreateInstance(t);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"In BlockAPIResult: {ex}");
+                return null;
+            }
+        }
+
         static BlockAPIResult()
         {
             var exporters = typeof(Block)
@@ -348,23 +361,26 @@ namespace Lyra.Core.API
                 .Where(t => t.IsSubclassOf(typeof(Block)) && !t.IsAbstract)
                 .Select(t => new
                 {
-                    b = (Block)Activator.CreateInstance(t),
+                    b = Create(t),
                     t
                 });
             foreach(var entry in exporters)
             {
-                BlockTypes bt;
-                try
+                if(entry.b != null)
                 {
-                    MethodInfo dynMethod = entry.t.GetMethod("GetBlockType",
-                        BindingFlags.NonPublic | BindingFlags.Instance);                    
+                    BlockTypes bt;
+                    try
+                    {
+                        MethodInfo dynMethod = entry.t.GetMethod("GetBlockType",
+                            BindingFlags.NonPublic | BindingFlags.Instance);
 
-                    bt = (BlockTypes)dynMethod.Invoke(entry.b, new object[] { });
-                    //Console.WriteLine($"{bt}: {entry.t.Name}");
-                    if (bt != BlockTypes.Null)
-                        Register(bt, entry.t);
+                        bt = (BlockTypes)dynMethod.Invoke(entry.b, new object[] { });
+                        //Console.WriteLine($"{bt}: {entry.t.Name}");
+                        if (bt != BlockTypes.Null)
+                            Register(bt, entry.t);
+                    }
+                    catch { }
                 }
-                catch { }
             }
         }
 

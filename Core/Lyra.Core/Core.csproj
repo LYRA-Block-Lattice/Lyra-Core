@@ -29,30 +29,30 @@
     <None Remove="Protos\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.4.31" />
-    <PackageReference Include="Akka.Cluster" Version="1.4.31" />
-    <PackageReference Include="Akka.Streams" Version="1.4.31" />
+    <PackageReference Include="Akka" Version="1.4.36" />
+    <PackageReference Include="Akka.Cluster" Version="1.4.36" />
+    <PackageReference Include="Akka.Streams" Version="1.4.36" />
     <PackageReference Include="Converto" Version="2.1.0" />
     <PackageReference Include="K4os.Compression.LZ4" Version="1.2.16" />
     <PackageReference Include="Loyc.Collections" Version="29.0.3" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.8" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.2.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.14.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.15.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-    <PackageReference Include="Quartz" Version="3.3.3" />
+    <PackageReference Include="Quartz" Version="3.4.0" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
-    <PackageReference Include="WorkflowCore" Version="3.6.2" />
-    <PackageReference Include="WorkflowCore.DSL" Version="3.6.2" />
+    <PackageReference Include="WorkflowCore" Version="3.6.3" />
+    <PackageReference Include="WorkflowCore.DSL" Version="3.6.3" />
   </ItemGroup>
 
   <ItemGroup>
