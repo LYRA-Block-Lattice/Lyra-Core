@@ -32,7 +32,7 @@ namespace UnitTests
 
         private SemaphoreSlim semaphore = new SemaphoreSlim(1);      // we need to run tests in serial
 
-        public static LightWallet Restore(string privateKey)
+        public LightWallet Restore(string privateKey)
         {
             return new LightWallet(new NetworkCredential("", privateKey).SecurePassword, TestConfig.networkId);
         }
@@ -88,6 +88,19 @@ namespace UnitTests
                 // the shit deciml deserialize bug. https://stackoverflow.com/questions/24051206/handling-decimal-values-in-newtonsoft-json
                 Assert.AreEqual(Math.Round(b1Before - 1m - amount, 4), Math.Round(b1After, 4));
                 Assert.AreEqual(Math.Round(b2Before + amount, 4), Math.Round(b2After, 4));
+
+                // test for new created wallet
+                var (pvtx, pubx) = Signatures.GenerateWallet();
+                var sendx = await w2.SendAsync(1, pubx, "LYR");
+                Assert.AreEqual(b2After - 2, sendx.balance[LyraGlobal.OFFICIALTICKERCODE]);
+
+                var wx = Restore(pvtx);
+                var bx = await wx.GetBalanceAsync();
+                Assert.AreEqual(null, bx.balance);
+                Assert.IsTrue(bx.unreceived);
+
+                var br = await wx.ReceiveAsync();
+                Assert.AreEqual(1, br.balance["LYR"], "bx not receive properly.");
             }
             finally
             {
