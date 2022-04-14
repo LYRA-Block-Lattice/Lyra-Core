@@ -35,7 +35,8 @@ namespace Lyra.Core.API
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as APIResult);
+            return obj != null &&
+                   GetHashCode() == obj.GetHashCode();
         }
 
         public bool Equals(APIResult other)

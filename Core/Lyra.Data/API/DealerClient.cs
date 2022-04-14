@@ -19,7 +19,7 @@ namespace Lyra.Data.API
         public DealerClient(string networkid)
         {
             if (networkid == "devnet")
-                UrlBase = "https://192.168.3.91:7070/api/Dealer/";
+                UrlBase = "https://dealer.devnet.lyra.live:7070/api/Dealer/";
             else if (networkid == "testnet")
                 UrlBase = "https://dealertestnet.lyra.live/api/Dealer/";
             else
