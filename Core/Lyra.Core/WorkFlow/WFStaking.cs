@@ -151,22 +151,16 @@ namespace Lyra.Core.WorkFlow
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
 
-            switch (block.Tags[Block.REQSERVICETAG])
+            if (block.Tags.Count == 1)
             {
-                case BrokerActions.BRK_STK_ADDSTK:
-                    if (block.Tags.Count == 1)
-                    {
-                        // verify sender is the owner of stkingblock
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (!stks.Any(a => a.AccountID == block.DestinationAccountId))
-                            return APIResultCodes.InvalidStakingAccount;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                default:
-                    return APIResultCodes.InvalidServiceRequest;
+                // verify sender is the owner of stkingblock
+                var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                if (!stks.Any(a => a.AccountID == block.DestinationAccountId))
+                    return APIResultCodes.InvalidStakingAccount;
             }
+            else
+                return APIResultCodes.InvalidBlockTags;
+
             return APIResultCodes.Success;
         }
 

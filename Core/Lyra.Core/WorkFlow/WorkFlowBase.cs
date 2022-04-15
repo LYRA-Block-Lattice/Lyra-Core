@@ -92,7 +92,7 @@ namespace Lyra.Core.WorkFlow
             if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
                 action = send.Tags[Block.REQSERVICETAG];
 
-            string brkaccount = null, brkaccount2 = null, brkaccount3 = null;
+            string brkaccount, brkaccount2 = null, brkaccount3 = null;
             switch (action)
             {
                 // profiting
@@ -134,21 +134,6 @@ namespace Lyra.Core.WorkFlow
                 case BrokerActions.BRK_DAO_CHANGE:
                 case BrokerActions.BRK_DAO_VOTED_CHANGE:
                     brkaccount = send.DestinationAccountId;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     break;
 
                 // OTC
@@ -196,8 +181,16 @@ namespace Lyra.Core.WorkFlow
                     brkaccount = send.Tags["voteid"];
                     break;
 
+                case BrokerActions.BRK_DAO_CRDAO:
+                case BrokerActions.BRK_POOL_CRPL:
+                case BrokerActions.BRK_PFT_CRPFT:
+                case BrokerActions.BRK_STK_CRSTK:
+                case BrokerActions.BRK_DEX_DPOREQ:
+                    brkaccount = null;
+                    break;
                 // 
                 default:
+                    Console.WriteLine($"Unknown REQ Action: {action}");
                     brkaccount = null;
                     break;
             };

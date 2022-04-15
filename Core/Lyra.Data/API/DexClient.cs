@@ -16,7 +16,7 @@ namespace Lyra.Data.API
         public DexClient(string networkid)
         {
             if (networkid == "devnet")
-                UrlBase = "https://192.168.3.99:7010/api/Dex/";
+                UrlBase = "https://dex.devnet.lyra.live:7010/api/Dex/";
             else if (networkid == "testnet")
                 UrlBase = "https://dextestnet.lyra.live/api/Dex/";
             else

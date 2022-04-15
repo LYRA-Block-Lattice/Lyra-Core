@@ -33,167 +33,50 @@ namespace Lyra.Core.WorkFlow
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
 
-            switch (block.Tags[Block.REQSERVICETAG])
+            // create profiting
+            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.ProfitingAccountCreateFee)
+                return APIResultCodes.InvalidFeeAmount;
+
+            ProfitingType ptype;
+            decimal shareRito;
+            int seats;
+            if (
+                block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
+                block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
+                && block.Tags.ContainsKey("share") && decimal.TryParse(block.Tags["share"], out shareRito)
+                && block.Tags.ContainsKey("seats") && int.TryParse(block.Tags["seats"], out seats)
+                && block.Tags.Count == 5
+                )
             {
-                case BrokerActions.BRK_STK_ADDSTK:
-                    if (block.Tags.Count == 1)
-                    {
-                        // verify sender is the owner of stkingblock
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (!stks.Any(a => a.AccountID == block.DestinationAccountId))
-                            return APIResultCodes.InvalidStakingAccount;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                case BrokerActions.BRK_STK_UNSTK:
-                    if (
-                        block.Tags.ContainsKey("stkid") && !string.IsNullOrWhiteSpace(block.Tags["stkid"])
-                        && block.Tags.Count == 2
-                        )
-                    {
-                        if (block.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                            return APIResultCodes.InvalidServiceRequest;
+                if (shareRito >= 0m && shareRito <= 1m && seats >= 0 && seats <= 100)
+                {
+                    // name dup check
+                    var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(block.AccountID);
+                    if (pfts.Any(a => a.Name == block.Tags["name"]))
+                        return APIResultCodes.DuplicateName;
 
-                        // verify sender is the owner of stkingblock
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (!stks.Any(a => a.AccountID == block.Tags["stkid"]))
-                            return APIResultCodes.InvalidStakingAccount;
+                    // one type per account. just keep it simple.
+                    if (pfts.Any(a => a.PType == ptype))
+                        return APIResultCodes.DuplicateAccountType;
 
-                        var lastStk = await sys.Storage.FindLatestBlockAsync(block.Tags["stkid"]) as TransactionBlock;
-                        if (lastStk == null)
-                            return APIResultCodes.InvalidUnstaking;
+                    if (shareRito == 0 && seats != 0)
+                        return APIResultCodes.InvalidShareRitio;
 
-                        if (!lastStk.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() == 0)
-                            return APIResultCodes.InvalidUnstaking;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                case BrokerActions.BRK_STK_CRSTK:   // create staking
-                    if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
-                        return APIResultCodes.InvalidFeeAmount;
+                    if (shareRito > 0 && seats == 0)
+                        return APIResultCodes.InvalidShareRitio;
 
-                    string votefor;
-                    int days;
-                    if (
-                        block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
-                        block.Tags.ContainsKey("days") && int.TryParse(block.Tags["days"], out days) && days >= 3 &&
-                        block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"]) &&
-                        block.Tags.ContainsKey("compound") && !string.IsNullOrEmpty(block.Tags["compound"]) &&
-                        block.Tags.Count == 5
-                        )
-                    {
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (stks.Any(a => a.Name == block.Tags["name"]))
-                            return APIResultCodes.DuplicateName;
-
-                        votefor = block.Tags["voting"];
-                        if (!Signatures.ValidateAccountId(votefor))
-                        {
-                            return APIResultCodes.InvalidProfitingAccount;
-                        }
-                        var pftgen = await sys.Storage.FindFirstBlockAsync(votefor) as ProfitingGenesis;
-                        if (pftgen == null || pftgen.AccountType != AccountTypes.Profiting)
-                        {
-                            return APIResultCodes.InvalidProfitingAccount;
-                        }
-                        if (pftgen.Seats == 0 || pftgen.ShareRito == 0)
-                        {
-                            return APIResultCodes.ProfitUnavaliable;
-                        }
-                        if (days <= 1)
-                        {
-                            return APIResultCodes.VotingDaysTooSmall;
-                        }
-                        if (block.Tags["compound"] != "True" && block.Tags["compound"] != "False")
-                            return APIResultCodes.InvalidBlockTags;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                case BrokerActions.BRK_PFT_CRPFT:   // create profiting
-                    if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.ProfitingAccountCreateFee)
-                        return APIResultCodes.InvalidFeeAmount;
-
-                    ProfitingType ptype;
-                    decimal shareRito;
-                    int seats;
-                    if (
-                        block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
-                        block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
-                        && block.Tags.ContainsKey("share") && decimal.TryParse(block.Tags["share"], out shareRito)
-                        && block.Tags.ContainsKey("seats") && int.TryParse(block.Tags["seats"], out seats)
-                        && block.Tags.Count == 5
-                        )
-                    {
-                        if (shareRito >= 0m && shareRito <= 1m && seats >= 0 && seats <= 100)
-                        {
-                            // name dup check
-                            var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(block.AccountID);
-                            if (pfts.Any(a => a.Name == block.Tags["name"]))
-                                return APIResultCodes.DuplicateName;
-
-                            // one type per account. just keep it simple.
-                            if (pfts.Any(a => a.PType == ptype))
-                                return APIResultCodes.DuplicateAccountType;
-
-                            if (shareRito == 0 && seats != 0)
-                                return APIResultCodes.InvalidShareRitio;
-
-                            if (shareRito > 0 && seats == 0)
-                                return APIResultCodes.InvalidShareRitio;
-
-                            var dupname = sys.Storage.FindProfitingAccountsByName(block.Tags["name"]);
-                            if (dupname != null)
-                                return APIResultCodes.DuplicateName;
-                        }
-                        else
-                        {
-                            return APIResultCodes.InvalidShareOfProfit;
-                        }
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                //case BrokerActions.BRK_PFT_FEEPFT:  //TODO: add support
-                //    var nodeid = block.Tags.ContainsKey("nodeid") ? block.Tags["nodeid"] : null;
-                //    if (nodeid == null)
-                //        return APIResultCodes.InvalidAccountId;
-
-                //    var pfts2 = await sys.Storage.FindAllProfitingAccountForOwnerAsync(nodeid);
-                //    if(pfts2.Count > 0)
-                //    {
-                //        var pftid2 = pfts2.First().AccountID;
-
-                //        var pft2 = await sys.Storage.FindFirstBlockAsync(pftid2) as ProfitingGenesis;
-                //        if (pft2 == null)
-                //            return APIResultCodes.InvalidAccountId;
-
-                //        var stkrs2 = sys.Storage.FindAllStakings(pftid2, DateTime.UtcNow);
-                //        if (!stkrs2.Any(a => a.user == block.AccountID) && pft2.OwnerAccountId != block.AccountID)
-                //            return APIResultCodes.RequestNotPermited;
-
-                //    }
-
-                //    return APIResultCodes.Success;
-                case BrokerActions.BRK_PFT_GETPFT:
-                    var pftid = block.Tags.ContainsKey("pftid") ? block.Tags["pftid"] : null;
-                    if (pftid == null)
-                        return APIResultCodes.InvalidAccountId;
-
-                    var pft = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
-                    if (pft == null)
-                        return APIResultCodes.InvalidAccountId;
-
-                    var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
-                    if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
-                        return APIResultCodes.RequestNotPermited;
-                    break;
-
-                default:
-                    return APIResultCodes.InvalidServiceRequest;
+                    var dupname = sys.Storage.FindProfitingAccountsByName(block.Tags["name"]);
+                    if (dupname != null)
+                        return APIResultCodes.DuplicateName;
+                }
+                else
+                {
+                    return APIResultCodes.InvalidShareOfProfit;
+                }
             }
+            else
+                return APIResultCodes.InvalidBlockTags;
+
             return APIResultCodes.Success;
         }
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
@@ -262,167 +145,18 @@ namespace Lyra.Core.WorkFlow
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
 
-            switch (block.Tags[Block.REQSERVICETAG])
-            {
-                case BrokerActions.BRK_STK_ADDSTK:
-                    if (block.Tags.Count == 1)
-                    {
-                        // verify sender is the owner of stkingblock
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (!stks.Any(a => a.AccountID == block.DestinationAccountId))
-                            return APIResultCodes.InvalidStakingAccount;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                case BrokerActions.BRK_STK_UNSTK:
-                    if (
-                        block.Tags.ContainsKey("stkid") && !string.IsNullOrWhiteSpace(block.Tags["stkid"])
-                        && block.Tags.Count == 2
-                        )
-                    {
-                        if (block.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                            return APIResultCodes.InvalidServiceRequest;
+            var pftid = block.Tags.ContainsKey("pftid") ? block.Tags["pftid"] : null;
+            if (pftid == null)
+                return APIResultCodes.InvalidAccountId;
 
-                        // verify sender is the owner of stkingblock
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (!stks.Any(a => a.AccountID == block.Tags["stkid"]))
-                            return APIResultCodes.InvalidStakingAccount;
+            var pft = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
+            if (pft == null)
+                return APIResultCodes.InvalidAccountId;
 
-                        var lastStk = await sys.Storage.FindLatestBlockAsync(block.Tags["stkid"]) as TransactionBlock;
-                        if (lastStk == null)
-                            return APIResultCodes.InvalidUnstaking;
+            var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
+            if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
+                return APIResultCodes.RequestNotPermited;
 
-                        if (!lastStk.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() == 0)
-                            return APIResultCodes.InvalidUnstaking;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                case BrokerActions.BRK_STK_CRSTK:   // create staking
-                    if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
-                        return APIResultCodes.InvalidFeeAmount;
-
-                    string votefor;
-                    int days;
-                    if (
-                        block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
-                        block.Tags.ContainsKey("days") && int.TryParse(block.Tags["days"], out days) && days >= 3 &&
-                        block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"]) &&
-                        block.Tags.ContainsKey("compound") && !string.IsNullOrEmpty(block.Tags["compound"]) &&
-                        block.Tags.Count == 5
-                        )
-                    {
-                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
-                        if (stks.Any(a => a.Name == block.Tags["name"]))
-                            return APIResultCodes.DuplicateName;
-
-                        votefor = block.Tags["voting"];
-                        if (!Signatures.ValidateAccountId(votefor))
-                        {
-                            return APIResultCodes.InvalidProfitingAccount;
-                        }
-                        var pftgen = await sys.Storage.FindFirstBlockAsync(votefor) as ProfitingGenesis;
-                        if (pftgen == null || pftgen.AccountType != AccountTypes.Profiting)
-                        {
-                            return APIResultCodes.InvalidProfitingAccount;
-                        }
-                        if (pftgen.Seats == 0 || pftgen.ShareRito == 0)
-                        {
-                            return APIResultCodes.ProfitUnavaliable;
-                        }
-                        if (days <= 1)
-                        {
-                            return APIResultCodes.VotingDaysTooSmall;
-                        }
-                        if (block.Tags["compound"] != "True" && block.Tags["compound"] != "False")
-                            return APIResultCodes.InvalidBlockTags;
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                case BrokerActions.BRK_PFT_CRPFT:   // create profiting
-                    if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.ProfitingAccountCreateFee)
-                        return APIResultCodes.InvalidFeeAmount;
-
-                    ProfitingType ptype;
-                    decimal shareRito;
-                    int seats;
-                    if (
-                        block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
-                        block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
-                        && block.Tags.ContainsKey("share") && decimal.TryParse(block.Tags["share"], out shareRito)
-                        && block.Tags.ContainsKey("seats") && int.TryParse(block.Tags["seats"], out seats)
-                        && block.Tags.Count == 5
-                        )
-                    {
-                        if (shareRito >= 0m && shareRito <= 1m && seats >= 0 && seats <= 100)
-                        {
-                            // name dup check
-                            var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(block.AccountID);
-                            if (pfts.Any(a => a.Name == block.Tags["name"]))
-                                return APIResultCodes.DuplicateName;
-
-                            // one type per account. just keep it simple.
-                            if (pfts.Any(a => a.PType == ptype))
-                                return APIResultCodes.DuplicateAccountType;
-
-                            if (shareRito == 0 && seats != 0)
-                                return APIResultCodes.InvalidAuthorizerCount;
-
-                            if (shareRito > 0 && seats == 0)
-                                return APIResultCodes.InvalidAuthorizerCount;
-
-                            var dupname = sys.Storage.FindProfitingAccountsByName(block.Tags["name"]);
-                            if (dupname != null)
-                                return APIResultCodes.DuplicateName;
-                        }
-                        else
-                        {
-                            return APIResultCodes.InvalidShareOfProfit;
-                        }
-                    }
-                    else
-                        return APIResultCodes.InvalidBlockTags;
-                    break;
-                //case BrokerActions.BRK_PFT_FEEPFT:  //TODO: add support
-                //    var nodeid = block.Tags.ContainsKey("nodeid") ? block.Tags["nodeid"] : null;
-                //    if (nodeid == null)
-                //        return APIResultCodes.InvalidAccountId;
-
-                //    var pfts2 = await sys.Storage.FindAllProfitingAccountForOwnerAsync(nodeid);
-                //    if(pfts2.Count > 0)
-                //    {
-                //        var pftid2 = pfts2.First().AccountID;
-
-                //        var pft2 = await sys.Storage.FindFirstBlockAsync(pftid2) as ProfitingGenesis;
-                //        if (pft2 == null)
-                //            return APIResultCodes.InvalidAccountId;
-
-                //        var stkrs2 = sys.Storage.FindAllStakings(pftid2, DateTime.UtcNow);
-                //        if (!stkrs2.Any(a => a.user == block.AccountID) && pft2.OwnerAccountId != block.AccountID)
-                //            return APIResultCodes.RequestNotPermited;
-
-                //    }
-
-                //    return APIResultCodes.Success;
-                case BrokerActions.BRK_PFT_GETPFT:
-                    var pftid = block.Tags.ContainsKey("pftid") ? block.Tags["pftid"] : null;
-                    if (pftid == null)
-                        return APIResultCodes.InvalidAccountId;
-
-                    var pft = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
-                    if (pft == null)
-                        return APIResultCodes.InvalidAccountId;
-
-                    var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
-                    if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
-                        return APIResultCodes.RequestNotPermited;
-                    break;
-
-                default:
-                    return APIResultCodes.InvalidServiceRequest;
-            }
             return APIResultCodes.Success;
         }
 
