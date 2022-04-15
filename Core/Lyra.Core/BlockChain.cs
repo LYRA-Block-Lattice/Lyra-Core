@@ -34,10 +34,6 @@ namespace Lyra
         public class PersistCompleted { }
         public class Import { }
         public class ImportCompleted { }
-        public class BlockAdded
-        {
-            public Block NewBlock { get; set; }
-        }
 
         public uint Height;
         public string NetworkID { get; private set; }
@@ -68,18 +64,6 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system, store)).WithMailbox("blockchain-mailbox");
         }
 
-        #region storage api
-        private async Task<bool> AddBlockImplAsync(Block block)
-        {
-            var result = await _store.AddBlockAsync(block);
-            if (result)
-            {
-                _sys.Consensus.Tell(new BlockAdded { NewBlock = block });
-            }
-            return result;
-        }
-
-        #endregion
     }
 
     internal class BlockchainMailbox : PriorityMailbox

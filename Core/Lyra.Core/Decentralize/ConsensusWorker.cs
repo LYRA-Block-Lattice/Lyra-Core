@@ -446,10 +446,6 @@ namespace Lyra.Core.Decentralize
                             _state.SetSaved();
                             _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
 
-                            // event hooks
-                            var sys = _context.GetDagSystem();
-                            sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
-
                             var sb = new StringBuilder();
                             sb.AppendLine();
                             sb.AppendLine($"* Transaction From Node {_state.InputMsg.From.Shorten()} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
