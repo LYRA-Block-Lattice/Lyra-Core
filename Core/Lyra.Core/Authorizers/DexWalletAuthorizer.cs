@@ -1,5 +1,7 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Crypto;
+using Neo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,8 +30,6 @@ namespace Lyra.Core.Authorizers
 
             if (string.IsNullOrWhiteSpace(block.ExtAddress))
                 return APIResultCodes.InvalidExternalToken;
-
-            // TODO: verify against dex server
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeAsync(sys, tblock), "DexWalletAuthorizer->BrokerAccountAuthorizer");
         }

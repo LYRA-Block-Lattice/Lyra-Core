@@ -331,46 +331,6 @@ namespace Lyra.Core.Decentralize
                 }
             });
 
-            //ReceiveAsync<AuthState>(async state =>
-            //{
-            //    // not accepting new transaction from API
-            //    // service block generate as usual.
-            //    if (_viewChangeHandler.IsViewChanging)
-            //        return;
-
-            //    _log.LogInformation($"State told.");
-            //    if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Engaging && _stateMachine.State != BlockChainState.Genesis)
-            //    {
-            //        state.Close();
-            //        return;
-            //    }
-
-            //    if (_viewChangeHandler.TimeStarted != DateTime.MinValue)
-            //    {
-            //        // view changing in progress. no block accepted
-            //        state.Close();
-            //        return;
-            //    }
-
-            //    //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-            //    if (state.InputMsg.Block is TransactionBlock)
-            //    {
-            //        var acctId = (state.InputMsg.Block as TransactionBlock).AccountID;
-            //        if (FindActiveBlock(acctId, state.InputMsg.Block.Height))
-            //        {
-            //            _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Height}");
-            //            return;
-            //        }
-            //        state.SetView(Board.PrimaryAuthorizers);
-            //    }
-            //    else if (state.InputMsg.Block is ServiceBlock)
-            //    {
-            //        state.SetView(Board.AllVoters);
-            //    }
-
-            //    await SubmitToConsensusAsync(state);
-            //});
-
             Receive<Idle>(o => { });
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
@@ -378,7 +338,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.NULL);
             _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
             _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
-            if(_hostEnv != null)    // HACK: support unittest
+            if(_hostEnv != null)    // to support unittest
                 CreateStateMachine();
 
             var timr = new System.Timers.Timer(200);
@@ -963,9 +923,6 @@ namespace Lyra.Core.Decentralize
             }
             // end debug
 
-            //            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-
-            // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                                                     //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 //.Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders ! no, failed leader can still vote.
@@ -1986,7 +1943,6 @@ namespace Lyra.Core.Decentralize
                     else
                         node.Votes = vote.Amount;
 
-                    // TODO: new cal. remove old one after full upgrade
                     if (node.ProfitingAccountId != null)
                     {
                         var stks = _sys.Storage.FindAllStakings(node.ProfitingAccountId, DateTime.UtcNow);

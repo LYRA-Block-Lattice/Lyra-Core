@@ -247,7 +247,6 @@ namespace Lyra.Data.API
 
                 var best = coll.First();
 
-                // hack. testnet has a bad block. nutralize it.
                 if (best.Count >= expectedCount)
                 {
                     var x = results.First(a => a.IsSuccess && a.Result == best.Data);

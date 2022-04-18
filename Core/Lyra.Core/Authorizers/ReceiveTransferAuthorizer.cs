@@ -198,7 +198,6 @@ namespace Lyra.Core.Authorizers
             }
             else if (srcBlock == null)
             {
-                // TODO: verify NodeFeeBlock
                 if (block is ReceiveNodeProfitBlock)
                     return APIResultCodes.Success;
             }

@@ -1289,6 +1289,10 @@ namespace UnitTests
 
             var stk2 = await w.GetStakingAsync(stkid);
             Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
+
+            var unstkretx = await w.UnStakingAsync(stkid);
+            await WaitWorkflow($"UnStakingAsync {unstkret.TxHash}");
+            Assert.IsTrue(!unstkretx.Successful());
         }
 
         private async Task TestProfitingAndStaking()

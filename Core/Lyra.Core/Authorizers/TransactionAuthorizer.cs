@@ -265,16 +265,6 @@ namespace Lyra.Core.Authorizers
                     if (!block.Balances.ContainsKey(prevbalance.Key))
                         return APIResultCodes.AccountChainBalanceValidationFailed;
                 }
-
-                // TODO: fee aggregation
-                //// Verify fee
-                //if (block.BlockType == BlockTypes.SendTransfer)
-                //    if ((block as SendTransferBlock).Fee != await sys.Storage.GetLastServiceBlock().TransferFee)
-                //        return APIResultCodes.InvalidFeeAmount;
-
-                //if (block.BlockType == BlockTypes.TokenGenesis)
-                //    if ((block as TokenGenesisBlock).Fee != await sys.Storage.GetLastServiceBlock().TokenGenerationFee)
-                //        return APIResultCodes.InvalidFeeAmount;
             }
 
             return APIResultCodes.Success;

@@ -224,7 +224,6 @@ namespace Clifton.Blockchain
             Contract(() => auditTrail.Count > 0, "Audit trail cannot be empty.");
             MerkleHash testHash = leafHash;
 
-            // TODO: Inefficient - compute hashes directly.
             foreach (MerkleProofHash auditHash in auditTrail)
             {
                 testHash = auditHash.Direction == MerkleProofHash.Branch.Left ?
@@ -244,7 +243,6 @@ namespace Clifton.Blockchain
             var auditPairs = new List<Tuple<MerkleHash, MerkleHash>>();
             MerkleHash testHash = leafHash;
 
-            // TODO: Inefficient - compute hashes directly.
             foreach (MerkleProofHash auditHash in auditTrail)
             {
                 switch (auditHash.Direction)
@@ -318,7 +316,7 @@ namespace Clifton.Blockchain
 
         protected MerkleNode FindLeaf(MerkleHash leafHash)
         {
-            // TODO: We can improve the search for the leaf hash by maintaining a sorted list of leaf hashes.
+            // We can improve the search for the leaf hash by maintaining a sorted list of leaf hashes.
             // We use First because a tree with an odd number of leaves will duplicate the last leaf
             // and will therefore have the same hash.
             return leaves.FirstOrDefault(l => l.Hash == leafHash);

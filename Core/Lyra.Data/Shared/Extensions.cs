@@ -44,7 +44,6 @@ namespace Lyra.Data.Shared
                  Func<TSource, TKey> keySelector,
                  Func<TSource, TValue> valueSelector)
         {
-            // TODO: Argument validation
             var ret = new SortedList<TKey, TValue>();
             foreach (var element in source)
             {

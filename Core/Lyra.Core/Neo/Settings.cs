@@ -57,7 +57,6 @@ namespace Neo
 
         public P2PSettings(IConfigurationSection section)
         {
-            // TODO: add more init. here just for quick reference of port number.
             this.Port = ushort.Parse(section.GetSection("Port").Value);
             this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
             this.WebAPI = ushort.Parse(section.GetSection("WebAPI").Value);
