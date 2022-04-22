@@ -260,30 +260,34 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
-                LocalAuthResult = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
-
-                //// process service required send
-                //if (localAuthResult == APIResultCodes.Success
-                //    && item.Block is SendTransferBlock send
-                //    && send.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
-                //{
-                //    localAuthResult = _context.AddSvcQueue(send);
-                //    if (localAuthResult != APIResultCodes.Success)
-                //        localAuthSign = null;       // destroy it
-                //}
-
-                // check locked
-                var code = LocalAuthResult.Result;
-
-                // not needed. workflow already did it.
-                //foreach(var lockedId in LocalAuthResult.LockedIDs)
-                //{
-                //    if(_context.CheckIfIdIsLocked(lockedId))
-                //    {
-                //        code = APIResultCodes.SystemBusy;
-                //        break;
-                //    }    
-                //}
+                var tmpResult = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
+                if(tmpResult.Result == APIResultCodes.Success)
+                {
+                    // try lock
+                    bool busy = false;
+                    foreach (var id in tmpResult.LockedIDs)
+                        if (_context.CheckIfIdIsLocked(id))
+                        {
+                            busy = true;
+                            break;
+                        }  
+                    if(busy)
+                    {
+                        LocalAuthResult = new AuthResult
+                        {
+                            Result = APIResultCodes.ResourceIsBusy,
+                            LockedIDs = new List<string>()
+                        };
+                    }
+                    else
+                    {
+                        LocalAuthResult = tmpResult;
+                    }
+                }
+                else
+                {
+                    LocalAuthResult = tmpResult;
+                }
 
                 result = new AuthorizedMsg
                 {
@@ -291,8 +295,8 @@ namespace Lyra.Core.Decentralize
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
-                    Result = code,
-                    AuthSign = code == APIResultCodes.Success ? LocalAuthResult.Signature : null,
+                    Result = LocalAuthResult.Result,
+                    AuthSign = LocalAuthResult.Result == APIResultCodes.Success ? LocalAuthResult.Signature : null,
                 };
 
                 _log.LogInformation($"Index {item.Block.Height} of block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");

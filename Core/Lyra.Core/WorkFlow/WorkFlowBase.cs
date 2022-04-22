@@ -95,7 +95,7 @@ namespace Lyra.Core.WorkFlow
             string brkaccount, brkaccount2 = null, brkaccount3 = null;
             switch (action)
             {
-                // profiting
+                // profiting, create dividends
                 case BrokerActions.BRK_PFT_GETPFT:
                     brkaccount = send.Tags["pftid"];
                     break;

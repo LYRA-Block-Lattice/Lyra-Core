@@ -60,7 +60,7 @@ namespace Lyra.Core.Authorizers
                 {
                     Result = result,
                     Signature = null,
-                    LockedIDs = _lockedIds
+                    LockedIDs = null,
                 };
         }
 

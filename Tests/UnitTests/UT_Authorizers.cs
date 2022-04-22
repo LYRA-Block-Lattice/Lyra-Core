@@ -6,6 +6,7 @@ using FluentAssertions;
 using Lyra;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
+using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
@@ -69,6 +70,7 @@ namespace UnitTests
         bool _authResult = true;
         StringBuilder _sbAuthResults = new StringBuilder();
 
+        AuthResult _lastAuthResult;
         AutoResetEvent _newAuth = new AutoResetEvent(false);
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
@@ -127,7 +129,10 @@ namespace UnitTests
                     {
                         _endedWorkflows.Add(evt.WorkflowInstanceId);
                         var hash = cs.GetHashForWorkflow(evt.WorkflowInstanceId);
-                        Console.WriteLine($"Key is {hash} terminated. Set it.");
+                        Console.WriteLine($"Unlock {hash}");
+                        _lockedIdDict.Remove(hash);
+                        Console.WriteLine($"Key is {hash} terminated. Set it. {_lockedIdDict.Count} locked.");
+                        //Console.WriteLine($"WF ended. {_lockedIdDict.Count} locked.");
                         _workflowEnds.Set();
                     }
                 }
@@ -187,6 +192,47 @@ namespace UnitTests
             Shutdown();
         }
 
+        Dictionary<string, List<string>> _lockedIdDict = new Dictionary<string, List<string>>();
+        private async Task<AuthResult> LockAuth(DagSystem sys, Block block)
+        {
+            AuthResult LocalAuthResult = null;
+            var auth = cs.AF.Create(block);
+            var tmpResult = await auth.AuthorizeAsync(sys, block);
+            if (tmpResult.Result == APIResultCodes.Success)
+            {
+                // try lock
+                bool busy = false;
+                foreach (var id in tmpResult.LockedIDs)
+                    if (_lockedIdDict.Values.Any(a => a.Contains(id)))
+                    {
+                        busy = true;
+                        break;
+                    }
+                if (busy)
+                {
+                    LocalAuthResult = new AuthResult
+                    {
+                        Result = APIResultCodes.ResourceIsBusy,
+                        LockedIDs = new List<string>()
+                    };
+                }
+                else
+                {
+                    LocalAuthResult = tmpResult;
+                    if(tmpResult.LockedIDs.Count > 0)
+                    {
+                        Console.WriteLine($"Lock {block.Hash}");
+                        _lockedIdDict.Add(block.Hash, tmpResult.LockedIDs);
+                    }                        
+                }
+            }
+            else
+            {
+                LocalAuthResult = tmpResult;
+            }
+            return LocalAuthResult;
+        }
+
         private async Task<AuthorizationAPIResult> AuthAsync(Block block)
         {
             try
@@ -195,14 +241,14 @@ namespace UnitTests
                 if (block is TransactionBlock)
                 {
                     var accid = block is TransactionBlock tb ? tb.AccountID : "";
-                    var auth = cs.AF.Create(block);
-                    var result = await auth.AuthorizeAsync(sys, block);
 
-                    if(result.Result != APIResultCodes.Success)
-                        Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {result.Result} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
+                    _lastAuthResult = await LockAuth(sys, block);
+
+                    if(_lastAuthResult.Result != APIResultCodes.Success)
+                        Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {_lastAuthResult.Result} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
                     //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
-                    if (result.Result == APIResultCodes.Success)
+                    if (_lastAuthResult.Result == APIResultCodes.Success)
                     {
                         await store.AddBlockAsync(block);
                         await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Yea, true);
@@ -210,15 +256,15 @@ namespace UnitTests
                     else
                     {
                         _authResult = false;
-                        _sbAuthResults.Append($"{result.Result}, ");
-                        Console.WriteLine($"Auth failed: {result.Result}");
+                        _sbAuthResults.Append($"{_lastAuthResult.Result}, ");
+                        Console.WriteLine($"Auth failed: {_lastAuthResult.Result}");
                         await cs.Worker_OnConsensusSuccessAsync(block, ConsensusResult.Nay, true);
-                        _workflowEnds.Set();
+                        //_workflowEnds.Set();
                     }
 
                     return new AuthorizationAPIResult
                     {
-                        ResultCode = result.Result,
+                        ResultCode = _lastAuthResult.Result,
                         TxHash = block.Hash,
                     };
                 }
@@ -463,20 +509,22 @@ namespace UnitTests
         private async Task WaitBlock(string target)
         {
             Console.WriteLine($"Waiting for block: {target}");
-            var ret = _newAuth.WaitOne(1000);
+            var ret = _newAuth.WaitOne(10000);
             Assert.IsTrue(ret, "block not authorized properly.");
         }
 
-        private async Task WaitWorkflow(string target)
+        private async Task WaitWorkflow(string target, bool checklock = true)
         {
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
 #if DEBUG
             var ret = _workflowEnds.WaitOne(200000);
 #else
-            var ret = _workflowEnds.WaitOne(10000);
+            var ret = _workflowEnds.WaitOne(3000);
 #endif
-            Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
+            //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");
+            if(checklock)
+                Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
             _workflowEnds.Reset();
         }
 
@@ -516,7 +564,7 @@ namespace UnitTests
             // test non-owner
             var chgx21 = await testWallet.ChangeDAO(nodesdao.AccountID, null, change);
             Assert.IsTrue(chgx21.ResultCode == APIResultCodes.Unauthorized, $"Should error change DAO 21: {chgx21.ResultCode}");
-            await WaitWorkflow("Change DAO Wrong 21");
+            await WaitBlock("Change DAO Wrong 21");
 
             // wrong creator
             var chgx2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -526,7 +574,7 @@ namespace UnitTests
                 }
                 ));
             Assert.IsTrue(chgx2.ResultCode == APIResultCodes.Unauthorized, $"Should error change DAO 2: {chgx2.ResultCode}");
-            await WaitWorkflow("Change DAO Wrong 2");
+            await WaitBlock("Change DAO Wrong 2");
             // wrong desc
             var chgx22 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
                 new
@@ -538,7 +586,7 @@ namespace UnitTests
                 }
                 ));
             Assert.IsTrue(chgx22.ResultCode == APIResultCodes.ArgumentOutOfRange, $"Should error change DAO 22: {chgx22.ResultCode}");
-            await WaitWorkflow("Change DAO Wrong 22");
+            await WaitBlock("Change DAO Wrong 22");
 
             // wrong settings
             var chgx23 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -551,14 +599,14 @@ namespace UnitTests
                 }
                 ));
             Assert.IsTrue(chgx23.ResultCode == APIResultCodes.InvalidArgument, $"Should error change DAO 23: {chgx23.ResultCode}");
-            await WaitWorkflow("Change DAO Wrong 23");
+            await WaitBlock("Change DAO Wrong 23");
 
             // test out of range settings
             change.settings["ShareRito"] = "1.2";
             change.settings["Description"] = null;
             var chgx1 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change);
             Assert.IsTrue(!chgx1.Successful(), $"Should error change DAO: {chgx1.ResultCode}");
-            await WaitWorkflow("Change DAO Wrong 1");
+            await WaitBlock("Change DAO Wrong 1");
 
 
 
@@ -626,7 +674,7 @@ namespace UnitTests
             // test if dup exec detected
             var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
             Assert.IsTrue(chgret3.ResultCode == APIResultCodes.AlreadyExecuted, $"Can't change DAO: {chgret3.ResultCode}");
-            await WaitWorkflow("Change DAO 3 by vote");
+            await WaitBlock("Change DAO 3 by vote");
 
             // inconsist changes
             var chgret31 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2
@@ -637,7 +685,7 @@ namespace UnitTests
                     }
                 ));
             Assert.IsTrue(chgret31.ResultCode == APIResultCodes.ArgumentOutOfRange, $"Can't change DAO 31: {chgret31.ResultCode}");
-            await WaitWorkflow("Change DAO 31 by vote");
+            await WaitBlock("Change DAO 31 by vote");
         }
 
         private async Task TestJoinDAO(string daoid)
@@ -651,7 +699,7 @@ namespace UnitTests
             // join DAO / invest
             var invret0 = await testWallet.JoinDAOAsync(daoid, 800m);
             Assert.IsTrue(invret0.ResultCode == APIResultCodes.InvalidAmount);
-            await WaitWorkflow("JoinDAOAsync 0");
+            await WaitBlock("JoinDAOAsync 0");
 
             var invret = await testWallet.JoinDAOAsync(daoid, 800000m);
             Assert.IsTrue(invret.Successful());
@@ -790,8 +838,8 @@ namespace UnitTests
             await DoVote(voteCrtRet.TxHash, true);
 
             var voteRet4 = await test4Wallet.Vote((curvote as TransactionBlock).AccountID, 1);
-            await WaitWorkflow("Vote on Subject Async 4");
             Assert.IsTrue(voteRet4.ResultCode == APIResultCodes.Unauthorized, $"Vote 4 should error: {voteRet4.ResultCode}");
+            await WaitBlock("Vote on Subject Async 4");
 
             // join after vote genesis should also error
             var invret4 = await test4Wallet.JoinDAOAsync(trade.Trade.daoId, 50000m);
@@ -799,8 +847,8 @@ namespace UnitTests
             await WaitWorkflow("join after vote genesis");
 
             var voteRet41 = await test4Wallet.Vote((curvote as TransactionBlock).AccountID, 1);
-            await WaitWorkflow("Vote on Subject Async 41");
             Assert.IsTrue(voteRet41.ResultCode == APIResultCodes.Unauthorized, $"Vote 41 should error: {voteRet41.ResultCode}");
+            await WaitBlock("Vote on Subject Async 41");
 
             // clean
             var leaveret4 = await test4Wallet.LeaveDAOAsync(trade.Trade.daoId);
@@ -851,16 +899,16 @@ namespace UnitTests
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(votehash);
             var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
             var voteRet = await testWallet.Vote(voteblk.AccountID, 0);
-            await WaitWorkflow("Vote on Subject Async");
             Assert.IsTrue(voteRet.Successful(), $"Vote error: {voteRet.ResultCode}");
+            await WaitWorkflow("Vote on Subject Async");
 
             var voteRet2 = await test2Wallet.Vote(voteblk.AccountID, 1);
-            await WaitWorkflow("Vote on Subject Async 2");
             Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
+            await WaitWorkflow("Vote on Subject Async 2");
 
             var voteRet2x = await test2Wallet.Vote(voteblk.AccountID, 0);
-            await WaitWorkflow("Vote on Subject Async 2x");
             Assert.IsTrue(!voteRet2x.Successful(), $"Vote 2x should error: {voteRet2x.ResultCode}");
+            await WaitBlock("Vote on Subject Async 2x");
 
             ResetAuthFail();
 
@@ -1020,10 +1068,26 @@ namespace UnitTests
         {
             // make sure the status of trade is Open
             Assert.AreEqual(OTCTradeStatus.Open, tradgen.OTStatus, "Wrong trade status");
-
             
             var cloret = await test2Wallet.CancelOTCTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
-            await WaitWorkflow("CancelOTCTradeAsync");
+            // check locked IDs
+            await WaitBlock("CancelOTCTradeAsync");
+            Assert.IsTrue(cloret.Successful());
+
+            Assert.AreEqual(3, _lastAuthResult.LockedIDs.Count, "ID not locked properly");
+            Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.daoId));
+            Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.orderId));
+            Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.AccountID));
+
+            // try lock it
+            var cloret2 = await test2Wallet.CancelOTCTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
+            await WaitBlock("CancelOTCTradeAsync 2");
+            Assert.AreEqual(APIResultCodes.ResourceIsBusy, cloret2.ResultCode, $"Not locked properly: {cloret2.ResultCode}");
+
+            await WaitBlock("CancelOTCTradeAsync");
+            await WaitWorkflow("CancelOTCTradeAsync", false);
+
+            ResetAuthFail();
 
             Assert.IsTrue(cloret.Successful(), $"Unable to cancel trade: {cloret.ResultCode}");
 
@@ -1347,13 +1411,15 @@ namespace UnitTests
         {
             var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 30, true);
             Assert.IsTrue(crstkret.Successful());
+
             var stkblock = crstkret.GetBlock() as StakingBlock;
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
-            await WaitWorkflow($"CreateStakingAccountAsync");
+            await WaitWorkflow($"CreateStakingAccountAsync {stkblock.RelatedTx}");
 
             var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);
             Assert.IsTrue(addstkret.Successful());
             await WaitWorkflow($"AddStakingAsync {addstkret.TxHash}");
+
             var stk = await w.GetStakingAsync(stkblock.AccountID);
             Assert.AreEqual(amount, (stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
             return stk;
@@ -1363,7 +1429,7 @@ namespace UnitTests
         {
             var balance = w.BaseBalance;
             var unstkret = await w.UnStakingAsync(stkid);
-            Assert.IsTrue(unstkret.Successful());
+            Assert.IsTrue(unstkret.Successful(), $"Failed to UnStaking: {unstkret.ResultCode}");
             await WaitWorkflow($"UnStakingAsync {unstkret.TxHash}");
             await w.SyncAsync(null);
             var nb = balance + 2000m - 2;// * 0.988m; // two send fee
@@ -1373,7 +1439,7 @@ namespace UnitTests
             Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
 
             var unstkretx = await w.UnStakingAsync(stkid);
-            await WaitWorkflow($"UnStakingAsync {unstkret.TxHash}");
+            await WaitBlock($"UnStakingAsync {unstkret.TxHash}");
             Assert.IsTrue(!unstkretx.Successful());
         }
 
@@ -1393,9 +1459,11 @@ namespace UnitTests
             Console.WriteLine("Staking 1");
             // create two staking account, add funds, and vote to it
             var stk = await CreateStaking(testWallet, pftblock.AccountID, 2000m);
+            Assert.IsNotNull(stk);
 
             Console.WriteLine("Staking 2"); 
             var stk2 = await CreateStaking(test2Wallet, pftblock.AccountID, 2000m);
+            Assert.IsNotNull(stk2);
 
             // get the base balance
             await testWallet.SyncAsync(null);
@@ -1409,13 +1477,14 @@ namespace UnitTests
                 Assert.IsTrue(sendret.Successful());
             }
 
+            _workflowEnds.Reset();
             Console.WriteLine($"({DateTime.Now:mm:ss.ff}) Dividend");
             // the owner try to get the dividends
             var getpftRet = await testWallet.CreateDividendsAsync(pftblock.AccountID);
             Assert.IsTrue(getpftRet.Successful(), $"Failed to get dividends: {getpftRet.ResultCode}");
-
             // then sync wallet and see if it gets a dividend
             await WaitWorkflow("CreateDividendsAsync");
+
             if (networkId == "devnet")
                 await Task.Delay(3000);
             var bal1 = testWallet.BaseBalance;
@@ -1457,7 +1526,7 @@ namespace UnitTests
             var addpoolret = await testWallet.AddLiquidateToPoolAsync(token0, 1000000, "LYR", 5000);
             Assert.IsTrue(addpoolret.Successful());
 
-            await WaitWorkflow("AddLiquidateToPoolAsync");
+            await WaitWorkflow($"AddLiquidateToPoolAsync {addpoolret.TxHash}");
 
             // swap
             var poolx = await client.GetPoolAsync(token0, LyraGlobal.OFFICIALTICKERCODE);
@@ -1470,7 +1539,8 @@ namespace UnitTests
             var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, token0, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, 20, 0);
             var swapret = await testWallet.SwapTokenAsync("LYR", token0, "LYR", 20, cal2.SwapOutAmount);
             Assert.IsTrue(swapret.Successful());
-            await WaitWorkflow("SwapTokenAsync");
+            await WaitWorkflow($"SwapTokenAsync {swapret.TxHash}");
+
             await testWallet.SyncAsync(null);
 
             var gotamount = testWallet.GetLastSyncBlock().Balances[token0].ToBalanceDecimal() - oldtkn0;

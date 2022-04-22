@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFOtcOrderCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -50,26 +50,36 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidBlockTags;
             }
 
+            // daoid
             var dao = await sys.Storage.FindLatestBlockAsync(order.daoId);
             if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
             // check every field of Order
+            // dir, priceType
             if (order.dir != TradeDirection.Sell ||
                 order.priceType != PriceType.Fixed)
                 return APIResultCodes.InvalidTagParameters;
 
+            // crypto
             var tokenGenesis = await sys.Storage.FindTokenGenesisBlockAsync(null, order.crypto);
             if (tokenGenesis == null)
                 return APIResultCodes.TokenNotFound;
 
+            // fiat
+            if (order.fiat != "USD")
+                return APIResultCodes.Unsupported;
+
+            // price, amount
             if (order.price <= 0.00001m || order.amount < 0.0001m)
                 return APIResultCodes.InvalidAmount;
 
+            // limit
             if(order.limitMin <= 0 || order.limitMax < order.limitMin 
                 || order.limitMax > order.amount * order.price)
                 return APIResultCodes.InvalidAmount;
 
+            // payBy
             if(order.payBy == null || order.payBy.Length == 0)
                 return APIResultCodes.InvalidOrder;
 

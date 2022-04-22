@@ -119,8 +119,15 @@ namespace Lyra.Core.Authorizers
                     var rl = await wf.PreAuthAsync(sys, block, lastBlock);
                     svcReqResult = rl.Result;
 
-                    // lock IDs
-                    _lockedIds = rl.LockedIDs;
+                    if(rl.Result == APIResultCodes.Success)
+                    {
+                        // lock IDs
+                        _lockedIds = rl.LockedIDs;
+                    }
+                    else
+                    {
+                        _lockedIds = null;
+                    }
                 }
 
                 if (svcReqResult != APIResultCodes.Success)

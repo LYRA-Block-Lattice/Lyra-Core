@@ -143,8 +143,8 @@ namespace Lyra.Core.Decentralize
         public IAuthorizer Create(Block block)
         {
             //return (IAuthorizer)Activator.CreateInstance(_authorizers[blockType]);
-            if (_authorizerInstances.ContainsKey(block.BlockType))
-                return _authorizerInstances[block.BlockType];
+            if (_authorizers.ContainsKey(block.BlockType))
+                return (IAuthorizer)Activator.CreateInstance(_authorizers[block.BlockType]); //_authorizerInstances[block.BlockType];
             else
                 throw new Exception($"No authorizer for {block.BlockType}");
         }
