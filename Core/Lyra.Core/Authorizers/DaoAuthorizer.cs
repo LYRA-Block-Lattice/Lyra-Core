@@ -61,7 +61,7 @@ namespace Lyra.Core.Authorizers
             if (block.PType != ProfitingType.Orgnization)
                 return APIResultCodes.InvalidDataType;
 
-            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 1024)
+            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 300)
                 return APIResultCodes.ArgumentOutOfRange;
 
             // related tx must exist 
@@ -124,7 +124,7 @@ namespace Lyra.Core.Authorizers
             if (block.PType != ProfitingType.Orgnization)
                 return APIResultCodes.InvalidDataType;
 
-            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 1024)
+            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 300)
                 return APIResultCodes.ArgumentOutOfRange;
 
             //// related tx must exist 

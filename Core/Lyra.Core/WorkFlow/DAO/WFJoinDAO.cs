@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.DAO
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFJoinDAO : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -44,9 +44,10 @@ namespace Lyra.Core.WorkFlow.DAO
             if (txInfo.Changes.Count != 1 || !txInfo.Changes.ContainsKey("LYR"))
                 return APIResultCodes.InvalidToken;
 
-            // min amount to invest
-            //if (amount.ToBalanceDecimal() < 10000)
-            //    return APIResultCodes.InvalidAmount;
+            //min amount to invest
+            var amount = txInfo.Changes["LYR"];
+            if (amount < 10000)
+                return APIResultCodes.InvalidAmount;
 
             return APIResultCodes.Success;
         }

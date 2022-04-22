@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.DAO
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFLeaveDAO : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.DAO
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFVote : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -50,11 +50,16 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidVote;
             }
 
-            // voter should in treasure
-            var dao = await sys.Storage.FindLatestBlockAsync(voteg.Subject.DaoId);
+            // voter should in treasure the time when vote generated
+            // we find it by voteg.relatedtx
+            var vgreltx = voteg.RelatedTx;
+            var allreltx = await sys.Storage.FindBlocksByRelatedTxAsync(vgreltx);
+            var dao = await sys.Storage.FindBlockByHashAsync(
+                allreltx.First(a => a is DaoRecvBlock).Hash);
+
             if(!(dao as IDao).Treasure.ContainsKey(send.AccountID))
             {
-                return APIResultCodes.InvalidVote;
+                return APIResultCodes.Unauthorized;
             }
 
             // voter shouldn't multiple vote

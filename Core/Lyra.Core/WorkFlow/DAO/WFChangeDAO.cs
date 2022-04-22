@@ -99,7 +99,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 else if (chg.Key == "Description")
                 {
                     var Description = chg.Value;
-                    if (string.IsNullOrEmpty(Description) || Description.Length > 1024)
+                    if (string.IsNullOrEmpty(Description) || Description.Length > 300)
                         return APIResultCodes.ArgumentOutOfRange;
                 }
                 else

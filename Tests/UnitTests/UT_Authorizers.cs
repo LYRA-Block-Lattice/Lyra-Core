@@ -649,9 +649,12 @@ namespace UnitTests
             var name = (nodesdao as IDao).Name;
 
             // join DAO / invest
+            var invret0 = await testWallet.JoinDAOAsync(daoid, 800m);
+            Assert.IsTrue(invret0.ResultCode == APIResultCodes.InvalidAmount);
+            await WaitWorkflow("JoinDAOAsync 0");
+
             var invret = await testWallet.JoinDAOAsync(daoid, 800000m);
             Assert.IsTrue(invret.Successful());
-
             await WaitWorkflow("JoinDAOAsync 1");
 
             nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
@@ -659,7 +662,6 @@ namespace UnitTests
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             var treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
             Assert.AreEqual(800000m, Math.Round(treasure[testPublicKey], 5));
-
 
             // another join DAO
             var invret2 = await test2Wallet.JoinDAOAsync(daoid, 150000m);
@@ -746,6 +748,13 @@ namespace UnitTests
                         to = Parties.Buyer,
                         amount = 100,
                         desc = "compensate"
+                    },
+                    new TransMove
+                    {
+                        from = Parties.DAOTreasure,
+                        to = Parties.Seller,
+                        amount = 100,
+                        desc = "compensate"
                     }
                 }
             };
@@ -782,7 +791,21 @@ namespace UnitTests
 
             var voteRet4 = await test4Wallet.Vote((curvote as TransactionBlock).AccountID, 1);
             await WaitWorkflow("Vote on Subject Async 4");
-            Assert.IsTrue(!voteRet4.Successful(), $"Vote 4 should error: {voteRet4.ResultCode}");
+            Assert.IsTrue(voteRet4.ResultCode == APIResultCodes.Unauthorized, $"Vote 4 should error: {voteRet4.ResultCode}");
+
+            // join after vote genesis should also error
+            var invret4 = await test4Wallet.JoinDAOAsync(trade.Trade.daoId, 50000m);
+            Assert.IsTrue(invret4.Successful());
+            await WaitWorkflow("join after vote genesis");
+
+            var voteRet41 = await test4Wallet.Vote((curvote as TransactionBlock).AccountID, 1);
+            await WaitWorkflow("Vote on Subject Async 41");
+            Assert.IsTrue(voteRet41.ResultCode == APIResultCodes.Unauthorized, $"Vote 41 should error: {voteRet41.ResultCode}");
+
+            // clean
+            var leaveret4 = await test4Wallet.LeaveDAOAsync(trade.Trade.daoId);
+            Assert.IsTrue(leaveret4.Successful(), $"Can't leave DAO: {leaveret4.ResultCode}");
+            await WaitWorkflow("clean join after vote genesis");
 
             // owner create resolution on vote result
             // vote keep as is.

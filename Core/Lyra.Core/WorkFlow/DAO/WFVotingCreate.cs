@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.DAO
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFVotingCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -53,6 +53,10 @@ namespace Lyra.Core.WorkFlow.DAO
                 )
                 return APIResultCodes.InvalidArgument;
 
+            if (subject.Title == null || subject.Title.Length > 100 ||
+                subject.Description == null || subject.Description.Length > 300)
+                return APIResultCodes.ArgumentOutOfRange;
+
             var pptype = (ProposalType)Enum.Parse(typeof(ProposalType), send.Tags["pptype"]);
             object? proposal = pptype switch
             {
@@ -64,13 +68,20 @@ namespace Lyra.Core.WorkFlow.DAO
             if (pptype == ProposalType.None || proposal == null)
                 return APIResultCodes.InvalidArgument;
 
+            // issuer should be the owner of DAO
+            var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
+            if (dao == null || (dao as IBrokerAccount).OwnerAccountId != subject.Issuer)
+                return APIResultCodes.Unauthorized;
+
             var resolution = proposal as ODRResolution;
-            // verify subject
+            
             if(resolution != null)
             {
+                // verify ODR resolution subject
                 if (string.IsNullOrEmpty(resolution.tradeid) ||
                     string.IsNullOrEmpty(resolution.creator) ||
-                    resolution.actions.Length == 0
+                    resolution.actions == null ||
+                    resolution.actions.Length < 2
                     )
                     return APIResultCodes.InvalidArgument;
 
@@ -81,14 +92,24 @@ namespace Lyra.Core.WorkFlow.DAO
 
                 if(tradeblk.Trade.daoId != subject.DaoId)
                     return APIResultCodes.InvalidDAO;
+
+                if (tradeblk.OTStatus != OTCTradeStatus.Dispute)
+                    return APIResultCodes.InvalidTradeStatus;
             }
 
-            // TODO: verify trade id and creater id
+            var daochg = proposal as DAOChange;
+            if(daochg != null)
+            {
+                if (dao.OwnerAccountId != daochg.creator || daochg.creator != subject.Issuer)
+                    return APIResultCodes.Unauthorized;
 
-            // issuer should be the owner of DAO
-            var dao = await sys.Storage.FindLatestBlockAsync(subject.DaoId) as IDao;
-            if (dao == null || (dao as IBrokerAccount).OwnerAccountId != subject.Issuer)
-                return APIResultCodes.Unauthorized;
+                var vrfychg = WFChangeDAO.VerifyDaoChanges(daochg);
+                if (APIResultCodes.Success != vrfychg)
+                    return vrfychg;
+            }
+
+            if (proposal != null && resolution == null && daochg == null)
+                return APIResultCodes.Unsupported;
 
             // title can't repeat
             var votes = await sys.Storage.FindAllVotesByDaoAsync(subject.DaoId, false);
