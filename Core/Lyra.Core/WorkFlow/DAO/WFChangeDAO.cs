@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.DAO
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFChangeDAO : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -45,7 +45,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             // verify it
             var change = JsonConvert.DeserializeObject<DAOChange>(send.Tags["data"]);
-            if (change == null || change.creator != dao.OwnerAccountId)
+            if (change == null || change.creator != dao.OwnerAccountId || send.AccountID != dao.OwnerAccountId)
                 return APIResultCodes.Unauthorized;
 
             var voteid = send.Tags["voteid"];
@@ -57,13 +57,56 @@ namespace Lyra.Core.WorkFlow.DAO
             }
             else
             {
-                // TODO: verify against the vote
-                // vote must contain the same changes
-                
                 return APIResultCodes.Unauthorized;
             }
 
             if (change.settings == null || change.settings.Count == 0)
+                return APIResultCodes.InvalidArgument;
+
+            return VerifyDaoChanges(change);
+        }
+
+        public static APIResultCodes VerifyDaoChanges(DAOChange change)
+        {
+            var unk = false;
+            foreach (var chg in change.settings)
+            {
+                if (chg.Key == "ShareRito")
+                {
+                    var ShareRito = decimal.Parse(chg.Value);
+                    if (ShareRito < 0 || ShareRito > 1)
+                        return APIResultCodes.InvalidShareRitio;
+                }
+                else if (chg.Key == "Seats")
+                {
+                    var Seats = int.Parse(chg.Value);
+                    if (Seats < 0 || Seats > 100)
+                        return APIResultCodes.InvalidSeatsCount;
+                }
+                else if (chg.Key == "SellerPar")
+                {
+                    var SellerPar = int.Parse(chg.Value);
+                    if (SellerPar <= 0)
+                        return APIResultCodes.ArgumentOutOfRange;
+                }
+
+                else if (chg.Key == "BuyerPar")
+                {
+                    var BuyerPar = int.Parse(chg.Value);
+                    if (BuyerPar <= 0)
+                        return APIResultCodes.ArgumentOutOfRange;
+                }
+                else if (chg.Key == "Description")
+                {
+                    var Description = chg.Value;
+                    if (string.IsNullOrEmpty(Description) || Description.Length > 1024)
+                        return APIResultCodes.ArgumentOutOfRange;
+                }
+                else
+                    unk = true;
+            }
+
+            if (unk)
                 return APIResultCodes.InvalidArgument;
 
             return APIResultCodes.Success;

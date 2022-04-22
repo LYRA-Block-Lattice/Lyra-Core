@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Akka.TestKit;
 using Akka.TestKit.Xunit2;
+using Converto;
 using FluentAssertions;
 using Lyra;
 using Lyra.Core.Accounts;
@@ -504,7 +505,6 @@ namespace UnitTests
                     { "ShareRito", "0.9" },
                     { "Seats", "39" },
                     { "SellerPar", "120" },
-                    { "BuyerPar", "20" },
                 }
             };
             var chgret = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change);
@@ -513,9 +513,57 @@ namespace UnitTests
             await WaitWorkflow("Change DAO");
             Assert.IsTrue(_authResult);
 
+            // test non-owner
+            var chgx21 = await testWallet.ChangeDAO(nodesdao.AccountID, null, change);
+            Assert.IsTrue(chgx21.ResultCode == APIResultCodes.Unauthorized, $"Should error change DAO 21: {chgx21.ResultCode}");
+            await WaitWorkflow("Change DAO Wrong 21");
+
+            // wrong creator
+            var chgx2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
+                new
+                {
+                    creator = testWallet.AccountId,
+                }
+                ));
+            Assert.IsTrue(chgx2.ResultCode == APIResultCodes.Unauthorized, $"Should error change DAO 2: {chgx2.ResultCode}");
+            await WaitWorkflow("Change DAO Wrong 2");
+            // wrong desc
+            var chgx22 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
+                new
+                {
+                    settings = new Dictionary<string, string>
+                    {
+                        {"Description", null }
+                    }
+                }
+                ));
+            Assert.IsTrue(chgx22.ResultCode == APIResultCodes.ArgumentOutOfRange, $"Should error change DAO 22: {chgx22.ResultCode}");
+            await WaitWorkflow("Change DAO Wrong 22");
+
+            // wrong settings
+            var chgx23 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
+                new
+                {
+                    settings = new Dictionary<string, string>
+                    {
+                        {"aaaa", null }
+                    }
+                }
+                ));
+            Assert.IsTrue(chgx23.ResultCode == APIResultCodes.InvalidArgument, $"Should error change DAO 23: {chgx23.ResultCode}");
+            await WaitWorkflow("Change DAO Wrong 23");
+
+            // test out of range settings
+            change.settings["ShareRito"] = "1.2";
+            change.settings["Description"] = null;
+            var chgx1 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change);
+            Assert.IsTrue(!chgx1.Successful(), $"Should error change DAO: {chgx1.ResultCode}");
+            await WaitWorkflow("Change DAO Wrong 1");
+
+
+
+
             await TestJoinDAO(daoid);
-
-
 
             // test dao change by vote
             VotingSubject daochg = new VotingSubject
@@ -579,6 +627,17 @@ namespace UnitTests
             var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
             Assert.IsTrue(chgret3.ResultCode == APIResultCodes.AlreadyExecuted, $"Can't change DAO: {chgret3.ResultCode}");
             await WaitWorkflow("Change DAO 3 by vote");
+
+            // inconsist changes
+            var chgret31 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2
+                .With(
+                    new
+                    {
+                        settings = new Dictionary<string, string>()
+                    }
+                ));
+            Assert.IsTrue(chgret31.ResultCode == APIResultCodes.ArgumentOutOfRange, $"Can't change DAO 31: {chgret31.ResultCode}");
+            await WaitWorkflow("Change DAO 31 by vote");
         }
 
         private async Task TestJoinDAO(string daoid)

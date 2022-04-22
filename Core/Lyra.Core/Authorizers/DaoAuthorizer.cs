@@ -61,6 +61,9 @@ namespace Lyra.Core.Authorizers
             if (block.PType != ProfitingType.Orgnization)
                 return APIResultCodes.InvalidDataType;
 
+            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 1024)
+                return APIResultCodes.ArgumentOutOfRange;
+
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
@@ -120,6 +123,9 @@ namespace Lyra.Core.Authorizers
             // dao
             if (block.PType != ProfitingType.Orgnization)
                 return APIResultCodes.InvalidDataType;
+
+            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 1024)
+                return APIResultCodes.ArgumentOutOfRange;
 
             //// related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

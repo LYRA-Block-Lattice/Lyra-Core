@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.DAO
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFVotedChangeDAO : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -45,7 +45,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             // verify it
             var change = JsonConvert.DeserializeObject<DAOChange>(send.Tags["data"]);
-            if (change == null || change.creator != dao.OwnerAccountId)
+            if (change == null || change.creator != dao.OwnerAccountId || send.AccountID != dao.OwnerAccountId)
                 return APIResultCodes.Unauthorized;
 
             var voteid = send.Tags["voteid"];
@@ -59,6 +59,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 if(vs == null || !vs.IsDecided)
                     return APIResultCodes.Unauthorized;
 
+                if (vs.Spec.Proposal.data != send.Tags["data"])
+                    return APIResultCodes.ArgumentOutOfRange;
+
                 // should not execute more than once
                 var exec = await sys.Storage.FindExecForVoteAsync(voteid);
                 if (exec != null)
@@ -68,7 +71,7 @@ namespace Lyra.Core.WorkFlow.DAO
             if (change.settings == null || change.settings.Count == 0)
                 return APIResultCodes.InvalidArgument;
 
-            return APIResultCodes.Success;
+            return WFChangeDAO.VerifyDaoChanges(change);
         }
 
         async Task<TransactionBlock> MainAsync(DagSystem sys, SendTransferBlock send)
