@@ -481,8 +481,7 @@ namespace Lyra.Core.Decentralize
                 await _state.CommitAsync();
 
                 // unlock IDs. only when Yay or Nay.
-                if(LocalAuthResult != null)
-                    LocalAuthResult.LockedIDs.Clear();
+                LocalAuthResult?.LockedIDs?.Clear();
 
                 _log.LogInformation($"consensus commited. {block.Height}/{block.Hash} state close.");
             }
