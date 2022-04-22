@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.OTC
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFOtcTradeCreateDispute : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -42,7 +42,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 )
                 return APIResultCodes.NotOwnerOfTrade;
 
-            if ((tradeblk as IOtcTrade).OTStatus == OTCTradeStatus.Dispute)
+            // can't reopen closed dispute trade
+            if ((tradeblk as IOtcTrade).OTStatus == OTCTradeStatus.Dispute ||
+                (tradeblk as IOtcTrade).OTStatus == OTCTradeStatus.DisputeClosed)
                 return APIResultCodes.InvalidTradeStatus;
 
             return APIResultCodes.Success;

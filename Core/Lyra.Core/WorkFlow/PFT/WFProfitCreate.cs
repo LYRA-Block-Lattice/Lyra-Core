@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.PFT
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFProfitCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

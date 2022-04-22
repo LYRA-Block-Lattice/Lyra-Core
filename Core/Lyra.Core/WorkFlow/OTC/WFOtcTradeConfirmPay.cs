@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.OTC
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFOtcTradeConfirmPay : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

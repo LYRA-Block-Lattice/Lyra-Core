@@ -14,7 +14,7 @@ using Lyra.Data.Shared;
 
 namespace Lyra.Core.WorkFlow.PFT
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFCreateDividend : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

@@ -13,7 +13,7 @@ using Lyra.Data.Utils;
 
 namespace Lyra.Core.WorkFlow.STK
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFStakingAddStaking : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow.STK
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFStakingCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

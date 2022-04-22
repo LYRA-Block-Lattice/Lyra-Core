@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.WorkFlow
 {
-    [LyraWorkFlow]
+    [LyraWorkFlow]//v
     public class WFOtcTradeCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -52,10 +52,12 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidBlockTags;
             }
 
+            // daoId
             var dao = await sys.Storage.FindLatestBlockAsync(trade.daoId);
             if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
+            // orderId
             var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderId) as IOtcOrder;
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
@@ -73,6 +75,7 @@ namespace Lyra.Core.WorkFlow
                 )
                 return APIResultCodes.InvalidTrade;
 
+            // pay
             if(trade.pay != Math.Round(trade.pay, 2))
                 return APIResultCodes.InvalidTradeAmount;
 
