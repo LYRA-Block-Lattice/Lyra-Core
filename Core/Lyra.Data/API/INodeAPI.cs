@@ -89,6 +89,13 @@ namespace Lyra.Core.API
         Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end);
         Task<ProfitingGenesis> FindProfitingAccountsByNameAsync(string Name);
         List<Staker> FindAllStakings(string pftid, DateTime timeBefore);
+
+        /// <summary>
+        /// return List of Staker
+        /// </summary>
+        /// <param name="pftid"></param>
+        /// <param name="timeBefore"></param>
+        /// <returns></returns>
         Task<SimpleJsonAPIResult> FindAllStakingsAsync(string pftid, DateTime timeBefore);
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
         Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);
