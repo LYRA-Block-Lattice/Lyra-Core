@@ -46,7 +46,7 @@ namespace Lyra.Data.API
 
         public async Task<APIResult> RegisterAsync(string accountId,
             string userName, string firstName, string middleName, string lastName,
-            string email, string mibilePhone, string avatarId
+            string email, string mibilePhone, string avatarId, string signature
             )
         {
             var args = new Dictionary<string, string>
@@ -59,6 +59,7 @@ namespace Lyra.Data.API
                 { "email", email },
                 { "mibilePhone", mibilePhone },
                 { "avatarId", avatarId },
+                { "signature", signature },
             };
             return await GetAsync<APIResult>("Register", args);
         }
