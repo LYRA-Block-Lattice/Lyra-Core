@@ -51,6 +51,8 @@ namespace UnitTests
         readonly string test4PrivateKey = "yEEj2uvCQji75Qps4jZdPRZj7KtFoeW2dh7pmfXjEuYXK9Uz3";
         string test4PublicKey = "LUT5jYomQHCJQhG3Co7GadEtohpwwYtyYz1vABHGeDkLDpSJGXFfpYgD9XckRXQg2Hv2Yrb2Ade3jbecZpLf4hbVho6b5n";
 
+        string fiat = "EUR";
+
         IHostEnv _env;
         private ConsensusService cs;
         private IAccountCollectionAsync store;
@@ -975,7 +977,7 @@ namespace UnitTests
                 daoId = dao1.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
-                fiat = "USD",
+                fiat = fiat,
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
@@ -1123,7 +1125,7 @@ namespace UnitTests
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
-                fiat = "USD",
+                fiat = fiat,
                 price = 2000,
                 amount = 0.1m,
                 collateral = 15000000,
@@ -1227,7 +1229,7 @@ namespace UnitTests
                 daoId = dao1.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
-                fiat = "USD",
+                fiat = fiat,
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 2,
@@ -1271,7 +1273,7 @@ namespace UnitTests
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
-                fiat = "USD",
+                fiat = fiat,
                 price = 2000,
                 amount = 1,
                 collateral = 40000000,

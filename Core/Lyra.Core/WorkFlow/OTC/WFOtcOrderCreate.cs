@@ -18,6 +18,10 @@ namespace Lyra.Core.WorkFlow
     [LyraWorkFlow]//v
     public class WFOtcOrderCreate : WorkFlowBase
     {
+        public static string[] FIATS => new string[]
+        {
+            "USD", "EUR", "GBP", "CHF", "AUD", "CAD", "JPY", "KRW", "CNY", "TWD", "VND", "UAH", "RUB"
+        };
         public override WorkFlowDescription GetDescription()
         {
             return new WorkFlowDescription
@@ -67,7 +71,7 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.TokenNotFound;
 
             // fiat
-            if (order.fiat != "USD")
+            if (!FIATS.Contains(order.fiat))
                 return APIResultCodes.Unsupported;
 
             // price, amount
