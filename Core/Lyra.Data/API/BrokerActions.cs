@@ -42,6 +42,7 @@ namespace Lyra.Data.API
         public const string BRK_OTC_CRTRD = "CRTRD";
         public const string BRK_OTC_TRDPAYSENT = "TRDPAYSNT";
         public const string BRK_OTC_TRDPAYGOT = "TRDPAYGOT";
+        public const string BRK_OTC_ORDDELST = "ORDDELST";
         public const string BRK_OTC_ORDCLOSE = "ORDCLOSE";
         public const string BRK_OTC_TRDCANCEL = "TRDCANCEL";
 

@@ -1042,6 +1042,15 @@ namespace UnitTests
             await test2Wallet.SyncAsync(null);
             //Assert.AreEqual(test2balance - 12 * 2, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
 
+            // delist the order
+            var dlret = await testWallet.DelistOTCOrderAsync(dao1.AccountID, otcg.AccountID);
+            Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
+            await WaitWorkflow("DelistOTCOrderAsync");
+            var orddlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
+            Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
+            Assert.AreEqual(OTCOrderStatus.Delist, (orddlret.GetBlock() as IOtcOrder).OOStatus,
+                $"Order status not changed to Delisted");
+
             // trade is ok. now its time to close the order
             var closeret = await testWallet.CloseOTCOrderAsync(dao1.AccountID, otcg.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
@@ -1050,10 +1059,10 @@ namespace UnitTests
             var ordfnlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
             Assert.AreEqual(OTCOrderStatus.Closed, (ordfnlret.GetBlock() as IOtcOrder).OOStatus,
-                $"Order status not changed to Closed");
+                $"Order status not changed to Closed: {(ordfnlret.GetBlock() as IOtcOrder).OOStatus}");
 
             await testWallet.SyncAsync(null);
-            var lyrshouldbe = testbalance - 10016;
+            var lyrshouldbe = testbalance - 10016m - 1m;
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
             Assert.AreEqual(100000m - 0.1m, bal2,

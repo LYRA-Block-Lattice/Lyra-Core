@@ -2229,6 +2229,24 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        public async Task<AuthorizationAPIResult> DelistOTCOrderAsync(string daoid, string orderid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_ORDDELST },
+                { "daoid", daoid },
+                { "orderid", orderid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
+
         public async Task<AuthorizationAPIResult> CloseOTCOrderAsync(string daoid, string orderid)
         {
             var tags = new Dictionary<string, string>

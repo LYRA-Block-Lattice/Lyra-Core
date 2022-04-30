@@ -159,6 +159,7 @@ namespace Lyra.Core.WorkFlow
                     brkaccount3 = send.Tags["daoid"];
                     break;
 
+                case BrokerActions.BRK_OTC_ORDDELST:
                 case BrokerActions.BRK_OTC_ORDCLOSE:
                     brkaccount = send.Tags["orderid"];
                     brkaccount2 = send.Tags["daoid"];

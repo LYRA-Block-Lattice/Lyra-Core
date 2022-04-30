@@ -48,7 +48,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.NotSellerOfTrade;
 
             if ((orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Open &&
-                (orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Partial)
+                (orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Partial &&
+                (orderblk as IOtcOrder).OOStatus != OTCOrderStatus.Delist)
                 return APIResultCodes.InvalidOrderStatus;
 
             var trades = await sys.Storage.FindOtcTradeForOrderAsync(orderid);
@@ -115,7 +116,13 @@ namespace Lyra.Core.WorkFlow.OTC
                 OOStatus = OTCOrderStatus.Closed,
             };
 
-            sendToTradeBlock.Balances[order.crypto] = 0;
+            // when delist, the crypto balance is already zero. 
+            // no balance change will vialate the rule of send
+            // so we reduce the balance of LYR, or the collateral, of 0.00000001
+            if (sendToTradeBlock.Balances[order.crypto] != 0)
+                sendToTradeBlock.Balances[order.crypto] = 0;
+            
+            sendToTradeBlock.Balances["LYR"] = 0;          // all remaining LYR
 
             sendToTradeBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 

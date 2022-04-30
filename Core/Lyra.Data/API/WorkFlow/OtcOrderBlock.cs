@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum OTCOrderStatus { Open, Partial, Closed, Dispute };
+    public enum OTCOrderStatus { 
+        Open, 
+        Partial, 
+        Closed, 
+        Delist 
+    };
     public interface IOtcOrder : IBrokerAccount
     {
         OTCOrder Order { get; set; }
