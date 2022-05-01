@@ -157,11 +157,11 @@ namespace Lyra.Core.Accounts
             if (cancel != CancellationToken.None)
                 _cancel = cancel;
 
-            if (_rpcClient != null)
-            {
-                await SyncServiceChainAsync();
-                await SyncIncomingTransfersAsync();
-            }
+            if (_rpcClient == null)
+                throw new InvalidOperationException("No RPC Client");
+
+            await SyncServiceChainAsync();
+            await SyncIncomingTransfersAsync();
 
             var blockResult = await _rpcClient.GetLastBlockAsync(AccountId);
             if (blockResult == null)
@@ -189,11 +189,10 @@ namespace Lyra.Core.Accounts
 
         public long GetLocalAccountHeight()
         {
-            var lastTrans = _lastSyncBlock;
-            if (lastTrans != null)
-                return lastTrans.Height;
-            else
-                return 0;
+            if (_lastSyncBlock == null)
+                throw new Exception("Wallet Need Sync");
+
+            return _lastSyncBlock.Height;
         }
 
         public async Task<List<string>> GetTokenNamesAsync(string keyword)
@@ -1368,6 +1367,8 @@ namespace Lyra.Core.Accounts
 
         public async Task<AuthorizationAPIResult> ImportAccountAsync(string ImportPrivateKey)
         {
+            throw new Exception("Wallet import obsolete");
+
             string imported_account_id = Signatures.GetAccountIdFromPrivateKey(ImportPrivateKey);
             var imported_account_height_result = await _rpcClient.GetAccountHeightAsync(imported_account_id);
             TransactionBlock last_imported_block = null;
