@@ -44,8 +44,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var ordertx = orderblk as TransactionBlock;
 
             // need some balance to close. old bug
-            if (!ordertx.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
-                ordertx.Balances[LyraGlobal.OFFICIALTICKERCODE] == 0)
+            if (!ordertx.Balances.Any(a => a.Value > 0))
                 return APIResultCodes.InsufficientFunds;
 
             if (daoblk == null || orderblk == null || 
