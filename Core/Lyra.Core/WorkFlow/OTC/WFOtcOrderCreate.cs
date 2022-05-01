@@ -78,11 +78,6 @@ namespace Lyra.Core.WorkFlow
             if (order.price <= 0.00001m || order.amount < 0.0001m)
                 return APIResultCodes.InvalidAmount;
 
-            // limit
-            if(order.limitMin <= 0 || order.limitMax < order.limitMin 
-                || order.limitMax > order.amount * order.price)
-                return APIResultCodes.InvalidAmount;
-
             // payBy
             if(order.payBy == null || order.payBy.Length == 0)
                 return APIResultCodes.InvalidOrder;
@@ -99,6 +94,11 @@ namespace Lyra.Core.WorkFlow
             var tokenSymbol = order.crypto.Split('/')[1];
             if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
                 return APIResultCodes.CollateralNotEnough;
+
+            // limit
+            if (order.limitMin <= 0 || order.limitMax < order.limitMin
+                || order.limitMax > order.amount * order.price * prices[order.fiat.ToLower()])
+                return APIResultCodes.InvalidArgument;
 
             return APIResultCodes.Success;
         }
