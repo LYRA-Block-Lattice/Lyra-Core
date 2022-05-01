@@ -928,7 +928,7 @@ namespace UnitTests
             // init. create token to sell
             var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
                     "", "", ContractTypes.Cryptocurrency, null);
-            Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode}");
+            Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
 
             await WaitBlock("CreateTokenAsync");
 

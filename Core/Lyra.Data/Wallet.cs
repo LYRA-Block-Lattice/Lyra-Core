@@ -161,6 +161,11 @@ namespace Lyra.Core.Accounts
                 throw new InvalidOperationException("No RPC Client");
 
             await SyncServiceChainAsync();
+
+            var blockResult1 = await _rpcClient.GetLastBlockAsync(AccountId);
+            if (blockResult1.Successful())
+                _lastSyncBlock = blockResult1.GetBlock() as TransactionBlock;
+
             await SyncIncomingTransfersAsync();
 
             var blockResult = await _rpcClient.GetLastBlockAsync(AccountId);
@@ -189,10 +194,7 @@ namespace Lyra.Core.Accounts
 
         public long GetLocalAccountHeight()
         {
-            if (_lastSyncBlock == null)
-                throw new Exception("Wallet Need Sync");
-
-            return _lastSyncBlock.Height;
+            return _lastSyncBlock?.Height ?? 0;
         }
 
         public async Task<List<string>> GetTokenNamesAsync(string keyword)
