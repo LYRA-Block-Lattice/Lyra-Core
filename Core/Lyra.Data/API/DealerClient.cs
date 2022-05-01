@@ -14,6 +14,12 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API
 {
+    public class FiatInfo
+    {
+        public string symbol { get; set; }
+        public string name { get; set; }
+        public string unit { get; set; }
+    }
     public class DealerClient : WebApiClientBase
     {
         public DealerClient(string networkid)
@@ -33,6 +39,19 @@ namespace Lyra.Data.API
                 return JsonConvert.DeserializeObject<Dictionary<string, decimal>>(result.JsonString);
             else
                 throw new Exception($"Error GetPricesAsync: {result.ResultCode}, {result.ResultMessage}");
+        }
+
+        public async Task<FiatInfo> GetFiatAsync(string symbol)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "symbol", symbol },
+            };
+            var fiat = await GetAsync<SimpleJsonAPIResult>("GetFiat", args);
+            if (fiat.Successful() && fiat.JsonString != "null")
+                return JsonConvert.DeserializeObject<FiatInfo>(fiat.JsonString);
+            
+            return null;
         }
 
         public async Task<SimpleJsonAPIResult> GetUserByAccountIdAsync(string accountId)

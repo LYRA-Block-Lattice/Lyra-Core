@@ -20,7 +20,7 @@ namespace Lyra.Core.WorkFlow
     {
         public static string[] FIATS => new string[]
         {
-            "USD", "EUR", "GBP", "CHF", "AUD", "CAD", "JPY", "KRW", "CNY", "TWD", "VND", "UAH", "RUB"
+            "USD", "EUR", "GBP", "CHF", "AUD", "CAD", "JPY", "KRW", "CNY", "TWD", "IDR", "VND", "UAH", "RUB", "THB", "AED"
         };
         public override WorkFlowDescription GetDescription()
         {

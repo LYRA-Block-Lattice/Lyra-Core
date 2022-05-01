@@ -25,34 +25,20 @@ namespace UnitTests
             Assert.IsTrue(prices.ContainsKey("LYR_INT"));
         }
 
-        //[TestMethod]
-        //public async Task TestGetLastBlockAsync()
-        //{
-        //    var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-        //    var aggClient = new LyraAggregatedClient(networkId, false);
-        //    await aggClient.InitAsync();
+        [TestMethod]
+        public async Task TestGetFiatAsync()
+        {
+            var client = new DealerClient(networkId);
 
-        //    var accountId = "LT8din6wm6SyfnqmmJN7jSnyrQjqAaRmixe2kKtTY4xpDBRtTxBmuHkJU9iMru5yqcNyL3Q21KDvHK45rkUS4f8tkXBBS3";
-        //    var svcBlock1 = await client.GetLastBlockAsync(accountId);
-        //    var svcBlock2 = await aggClient.GetLastBlockAsync(accountId);
+            var usd = await client.GetFiatAsync("USD");
+            Assert.IsNotNull(usd);
+            Assert.AreEqual("US Dollar", usd.name);
 
-        //    Assert.AreEqual(svcBlock1.GetBlock().Hash, svcBlock2.GetBlock().Hash);
-        //}
+            var ddd = await client.GetFiatAsync("DDD");
+            Assert.IsNull(ddd);
 
-        //[TestMethod]
-        //public async Task TestGetFeeAsync()
-        //{
-        //    var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-        //    var aggClient = new LyraAggregatedClient(networkId, false);
-        //    await aggClient.InitAsync();
-
-        //    var svcBlock1 = await client.GetFeeStatsAsync();
-        //    var svcBlock2 = aggClient.GetFeeStats();
-
-        //    Assert.AreEqual(svcBlock1, svcBlock2);
-        //}
-
+        }
     }
 }
