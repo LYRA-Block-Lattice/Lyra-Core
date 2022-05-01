@@ -199,6 +199,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());
+            otcblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 
             otcblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 

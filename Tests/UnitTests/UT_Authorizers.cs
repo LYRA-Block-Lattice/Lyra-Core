@@ -1065,7 +1065,7 @@ namespace UnitTests
             Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
 
             await testWallet.SyncAsync(null);
-            var lyrshouldbe = testbalance - 10016m - 1m;
+            var lyrshouldbe = testbalance - 10016m + 1m;
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
             Assert.AreEqual(100000m - 0.1m, bal2,
