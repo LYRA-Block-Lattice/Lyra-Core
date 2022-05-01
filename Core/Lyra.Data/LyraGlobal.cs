@@ -51,6 +51,17 @@ namespace Lyra.Core.API
             return totalCount - (int)Math.Floor((double)(((double)totalCount - 1) / 3));
         }
 
+        public static string GetBlockViewUrl(string network, string query)
+        {
+            var prefix = network switch
+            {
+                "devnet" => "https://localhost:5201/showblock/",
+                "testnet" => "https://nebulatestnet.lyra.live/showblock/",
+                _ => "https://nebula.lyra.live/showblock/"
+            };
+            return prefix + query;
+        }
+
         // get api for (rpcurl, resturl)
         public static string SelectNode(string networkID)
         {
