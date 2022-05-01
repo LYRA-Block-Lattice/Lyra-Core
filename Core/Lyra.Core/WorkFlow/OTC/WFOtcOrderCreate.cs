@@ -95,9 +95,16 @@ namespace Lyra.Core.WorkFlow
             if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
                 return APIResultCodes.CollateralNotEnough;
 
+            decimal usdprice = 0;
+            if (tokenSymbol == "ETH") usdprice = prices["ETH"];
+            if (tokenSymbol == "BTC") usdprice = prices["BTC"];
+            if (tokenSymbol == "USDT") usdprice = prices["USDT"];
+            var selcryptoprice = Math.Round(usdprice / prices[order.fiat.ToLower()], 2);
+
+            var total = selcryptoprice * order.amount;
             // limit
             if (order.limitMin <= 0 || order.limitMax < order.limitMin
-                || order.limitMax > order.amount * order.price * prices[order.fiat.ToLower()])
+                || order.limitMax > total)
                 return APIResultCodes.InvalidArgument;
 
             return APIResultCodes.Success;
