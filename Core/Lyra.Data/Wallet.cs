@@ -166,6 +166,9 @@ namespace Lyra.Core.Accounts
 
             var blockResult1 = await _rpcClient.GetLastBlockAsync(AccountId);
 
+            if (blockResult1 == null)
+                return APIResultCodes.NoRPCServerConnection;
+
             if (blockResult1.Successful())
                 _lastSyncBlock = blockResult1.GetBlock() as TransactionBlock;
 
