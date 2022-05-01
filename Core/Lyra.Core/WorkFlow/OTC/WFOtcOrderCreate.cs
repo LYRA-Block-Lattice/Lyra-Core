@@ -150,11 +150,11 @@ namespace Lyra.Core.WorkFlow
                 Description = ((IDao)lastblock).Description,
                 Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
             };
-
             
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
             dict[order.crypto] -= order.amount;
+            dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
 
             sendToOrderBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

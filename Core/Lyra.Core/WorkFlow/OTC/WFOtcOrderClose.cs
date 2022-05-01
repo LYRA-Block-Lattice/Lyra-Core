@@ -40,6 +40,14 @@ namespace Lyra.Core.WorkFlow.OTC
             var orderid = send.Tags["orderid"];
             var daoblk = await sys.Storage.FindLatestBlockAsync(daoid);
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
+
+            var ordertx = orderblk as TransactionBlock;
+
+            // need some balance to close. old bug
+            if (!ordertx.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                ordertx.Balances[LyraGlobal.OFFICIALTICKERCODE] == 0)
+                return APIResultCodes.InsufficientFunds;
+
             if (daoblk == null || orderblk == null || 
                 (orderblk as IOtcOrder).Order.daoId != (daoblk as TransactionBlock).AccountID)
                 return APIResultCodes.InvalidTrade;

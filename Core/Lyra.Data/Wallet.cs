@@ -501,15 +501,11 @@ namespace Lyra.Core.Accounts
 
         private async Task<TransactionBlock> GetLatestBlockAsync()
         {
-            try
-            {
-                var result = await _rpcClient.GetLastBlockAsync(AccountId);
-                if (result.Successful())
-                    return result.GetBlock() as TransactionBlock;
-            }
-            catch { }
+            var result = await _rpcClient.GetLastBlockAsync(AccountId);
+            if (result.Successful())
+                return result.GetBlock() as TransactionBlock;
 
-            return null;
+            throw new Exception($"Can't get wallet state: {result.ResultCode}");
         }
 
         public string GetDisplayBalances()
