@@ -160,9 +160,12 @@ namespace Lyra.Core.Accounts
             if (_rpcClient == null)
                 throw new InvalidOperationException("No RPC Client");
 
-            await SyncServiceChainAsync();
+            var ret = await SyncServiceChainAsync();
+            if (ret != APIResultCodes.Success)
+                return ret;
 
             var blockResult1 = await _rpcClient.GetLastBlockAsync(AccountId);
+
             if (blockResult1.Successful())
                 _lastSyncBlock = blockResult1.GetBlock() as TransactionBlock;
 
