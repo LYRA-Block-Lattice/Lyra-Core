@@ -90,10 +90,9 @@ namespace Lyra.Data.API.WorkFlow
                 result += $"Share Rito: {ShareRito}\n";
                 result += $"Seats: {Seats}\n";
             }
-            result += $"SellerCollateralPercentage: {Description}\n";
-            result += $"ByerCollateralPercentage: {Description}\n";
+            result += $"SellerCollateralPercentage: {SellerPar}\n";
+            result += $"ByerCollateralPercentage: {BuyerPar}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
-            result += $"MetaHash: {Description}\n";
             return result;
         }
     }
@@ -167,10 +166,9 @@ namespace Lyra.Data.API.WorkFlow
                 result += $"Share Rito: {ShareRito}\n";
                 result += $"Seats: {Seats}\n";
             }
-            result += $"SellerCollateralPercentage: {Description}\n";
-            result += $"ByerCollateralPercentage: {Description}\n";
+            result += $"SellerCollateralPercentage: {SellerPar}\n";
+            result += $"ByerCollateralPercentage: {BuyerPar}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
-            result += $"MetaHash: {Description}\n";
             return result;
         }
     }
