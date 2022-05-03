@@ -42,7 +42,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_VOTEFOR = "votefor";
         public const string COMMAND_SYNCFEE = "syncfee";
         public const string COMMAND_SYNCPROFIT = "syncp";
-        public const string COMMAND_IMPORT_ACCOUNT = "import";
+        //public const string COMMAND_IMPORT_ACCOUNT = "import";
         public const string COMMAND_PROFITING = "profiting";
         public const string COMMAND_STAKING = "staking";
 
@@ -107,7 +107,7 @@ namespace Lyra.Client.CLI
                         //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
                         Console.WriteLine(string.Format(@"{0,10}: Show transaction history", COMMAND_HISTORY));
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
-                        Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
+                        //Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_CREATE_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
@@ -240,12 +240,12 @@ namespace Lyra.Client.CLI
                     //case COMMAND_REDEEM_REWARDS:
                     //    await ProcessRedeemRewardsTradeOrderAsync();
                     //    break;
-                    case COMMAND_IMPORT_ACCOUNT:
-                        Console.WriteLine("Please enter private key of the account to import: ");
-                        string imported_private_key = Console.ReadLine();
-                        var import_result = await _wallet.ImportAccountAsync(imported_private_key);
-                        Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
-                        break;
+                    //case COMMAND_IMPORT_ACCOUNT:
+                    //    Console.WriteLine("Please enter private key of the account to import: ");
+                    //    string imported_private_key = Console.ReadLine();
+                    //    var import_result = await _wallet.ImportAccountAsync(imported_private_key);
+                    //    Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
+                    //    break;
                     case COMMAND_CREATE_POOL:
                         try
                         {

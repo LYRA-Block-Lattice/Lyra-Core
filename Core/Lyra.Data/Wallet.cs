@@ -785,6 +785,10 @@ namespace Lyra.Core.Accounts
             //stopwatch.Stop();
             //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
+            if(result.Successful())
+            {
+                _lastSyncBlock = sendBlock;
+            }
             return result;
         }
 
@@ -879,7 +883,10 @@ namespace Lyra.Core.Accounts
             result = await _rpcClient.SendTransferAsync(sendBlock);
             //stopwatch.Stop();
             //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
-
+            if (result.Successful())
+            {
+                _lastSyncBlock = sendBlock;
+            }
             return result;
         }
 
@@ -980,7 +987,10 @@ namespace Lyra.Core.Accounts
 
             AuthorizationAPIResult result;
             result = await _rpcClient.SendTransferAsync(sendBlock);
-
+            if (result.Successful())
+            {
+                _lastSyncBlock = sendBlock;
+            }
             return result;
         }
         /*
@@ -1304,11 +1314,17 @@ namespace Lyra.Core.Accounts
                 PrintConLine($"Receive transfer block has been authorized successfully");
                 PrintConLine("Balance: " + GetDisplayBalances());
             }
+
+            if (result.Successful())
+            {
+                _lastSyncBlock = openReceiveBlock;
+            }
+
             //PrintCon(string.Format("{0}> ", AccountName));
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithImportAsync(string ImportPrivateKey, TransactionBlock last_imported_block, string imported_account_id)
+/*        private async Task<AuthorizationAPIResult> OpenStandardAccountWithImportAsync(string ImportPrivateKey, TransactionBlock last_imported_block, string imported_account_id)
         {
             var open_import_block = new OpenAccountWithImportBlock
             {
@@ -1343,7 +1359,7 @@ namespace Lyra.Core.Accounts
             await ProcessResultAsync(result, "Import Account", open_import_block);
 
             return result;
-        }
+        }*/
 
         private async Task ProcessResultAsync(AuthorizationAPIResult result, string OperationName, TransactionBlock block)
         {
@@ -1369,7 +1385,7 @@ namespace Lyra.Core.Accounts
             //PrintCon(string.Format("{0}> ", AccountName));
         }
 
-        public async Task<AuthorizationAPIResult> ImportAccountAsync(string ImportPrivateKey)
+/*        public async Task<AuthorizationAPIResult> ImportAccountAsync(string ImportPrivateKey)
         {
             throw new Exception("Wallet import obsolete");
 
@@ -1439,7 +1455,7 @@ namespace Lyra.Core.Accounts
             await ProcessResultAsync(result, "Import Account", import_block);
 
             return result;
-        }
+        }*/
 
         private async Task<AuthorizationAPIResult> ReceiveTransferAsync(NewTransferAPIResult2 new_transfer_info)
         {
@@ -1493,6 +1509,11 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.ReceiveTransferAsync(receiveBlock);
             await ProcessResultAsync(result, "Receive Transfer", receiveBlock);
+
+            if (result.Successful())
+            {
+                _lastSyncBlock = receiveBlock;
+            }
 
             return result;
         }
@@ -1660,6 +1681,11 @@ namespace Lyra.Core.Accounts
                 PrintConLine(result.ResultMessage);
                 PrintConLine("Local Block: ");
                 PrintConLine(tokenBlock.Print());
+            }
+
+            if (result.Successful())
+            {
+                _lastSyncBlock = tokenBlock;
             }
 
             return result;
