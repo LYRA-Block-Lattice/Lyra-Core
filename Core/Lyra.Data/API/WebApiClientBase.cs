@@ -110,5 +110,21 @@ namespace Lyra.Data.API
             }                
         }
 
+
+        protected async Task<APIResult> PostAsync<U>(string action, U obj)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync<U>(action, obj);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<APIResult>();
+                return result;
+            }
+            else
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed for {action}, {resp}");
+            }
+        }
     }
 }

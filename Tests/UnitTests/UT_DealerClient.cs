@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Data.API;
+using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,26 @@ namespace UnitTests
             var ddd = await client.GetFiatAsync("DDD");
             Assert.IsNull(ddd);
 
+
+        }
+
+        [TestMethod]
+        public async Task TestCommentAsync()
+        {
+            var dealer = new DealerClient(networkId);
+            var (pvt, pub) = Signatures.GenerateWallet();
+
+            var cfg = new CommentConfig();
+            cfg.TradeId = pub;
+            cfg.Content = "hahaha";
+            cfg.Title = "title";
+
+            cfg.AccountId = pub;
+            cfg.Created = DateTime.UtcNow;
+            cfg.Sign(pvt, pub);
+
+            var result = await dealer.CommentTrade(cfg);
+            Assert.IsTrue(result.Successful());
 
         }
     }

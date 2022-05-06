@@ -1,5 +1,6 @@
 ﻿using DexServer.Ext;
 using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
 using System;
@@ -14,6 +15,32 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API
 {
+    public class CommentConfig : SignableObject
+    {
+        public string AccountId { get; set; }
+        public string TradeId { get; set; } = null!;
+        public DateTime Created { get; set; }
+        public int Rating { get; set; }
+        public string Content { get; set; }
+        public string Title { get; set; }
+        public bool Confirm { get; set; }
+
+        public override string GetHashInput()
+        {
+            return $"{TradeId}|{DateTimeToString(Created)}{Rating}|{Enc64(Title)}|{Enc64(Content)}";
+        }
+
+        protected override string GetExtraData()
+        {
+            return "";
+        }
+
+        private string Enc64(string s)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(s));
+        }
+    }
+
     public class FiatInfo
     {
         public string symbol { get; set; }
@@ -115,6 +142,11 @@ namespace Lyra.Data.API
                 { "signature", signature },
             };
             return await GetAsync<SimpleJsonAPIResult>("GetTradeBrief", args);
+        }
+
+        public async Task<APIResult> CommentTrade(CommentConfig cfg)
+        {
+            return await PostAsync<CommentConfig>("CommentTrade", cfg);
         }
     }
 }
