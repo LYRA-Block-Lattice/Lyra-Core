@@ -15,6 +15,10 @@ namespace Lyra.Data.API.Identity
         // role -> account id
         public List<string> Members { get; set; } = null!;
 
+        public List<string> Names { get; set; }
+
+        public List<DateTime> RegTimes { get; set; }
+
         public bool IsCancellable { get; set; }
 
         // dispute
