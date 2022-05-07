@@ -50,10 +50,6 @@ namespace Lyra.Core.API
 
         Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId);
         Task<BlockAPIResult> GetLastBlockAsync(string AccountId);
-
-        // a sugar call
-        Task<T?> GetLastBlockAsAsync<T>(string AccountId) where T : Block;
-
         Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index);
         Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index);
 

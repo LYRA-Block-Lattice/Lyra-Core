@@ -144,9 +144,25 @@ namespace Lyra.Data.API
             return await GetAsync<SimpleJsonAPIResult>("GetTradeBrief", args);
         }
 
-        public async Task<APIResult> CommentTrade(CommentConfig cfg)
+        public async Task<APIResult> CommentTradeAsync(CommentConfig cfg)
         {
-            return await PostAsync<CommentConfig>("CommentTrade", cfg);
+            return await PostAsync("CommentTrade", cfg);
+        }
+
+        public async Task<List<CommentConfig>> GetCommentsForTradeAsync(string tradeId)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "tradeId", tradeId },
+            };
+            var ret = await GetAsync<SimpleJsonAPIResult>("GetCommentsForTrade", args);
+            if(ret.Successful())
+            {
+                var cmnts = ret.Deserialize<List<CommentConfig>>();
+                return cmnts;
+            }
+
+            return new List<CommentConfig>();
         }
     }
 }

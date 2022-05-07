@@ -417,13 +417,13 @@ namespace Lyra.Data.API
             return await CheckResultAsync("GetLastBlock", tasks);
         }
 
-        public async Task<T?> GetLastBlockAsAsync<T>(string AccountId) where T : Block
-        {
-            var tasks = _primaryClients.Select(client => client.GetLastBlockAsAsync<T>(AccountId)).ToList();
+        //public async Task<T?> GetLastBlockAsAsync<T>(string AccountId) where T : Block, IBrokerAccount;
+        //{
+        //    var tasks = _primaryClients.Select(client => client.GetLastBlockAsAsync<T>(AccountId)).ToList();
 
-            var (x, _) = await CheckResultGenericAsync<T>("GetLastBlockAs", tasks);
-            return x;
-        }
+        //var(x, _) = await CheckResultGenericAsync<T>("GetLastBlockAs", tasks);
+        //    return x;
+        //}
 
         public async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {
