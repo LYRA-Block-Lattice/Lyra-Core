@@ -53,7 +53,7 @@ namespace UnitTests
             cfg.Content = "hahaha";
             cfg.Title = "title";
 
-            cfg.AccountId = pub;
+            cfg.ByAccountId = pub;
             cfg.Created = DateTime.UtcNow;
             cfg.Sign(pvt, pub);
 

@@ -410,6 +410,17 @@ namespace Lyra.Core.API
             return await GetBlockByUrlAsync($"GetLastBlock/?AccountId={AccountId}");
         }
 
+        public async Task<T?> GetLastBlockAsAsync<T>(string AccountId) where T : Block
+        {
+            var ret = await GetLastBlockAsync(AccountId);
+            if(ret.Successful())
+            {
+                var blk = ret.GetBlock();
+                return blk as T;
+            }
+            return null;
+        }
+
         public async Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index)
         {
             return await GetBlockByUrlAsync($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}");

@@ -279,6 +279,17 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<T?> GetLastBlockAsAsync<T>(string AccountId) where T : Block
+        {
+            var ret = await GetLastBlockAsync(AccountId);
+            if (ret.Successful())
+            {
+                var blk = ret.GetBlock();
+                return blk as T;
+            }
+            return null;
+        }
+
         public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index)
         {
             var result = new BlockAPIResult();

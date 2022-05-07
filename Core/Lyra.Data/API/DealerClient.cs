@@ -17,27 +17,27 @@ namespace Lyra.Data.API
 {
     public class CommentConfig : SignableObject
     {
-        public string AccountId { get; set; }
+        public string ByAccountId { get; set; } = null!;
         public string TradeId { get; set; } = null!;
         public DateTime Created { get; set; }
         public int Rating { get; set; }
         public string Content { get; set; }
         public string Title { get; set; }
+        public string EncContent { get; set; }
+        public string EncTitle { get; set; }
         public bool Confirm { get; set; }
 
         public override string GetHashInput()
         {
-            return $"{TradeId}|{DateTimeToString(Created)}{Rating}|{Enc64(Title)}|{Enc64(Content)}";
+            if (EncContent == null || EncTitle == null)
+                throw new ArgumentNullException();
+
+            return $"{TradeId}|{DateTimeToString(Created)}{Rating}|{ByAccountId}|{EncTitle}|{EncContent}";
         }
 
         protected override string GetExtraData()
         {
             return "";
-        }
-
-        private string Enc64(string s)
-        {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(s));
         }
     }
 

@@ -224,6 +224,24 @@ namespace Lyra.Data.API
 
         public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> taskss, string tag = null) where T : APIResult, new()
         {
+            var (x, msg) = await CheckResultGenericAsync<T>(name, taskss, tag);
+
+            if(x == null || msg != "")
+            {
+                return new T
+                {
+                    ResultCode = APIResultCodes.APIRouteFailed,
+                    ResultMessage = msg,
+                };
+            }
+            else
+            {
+                return x;
+            }
+        }
+
+        public async Task<(T?, string errmsg)> CheckResultGenericAsync<T>(string name, List<Task<T?>> taskss, string tag = null) where T : class
+        {
             var results = await WhenAllOrExceptionAsync(taskss);
 
             var expectedCount = LyraGlobal.GetMajority(taskss.Count);
@@ -250,7 +268,7 @@ namespace Lyra.Data.API
                 if (best.Count >= expectedCount)
                 {
                     var x = results.First(a => a.IsSuccess && a.Result == best.Data);
-                    return x.Result;
+                    return (x.Result, "");
                 }
                 else
                 {
@@ -275,10 +293,7 @@ namespace Lyra.Data.API
             }
             Console.WriteLine(msg);
 
-            return new T { 
-                ResultCode = APIResultCodes.APIRouteFailed,
-                ResultMessage = msg,
-            };
+            return (null, msg);
         }
 
         public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
@@ -400,6 +415,14 @@ namespace Lyra.Data.API
             var tasks = _primaryClients.Select(client => client.GetLastBlockAsync(AccountId)).ToList();
 
             return await CheckResultAsync("GetLastBlock", tasks);
+        }
+
+        public async Task<T?> GetLastBlockAsAsync<T>(string AccountId) where T : Block
+        {
+            var tasks = _primaryClients.Select(client => client.GetLastBlockAsAsync<T>(AccountId)).ToList();
+
+            var (x, _) = await CheckResultGenericAsync<T>("GetLastBlockAs", tasks);
+            return x;
         }
 
         public async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
