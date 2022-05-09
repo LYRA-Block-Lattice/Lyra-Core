@@ -1008,6 +1008,14 @@ namespace UnitTests
 
             await CheckDAO(name, desc);
 
+            // test find tradable orders
+            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            Assert.IsTrue(tradableret.Successful(), "Unable to find tradable.");
+            var tradableblks = tradableret.GetBlocks("orders");
+            Assert.AreEqual(1, tradableblks.Count());
+            var firsttradable = tradableblks.First();
+            Assert.IsTrue(firsttradable is IOtcOrder fodr && fodr.Name == "no name");
+
             // then DAO treasure should not have the crypto
             var daoret3 = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret3.Successful(), $"Can't get DAO: {daoret3.ResultCode}");
