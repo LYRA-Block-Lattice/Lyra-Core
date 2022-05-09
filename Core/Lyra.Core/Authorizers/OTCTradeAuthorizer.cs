@@ -2,6 +2,7 @@
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +47,13 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as OtcTradeRecvBlock;
 
+            if (block.Trade.price.CountDecimalDigits() > 8 ||
+                block.Trade.amount.CountDecimalDigits() > 8 ||
+                block.Trade.collateral.CountDecimalDigits() > 8 ||
+                block.Trade.pay.CountDecimalDigits() > 8
+                )
+                return APIResultCodes.InvalidDecimalDigitalCount;
+
             //// related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             //if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
@@ -89,6 +97,13 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as OtcTradeSendBlock;
+
+            if (block.Trade.price.CountDecimalDigits() > 8 ||
+                block.Trade.amount.CountDecimalDigits() > 8 ||
+                block.Trade.collateral.CountDecimalDigits() > 8 ||
+                block.Trade.pay.CountDecimalDigits() > 8
+                )
+                return APIResultCodes.InvalidDecimalDigitalCount;
 
             //// related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

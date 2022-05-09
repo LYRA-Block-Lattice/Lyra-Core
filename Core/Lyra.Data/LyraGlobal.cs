@@ -24,17 +24,50 @@ namespace Lyra.Core.API
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
         public const int ProtocolVersion = 4;
-        public const int DatabaseVersion = 7;
+        public const int DatabaseVersion = 8;
 
         public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("3.3.1.0");
         public readonly static Version NODE_VERSION = typeof(LyraGlobal).Assembly.GetName().Version;
         public readonly static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
+        public const int TOKENSTORAGERITO = 100000000;
         public const int MinimalAuthorizerBalance = 1000000;
         public const decimal OFFICIALGENESISAMOUNT = 10000000000;
 
+        #region interest/profit/share/fees
+        /// <summary>
+        /// fee ratio for OTC selling order
+        /// </summary>
+        public const decimal OTCSellerNetworkFeeRatio = 0.002m;
+        public const decimal OTCBuyerNetworkFeeRatio = 0m;
+        #endregion
+
+        #region accounts for business
+        public static string GetDexServerAccountID(string networkId)
+        {
+            if (networkId == "mainnet")
+                return "LDEXL5Qya4SC6vMwdtT24cvtbFEFtP6riD8NXSm75gcnu8odN4x7mHqyYzhkqvxE39gWLYxi8ry4vdVjK1R4zqZFRVG9HB";
+            else
+                return "LDEXLtDmnMq4Yuc9wW6DoUDrNmZznD43PLhF8TF5MpmkxWLR7zJzF7uipfVaugo19EcZBS46UFxc967V98AhHVQbWajpZk";
+        }
+
         public const string BURNINGACCOUNTID = "L11111111111111111111111111111111111111111111111111111111111111116oUsJe";
+        
+        /// <summary>
+        /// account who can execute on vote result in the lyra council.
+        /// </summary>
         public const string LORDACCOUNTID = "LordPMWVwhnprsexZjNCoYG54BMkDC7B6UeVXV2HuoTHWbA5sdR8GRogktH5NGXjDwXCggkXaXRXbxCUxD76NvJMD6byE";
+
+        #endregion
+
+        #region Key calculation
+        public static int GetMajority(int totalCount)
+        {
+            return totalCount - (int)Math.Floor((double)(((double)totalCount - 1) / 3));
+        }
+        #endregion
+
+        #region urls for networks
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
             "devnet"
@@ -43,13 +76,6 @@ namespace Lyra.Core.API
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet"
         };
 #endif
-
-        public const int TOKENSTORAGERITO = 100000000;
-
-        public static int GetMajority(int totalCount)
-        {
-            return totalCount - (int)Math.Floor((double)(((double)totalCount - 1) / 3));
-        }
 
         public static string GetBlockViewUrl(string network, string query)
         {
@@ -85,14 +111,7 @@ namespace Lyra.Core.API
                     throw new Exception("Unsupported network ID: " + networkID);
             }
         }
-
-        public static string GetDexServerAccountID(string networkId)
-        {
-            if (networkId == "mainnet")
-                return "LDEXL5Qya4SC6vMwdtT24cvtbFEFtP6riD8NXSm75gcnu8odN4x7mHqyYzhkqvxE39gWLYxi8ry4vdVjK1R4zqZFRVG9HB";
-            else
-                return "LDEXLtDmnMq4Yuc9wW6DoUDrNmZznD43PLhF8TF5MpmkxWLR7zJzF7uipfVaugo19EcZBS46UFxc967V98AhHVQbWajpZk";
-        }
+        #endregion
     }
 
     public static class LyraExtensions

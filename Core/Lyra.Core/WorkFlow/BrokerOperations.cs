@@ -106,6 +106,8 @@ namespace Lyra.Core.WorkFlow
                 Seats = ((IProfiting)lastblock).Seats,
 
                 // dao     
+                SellerFeeRatio = ((IDao)lastblock).SellerFeeRatio,
+                BuyerFeeRatio = ((IDao)lastblock).BuyerFeeRatio,
                 SellerPar = ((IDao)lastblock).SellerPar,
                 BuyerPar = ((IDao)lastblock).BuyerPar,
                 Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),

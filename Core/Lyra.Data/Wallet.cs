@@ -16,6 +16,7 @@ using System.Threading;
 using Lyra.Data.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.ODR;
+using System.Globalization;
 
 namespace Lyra.Core.Accounts
 {
@@ -771,6 +772,8 @@ namespace Lyra.Core.Accounts
             sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = (sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() - fee).ToBalanceLong();
 
             sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
+            if (!sendBlock.VerifyHash())
+                throw new Exception("Send Block hash verify failed.");
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -2132,17 +2135,19 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region DAO
-        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name, string description, decimal shareRito, int maxVoter, int sellerPar, int buyerPar)
+        public async Task<AuthorizationAPIResult> CreateDAOAsync(string name, string description, decimal shareRito, decimal sellerFeeRatio, decimal buyerFeeRatio, int maxVoter, int sellerPar, int buyerPar)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CRDAO },
                 { "name", name },
                 { "desc", description },
-                { "share", $"{shareRito}" },
+                { "share", shareRito.ToString(CultureInfo.InvariantCulture) },
                 { "seats", $"{maxVoter}" },
-                { "sellerPar", sellerPar.ToString() },
-                { "buyerPar", buyerPar.ToString() },
+                { "sellerPar", sellerPar.ToString(CultureInfo.InvariantCulture) },
+                { "buyerPar", buyerPar.ToString(CultureInfo.InvariantCulture) },
+                { "sellerFeeRatio", sellerFeeRatio.ToString(CultureInfo.InvariantCulture) },
+                { "buyerFeeRatio", buyerFeeRatio.ToString(CultureInfo.InvariantCulture) },
             };
 
             var amounts = new Dictionary<string, decimal>

@@ -2,6 +2,7 @@
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,9 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as DaoRecvBlock;
+
+            if (block.ShareRito.CountDecimalDigits() > 8 || block.SellerFeeRatio.CountDecimalDigits() > 8 || block.BuyerFeeRatio.CountDecimalDigits() > 8)
+                return APIResultCodes.InvalidDecimalDigitalCount;
 
             // profiting
             if (block.ShareRito < 0 || block.ShareRito > 1)
@@ -106,6 +110,9 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as DaoSendBlock;
+
+            if (block.ShareRito.CountDecimalDigits() > 8 || block.SellerFeeRatio.CountDecimalDigits() > 8 || block.BuyerFeeRatio.CountDecimalDigits() > 8)
+                return APIResultCodes.InvalidDecimalDigitalCount;
 
             // profiting
             if (block.ShareRito < 0 || block.ShareRito > 1)

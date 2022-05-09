@@ -2,6 +2,7 @@
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,16 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as OtcOrderRecvBlock;
+
+            if (block.Order.fiatPrice.CountDecimalDigits() > 8 || 
+                block.Order.amount.CountDecimalDigits() > 8 || 
+                block.Order.limitMin.CountDecimalDigits() > 8 ||
+                block.Order.limitMax.CountDecimalDigits() > 8 ||
+                block.Order.price.CountDecimalDigits() > 8 ||
+                block.Order.collateral.CountDecimalDigits() > 8 ||
+                block.Order.collateralPrice.CountDecimalDigits() > 8
+                )
+                return APIResultCodes.InvalidDecimalDigitalCount;
 
             // related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
@@ -66,6 +77,16 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as OtcOrderSendBlock;
+
+            if (block.Order.fiatPrice.CountDecimalDigits() > 8 ||
+                block.Order.amount.CountDecimalDigits() > 8 ||
+                block.Order.limitMin.CountDecimalDigits() > 8 ||
+                block.Order.limitMax.CountDecimalDigits() > 8 ||
+                block.Order.price.CountDecimalDigits() > 8 ||
+                block.Order.collateral.CountDecimalDigits() > 8 ||
+                block.Order.collateralPrice.CountDecimalDigits() > 8
+                )
+                return APIResultCodes.InvalidDecimalDigitalCount;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

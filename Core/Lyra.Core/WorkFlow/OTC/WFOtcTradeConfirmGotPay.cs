@@ -73,6 +73,14 @@ namespace Lyra.Core.WorkFlow.OTC
             var trade = (tradelatest as IOtcTrade).Trade;
             var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
 
+            // get dao for order genesis
+            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as ReceiveTransferBlock;
+            var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
+
+            // buyer fee calculated as LYR
+            var buyerFee = Math.Round(((trade.pay * (odrgen as IOtcOrder).Order.fiatPrice) * daoforodr.BuyerFeeRatio) / (odrgen as IOtcOrder).Order.collateralPrice, 8);
+            var amountToSeller = trade.collateral - buyerFee;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendCollateral = new DaoSendBlock
             {
@@ -99,6 +107,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 Seats = ((IProfiting)daolastblock).Seats,
 
                 // dao
+                SellerFeeRatio = ((IDao)daolastblock).SellerFeeRatio,
+                BuyerFeeRatio = ((IDao)daolastblock).BuyerFeeRatio,
                 SellerPar = ((IDao)daolastblock).SellerPar,
                 BuyerPar = ((IDao)daolastblock).BuyerPar,
                 Description = ((IDao)daolastblock).Description,
@@ -107,7 +117,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             // calculate balance
             var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= trade.collateral;
+            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
             sendCollateral.Balances = dict.ToLongDict();
 
             sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

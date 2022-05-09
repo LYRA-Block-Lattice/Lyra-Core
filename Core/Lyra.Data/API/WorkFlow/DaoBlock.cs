@@ -5,6 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,8 +14,17 @@ namespace Lyra.Data.API.WorkFlow
 {
     public interface IDao : IProfiting
     {
-        // percentage, 0 ~ 1000%
+        public decimal SellerFeeRatio { get; set; }
+        public decimal BuyerFeeRatio { get; set; }
+
+        /// <summary>
+        /// percentage, 0% ~ 1000%, convert to 0 ~ 10 in decimal
+        /// </summary>
         public int SellerPar { get; set; }
+
+        /// <summary>
+        /// percentage, 0% ~ 1000%, convert to 0 ~ 10 in decimal
+        /// </summary>
         public int BuyerPar { get; set; }
         public Dictionary<string, long> Treasure { get; set; }
         public string Description { get; set; }    // dao configuration record hash, in other db collection
@@ -29,6 +39,8 @@ namespace Lyra.Data.API.WorkFlow
         public int Seats { get; set; }
 
         // dao
+        public decimal SellerFeeRatio { get; set; }
+        public decimal BuyerFeeRatio { get; set; }
         public int SellerPar { get; set; }
         public int BuyerPar { get; set; }
         public string Description { get; set; }
@@ -45,7 +57,21 @@ namespace Lyra.Data.API.WorkFlow
         {
             var ob = other as DaoRecvBlock;
 
-            if(Version > 6)
+            if (Version > 7)
+            {
+                return base.AuthCompare(ob) &&
+                    PType == ob.PType &&
+                    ShareRito == ob.ShareRito &&
+                    Seats == ob.Seats &&
+                    SellerFeeRatio == ob.SellerFeeRatio &&
+                    BuyerFeeRatio == ob.BuyerFeeRatio &&
+                    SellerPar == ob.SellerPar &&
+                    BuyerPar == ob.BuyerPar &&
+                    Description == ob.Description &&
+                    CompareDict(Treasure, ob.Treasure)
+                    ;
+            }
+            else if (Version > 6)
                 return base.AuthCompare(ob) &&
                     PType == ob.PType &&
                     ShareRito == ob.ShareRito &&
@@ -68,7 +94,15 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = base.GetExtraData();
 
-            if(Version > 6)
+            if (Version > 7)
+            {
+                extraData += PType.ToString() + "|";
+                extraData += ShareRito.ToBalanceLong().ToString() + "|";
+                extraData += Seats.ToString() + "|";
+                extraData += SellerFeeRatio.ToBalanceLong().ToString() + "|";
+                extraData += BuyerFeeRatio.ToBalanceLong().ToString() + "|";
+            }
+            else if (Version > 6)
             {
                 extraData += PType.ToString() + "|";
                 extraData += ShareRito.ToBalanceLong().ToString() + "|";
@@ -84,7 +118,15 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
-            if (Version > 6)
+            if (Version > 7)
+            {
+                result += $"Profiting Type: {PType}\n";
+                result += $"Share Rito: {ShareRito}\n";
+                result += $"Seats: {Seats}\n";
+                result += $"Seller Fee Ratio: {SellerFeeRatio}\n";
+                result += $"Buyer Fee Ratio: {BuyerFeeRatio}\n";
+            }
+            else if (Version > 6)
             {
                 result += $"Profiting Type: {PType}\n";
                 result += $"Share Rito: {ShareRito}\n";
@@ -106,6 +148,8 @@ namespace Lyra.Data.API.WorkFlow
         public int Seats { get; set; }
 
         // dao
+        public decimal SellerFeeRatio { get; set; }
+        public decimal BuyerFeeRatio { get; set; }
         public int SellerPar { get; set; }
         public int BuyerPar { get; set; }
         public string Description { get; set; }
@@ -122,7 +166,22 @@ namespace Lyra.Data.API.WorkFlow
         {
             var ob = other as DaoSendBlock;
 
-            if (Version > 6)
+            if (Version > 7)
+            {
+                return base.AuthCompare(ob) &&
+                    PType == ob.PType &&
+                    ShareRito == ob.ShareRito &&
+                    Seats == ob.Seats &&
+                    SellerFeeRatio == ob.SellerFeeRatio &&
+                    BuyerFeeRatio == ob.BuyerFeeRatio &&
+                    SellerPar == ob.SellerPar &&
+                    BuyerPar == ob.BuyerPar &&
+                    Description == ob.Description &&
+                    CompareDict(Treasure, ob.Treasure)
+                    ;
+            }
+            else if (Version > 6)
+            {
                 return base.AuthCompare(ob) &&
                     PType == ob.PType &&
                     ShareRito == ob.ShareRito &&
@@ -132,6 +191,7 @@ namespace Lyra.Data.API.WorkFlow
                     Description == ob.Description &&
                     CompareDict(Treasure, ob.Treasure)
                     ;
+            }
             else
                 return base.AuthCompare(ob) &&
                 SellerPar == ob.SellerPar &&
@@ -144,7 +204,15 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            if (Version > 6)
+            if (Version > 7)
+            {
+                extraData += PType.ToString() + "|";
+                extraData += ShareRito.ToBalanceLong().ToString() + "|";
+                extraData += Seats.ToString() + "|";
+                extraData += SellerFeeRatio.ToBalanceLong().ToString() + "|";
+                extraData += BuyerFeeRatio.ToBalanceLong().ToString() + "|";
+            }
+            else if (Version > 6)
             {
                 extraData += PType.ToString() + "|";
                 extraData += ShareRito.ToBalanceLong().ToString() + "|";
@@ -160,7 +228,15 @@ namespace Lyra.Data.API.WorkFlow
         public override string Print()
         {
             string result = base.Print();
-            if (Version > 6)
+            if (Version > 7)
+            {
+                result += $"Profiting Type: {PType}\n";
+                result += $"Share Rito: {ShareRito}\n";
+                result += $"Seats: {Seats}\n";
+                result += $"Seller Fee Ratio: {SellerFeeRatio}\n";
+                result += $"Buyer Fee Ratio: {BuyerFeeRatio}\n";
+            }
+            else if (Version > 6)
             {
                 result += $"Profiting Type: {PType}\n";
                 result += $"Share Rito: {ShareRito}\n";

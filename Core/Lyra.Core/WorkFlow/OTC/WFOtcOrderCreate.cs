@@ -92,8 +92,15 @@ namespace Lyra.Core.WorkFlow
             var dealer = new DealerClient(sys.PosWallet.NetworkId);
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = order.crypto.Split('/')[1];
+
+            if (order.collateralPrice != prices["LYR"] || order.fiatPrice != prices[order.fiat.ToLower()])
+                return APIResultCodes.PriceChanged;
+
             if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
                 return APIResultCodes.CollateralNotEnough;
+
+            if (order.collateralPrice != prices["LYR"])
+                return APIResultCodes.PriceChanged;
 
             decimal usdprice = 0;
             if (tokenSymbol == "ETH") usdprice = prices["ETH"];
@@ -145,6 +152,8 @@ namespace Lyra.Core.WorkFlow
                 Seats = ((IProfiting)lastblock).Seats,
 
                 // dao
+                SellerFeeRatio = ((IDao)lastblock).SellerFeeRatio,
+                BuyerFeeRatio = ((IDao)lastblock).BuyerFeeRatio,
                 SellerPar = ((IDao)lastblock).SellerPar,
                 BuyerPar = ((IDao)lastblock).BuyerPar,
                 Description = ((IDao)lastblock).Description,

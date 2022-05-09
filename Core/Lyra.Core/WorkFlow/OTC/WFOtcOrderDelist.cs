@@ -93,6 +93,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     dir = ((IOtcOrder)lastblock).Order.dir,
                     crypto = ((IOtcOrder)lastblock).Order.crypto,
                     fiat = ((IOtcOrder)lastblock).Order.fiat,
+                    fiatPrice = ((IOtcOrder)lastblock).Order.fiatPrice,
                     priceType = ((IOtcOrder)lastblock).Order.priceType,
                     price = ((IOtcOrder)lastblock).Order.price,
                     limitMax = ((IOtcOrder)lastblock).Order.limitMax,
@@ -100,6 +101,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     payBy = ((IOtcOrder)lastblock).Order.payBy,
                     amount = 0,
                     collateral = ((IOtcOrder)lastblock).Order.collateral,   // this is the difference with close.
+                    collateralPrice = ((IOtcOrder)lastblock).Order.collateralPrice
                 },
                 OOStatus = OTCOrderStatus.Delist,
             };

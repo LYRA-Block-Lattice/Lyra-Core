@@ -6,6 +6,7 @@ using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,6 +67,8 @@ namespace Lyra.Core.WorkFlow.DAO
                 PType = ProfitingType.Orgnization,
                 ShareRito = decimal.Parse(send.Tags["share"]),
                 Seats = int.Parse(send.Tags["seats"]),
+                SellerFeeRatio = decimal.Parse(send.Tags["sellerFeeRatio"]),
+                BuyerFeeRatio = decimal.Parse(send.Tags["buyerFeeRatio"]),
 
                 // dao
                 Description = desc,
@@ -83,18 +86,20 @@ namespace Lyra.Core.WorkFlow.DAO
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            decimal shareRito;
+            decimal shareRito, sellerFeeRatio, buyerFeeRatio;
             int seats;
 
             if (
                 send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"]) &&
                 send.Tags.ContainsKey("desc") && !string.IsNullOrWhiteSpace(send.Tags["desc"]) &&
+                send.Tags.ContainsKey("sellerFeeRatio") && decimal.TryParse(send.Tags["sellerFeeRatio"], out sellerFeeRatio) &&
+                send.Tags.ContainsKey("buyerFeeRatio") && decimal.TryParse(send.Tags["buyerFeeRatio"], out buyerFeeRatio) &&
                 send.Tags.ContainsKey("sellerPar") && int.TryParse(send.Tags["sellerPar"], out int sellerPar) &&
                 send.Tags.ContainsKey("buyerPar") && int.TryParse(send.Tags["sellerPar"], out int buyerPar)
                         && send.Tags.ContainsKey("share") && decimal.TryParse(send.Tags["share"], out shareRito)
                         && send.Tags.ContainsKey("seats") && int.TryParse(send.Tags["seats"], out seats)
 
-                && send.Tags.Count == 7
+                && send.Tags.Count == 9
                 )
             {
                 var name = send.Tags["name"];
@@ -128,6 +133,9 @@ namespace Lyra.Core.WorkFlow.DAO
 
                 if(sellerPar < 0 || sellerPar > 1000 || buyerPar < 0 || buyerPar > 1000)
                     return APIResultCodes.InvalidTagParameters;
+
+                if (sellerFeeRatio < 0 || sellerFeeRatio > 1 || buyerFeeRatio < 0 || buyerFeeRatio > 1)
+                    return APIResultCodes.InvalidArgument;
 
                 // check name dup
                 var existsdao = sys.Storage.GetDaoByName(name);

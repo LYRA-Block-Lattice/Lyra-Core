@@ -654,5 +654,7 @@ namespace Lyra.Core.Blocks
         ResourceIsBusy,
         TradesPending,
         ArgumentOutOfRange,
+        PriceChanged,
+        InvalidDecimalDigitalCount,
     }
 }

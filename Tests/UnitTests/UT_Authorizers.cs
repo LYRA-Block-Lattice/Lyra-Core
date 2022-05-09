@@ -535,7 +535,7 @@ namespace UnitTests
             // create a DAO for nodes
             var name = "Node Owners Club";
             var desc = "Doing great business!";
-            var dcret = await genesisWallet.CreateDAOAsync(name, desc, 1, 10, 120, 120);
+            var dcret = await genesisWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.005m, 10, 120, 120);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await WaitWorkflow("CreateDAOAsync");
@@ -938,7 +938,7 @@ namespace UnitTests
             // first create a DAO
             var name = "First DAO";
             var desc = "Doing great business!";
-            var dcret = await testWallet.CreateDAOAsync(name, desc, 1, 10, 120, 120);
+            var dcret = await testWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.001m, 10, 120, 130);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await WaitWorkflow("CreateDAOAsync");
@@ -948,6 +948,11 @@ namespace UnitTests
             var daoblk = daoret.GetBlock() as DaoGenesisBlock;
             Assert.AreEqual(name, daoblk.Name);
             Assert.AreEqual(desc, daoblk.Description);
+            Assert.AreEqual(1, daoblk.ShareRito);
+            Assert.AreEqual(0.01m, daoblk.SellerFeeRatio);
+            Assert.AreEqual(0.001m, daoblk.BuyerFeeRatio);
+            Assert.AreEqual(120, daoblk.SellerPar);
+            Assert.AreEqual(130, daoblk.BuyerPar);
 
             //var dcretx = await testWallet.CreateDAOAsync(name, desc);
             //Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
@@ -972,16 +977,20 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
+            var dealer = new DealerClient("devnet");
+            var prices = await dealer.GetPricesAsync();
             var order = new OTCOrder
             {
                 daoId = dao1.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = fiat,
+                fiatPrice = prices[fiat.ToLower()],
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                collateral = 35000000,
+                collateral = 35_000_000,
+                collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 1,
                 limitMax = 2000,
@@ -996,6 +1005,8 @@ namespace UnitTests
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
             Assert.IsTrue(otcs.Count() == 1 && otcs.First() is OTCOrderGenesisBlock, $"otc order gensis block not found.");
+
+            await CheckDAO(name, desc);
 
             // then DAO treasure should not have the crypto
             var daoret3 = await testWallet.RPC.GetDaoByNameAsync(name);
@@ -1018,6 +1029,8 @@ namespace UnitTests
 
             tradgen = await CreateOTCTrade(dao1, otcg);
             // cancel one
+
+            await CheckDAO(name, desc);
 
             // buyer send payment indicator
             var payindret = await test2Wallet.OTCTradeBuyerPaymentSentAsync(tradgen.AccountID);
@@ -1042,12 +1055,17 @@ namespace UnitTests
                 $"Trade status not changed to ProductReleased");
 
             await test2Wallet.SyncAsync(null);
-            //Assert.AreEqual(test2balance - 12 * 2, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {test2balance} but {test2Wallet.BaseBalance}");
+            var buyerfee = Math.Round(200m * order.fiatPrice * 0.001m / order.collateralPrice, 8);
+            var buyershouldget = test2balance - 12 * 2 - buyerfee;
+            Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
 
             // delist the order
             var dlret = await testWallet.DelistOTCOrderAsync(dao1.AccountID, otcg.AccountID);
             Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
             await WaitWorkflow("DelistOTCOrderAsync");
+
+            await CheckDAO(name, desc);
+
             var orddlret = await testWallet.RPC.GetLastBlockAsync(otcg.AccountID);
             Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
             Assert.AreEqual(OTCOrderStatus.Delist, (orddlret.GetBlock() as IOtcOrder).OOStatus,
@@ -1064,16 +1082,36 @@ namespace UnitTests
                 $"Order status not changed to Closed: {(ordfnlret.GetBlock() as IOtcOrder).OOStatus}");
             Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
 
+            await CheckDAO(name, desc);
+
             await testWallet.SyncAsync(null);
-            var lyrshouldbe = testbalance - 10016m + 1m;
-            Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance}");
+            var feeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.01m) / order.collateralPrice, 8);
+            var lyrshouldbe = testbalance - 10000 - 10 - 5 - feeToPay; // mint, create order, 3 send, 2 LYR for close order
+            Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance} diff {lyrshouldbe - testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
             Assert.AreEqual(100000m - 0.1m, bal2,
                 $"testwallet balance of crypto should be {100000m - 0.2m} but {bal2}");
 
+            // dao should be kept
+            await CheckDAO(name, desc);
+
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
             ResetAuthFail();
+        }
+
+        private async Task CheckDAO(string name, string desc)
+        {
+            var daoretv = await testWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(daoretv.Successful(), $"Can't get DAO: {daoretv.ResultCode}");
+            var daoblkv = daoretv.GetBlock() as IDao;
+            Assert.AreEqual(name, daoblkv.Name);
+            Assert.AreEqual(desc, daoblkv.Description);
+            Assert.AreEqual(1, daoblkv.ShareRito);
+            Assert.AreEqual(0.01m, daoblkv.SellerFeeRatio);
+            Assert.AreEqual(0.001m, daoblkv.BuyerFeeRatio);
+            Assert.AreEqual(120, daoblkv.SellerPar);
+            Assert.AreEqual(130, daoblkv.BuyerPar);
         }
 
         private async Task CancelOTCTrade(TransactionBlock dao, OtcTradeGenesisBlock tradgen)
@@ -1199,7 +1237,7 @@ namespace UnitTests
             // first create a DAO
             var name = "Second DAO";
             var desc = "Doing bad business!";
-            var dcret = await testWallet.CreateDAOAsync(name, desc, 1, 10, 120, 120);
+            var dcret = await testWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.01m, 10, 120, 120);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
             await WaitWorkflow("CreateDAOAsync");
@@ -1210,7 +1248,7 @@ namespace UnitTests
             Assert.AreEqual(name, daoblk.Name);
             Assert.AreEqual(desc, daoblk.Description);
 
-            var dcretx = await testWallet.CreateDAOAsync(name, desc, 1, 10, 120, 120);
+            var dcretx = await testWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.01m, 10, 120, 120);
             Assert.IsTrue(!dcretx.Successful(), $"should failed to create DAO: {dcretx.ResultCode}");
 
             await WaitBlock("CreateDAOAsync Wrong");
@@ -1225,16 +1263,20 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
+            var dealer = new DealerClient("devnet");
+            var prices = await dealer.GetPricesAsync();
             var order = new OTCOrder
             {
                 daoId = dao1.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = fiat,
+                fiatPrice = prices[fiat.ToLower()],
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 2,
                 collateral = 60000000,
+                collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 200,
                 limitMax = 4000,
