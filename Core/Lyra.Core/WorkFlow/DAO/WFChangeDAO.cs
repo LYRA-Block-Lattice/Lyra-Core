@@ -83,13 +83,24 @@ namespace Lyra.Core.WorkFlow.DAO
                     if (Seats < 0 || Seats > 100)
                         return APIResultCodes.InvalidSeatsCount;
                 }
+                else if (chg.Key == "SellerFeeRatio")
+                {
+                    var SellerFeeRatio = decimal.Parse(chg.Value);
+                    if (SellerFeeRatio < 0 || SellerFeeRatio > 100)
+                        return APIResultCodes.ArgumentOutOfRange;
+                }
+                else if (chg.Key == "BuyerFeeRatio")
+                {
+                    var BuyerFeeRatio = decimal.Parse(chg.Value);
+                    if (BuyerFeeRatio < 0 || BuyerFeeRatio > 100)
+                        return APIResultCodes.ArgumentOutOfRange;
+                }
                 else if (chg.Key == "SellerPar")
                 {
                     var SellerPar = int.Parse(chg.Value);
                     if (SellerPar <= 0)
                         return APIResultCodes.ArgumentOutOfRange;
                 }
-
                 else if (chg.Key == "BuyerPar")
                 {
                     var BuyerPar = int.Parse(chg.Value);
@@ -154,6 +165,10 @@ namespace Lyra.Core.WorkFlow.DAO
                             dao.ShareRito = decimal.Parse(chg.Value);
                         else if (chg.Key == "Seats")
                             dao.Seats = int.Parse(chg.Value);
+                        else if (chg.Key == "SellerFeeRatio")
+                            dao.SellerFeeRatio = decimal.Parse(chg.Value);
+                        else if (chg.Key == "BuyerFeeRatio")
+                            dao.BuyerFeeRatio = decimal.Parse(chg.Value);
                         else if (chg.Key == "SellerPar")
                             dao.SellerPar = int.Parse(chg.Value);
                         else if (chg.Key == "BuyerPar")
