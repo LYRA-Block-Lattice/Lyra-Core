@@ -44,7 +44,7 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Order.GetExtraData() + "|";
+            extraData += Order.GetExtraData(this) + "|";
             extraData += $"{OOStatus}|";
             return extraData;
         }
@@ -81,7 +81,7 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += Order.GetExtraData() + "|";
+            extraData += Order.GetExtraData(this) + "|";
             extraData += $"{OOStatus}|";
             return extraData;
         }
