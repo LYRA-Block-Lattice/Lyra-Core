@@ -38,6 +38,11 @@ namespace Lyra.Core.Authorizers
             return BlockTypes.OrgnizationRecv;
         }
 
+        protected override AuthorizationFeeTypes GetFeeType()
+        {
+            return AuthorizationFeeTypes.Dynamic;
+        }
+
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is DaoRecvBlock))
@@ -102,6 +107,11 @@ namespace Lyra.Core.Authorizers
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.OrgnizationSend;
+        }
+
+        protected override AuthorizationFeeTypes GetFeeType()
+        {
+            return AuthorizationFeeTypes.Dynamic;
         }
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)

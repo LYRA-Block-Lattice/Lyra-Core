@@ -1093,8 +1093,9 @@ namespace UnitTests
             await CheckDAO(name, desc);
 
             await testWallet.SyncAsync(null);
-            var feeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.01m) / order.collateralPrice, 8);
-            var lyrshouldbe = testbalance - 10000 - 10 - 5 - feeToPay; // mint, create order, 3 send, 2 LYR for close order
+            var sellerfeeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.01m) / order.collateralPrice, 8);
+            var networkfeeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
+            var lyrshouldbe = testbalance - 10000 - 10 - 5 - sellerfeeToPay - networkfeeToPay; // mint, create order, 3 send, 2 LYR for close order
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance} diff {lyrshouldbe - testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
             Assert.AreEqual(100000m - 0.1m, bal2,

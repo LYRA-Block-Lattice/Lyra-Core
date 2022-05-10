@@ -161,7 +161,8 @@ namespace Lyra.Core.WorkFlow.OTC
             // seller fee calculated as LYR
             var order = (odrgen as IOtcOrder).Order;
             var sellerFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
-            var amountToSeller = order.collateral - sellerFee;
+            var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
+            var amountToSeller = order.collateral - sellerFee - networkFee;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendCollateral = new DaoSendBlock
@@ -170,9 +171,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 ServiceHash = sb.Hash,
 
                 // trans
-                Fee = 0,
+                Fee = networkFee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
+                FeeType = AuthorizationFeeTypes.Dynamic,
                 AccountID = daolastblock.AccountID,
 
                 // send
@@ -199,7 +200,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             // calculate balance
             var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
+            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller + networkFee;
             sendCollateral.Balances = dict.ToLongDict();
 
             sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
