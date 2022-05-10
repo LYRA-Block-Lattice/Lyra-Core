@@ -134,6 +134,7 @@ namespace Lyra.Data.API.WorkFlow
             }
             result += $"SellerCollateralPercentage: {SellerPar}\n";
             result += $"ByerCollateralPercentage: {BuyerPar}\n";
+            result += $"Description: {Description}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
             return result;
         }
@@ -244,6 +245,7 @@ namespace Lyra.Data.API.WorkFlow
             }
             result += $"SellerCollateralPercentage: {SellerPar}\n";
             result += $"ByerCollateralPercentage: {BuyerPar}\n";
+            result += $"Description: {Description}\n";
             result += $"Treasure: {DictToStr(Treasure)}\n";
             return result;
         }

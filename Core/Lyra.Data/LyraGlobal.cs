@@ -31,7 +31,8 @@ namespace Lyra.Core.API
         public readonly static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
         public const int TOKENSTORAGERITO = 100000000;
-        public const int MinimalAuthorizerBalance = 1000000;
+        public const int MinimalAuthorizerBalance = 1_000_000;
+        public const int MinimalDealerBalance = 30_000_000;
         public const decimal OFFICIALGENESISAMOUNT = 10000000000;
 
         #region interest/profit/share/fees
