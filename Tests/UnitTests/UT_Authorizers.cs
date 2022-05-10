@@ -1284,7 +1284,7 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 2,
-                collateral = 60000000,
+                collateral = 90000000,
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 200,
