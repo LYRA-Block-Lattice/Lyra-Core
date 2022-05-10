@@ -403,6 +403,11 @@ namespace Lyra.Core.Blocks
         // voting
         VoteGenesis = 100,
         Voting = 101,
+
+        // Dealer
+        DealerRecv = 105,
+        DealerSend = 106,
+        DealerGenesis = 107,
     }
 
     public enum APIResultCodes
