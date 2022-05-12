@@ -15,6 +15,7 @@ using Lyra.Data.API;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
+using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -492,6 +493,8 @@ namespace UnitTests
             Assert.AreEqual(test4PublicKey, test4Wallet.AccountId);
 
             await test4Wallet.SyncAsync(client);
+
+            await TestDealerAsync();
 
             await TestOTCTrade();
 
@@ -1614,6 +1617,14 @@ namespace UnitTests
             Assert.IsTrue(rmliqret.Successful());
 
             await testWallet.SyncAsync(null);
+        }
+
+        private async Task TestDealerAsync()
+        {
+            //var (pvt, pub) = Signatures.GenerateWallet();
+            var ret = await testWallet.ServiceRequestAsync(BrokerActions.BRK_DLR_CREATE, PoolFactoryBlock.FactoryAccount,
+                LyraGlobal.MinimalDealerBalance, testWallet.AccountId);
+            Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
         }
     }
 }

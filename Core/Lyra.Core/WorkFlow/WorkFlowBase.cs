@@ -187,6 +187,7 @@ namespace Lyra.Core.WorkFlow
                 case BrokerActions.BRK_PFT_CRPFT:
                 case BrokerActions.BRK_STK_CRSTK:
                 case BrokerActions.BRK_DEX_DPOREQ:
+                case BrokerActions.BRK_DLR_CREATE:
                     brkaccount = null;
                     break;
                 // 

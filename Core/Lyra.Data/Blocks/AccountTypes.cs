@@ -13,5 +13,6 @@
         DAO = 10,
         OTC = 11,
         Voting = 12,
+        Server = 13,
     }
 }

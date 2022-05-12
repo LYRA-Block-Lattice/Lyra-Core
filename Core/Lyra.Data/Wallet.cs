@@ -2415,6 +2415,30 @@ namespace Lyra.Core.Accounts
         }
         #endregion
 
+        #region Generic Service Request Call
+        public async Task<AuthorizationAPIResult> ServiceRequestAsync(string svcReq, string targetAccountId, decimal amountToSend, params object[] args)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, svcReq },                
+            };
+
+            int i = 0;
+            foreach(var arg in args)
+            {
+                tags.Add($"arg{i}", arg?.ToString() ?? "");
+            }
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, amountToSend },
+            };
+
+            var result = await SendExAsync(targetAccountId, amounts, tags);
+            return result;
+        }
+        #endregion
+
         public TransactionBlock GetLastSyncBlock()
         {
             return _lastSyncBlock;
