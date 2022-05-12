@@ -12,7 +12,13 @@ namespace Lyra.Shared
 {
     public class GetPublicIPAddress
     {
-        static string url = "https://api.ipify.org";
+        static string[] url = new[]
+        {
+            //"http://checkip.dyndns.org/",
+            "https://checkip.amazonaws.com/",
+            "http://ipinfo.io/ip",
+            "https://api.ipify.org",
+        };
 
         public static async Task<bool> IsThisHostMeAsync(string host)
         {
@@ -43,7 +49,7 @@ namespace Lyra.Shared
                     else
                     {
                         var wc = new HttpClient();
-                        var json = await wc.GetStringAsync(url);
+                        var json = await wc.GetStringAsync(url[0]);
                         myIp = IPAddress.Parse(json);
                         break;
                     }
