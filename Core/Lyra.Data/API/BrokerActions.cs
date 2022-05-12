@@ -56,7 +56,7 @@ namespace Lyra.Data.API
         public const string BRK_VOT_CLOSE = "VOTCLS";
 
         // Dealer
-        //public const string BRK_DLR_CREATE = "DLRCRT";
-        //public const string BRK_DLR_UPDATE = "DLRUPD";
+        public const string BRK_DLR_CREATE = "DLRCRT";
+        public const string BRK_DLR_UPDATE = "DLRUPD";
     }
 }

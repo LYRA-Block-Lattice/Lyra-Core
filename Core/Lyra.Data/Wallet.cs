@@ -2418,6 +2418,7 @@ namespace Lyra.Core.Accounts
         #region Generic Service Request Call
         public async Task<AuthorizationAPIResult> ServiceRequestAsync(string svcReq, string targetAccountId, decimal amountToSend, params object[] args)
         {
+            throw new NotImplementedException();
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, svcReq },                
