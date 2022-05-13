@@ -205,9 +205,6 @@ namespace Lyra.Core.Decentralize
 
                         _log.LogInformation("Recreate aggregated client...");
                         if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
-                            client.ReBase(true);
-
-                        if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
                             client.ReBase(false);
 
                         await client.InitAsync();

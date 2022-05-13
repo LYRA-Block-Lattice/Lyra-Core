@@ -244,9 +244,9 @@ namespace Lyra.Data.API
         {
             var results = await WhenAllOrExceptionAsync(taskss);
 
-            var expectedCount = LyraGlobal.GetMajority(taskss.Count);
-            if (_seedsOnly)    // seed stage
-                expectedCount = 2;
+            var expectedCount = LyraGlobal.GetMajority(taskss.Count) - 1; // exclude self
+            //if (_seedsOnly)    // seed stage
+            //    expectedCount = 2;
 
             var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
