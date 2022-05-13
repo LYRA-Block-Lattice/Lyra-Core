@@ -50,7 +50,7 @@ namespace Lyra.Shared
                     {
                         var wc = new HttpClient();
                         var json = await wc.GetStringAsync(url[0]);
-                        myIp = IPAddress.Parse(json);
+                        myIp = IPAddress.Parse(json.Trim());
                         break;
                     }
                 }
