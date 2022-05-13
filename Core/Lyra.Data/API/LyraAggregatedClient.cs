@@ -248,6 +248,9 @@ namespace Lyra.Data.API
             //if (_seedsOnly)    // seed stage
             //    expectedCount = 2;
 
+            if (_networkId == "testnet")
+                expectedCount = 7;
+
             var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
 
