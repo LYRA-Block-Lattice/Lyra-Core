@@ -153,7 +153,7 @@ namespace Lyra.Data.API
 
         public void ReBase(bool toSeedOnly)
         {
-            //_seedsOnly = toSeedOnly;
+            _seedsOnly = toSeedOnly;
             //if (toSeedOnly)
             //    _baseIndex = _baseIndex++ % 4;
             //else

@@ -207,6 +207,9 @@ namespace Lyra.Core.Decentralize
                         if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
                             client.ReBase(true);
 
+                        if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
+                            client.ReBase(false);
+
                         await client.InitAsync();
                         
                         continue;
