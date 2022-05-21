@@ -12,6 +12,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
+using Lyra.Data.API.ABI;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
@@ -992,11 +993,11 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                collateral = 35_000_000,
+                collateral = 75_000_000,
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 1,
-                limitMax = 2000,
+                limitMax = 1000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -1291,7 +1292,7 @@ namespace UnitTests
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 200,
-                limitMax = 4000,
+                limitMax = 1000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -1330,9 +1331,9 @@ namespace UnitTests
                 crypto = "unittest/ETH",
                 fiat = fiat,
                 price = 2000,
-                amount = 1,
+                amount = 0.1m,
                 collateral = 40000000,
-                pay = 2000,
+                pay = 200,
                 payVia = "Paypal",
             };
             await test2Wallet.SyncAsync(null);
@@ -1348,7 +1349,7 @@ namespace UnitTests
             var otcs2 = otcret2.GetBlocks();
             Assert.IsTrue(otcs2.Count() == 2 && otcs2.Last() is IOtcOrder, $"otc block count not = 1.");
             var otcorderx = otcs2.Last() as IOtcOrder;
-            Assert.AreEqual(1m, otcorderx.Order.amount, "order not processed");
+            Assert.AreEqual(1.9m, otcorderx.Order.amount, "order not processed");
 
             // get trade
             var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
@@ -1621,10 +1622,30 @@ namespace UnitTests
 
         private async Task TestDealerAsync()
         {
-            //var (pvt, pub) = Signatures.GenerateWallet();
-            var ret = await testWallet.ServiceRequestAsync(BrokerActions.BRK_DLR_CREATE, PoolFactoryBlock.FactoryAccount,
-                LyraGlobal.MinimalDealerBalance, testWallet.AccountId);
+            var dealerAbi = new LyraContractABI
+            {
+                svcReq = BrokerActions.BRK_DLR_CREATE,
+                targetAccountId = PoolFactoryBlock.FactoryAccount,
+                amounts = new Dictionary<string, decimal>
+                    {
+                        { LyraGlobal.OFFICIALTICKERCODE, 1 },
+                    },
+                objArgument = new DealerCreateArgument
+                {
+                    Name = "first dealer",
+                    Description = "a dealer for unit test",
+                    ServiceUrl = "https://localhost/",
+                    DealerAccountId = testWallet.AccountId
+                }
+            };
+
+            var ret = await testWallet.ServiceRequestAsync(dealerAbi);
+            await WaitWorkflow($"Create Dealer");
             Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
+
+            var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
+            await WaitBlock($"Create Dealer 2");
+            Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
         }
     }
 }

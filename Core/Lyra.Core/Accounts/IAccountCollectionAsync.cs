@@ -42,6 +42,8 @@ namespace Lyra.Core.Accounts
         Task<List<TransactionBlock>> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize);
         Task<List<TransactionBlock>> FindOtcTradeForOrderAsync(string orderid);
 
+        Block GetDealerByName(string name);
+
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);

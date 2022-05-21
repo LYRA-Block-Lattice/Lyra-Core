@@ -2126,6 +2126,20 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
+        public Block GetDealerByName(string name)
+        {
+            var regexFilter = Regex.Escape(name);
+            var filter = Builders<DealerGenesisBlock>.Filter.Regex(u => u.Name, new BsonRegularExpression("/^" + regexFilter + "$/i"));
+            var genResult = _blocks.OfType<DealerGenesisBlock>()
+                .Find(filter)
+                .FirstOrDefault();
+
+            if (genResult != null)
+                return FindLatestBlock(genResult.AccountID);
+
+            return null;
+        }
+
         public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
             var q = _blocks.OfType<OTCOrderGenesisBlock>()
