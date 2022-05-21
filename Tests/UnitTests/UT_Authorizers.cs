@@ -1639,13 +1639,14 @@ namespace UnitTests
                 }
             };
 
-            var ret = await testWallet.ServiceRequestAsync(dealerAbi);
-            await WaitWorkflow($"Create Dealer");
-            Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
+            // we temp disable the dealer creation.
+            //var ret = await testWallet.ServiceRequestAsync(dealerAbi);
+            //await WaitWorkflow($"Create Dealer");
+            //Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
 
-            var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
-            await WaitBlock($"Create Dealer 2");
-            Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+            //var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
+            //await WaitBlock($"Create Dealer 2");
+            //Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
         }
     }
 }

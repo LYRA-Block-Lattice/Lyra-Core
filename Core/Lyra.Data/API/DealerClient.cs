@@ -1,6 +1,7 @@
 ﻿using DexServer.Ext;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API.Identity;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
 using System;
@@ -90,9 +91,29 @@ namespace Lyra.Data.API
             return await GetAsync<SimpleJsonAPIResult>("GetUserByAccountId", args);
         }
 
+        /// <summary>
+        /// get full user details. only owner can do this.
+        /// </summary>
+        /// <param name="accountId"></param>
+        /// <param name="signature"></param>
+        /// <returns></returns>
+        public async Task<LyraUser?> GetUserDetailsByAccountIdAsync(string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "signature", signature },
+            };
+            var ret = await GetAsync<SimpleJsonAPIResult>("GetUserDetailsByAccountId", args);
+            if (ret.Successful())
+                return ret.Deserialize<LyraUser>();
+            else
+                return null;
+        }
+
         public async Task<APIResult> RegisterAsync(string accountId,
             string userName, string firstName, string middleName, string lastName,
-            string email, string mibilePhone, string avatarId, string signature
+            string email, string mibilePhone, string avatarId, string telegramID, string signature
             )
         {
             var args = new Dictionary<string, string>
@@ -105,6 +126,7 @@ namespace Lyra.Data.API
                 { "email", email },
                 { "mibilePhone", mibilePhone },
                 { "avatarId", avatarId },
+                { "telegramId", telegramID },
                 { "signature", signature },
             };
             return await GetAsync<APIResult>("Register", args);
