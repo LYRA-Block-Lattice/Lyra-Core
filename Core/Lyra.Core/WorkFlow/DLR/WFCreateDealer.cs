@@ -59,7 +59,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 if (existsdealer != null)
                     return APIResultCodes.DuplicateName;
 
-                return APIResultCodes.Success;
+                return APIResultCodes.Unsupported;  // TODO: implement dealer
+
+                //return APIResultCodes.Success;
             }
             else
                 return APIResultCodes.InvalidTagParameters;
