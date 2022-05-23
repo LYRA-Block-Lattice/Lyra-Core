@@ -701,5 +701,10 @@ namespace Lyra.Data.API
         {
             return SeedClient.FindExecForVoteAsync(voteid);
         }
+
+        public Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId)
+        {
+            return SeedClient.GetDealerByAccountIdAsync(accountId);
+        }
     }
 }

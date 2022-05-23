@@ -2140,6 +2140,15 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
+        public Block GetDealerByAccountId(string accountId)
+        {
+            var q = _blocks.OfType<DealerGenesisBlock>()
+                .Find(a => a.OwnerAccountId == accountId)
+                .FirstOrDefault();
+
+            return q;
+        }
+
         public async Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId)
         {
             var q = _blocks.OfType<OTCOrderGenesisBlock>()

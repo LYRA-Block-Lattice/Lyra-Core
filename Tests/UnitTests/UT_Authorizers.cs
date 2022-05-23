@@ -403,6 +403,9 @@ namespace UnitTests
                 .Returns<string>((voteid) =>
                     Task.FromResult(api.FindExecForVoteAsync(voteid)).Result);
 
+            mock.Setup(x => x.GetDealerByAccountIdAsync(It.IsAny<string>()))
+                .Returns<string>(accountId => Task.FromResult(api.GetDealerByAccountIdAsync(accountId)).Result);
+
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
             mock.Setup(x => x.ReceiveTransferAndOpenAccountAsync(It.IsAny<OpenWithReceiveTransferBlock>()))
@@ -1650,7 +1653,8 @@ namespace UnitTests
             Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
 
             // get dealers
-
+            var gdret = await testWallet.RPC.GetDealerByAccountIdAsync(testWallet.AccountId);
+            Assert.IsTrue(gdret.Successful(), $"Can't get dealer: {gdret.ResultCode}");
         }
     }
 }
