@@ -54,14 +54,15 @@ namespace Lyra.Core.WorkFlow.DAO
                 if (!Signatures.ValidateAccountId(arg.DealerAccountId))
                     return APIResultCodes.InvalidAccountId;
 
+                if (arg.Mode != ClientMode.Permissionless)
+                    return APIResultCodes.InvalidArgument;
+
                 // check name dup
                 var existsdealer = sys.Storage.GetDealerByName(arg.Name);
                 if (existsdealer != null)
                     return APIResultCodes.DuplicateName;
 
-                return APIResultCodes.Unsupported;  // TODO: implement dealer
-
-                //return APIResultCodes.Success;
+                return APIResultCodes.Success;
             }
             else
                 return APIResultCodes.InvalidTagParameters;

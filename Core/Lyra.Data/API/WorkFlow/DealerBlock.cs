@@ -12,8 +12,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
+    public enum ClientMode { Permissionless, InviteOnly, ApprovedOnly }
+
     public interface IDealer : IBrokerAccount
     {
+        public ClientMode DealerMode { get; set; }
         public string Endpoint { get; set; }
         public string Description { get; set; }    // dao configuration record hash, in other db collection
     }
@@ -22,6 +25,7 @@ namespace Lyra.Data.API.WorkFlow
     public class DealerRecvBlock : BrokerAccountRecv, IDealer
     {
         // dealer
+        public ClientMode DealerMode { get; set; }
         public string Endpoint { get; set; }
 
         public string Description { get; set; }
@@ -36,6 +40,7 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as DealerRecvBlock;
 
             return base.AuthCompare(ob) &&
+                DealerMode == ob.DealerMode &&
                 Endpoint == ob.Endpoint &&
                 Description == ob.Description
                 ;
@@ -45,6 +50,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = base.GetExtraData();
 
+            extraData += DealerMode + "|";
             extraData += Endpoint + "|";
             extraData += Description + "|";
             return extraData;
@@ -54,9 +60,9 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
 
+            result += $"Client Mode: {DealerMode}\n";
             result += $"Endpoint URL: {Endpoint}\n";
-
-            result += $"Description: {Description}";
+            result += $"Description: {Description}\n";
             return result;
         }
     }
@@ -65,6 +71,7 @@ namespace Lyra.Data.API.WorkFlow
     public class DealerSendBlock : BrokerAccountSend, IDealer
     {
         // dealer
+        public ClientMode DealerMode { get; set; }
         public string Endpoint { get; set; }
 
         public string Description { get; set; }
@@ -79,6 +86,7 @@ namespace Lyra.Data.API.WorkFlow
             var ob = other as DealerRecvBlock;
 
             return base.AuthCompare(ob) &&
+                DealerMode == ob.DealerMode &&
                 Endpoint == ob.Endpoint &&
                 Description == ob.Description
                 ;
@@ -87,6 +95,7 @@ namespace Lyra.Data.API.WorkFlow
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
+            extraData += DealerMode + "|";
             extraData += Endpoint + "|";
             extraData += Description + "|";
             return extraData;
@@ -96,9 +105,9 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.Print();
 
+            result += $"Client Mode: {DealerMode}\n";
             result += $"Endpoint URL: {Endpoint}\n";
-
-            result += $"Description: {Description}";
+            result += $"Description: {Description}\n";
             return result;
         }
     }

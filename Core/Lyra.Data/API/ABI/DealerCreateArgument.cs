@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lyra.Data.API.WorkFlow;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,5 +13,6 @@ namespace Lyra.Data.API.ABI
         public string Description { get; set; }
         public string DealerAccountId { get; set; }
         public string ServiceUrl { get; set; }
+        public ClientMode Mode { get; set; }
     }
 }

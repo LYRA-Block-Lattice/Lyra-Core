@@ -523,7 +523,7 @@ namespace UnitTests
         {
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
 #if DEBUG
-            var ret = _workflowEnds.WaitOne(200000);
+            var ret = _workflowEnds.WaitOne(10000);
 #else
             var ret = _workflowEnds.WaitOne(3000);
 #endif
@@ -1288,7 +1288,7 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 2,
-                collateral = 90000000,
+                collateral = 180000000,
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 200,
@@ -1635,18 +1635,22 @@ namespace UnitTests
                     Name = "first dealer",
                     Description = "a dealer for unit test",
                     ServiceUrl = "https://localhost/",
-                    DealerAccountId = testWallet.AccountId
+                    DealerAccountId = testWallet.AccountId,
+                    Mode = ClientMode.Permissionless
                 }
             };
 
             // we temp disable the dealer creation.
-            //var ret = await testWallet.ServiceRequestAsync(dealerAbi);
-            //await WaitWorkflow($"Create Dealer");
-            //Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
+            var ret = await testWallet.ServiceRequestAsync(dealerAbi);
+            await WaitWorkflow($"Create Dealer");
+            Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
 
-            //var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
-            //await WaitBlock($"Create Dealer 2");
-            //Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+            var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
+            await WaitBlock($"Create Dealer 2");
+            Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+
+            // get dealers
+
         }
     }
 }
