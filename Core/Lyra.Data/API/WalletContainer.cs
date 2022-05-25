@@ -9,33 +9,55 @@ namespace Lyra.Data.API
 {
     public class WalletContainer
     {
-        public class MetaData
+        public class WalletData
         {
-            public string Name { get; set; }
-            public string Note { get; set; }
-            public byte[] Data { get; set; }
+            public string Name { get; set; } = null!;
+            public string? Note { get; set; }
+            public byte[] Data { get; set; } = null!;
             public bool Backup { get; set; }
+            public string? DealerID { get; set; }
         }
-        public event EventHandler OnChange;
-        Dictionary<string, MetaData> _wallets;
+
+        public event EventHandler? OnChange;
+        Dictionary<string, WalletData>? _wallets;
         public WalletContainer(string json)
         {
             if(string.IsNullOrWhiteSpace(json))
-                _wallets = new Dictionary<string, MetaData>();
+                _wallets = new Dictionary<string, WalletData>();
             else
-                _wallets = JsonConvert.DeserializeObject<Dictionary<string, MetaData>>(json);
+                _wallets = JsonConvert.DeserializeObject<Dictionary<string, WalletData>>(json);
+
+            if (_wallets == null)
+                throw new Exception("Invalid Wallet Data");
         }
 
-        public MetaData Get(string name) => _wallets[name];
+        public WalletData Get(string name) => _wallets[name];
         public string[] Names => _wallets.Keys.ToArray();
 
-        public void AddOrUpdate(string name, byte[] data, string note, bool backup)
+        public void Add(string name, byte[] data, string note, bool backup, string dealerId)
         {
-            var meta = new MetaData { Name = name, Note = note, Data = data, Backup = backup };
-            if (_wallets.ContainsKey(name))
-                _wallets[name] = meta;
+            Add(new WalletData
+            {
+                Name = name, Data = data, Note = note, Backup = backup, DealerID = dealerId
+            });
+        }
+
+        public void Add(WalletData wallet)
+        {
+            if (_wallets.ContainsKey(wallet.Name))
+                throw new Exception($"Wallet exists.");
             else
-                _wallets.Add(name, meta);
+                _wallets.Add(wallet.Name, wallet);
+
+            OnChange?.Invoke(this, new EventArgs());
+        }
+
+        public void Update(WalletData wallet)
+        {
+            if (!_wallets.ContainsKey(wallet.Name))
+                throw new Exception($"Wallet not exists.");
+            else
+                _wallets[wallet.Name] = wallet;
 
             OnChange?.Invoke(this, new EventArgs());
         }

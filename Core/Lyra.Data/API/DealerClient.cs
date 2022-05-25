@@ -48,16 +48,56 @@ namespace Lyra.Data.API
         public string name { get; set; }
         public string unit { get; set; }
     }
+
+    public class DealerBrief
+    {
+        public string AccountId { get; set; }
+        public string TelegramBotUsername { get; set; }
+    }
+
+    /// <summary>
+    /// App bound to a single dealer server at one time.
+    /// App can swith dealer server, all things will changes, prices feed, realtime notification on various changes, etc.
+    /// Lyra team provides a generic permissionless dealer by default. 
+    /// </summary>
     public class DealerClient : WebApiClientBase
     {
-        public DealerClient(string networkid)
+        public DealerClient(string networkid, string? endpointUrl = null)
         {
-            if (networkid == "devnet")
-                UrlBase = "https://dealer.devnet.lyra.live:7070/api/Dealer/";
-            else if (networkid == "testnet")
-                UrlBase = "https://dealertestnet.lyra.live/api/Dealer/";
+            Switch(networkid, endpointUrl);
+        }
+
+        /// <summary>
+        /// for app to change dealer server at any time.
+        /// </summary>
+        /// <param name="networkid"></param>
+        /// <param name="endpointUrl"></param>
+        public void Switch(string networkid, string? endpointUrl)
+        {
+            if (string.IsNullOrWhiteSpace(endpointUrl))
+            {
+                if (networkid == "devnet")
+                    UrlBase = "https://dealer.devnet.lyra.live:7070/api/Dealer/";
+                else if (networkid == "testnet")
+                    UrlBase = "https://dealertestnet.lyra.live/api/Dealer/";
+                else
+                    UrlBase = "https://dealer.lyra.live/api/Dealer/";
+            }
             else
-                UrlBase = "https://dealer.lyra.live/api/Dealer/";
+            {
+                //var lc = LyraRestClient.Create(networkid, "", "dealer client", "1.0");
+                //var ret = await lc.GetLastBlockAsync(dealerId);
+                UrlBase = endpointUrl;
+            }
+        }
+
+        public async Task<DealerBrief?> GetBriefAsync()
+        {
+            var result = await GetAsync<SimpleJsonAPIResult>("GetBrief");
+            if (result.Successful())
+                return JsonConvert.DeserializeObject<DealerBrief>(result.JsonString);
+            else
+                throw new Exception($"Error GetBriefAsync: {result.ResultCode}, {result.ResultMessage}");
         }
 
         public async Task<Dictionary<string, decimal>> GetPricesAsync()
