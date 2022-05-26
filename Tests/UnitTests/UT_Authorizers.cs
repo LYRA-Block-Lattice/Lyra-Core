@@ -81,6 +81,8 @@ namespace UnitTests
 
         IDealer dlr;
 
+        DealerClient dealer;
+
         [TestInitialize]
         public void TestSetup()
         {
@@ -986,7 +988,6 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
-            var dealer = new DealerClient("devnet");
             var prices = await dealer.GetPricesAsync();
             var order = new OTCOrder
             {
@@ -1283,7 +1284,6 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
-            var dealer = new DealerClient("devnet");
             var prices = await dealer.GetPricesAsync();
             var order = new OTCOrder
             {
@@ -1631,6 +1631,8 @@ namespace UnitTests
 
         private async Task TestDealerAsync()
         {
+            var url = "https://dealer.devnet.lyra.live:7070";
+            dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
             var dealerAbi = new LyraContractABI
             {
                 svcReq = BrokerActions.BRK_DLR_CREATE,
@@ -1643,7 +1645,7 @@ namespace UnitTests
                 {
                     Name = "first dealer",
                     Description = "a dealer for unit test",
-                    ServiceUrl = "https://localhost/",
+                    ServiceUrl = url,
                     DealerAccountId = testWallet.AccountId,
                     Mode = ClientMode.Permissionless
                 }

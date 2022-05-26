@@ -62,33 +62,9 @@ namespace Lyra.Data.API
     /// </summary>
     public class DealerClient : WebApiClientBase
     {
-        public DealerClient(string networkid, string? endpointUrl = null)
+        public DealerClient(Uri endpointUri)
         {
-            Switch(networkid, endpointUrl);
-        }
-
-        /// <summary>
-        /// for app to change dealer server at any time.
-        /// </summary>
-        /// <param name="networkid"></param>
-        /// <param name="endpointUrl"></param>
-        public void Switch(string networkid, string? endpointUrl)
-        {
-            if (string.IsNullOrWhiteSpace(endpointUrl))
-            {
-                if (networkid == "devnet")
-                    UrlBase = "https://dealer.devnet.lyra.live:7070/api/Dealer/";
-                else if (networkid == "testnet")
-                    UrlBase = "https://dealertestnet.lyra.live/api/Dealer/";
-                else
-                    UrlBase = "https://dealer.lyra.live/api/Dealer/";
-            }
-            else
-            {
-                //var lc = LyraRestClient.Create(networkid, "", "dealer client", "1.0");
-                //var ret = await lc.GetLastBlockAsync(dealerId);
-                UrlBase = endpointUrl;
-            }
+            UrlBase = endpointUri.ToString();
         }
 
         public async Task<DealerBrief?> GetBriefAsync()

@@ -18,9 +18,10 @@ namespace UnitTests
         [TestMethod]
         public async Task TestGetPriceAsync()
         {
-            var client = new DealerClient(networkId);
+            var url = "https://dealer.devnet.lyra.live:7070";
+            var dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
 
-            var prices = await client.GetPricesAsync();
+            var prices = await dealer.GetPricesAsync();
 
             Assert.IsTrue(prices.ContainsKey("LYR"));
             Assert.IsTrue(prices.ContainsKey("BTC"));
@@ -31,13 +32,14 @@ namespace UnitTests
         [TestMethod]
         public async Task TestGetFiatAsync()
         {
-            var client = new DealerClient(networkId);
+            var url = "https://dealer.devnet.lyra.live:7070";
+            var dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
 
-            var usd = await client.GetFiatAsync("USD");
+            var usd = await dealer.GetFiatAsync("USD");
             Assert.IsNotNull(usd);
             Assert.AreEqual("US Dollar", usd.name);
 
-            var ddd = await client.GetFiatAsync("DDD");
+            var ddd = await dealer.GetFiatAsync("DDD");
             Assert.IsNull(ddd);
 
 
@@ -46,7 +48,9 @@ namespace UnitTests
         [TestMethod]
         public async Task TestCommentAsync()
         {
-            var dealer = new DealerClient(networkId);
+            var url = "https://dealer.devnet.lyra.live:7070";
+            var dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
+
             var (pvt, pub) = Signatures.GenerateWallet();
 
             var tradid = "L8FufT33KuUrAsHYgCC1zo4gVRdZA8WBS7SMM8Tevq74B4N4wemz5mBh8CqCmgS3vKa4TiTsVH5kMi49Gn4962hfn8JcT7";

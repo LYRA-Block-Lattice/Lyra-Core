@@ -94,7 +94,9 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidCollateral;
 
             // check the price of order and collateral.
-            var dealer = new DealerClient(sys.PosWallet.NetworkId);
+            var dlrblk = await sys.Storage.FindLatestBlockAsync(order.dealerId);
+            var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+            var dealer = new DealerClient(uri);
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = order.crypto.Split('/')[1];
 
