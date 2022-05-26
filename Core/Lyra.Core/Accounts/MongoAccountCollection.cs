@@ -2143,7 +2143,7 @@ namespace Lyra.Core.Accounts
         public Block GetDealerByAccountId(string accountId)
         {
             var q = _blocks.OfType<DealerGenesisBlock>()
-                .Find(a => a.OwnerAccountId == accountId)
+                .Find(a => a.OwnerAccountId == accountId)                
                 .FirstOrDefault();
 
             return q;

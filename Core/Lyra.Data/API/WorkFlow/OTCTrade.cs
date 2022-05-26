@@ -15,6 +15,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         // data
         public string daoId { get; set; }   // DAO account ID
+        public string dealerId { get; set; }
         public string orderId { get; set; }   // Order account ID
         public string orderOwnerId { get; set; } // order's owner account ID
         public TradeDirection dir { get; set; }
@@ -39,6 +40,7 @@ namespace Lyra.Data.API.WorkFlow
 
             var ob = obOther as OTCTrade;
             return daoId == ob.daoId &&
+                dealerId == ob.dealerId &&
                 orderId == ob.orderId &&
                 orderOwnerId == ob.orderOwnerId &&
                 dir == ob.dir &&
@@ -54,13 +56,17 @@ namespace Lyra.Data.API.WorkFlow
         public override int GetHashCode()
         {
             return HashCode.Combine(HashCode.Combine(daoId, orderId, orderOwnerId, dir, crypto, fiat, price, amount), 
-                HashCode.Combine(collateral, pay, payVia));
+                HashCode.Combine(collateral, pay, payVia, dealerId));
         }
 
         public string GetExtraData(Block block)
         {
             string extraData = "";
             extraData += daoId + "|";
+            if (block.Version >= 9)
+            {
+                extraData += $"{dealerId}|";
+            }
             extraData += $"{orderId}|";
             extraData += $"{orderOwnerId}|";
             extraData += $"{dir}|";
@@ -72,7 +78,7 @@ namespace Lyra.Data.API.WorkFlow
             if(block.Version >= 6)
             {
                 extraData += $"{pay.ToBalanceLong()}|";
-            }            
+            }
             extraData += $"{payVia}|";
             return extraData;
         }
@@ -81,6 +87,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.ToString();
             result += $"DAO ID: {daoId}\n";
+            result += $"Dealer ID: {dealerId}\n";
             result += $"Order ID: {orderId}\n";
             result += $"Order Owner ID: {orderOwnerId}\n";
             result += $"Direction: {dir}\n";

@@ -79,6 +79,8 @@ namespace UnitTests
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
 
+        IDealer dlr;
+
         [TestInitialize]
         public void TestSetup()
         {
@@ -989,6 +991,7 @@ namespace UnitTests
             var order = new OTCOrder
             {
                 daoId = dao1.AccountID,
+                dealerId = dlr.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = fiat,
@@ -1176,6 +1179,7 @@ namespace UnitTests
             var trade = new OTCTrade
             {
                 daoId = dao1.AccountID,
+                dealerId = otcg.Order.dealerId,
                 orderId = otcg.AccountID,
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
@@ -1284,6 +1288,7 @@ namespace UnitTests
             var order = new OTCOrder
             {
                 daoId = dao1.AccountID,
+                dealerId = dlr.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = fiat,
@@ -1328,6 +1333,7 @@ namespace UnitTests
             var trade = new OTCTrade
             {
                 daoId = dao1.AccountID,
+                dealerId = otcg.Order.dealerId,
                 orderId = otcg.AccountID,
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
@@ -1655,6 +1661,9 @@ namespace UnitTests
             // get dealers
             var gdret = await testWallet.RPC.GetDealerByAccountIdAsync(testWallet.AccountId);
             Assert.IsTrue(gdret.Successful(), $"Can't get dealer: {gdret.ResultCode}");
+
+            dlr = gdret.As<IDealer>();
+            Assert.IsNotNull(dlr, "unable to get dealder genesis block");
         }
     }
 }

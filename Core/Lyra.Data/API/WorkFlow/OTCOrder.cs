@@ -12,6 +12,7 @@ namespace Lyra.Data.API.WorkFlow
     {
         // data
         public string daoId { get; set; }   // DAO account ID
+        public string dealerId { get; set; }
         public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
@@ -52,6 +53,7 @@ namespace Lyra.Data.API.WorkFlow
 
             var ob = obOther as OTCOrder;
             return daoId == ob.daoId &&
+                dealerId == ob.dealerId &&
                 dir == ob.dir &&
                 crypto == ob.crypto &&
                 fiat == ob.fiat &&
@@ -68,7 +70,7 @@ namespace Lyra.Data.API.WorkFlow
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(HashCode.Combine(daoId, dir, crypto, fiat, price, fiatPrice, priceType),
+            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, crypto, fiat, price, fiatPrice, priceType),
                 HashCode.Combine(amount, collateral, collateralPrice, limitMin, limitMax, payBy));
         }
 
@@ -76,6 +78,10 @@ namespace Lyra.Data.API.WorkFlow
         {
             string extraData = "";
             extraData += daoId + "|";
+            if (parent.Version >= 9)
+            {
+                extraData += $"{dealerId}|";
+            }
             extraData += $"{dir}|";
             extraData += $"{crypto}|";
             extraData += $"{fiat}|";
@@ -100,6 +106,7 @@ namespace Lyra.Data.API.WorkFlow
         {
             string result = base.ToString();
             result += $"DAO ID: {daoId}\n";
+            result += $"Dealer ID: {dealerId}\n";
             result += $"Direction: {dir}\n";
             result += $"Crypto: {crypto}\n";
             result += $"Fiat: {fiat}\n";

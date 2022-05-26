@@ -56,8 +56,13 @@ namespace Lyra.Core.WorkFlow
 
             // daoid
             var dao = await sys.Storage.FindLatestBlockAsync(order.daoId);
-            if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
+            if (string.IsNullOrEmpty(order.daoId) || dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
+
+            // verify Dealer exists
+            var dlr = await sys.Storage.FindLatestBlockAsync(order.dealerId);
+            if (string.IsNullOrEmpty(order.dealerId) || dlr == null || dlr is not DealerGenesisBlock)
+                return APIResultCodes.InvalidDealerServer;
 
             // check every field of Order
             // dir, priceType

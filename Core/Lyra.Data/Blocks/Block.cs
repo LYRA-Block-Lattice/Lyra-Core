@@ -661,5 +661,6 @@ namespace Lyra.Core.Blocks
         ArgumentOutOfRange,
         PriceChanged,
         InvalidDecimalDigitalCount,
+        InvalidDealerServer,
     }
 }

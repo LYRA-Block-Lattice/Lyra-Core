@@ -63,7 +63,9 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidOrder;
 
             var order = orderblk.Order;
-            if (order.crypto != trade.crypto ||
+            if (order.daoId != trade.daoId ||
+                order.dealerId != trade.dealerId ||
+                order.crypto != trade.crypto ||
                 order.fiat != trade.fiat ||
                 order.price != trade.price ||
                 order.amount < trade.amount ||
