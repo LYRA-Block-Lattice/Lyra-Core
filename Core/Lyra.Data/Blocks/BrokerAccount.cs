@@ -8,6 +8,8 @@ namespace Lyra.Data.Blocks
 {
     public interface IBrokerAccount
     {
+        public DateTime TimeStamp { get; set; }
+        public string AccountID { get; set; }
         public string Name { get; set; }
         public string OwnerAccountId { get; set; }
         /// <summary>

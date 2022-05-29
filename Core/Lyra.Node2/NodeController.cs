@@ -734,6 +734,14 @@ namespace LyraLexWeb2
             return await _node.FindExecForVoteAsync(voteid);
         }
 
+        [Route("GetDealerByAccountId")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetDealerByAccountIdAsync(accountId);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

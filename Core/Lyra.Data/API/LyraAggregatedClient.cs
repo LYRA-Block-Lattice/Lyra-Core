@@ -153,7 +153,7 @@ namespace Lyra.Data.API
 
         public void ReBase(bool toSeedOnly)
         {
-            //_seedsOnly = toSeedOnly;
+            _seedsOnly = toSeedOnly;
             //if (toSeedOnly)
             //    _baseIndex = _baseIndex++ % 4;
             //else
@@ -244,9 +244,12 @@ namespace Lyra.Data.API
         {
             var results = await WhenAllOrExceptionAsync(taskss);
 
-            var expectedCount = LyraGlobal.GetMajority(taskss.Count);
-            if (_seedsOnly)    // seed stage
-                expectedCount = 2;
+            var expectedCount = LyraGlobal.GetMajority(taskss.Count) - 1; // exclude self
+            //if (_seedsOnly)    // seed stage
+            //    expectedCount = 2;
+
+            if (_networkId == "testnet" && !_seedsOnly)
+                expectedCount = 7;
 
             var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
@@ -697,6 +700,11 @@ namespace Lyra.Data.API
         public Task<BlockAPIResult> FindExecForVoteAsync(string voteid)
         {
             return SeedClient.FindExecForVoteAsync(voteid);
+        }
+
+        public Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId)
+        {
+            return SeedClient.GetDealerByAccountIdAsync(accountId);
         }
     }
 }

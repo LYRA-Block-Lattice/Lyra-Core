@@ -4,6 +4,9 @@
     {
         Standard = 1,
         Savings = 2,
+        /// <summary>
+        /// generic service type
+        /// </summary>
         Service = 3,
         PoolFactory = 5,
         Pool = 6,
@@ -13,6 +16,9 @@
         DAO = 10,
         OTC = 11,
         Voting = 12,
+        /// <summary>
+        /// bound to a physical server
+        /// </summary>
         Server = 13,
     }
 }

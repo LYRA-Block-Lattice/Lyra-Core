@@ -1458,5 +1458,31 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = NodeService.Dag?.Storage.GetDealerByAccountId(accountId);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetDealerByAccountIdAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return Task.FromResult(result);
+        }
     }
 }

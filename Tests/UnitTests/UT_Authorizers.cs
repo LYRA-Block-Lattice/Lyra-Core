@@ -12,6 +12,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
+using Lyra.Data.API.ABI;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
@@ -77,6 +78,10 @@ namespace UnitTests
         AutoResetEvent _newAuth = new AutoResetEvent(false);
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
+
+        IDealer dlr;
+
+        DealerClient dealer;
 
         [TestInitialize]
         public void TestSetup()
@@ -402,6 +407,9 @@ namespace UnitTests
                 .Returns<string>((voteid) =>
                     Task.FromResult(api.FindExecForVoteAsync(voteid)).Result);
 
+            mock.Setup(x => x.GetDealerByAccountIdAsync(It.IsAny<string>()))
+                .Returns<string>(accountId => Task.FromResult(api.GetDealerByAccountIdAsync(accountId)).Result);
+
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Returns<ReceiveTransferBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
             mock.Setup(x => x.ReceiveTransferAndOpenAccountAsync(It.IsAny<OpenWithReceiveTransferBlock>()))
@@ -522,7 +530,7 @@ namespace UnitTests
         {
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
 #if DEBUG
-            var ret = _workflowEnds.WaitOne(200000);
+            var ret = _workflowEnds.WaitOne(10000);
 #else
             var ret = _workflowEnds.WaitOne(3000);
 #endif
@@ -980,11 +988,11 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
-            var dealer = new DealerClient("devnet");
             var prices = await dealer.GetPricesAsync();
             var order = new OTCOrder
             {
                 daoId = dao1.AccountID,
+                dealerId = dlr.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = fiat,
@@ -992,11 +1000,11 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 1,
-                collateral = 35_000_000,
+                collateral = 75_000_000,
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 1,
-                limitMax = 2000,
+                limitMax = 1000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -1172,6 +1180,7 @@ namespace UnitTests
             var trade = new OTCTrade
             {
                 daoId = dao1.AccountID,
+                dealerId = otcg.Order.dealerId,
                 orderId = otcg.AccountID,
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
@@ -1275,11 +1284,11 @@ namespace UnitTests
 
             var dao1 = daoret.GetBlock() as DaoRecvBlock;
 
-            var dealer = new DealerClient("devnet");
             var prices = await dealer.GetPricesAsync();
             var order = new OTCOrder
             {
                 daoId = dao1.AccountID,
+                dealerId = dlr.AccountID,
                 dir = TradeDirection.Sell,
                 crypto = crypto,
                 fiat = fiat,
@@ -1287,11 +1296,11 @@ namespace UnitTests
                 priceType = PriceType.Fixed,
                 price = 2000,
                 amount = 2,
-                collateral = 90000000,
+                collateral = 180000000,
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
                 limitMin = 200,
-                limitMax = 4000,
+                limitMax = 1000,
             };
 
             var ret = await testWallet.CreateOTCOrderAsync(order);
@@ -1324,15 +1333,16 @@ namespace UnitTests
             var trade = new OTCTrade
             {
                 daoId = dao1.AccountID,
+                dealerId = otcg.Order.dealerId,
                 orderId = otcg.AccountID,
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
                 crypto = "unittest/ETH",
                 fiat = fiat,
                 price = 2000,
-                amount = 1,
+                amount = 0.1m,
                 collateral = 40000000,
-                pay = 2000,
+                pay = 200,
                 payVia = "Paypal",
             };
             await test2Wallet.SyncAsync(null);
@@ -1348,7 +1358,7 @@ namespace UnitTests
             var otcs2 = otcret2.GetBlocks();
             Assert.IsTrue(otcs2.Count() == 2 && otcs2.Last() is IOtcOrder, $"otc block count not = 1.");
             var otcorderx = otcs2.Last() as IOtcOrder;
-            Assert.AreEqual(1m, otcorderx.Order.amount, "order not processed");
+            Assert.AreEqual(1.9m, otcorderx.Order.amount, "order not processed");
 
             // get trade
             var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
@@ -1621,10 +1631,41 @@ namespace UnitTests
 
         private async Task TestDealerAsync()
         {
-            //var (pvt, pub) = Signatures.GenerateWallet();
-            var ret = await testWallet.ServiceRequestAsync(BrokerActions.BRK_DLR_CREATE, PoolFactoryBlock.FactoryAccount,
-                LyraGlobal.MinimalDealerBalance, testWallet.AccountId);
+            var url = "https://dealer.devnet.lyra.live:7070";
+            dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
+            var dealerAbi = new LyraContractABI
+            {
+                svcReq = BrokerActions.BRK_DLR_CREATE,
+                targetAccountId = PoolFactoryBlock.FactoryAccount,
+                amounts = new Dictionary<string, decimal>
+                    {
+                        { LyraGlobal.OFFICIALTICKERCODE, 1 },
+                    },
+                objArgument = new DealerCreateArgument
+                {
+                    Name = "first dealer",
+                    Description = "a dealer for unit test",
+                    ServiceUrl = url,
+                    DealerAccountId = testWallet.AccountId,
+                    Mode = ClientMode.Permissionless
+                }
+            };
+
+            // we temp disable the dealer creation.
+            var ret = await testWallet.ServiceRequestAsync(dealerAbi);
+            await WaitWorkflow($"Create Dealer");
             Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
+
+            var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
+            await WaitBlock($"Create Dealer 2");
+            Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+
+            // get dealers
+            var gdret = await testWallet.RPC.GetDealerByAccountIdAsync(testWallet.AccountId);
+            Assert.IsTrue(gdret.Successful(), $"Can't get dealer: {gdret.ResultCode}");
+
+            dlr = gdret.As<IDealer>();
+            Assert.IsNotNull(dlr, "unable to get dealder genesis block");
         }
     }
 }

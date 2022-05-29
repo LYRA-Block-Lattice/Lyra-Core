@@ -2416,26 +2416,29 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region Generic Service Request Call
-        public async Task<AuthorizationAPIResult> ServiceRequestAsync(string svcReq, string targetAccountId, decimal amountToSend, params object[] args)
+        public class LyraContractABI
         {
-            throw new NotImplementedException();
+            public string svcReq { get; set; }
+            public string targetAccountId { get; set; }
+            public Dictionary<string, decimal> amounts { get; set; }
+            public object objArgument { get; set; }
+        }
+        /// <summary>
+        /// generic service request
+        /// call to a contract's function, like ETH ABI
+        /// </summary>
+        /// <param name="arg">LyraContractABI</param>
+        /// <returns></returns>
+        public async Task<AuthorizationAPIResult> ServiceRequestAsync(LyraContractABI arg)
+        {
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, svcReq },                
+                { Block.REQSERVICETAG, arg.svcReq },
+                { "objType", arg.objArgument.GetType().Name },
+                { "data", JsonConvert.SerializeObject(arg.objArgument) },
             };
 
-            int i = 0;
-            foreach(var arg in args)
-            {
-                tags.Add($"arg{i}", arg?.ToString() ?? "");
-            }
-
-            var amounts = new Dictionary<string, decimal>
-            {
-                { LyraGlobal.OFFICIALTICKERCODE, amountToSend },
-            };
-
-            var result = await SendExAsync(targetAccountId, amounts, tags);
+            var result = await SendExAsync(arg.targetAccountId, arg.amounts, tags);
             return result;
         }
         #endregion

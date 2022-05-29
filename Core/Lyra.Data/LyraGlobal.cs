@@ -24,7 +24,7 @@ namespace Lyra.Core.API
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
         public const int ProtocolVersion = 4;
-        public const int DatabaseVersion = 8;
+        public const int DatabaseVersion = 9;
 
         public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("3.3.1.0");
         public readonly static Version NODE_VERSION = typeof(LyraGlobal).Assembly.GetName().Version;

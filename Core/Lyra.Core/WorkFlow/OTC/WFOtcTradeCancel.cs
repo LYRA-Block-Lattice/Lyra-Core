@@ -74,7 +74,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 var lsb = sys.Storage.GetLastServiceBlock();
                 var wallet = sys.PosWallet;
                 var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
-                var dealer = new DealerClient(sys.PosWallet.NetworkId);
+                var dlrblk = await sys.Storage.FindLatestBlockAsync((tradeblk as IOtcTrade).Trade.dealerId);
+                var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+                var dealer = new DealerClient(uri);
                 var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
                 if (!ret.Successful() || !ret.Deserialize<TradeBrief>().IsCancellable)
                     return APIResultCodes.InvalidOperation;

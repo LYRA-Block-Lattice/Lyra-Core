@@ -900,5 +900,15 @@ namespace Lyra.Core.API
 
             return await GetAsync<BlockAPIResult>("FindExecForVote", args);
         }
+
+        public async Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+            };
+
+            return await GetAsync<BlockAPIResult>("GetDealerByAccountId", args);
+        }
     }
 }

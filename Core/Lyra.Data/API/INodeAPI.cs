@@ -115,6 +115,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> FindAllVoteForTradeAsync(string tradeid);
         Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid);
         Task<BlockAPIResult> FindExecForVoteAsync(string voteid);
+        Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId);
     }
 
     public interface INodeTransactionAPI

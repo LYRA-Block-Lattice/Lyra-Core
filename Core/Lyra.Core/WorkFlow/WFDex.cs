@@ -114,6 +114,11 @@ namespace Lyra.Core.WorkFlow
         }
     }
 
+    #endregion
+
+
+    #region BRK_DEX_MINT
+
     [LyraWorkFlow]
     public class WFDexMint : WorkFlowBase
     {
@@ -126,9 +131,6 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        #endregion
-
-        #region BRK_DEX_MINT
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
         {
             var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
