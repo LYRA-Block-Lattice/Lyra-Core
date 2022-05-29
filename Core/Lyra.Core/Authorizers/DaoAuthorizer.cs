@@ -75,7 +75,10 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            if(relTx == null)
+                return APIResultCodes.InvalidServiceRequest;
+
+            if (relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
             {
                 // verify its pf or dao
                 var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
