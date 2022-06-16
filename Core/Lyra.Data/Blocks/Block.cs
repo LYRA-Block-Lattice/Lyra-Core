@@ -662,5 +662,6 @@ namespace Lyra.Core.Blocks
         PriceChanged,
         InvalidDecimalDigitalCount,
         InvalidDealerServer,
+        NotOwnerOfOrder,
     }
 }

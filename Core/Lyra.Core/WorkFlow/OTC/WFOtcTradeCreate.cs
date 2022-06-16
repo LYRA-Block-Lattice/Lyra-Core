@@ -97,8 +97,17 @@ namespace Lyra.Core.WorkFlow
             var dealer = new DealerClient(uri);
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = order.crypto.Split('/')[1];
-            if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
-                return APIResultCodes.CollateralNotEnough;
+
+            if(trade.dir == TradeDirection.Buy)
+            {
+                if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
+                    return APIResultCodes.CollateralNotEnough;
+            }
+            else
+            {
+                if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount  * ((dao as IDao).SellerPar / 100))
+                    return APIResultCodes.CollateralNotEnough;
+            }
 
             return APIResultCodes.Success;
         }

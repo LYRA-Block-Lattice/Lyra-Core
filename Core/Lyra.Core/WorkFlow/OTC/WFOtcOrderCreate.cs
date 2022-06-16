@@ -65,27 +65,26 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidDealerServer;
 
             // check every field of Order
-            // dir, priceType
-            if (order.dir != TradeDirection.Sell ||
-                order.priceType != PriceType.Fixed)
-                return APIResultCodes.InvalidTagParameters;
 
             // crypto
             var tokenGenesis = await sys.Storage.FindTokenGenesisBlockAsync(null, order.crypto);
             if (tokenGenesis == null)
                 return APIResultCodes.TokenNotFound;
 
+            if (order.priceType != PriceType.Fixed)
+                return APIResultCodes.InvalidTagParameters;
+
             // fiat
             if (!FIATS.Contains(order.fiat))
                 return APIResultCodes.Unsupported;
 
+            // payBy
+            if (order.payBy == null || order.payBy.Length == 0)
+                return APIResultCodes.InvalidOrder;
+
             // price, amount
             if (order.price <= 0.00001m || order.amount < 0.0001m)
                 return APIResultCodes.InvalidAmount;
-
-            // payBy
-            if(order.payBy == null || order.payBy.Length == 0)
-                return APIResultCodes.InvalidOrder;
 
             // verify collateral
             var chgs = send.GetBalanceChanges(last);
@@ -103,9 +102,6 @@ namespace Lyra.Core.WorkFlow
             if (order.collateralPrice != prices["LYR"] || order.fiatPrice != prices[order.fiat.ToLower()])
                 return APIResultCodes.PriceChanged;
 
-            if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
-                return APIResultCodes.CollateralNotEnough;
-
             if (order.collateralPrice != prices["LYR"])
                 return APIResultCodes.PriceChanged;
 
@@ -115,7 +111,11 @@ namespace Lyra.Core.WorkFlow
             if (tokenSymbol == "USDT") usdprice = prices["USDT"];
             var selcryptoprice = Math.Round(usdprice / prices[order.fiat.ToLower()], 2);
 
-            var total = selcryptoprice * order.amount;
+            if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
+                return APIResultCodes.CollateralNotEnough;
+
+            // dir, priceType
+            var total = order.price * order.amount;
             // limit
             if (order.limitMin <= 0 || order.limitMax < order.limitMin
                 || order.limitMax > total)

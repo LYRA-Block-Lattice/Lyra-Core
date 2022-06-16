@@ -38,9 +38,13 @@ namespace Lyra.Core.WorkFlow.OTC
             var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
             if (tradeblk == null)
                 return APIResultCodes.InvalidTrade;
-            
-            if ((tradeblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+
+            var trade = tradeblk as IOtcTrade;
+            if (trade.Trade.dir == TradeDirection.Buy && trade.OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotOwnerOfTrade;
+
+            if (trade.Trade.dir == TradeDirection.Sell && trade.Trade.orderOwnerId != send.AccountID)
+                return APIResultCodes.NotOwnerOfOrder;
 
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Open)
                 return APIResultCodes.InvalidTradeStatus;

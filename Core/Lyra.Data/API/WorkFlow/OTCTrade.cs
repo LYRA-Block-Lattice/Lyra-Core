@@ -11,6 +11,10 @@ namespace Lyra.Data.API.WorkFlow
     // type
     public enum TradeDirection { Buy, Sell };
     public enum PriceType { Fixed, Float }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class OTCTrade
     {
         // data
@@ -22,8 +26,15 @@ namespace Lyra.Data.API.WorkFlow
         public string crypto { get; set; }
         public string fiat { get; set; }
         public decimal price { get; set; }
+        /// <summary>
+        /// always crypto
+        /// </summary>
         public decimal amount { get; set; }
         public decimal collateral { get; set; }
+
+        /// <summary>
+        /// always fiat
+        /// </summary>
         public decimal pay { get; set; }
         public string payVia { get; set; }
 

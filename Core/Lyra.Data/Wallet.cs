@@ -2231,7 +2231,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> OTCTradeBuyerPaymentSentAsync(string tradeid)
+        public async Task<AuthorizationAPIResult> OTCTradeFiatPaymentSentAsync(string tradeid)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2248,7 +2248,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> OTCTradeSellerGotPaymentAsync(string tradeid)
+        public async Task<AuthorizationAPIResult> OTCTradeFiatPaymentConfirmAsync(string tradeid)
         {
             var tags = new Dictionary<string, string>
             {

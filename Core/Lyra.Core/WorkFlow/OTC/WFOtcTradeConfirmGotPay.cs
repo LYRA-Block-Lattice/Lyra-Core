@@ -38,17 +38,27 @@ namespace Lyra.Core.WorkFlow.OTC
             if (tradeblk == null)
                 return APIResultCodes.InvalidTrade;
 
-            if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.FiatSent)
-                return APIResultCodes.InvalidTradeStatus;
+            var trade = tradeblk as IOtcTrade;
 
             // check if seller is the order's owner
-            var orderid = (tradeblk as IOtcTrade).Trade.orderId;
+            var orderid = trade.Trade.orderId;
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
 
-            if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+            var order = orderblk as IOtcOrder;
+
+            if (trade.OTStatus != OTCTradeStatus.FiatSent)
+                return APIResultCodes.InvalidTradeStatus;
+
+            if(trade.Trade.dir == TradeDirection.Buy && order.OwnerAccountId != send.AccountID)
+            {
                 return APIResultCodes.NotSellerOfTrade;
+            }
+            if(trade.Trade.dir == TradeDirection.Sell && trade.OwnerAccountId != send.AccountID)
+            {
+                return APIResultCodes.NotOwnerOfTrade;
+            }
 
             return APIResultCodes.Success;
         }
