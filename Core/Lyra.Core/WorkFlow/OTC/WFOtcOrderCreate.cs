@@ -65,7 +65,6 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidDealerServer;
 
             // check every field of Order
-
             // crypto
             var tokenGenesis = await sys.Storage.FindTokenGenesisBlockAsync(null, order.crypto);
             if (tokenGenesis == null)
@@ -91,6 +90,21 @@ namespace Lyra.Core.WorkFlow
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.collateral)
                 return APIResultCodes.InvalidCollateral;
+
+            // verify crypto
+            if(order.dir == TradeDirection.Sell)
+            {
+                if (!chgs.Changes.ContainsKey(order.crypto) ||
+                    chgs.Changes[order.crypto] != order.amount ||
+                    chgs.Changes.Count != 2)
+                    return APIResultCodes.InvalidAmountToSend;
+            }
+            else
+            {
+                // buy order
+                if (chgs.Changes.Count != 1)
+                    return APIResultCodes.InvalidAmountToSend;
+            }
 
             // check the price of order and collateral.
             var dlrblk = await sys.Storage.FindLatestBlockAsync(order.dealerId);
@@ -169,7 +183,10 @@ namespace Lyra.Core.WorkFlow
             
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
-            dict[order.crypto] -= order.amount;
+
+            if(order.dir == TradeDirection.Sell)
+                dict[order.crypto] -= order.amount;
+
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
 
@@ -214,7 +231,9 @@ namespace Lyra.Core.WorkFlow
                 OOStatus = OTCOrderStatus.Open,
             };
 
-            otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());
+            if(order.dir == TradeDirection.Sell)
+                otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());
+
             otcblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 
             otcblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

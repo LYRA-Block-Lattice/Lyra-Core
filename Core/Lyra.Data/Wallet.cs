@@ -32,12 +32,12 @@ namespace Lyra.Core.Accounts
 
         public string NetworkId => _store.NetworkId;
 
-        private string _newVoteFor;
+        private string? _newVoteFor;
         public void SetVoteFor(string voteTarget)
         {
             _newVoteFor = voteTarget;
         }
-        public string VoteFor => _newVoteFor ?? (_lastSyncBlock?.VoteFor);
+        public string? VoteFor => _newVoteFor ?? (_lastSyncBlock?.VoteFor);
 
         private bool _noConsole;
 
@@ -47,8 +47,8 @@ namespace Lyra.Core.Accounts
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
         //private RPCClient _rpcClient = null;
         private readonly IAccountDatabase _store;
-        private ILyraAPI _rpcClient = null;
-        public ILyraAPI RPC => _rpcClient;
+        private ILyraAPI? _rpcClient = null;
+        public ILyraAPI? RPC => _rpcClient;
 
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
@@ -73,7 +73,7 @@ namespace Lyra.Core.Accounts
 
         public bool NoConsole { get => _noConsole; set => _noConsole = value; }
 
-        protected Wallet(IAccountDatabase storage, string name, ILyraAPI rpcClient = null)
+        protected Wallet(IAccountDatabase storage, string name, ILyraAPI? rpcClient = null)
         {
             _store = storage;
             AccountName = name;
@@ -114,7 +114,7 @@ namespace Lyra.Core.Accounts
             return $"{Utilities.GetLyraDataDir(NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
         }
 
-        public static Wallet Open(IAccountDatabase store, string name, string password, ILyraAPI rpcClient = null)
+        public static Wallet Open(IAccountDatabase store, string name, string password, ILyraAPI? rpcClient = null)
         {
             var wallet = new Wallet(store, name, rpcClient);
             store.Open(name, password);
@@ -2206,9 +2206,11 @@ namespace Lyra.Core.Accounts
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.collateral },
-                { order.crypto, order.amount }
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.collateral },                
             };
+
+            if (order.dir == TradeDirection.Sell)
+                amounts.Add(order.crypto, order.amount);
 
             var result = await SendExAsync(order.daoId, amounts, tags);
             return result;
@@ -2226,6 +2228,9 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.collateral },
             };
+
+            if (trade.dir == TradeDirection.Sell)
+                amounts.Add(trade.crypto, trade.amount);
 
             var result = await SendExAsync(trade.daoId, amounts, tags);
             return result;

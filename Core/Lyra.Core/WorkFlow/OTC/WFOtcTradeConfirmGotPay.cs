@@ -22,7 +22,11 @@ namespace Lyra.Core.WorkFlow.OTC
             {
                 Action = BrokerActions.BRK_OTC_TRDPAYGOT,
                 RecvVia = BrokerRecvType.None,
-                Steps = new[] { ChangeStateAsync, SendCryptoProductToBuyerAsync, SendCollateralToBuyerAsync }
+                Steps = new[] { 
+                    ChangeStateAsync, 
+                    SendCryptoProductFromTradeToBuyerAsync, 
+                    SendCollateralFromDAOToBuyerAsync
+                }
             };
         }
 
@@ -63,20 +67,26 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        protected Task<TransactionBlock> SendCryptoProductToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             return TradeBlockOperateAsync(sys, sendBlock,
                 () => new OtcTradeSendBlock(),
                 (b) =>
                 {
-                    (b as IOtcTrade).OTStatus = OTCTradeStatus.CryptoReleased;
-                    (b as SendTransferBlock).DestinationAccountId = (b as IOtcTrade).OwnerAccountId;
-                    (b as SendTransferBlock).Balances[(b as IOtcTrade).Trade.crypto] = 0;
-                    (b as SendTransferBlock).Balances[LyraGlobal.OFFICIALTICKERCODE] = 0;
+                    var trade = b as IOtcTrade;
+
+                    trade.OTStatus = OTCTradeStatus.CryptoReleased;
+
+                    if(trade.Trade.dir == TradeDirection.Buy)
+                        (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
+                    else
+                        (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
+
+                    b.Balances[trade.Trade.crypto] = 0;
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> SendCollateralFromDAOToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             var tradelatest = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
