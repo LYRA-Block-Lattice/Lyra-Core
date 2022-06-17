@@ -1061,13 +1061,13 @@ namespace UnitTests
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
 
-            //var tradgen = await CreateOTCTradeAsync(dao1 as TransactionBlock, otcg, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell);
-            //await CancelOTCTrade(dao1 as TransactionBlock, tradgen);
-            //await test2Wallet.SyncAsync(null);
-            //var test2balanceA = test2Wallet.BaseBalance;
-            //Assert.AreEqual(test2balance - 13m, test2balanceA, "Balance not ok after cancel trade.");
-
             var tradgen = await CreateOTCTradeAsync(dao1 as TransactionBlock, otcg, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell);
+            await CancelOTCTrade(dao1 as TransactionBlock, tradgen);
+            await test2Wallet.SyncAsync(null);
+            var test2balanceA = test2Wallet.BaseBalance;
+            Assert.AreEqual(test2balance - 13m, test2balanceA, "Balance not ok after cancel trade.");
+
+            tradgen = await CreateOTCTradeAsync(dao1 as TransactionBlock, otcg, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell);
             // cancel one
 
             await CheckDAO(name, desc);
@@ -1099,8 +1099,8 @@ namespace UnitTests
 
             await test2Wallet.SyncAsync(null);
             var buyerfee = Math.Round(200m * order.fiatPrice * 0.001m / order.collateralPrice, 8);
-            var buyershouldget = test2balance - 13 - buyerfee;
-            // create trade 10 lyr, send confirm 1, fee 2
+            var buyershouldget = test2balance - 13 - buyerfee - 13;
+            // create trade 10 lyr, send confirm 1, fee 2, cancel 13
             Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
 
             // delist the order
@@ -1132,11 +1132,11 @@ namespace UnitTests
             await testWallet.SyncAsync(null);
             var sellerfeeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.01m) / order.collateralPrice, 8);
             var networkfeeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
-            var lyrshouldbe = testbalance - 10000 - 10 - 4 - 2 - sellerfeeToPay - networkfeeToPay; 
-            // mint, create order, 4 send, 2 LYR for close order
+            var lyrshouldbe = testbalance - 10000 - 10 - 4 - 1 - sellerfeeToPay - networkfeeToPay; 
+            // mint, create order, 4 send, 1 LYR for close order
             
             if (!firstTime)
-                lyrshouldbe += 10001;
+                lyrshouldbe += 10000;
 
             Assert.AreEqual(lyrshouldbe, testWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {testWallet.BaseBalance} diff {lyrshouldbe - testWallet.BaseBalance}");
             var bal2 = testWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();

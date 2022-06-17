@@ -78,7 +78,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidTrade;
 
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Open)
-                return APIResultCodes.InvalidTrade;
+                return APIResultCodes.InvalidOperation;
 
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if(orderblk == null || (tradeblk as IOtcTrade).Trade.orderId != orderid
@@ -118,9 +118,6 @@ namespace Lyra.Core.WorkFlow.OTC
                 {
                     // recv
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
-
-                    // broker
-                    (b as IBrokerAccount).RelatedTx = send.Hash;
 
                     // balance
                     var oldbalance = b.Balances.ToDecimalDict();

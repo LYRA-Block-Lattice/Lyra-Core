@@ -32,6 +32,9 @@ namespace Lyra.Core.WorkFlow.OTC
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
+            if (send.Tags == null)
+                throw new ArgumentNullException();
+
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
@@ -43,6 +46,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidTrade;
 
             var trade = tradeblk as IOtcTrade;
+            if (trade == null)
+                return APIResultCodes.InvalidParameterFormat;
 
             // check if seller is the order's owner
             var orderid = trade.Trade.orderId;
@@ -51,6 +56,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidOrder;
 
             var order = orderblk as IOtcOrder;
+            if (order == null)
+                return APIResultCodes.InvalidParameterFormat;
 
             if (trade.OTStatus != OTCTradeStatus.FiatSent)
                 return APIResultCodes.InvalidTradeStatus;

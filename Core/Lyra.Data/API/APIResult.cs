@@ -23,7 +23,7 @@ namespace Lyra.Core.API
         public APIResult()
         {
             ResultCode = APIResultCodes.UnknownError;
-            //ResultMessage = string.Empty;
+            ResultMessage = string.Empty;
         }
 
         public static APIResult Success => new APIResult { ResultCode = APIResultCodes.Success };
@@ -33,16 +33,17 @@ namespace Lyra.Core.API
             return ResultCode == APIResultCodes.Success;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj != null &&
-                   GetHashCode() == obj.GetHashCode();
+            return Equals(obj as APIResult);
         }
 
-        public bool Equals(APIResult other)
+        public bool Equals(APIResult? other)
         {
-            return other != null &&
-                   GetHashCode() == other.GetHashCode();
+            if (other is null)
+                return false;
+
+            return GetHashCode() == other.GetHashCode();
         }
 
         public override int GetHashCode()
@@ -63,7 +64,7 @@ namespace Lyra.Core.API
 
     public class SimpleJsonAPIResult : APIResult
     {
-        public string JsonString { get; set; }
+        public string JsonString { get; set; } = null!;
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), JsonString);
 
@@ -84,7 +85,7 @@ namespace Lyra.Core.API
 
     public class TransactionsAPIResult : APIResult
     {
-        public List<TransactionDescription> Transactions { get; set; }
+        public List<TransactionDescription>? Transactions { get; set; }
 
         public override int GetHashCode()
         {
@@ -96,7 +97,7 @@ namespace Lyra.Core.API
                 {
                     foreach (var t in Transactions)
                     {
-                        hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                        hash = hash * 31 + t.GetHashCode();
                     }
                 }
 
@@ -108,8 +109,8 @@ namespace Lyra.Core.API
     public class AccountHeightAPIResult : APIResult
     {
         public long Height { get; set; }
-        public string SyncHash { get; set; }
-        public string NetworkId { get; set; }
+        public string SyncHash { get; set; } = null!;
+        public string NetworkId { get; set; } = null!;
 
         public AccountHeightAPIResult(): base()
         {
@@ -122,8 +123,8 @@ namespace Lyra.Core.API
     // returns the authorization signatures for send or receive blocks
     public class AuthorizationAPIResult: APIResult
     {
-        public string TxHash { get; set; }
-        public override bool Equals(object obj)
+        public string TxHash { get; set; } = null!;
+        public override bool Equals(object? obj)
         {
             return obj is AuthorizationAPIResult result &&
                    base.Equals(obj) &&
@@ -138,14 +139,14 @@ namespace Lyra.Core.API
 
     public class TradeAPIResult : APIResult
     {
-        public string TradeBlockData { get; set; }
+        public string TradeBlockData { get; set; } = null!;
 
         public void SetBlock(TradeBlock block)
         {
             TradeBlockData = JsonConvert.SerializeObject(block);
         }
 
-        public TradeBlock GetBlock()
+        public TradeBlock? GetBlock()
         {
            return JsonConvert.DeserializeObject<TradeBlock>(TradeBlockData);
         }
@@ -155,14 +156,14 @@ namespace Lyra.Core.API
 
     public class TradeOrderAuthorizationAPIResult : AuthorizationAPIResult
     {
-        public string TradeBlockData { get; set; }
+        public string TradeBlockData { get; set; } = null!;
 
         public void SetBlock(TradeBlock block)
         {
             TradeBlockData = JsonConvert.SerializeObject(block);
         }
 
-        public TradeBlock GetBlock()
+        public TradeBlock? GetBlock()
         {
             return JsonConvert.DeserializeObject<TradeBlock>(TradeBlockData);
         }
@@ -172,14 +173,14 @@ namespace Lyra.Core.API
 
     public class ActiveTradeOrdersAPIResult : APIResult
     {
-        public string ListDataSerialized { get; set; }
+        public string ListDataSerialized { get; set; } = null!;
 
         public void SetList(List<TradeOrderBlock> list)
         {
             ListDataSerialized = JsonConvert.SerializeObject(list);
         }
 
-        public List<TradeOrderBlock> GetList()
+        public List<TradeOrderBlock>? GetList()
         {
             return JsonConvert.DeserializeObject<List<TradeOrderBlock>>(ListDataSerialized);
         }
@@ -190,14 +191,14 @@ namespace Lyra.Core.API
 
     public class NonFungibleListAPIResult : APIResult
     {
-        public string ListDataSerialized { get; set; }
+        public string ListDataSerialized { get; set; } = null!;
 
         public void SetList(List<NonFungibleToken> list)
         {
             ListDataSerialized = JsonConvert.SerializeObject(list);
         }
 
-        public List<NonFungibleToken> GetList()
+        public List<NonFungibleToken>? GetList()
         {
             return JsonConvert.DeserializeObject<List<NonFungibleToken>>(ListDataSerialized);
         }
@@ -218,7 +219,7 @@ namespace Lyra.Core.API
             Container.Add(name, new MultiBlockAPIResult(blocks));
         }
 
-        public IEnumerable<Block> GetBlocks(string name)
+        public IEnumerable<Block?> GetBlocks(string name)
         {
             if(Container.ContainsKey(name))
             {
@@ -249,8 +250,8 @@ namespace Lyra.Core.API
 
     public class MultiBlockAPIResult : APIResult
     {
-        public string[] BlockDatas { get; set; }
-        public BlockTypes[] ResultBlockTypes { get; set; }
+        public string[] BlockDatas { get; set; } = null!;
+        public BlockTypes[] ResultBlockTypes { get; set; } = null!;
 
         public MultiBlockAPIResult()
         {
@@ -267,7 +268,7 @@ namespace Lyra.Core.API
             ResultBlockTypes = blocks.Select(a => a.BlockType).ToArray();
         }
 
-        public IEnumerable<Block> GetBlocks()
+        public IEnumerable<Block?> GetBlocks()
         {
             for(int i = 0; i < BlockDatas?.Length; i++)
             {
@@ -276,12 +277,12 @@ namespace Lyra.Core.API
             }
         }
 
-        public IEnumerable<T> GetBlocks<T>() where T : Block
+        public IEnumerable<T?> GetBlocks<T>() where T : Block
         {
             for (int i = 0; i < BlockDatas?.Length; i++)
             {
                 var block = new BlockAPIResult { BlockData = BlockDatas[i], ResultBlockType = ResultBlockTypes[i] };
-                yield return (T)block.GetBlock();
+                yield return block.GetBlock() as T;
             }
         }
 
@@ -310,17 +311,17 @@ namespace Lyra.Core.API
     {
         public class MyBinder : Binder
         {
-            public override MethodBase SelectMethod(BindingFlags bindingAttr, MethodBase[] match, Type[] types, ParameterModifier[] modifiers)
+            public override MethodBase? SelectMethod(BindingFlags bindingAttr, MethodBase[] match, Type[] types, ParameterModifier[]? modifiers)
             {
                 return match.First(m => m.IsGenericMethod);
             }
 
             #region not implemented
-            public override MethodBase BindToMethod(BindingFlags bindingAttr, MethodBase[] match, ref object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] names, out object state) => throw new NotImplementedException();
-            public override FieldInfo BindToField(BindingFlags bindingAttr, FieldInfo[] match, object value, CultureInfo culture) => throw new NotImplementedException();
-            public override PropertyInfo SelectProperty(BindingFlags bindingAttr, PropertyInfo[] match, Type returnType, Type[] indexes, ParameterModifier[] modifiers) => throw new NotImplementedException();
-            public override object ChangeType(object value, Type type, CultureInfo culture) => throw new NotImplementedException();
-            public override void ReorderArgumentArray(ref object[] args, object state) => throw new NotImplementedException();
+            public override MethodBase BindToMethod(BindingFlags bindingAttr, MethodBase[] match, ref object?[] args, ParameterModifier[]? modifiers, CultureInfo? culture, string[]? names, out object? state) => throw new NotImplementedException();
+            public override FieldInfo BindToField(BindingFlags bindingAttr, FieldInfo[] match, object value, CultureInfo? culture) => throw new NotImplementedException();
+            public override PropertyInfo SelectProperty(BindingFlags bindingAttr, PropertyInfo[] match, Type? returnType, Type[]? indexes, ParameterModifier[]? modifiers) => throw new NotImplementedException();
+            public override object ChangeType(object value, Type type, CultureInfo? culture) => throw new NotImplementedException();
+            public override void ReorderArgumentArray(ref object?[] args, object state) => throw new NotImplementedException();
             #endregion
         }
 
@@ -333,20 +334,23 @@ namespace Lyra.Core.API
                 new[] { typeof(string) },
                 null);
 
-            var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-            TypeDict[bt] = genericMethodInfo;
+            if(methodInfo != null)
+            {
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                TypeDict[bt] = genericMethodInfo;
+            }
 
             //File.AppendAllText(@"c:\tmp\hash.txt", $"{bt} {genericMethodInfo}\n");
         }
 
-        public string BlockData { get; set; }
+        public string BlockData { get; set; } = null!;
         public BlockTypes ResultBlockType { get; set; }
 
-        private static Block Create(Type t)
+        private static Block? Create(Type t)
         {
             try
             {
-                return (Block)Activator.CreateInstance(t);
+                return Activator.CreateInstance(t) as Block;
             }
             catch(Exception ex)
             {
@@ -372,13 +376,20 @@ namespace Lyra.Core.API
                     BlockTypes bt;
                     try
                     {
-                        MethodInfo dynMethod = entry.t.GetMethod("GetBlockType",
+                        MethodInfo? dynMethod = entry.t.GetMethod("GetBlockType",
                             BindingFlags.NonPublic | BindingFlags.Instance);
 
-                        bt = (BlockTypes)dynMethod.Invoke(entry.b, new object[] { });
-                        //Console.WriteLine($"{bt}: {entry.t.Name}");
-                        if (bt != BlockTypes.Null)
-                            Register(bt, entry.t);
+                        if(dynMethod != null)
+                        {
+                            var x = dynMethod.Invoke(entry.b, new object[] { });
+                            if(x != null)
+                            {
+                                bt = (BlockTypes)x;
+                                //Console.WriteLine($"{bt}: {entry.t.Name}");
+                                if (bt != BlockTypes.Null)
+                                    Register(bt, entry.t);
+                            }
+                        }
                     }
                     catch { }
                 }
@@ -399,14 +410,14 @@ namespace Lyra.Core.API
             BlockData = JsonConvert.SerializeObject(block);
         }
 
-        public T As<T>() where T : class
+        public T? As<T>() where T : class
         {
             return Successful() ? GetBlock() as T : null;
         }
 
-        public Block GetBlock()
+        public Block? GetBlock()
         {
-            Block block = null;
+            Block? block = null;
 
             if (TypeDict.ContainsKey(ResultBlockType))
                 block = TypeDict[ResultBlockType].Invoke(null, new object[] { BlockData }) as Block;
@@ -436,32 +447,32 @@ namespace Lyra.Core.API
     //  (instead of returning the entire send block and its previous block and calculating at the client)
     public class NewTransferAPIResult: APIResult
     {
-        public TransactionInfo Transfer { get; set; }
-        public string SourceHash { get; set; }
-        public NonFungibleToken NonFungibleToken { get; set; }
+        public TransactionInfo? Transfer { get; set; }
+        public string? SourceHash { get; set; }
+        public NonFungibleToken? NonFungibleToken { get; set; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Transfer, SourceHash, NonFungibleToken);
     }
 
     public class NewTransferAPIResult2 : APIResult
     {
-        public BalanceChanges Transfer { get; set; }
-        public string SourceHash { get; set; }
-        public NonFungibleToken NonFungibleToken { get; set; }
+        public BalanceChanges? Transfer { get; set; }
+        public string? SourceHash { get; set; }
+        public NonFungibleToken? NonFungibleToken { get; set; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Transfer, SourceHash, NonFungibleToken);
     }
 
     public class NewFeesAPIResult : APIResult
     {
-        public UnSettledFees pendingFees { get; set; }
+        public UnSettledFees? pendingFees { get; set; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), pendingFees);
     }
 
     public class GetListStringAPIResult : APIResult
     {
-        public List<string> Entities { get; set; }
+        public List<string>? Entities { get; set; }
 
         public override int GetHashCode()
         {
@@ -481,35 +492,35 @@ namespace Lyra.Core.API
     public class GetVersionAPIResult : APIResult
     {
         public int ApiVersion { get; set; }
-        public string NodeVersion { get; set; }
+        public string NodeVersion { get; set; } = null!;
         public bool UpgradeNeeded { get; set; }
         public bool MustUpgradeToConnect { get; set; }
-        public string PosAccountId { get; set; }
+        public string PosAccountId { get; set; } = null!;
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ApiVersion, NodeVersion, UpgradeNeeded, MustUpgradeToConnect);
     }
 
     public class GetSyncStateAPIResult : APIResult
     {
-        public string NetworkID { get; set; }
-        public string Signature { get; set; }   // sign public ip with private key
+        public string NetworkID { get; set; } = null!;
+        public string Signature { get; set; } = null!; // sign public ip with private key
         public ConsensusWorkingMode SyncState { get; set; }
-        public string LastConsolidationHash { get; set; }
-        public NodeStatus Status { get; set; }
+        public string LastConsolidationHash { get; set; } = null!;
+        public NodeStatus Status { get; set; } = null!;
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), NetworkID, LastConsolidationHash, Status);
     }
 
     public class ExchangeAccountAPIResult : APIResult
     {
-        public string AccountId { get; set; }
+        public string AccountId { get; set; } = null!;
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), AccountId);
     }
 
     public class ExchangeBalanceAPIResult : ExchangeAccountAPIResult
     {
-        public Dictionary<string, decimal> Balance { get; set; }
+        public Dictionary<string, decimal> Balance { get; set; } = null!;
         public override int GetHashCode()
         {
             unchecked
@@ -530,19 +541,19 @@ namespace Lyra.Core.API
     {
         public bool HasEvent { get; set; }
         public NotifySource Source { get; set; }
-        public string Action { get; set; }
-        public string Catalog { get; set; }
-        public string ExtraInfo { get; set; }
+        public string Action { get; set; } = null!;
+        public string Catalog { get; set; } = null!;
+        public string ExtraInfo { get; set; } = null!;
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), HasEvent, Source, Action, Catalog, ExtraInfo);
     }
 
     public class PoolInfoAPIResult : BlockAPIResult
     {
-        public string PoolFactoryAccountId { get; set; }
-        public string PoolAccountId { get; set; }
-        public string Token0 { get; set; }
-        public string Token1 { get; set; }
+        public string PoolFactoryAccountId { get; set; } = null!;
+        public string? PoolAccountId { get; set; }
+        public string? Token0 { get; set; }
+        public string? Token1 { get; set; }
         //public long SwapRito { get; set; }    // token0 / token1
     }
 

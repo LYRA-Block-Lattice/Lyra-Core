@@ -29,24 +29,29 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        public async override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
+        public override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
         {
+            if (send.Tags == null)
+                throw new ArgumentNullException();
+
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            if(trade == null)
+                throw new ArgumentNullException();
 
             if (trade.dir == TradeDirection.Buy)
             {
-                return new[] {
+                return Task.FromResult(new[] {
                     SendTokenFromOrderToTradeAsync,
-                    TradeGenesisReceiveAsync };
+                    TradeGenesisReceiveAsync });
             }
             else
             {
-                return new[] {
+                return Task.FromResult(new[] {
                     SendTokenFromDaoToOrderAsync,
                     OrderReceiveCryptoAsync,
                     SendTokenFromOrderToTradeAsync,
                     TradeGenesisReceiveAsync
-                };
+                });
             }
         }
 
