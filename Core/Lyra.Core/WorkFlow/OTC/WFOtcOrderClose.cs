@@ -125,11 +125,18 @@ namespace Lyra.Core.WorkFlow.OTC
                 OOStatus = OTCOrderStatus.Closed,
             };
 
-            // when delist, the crypto balance is already zero. 
-            // no balance change will vialate the rule of send
-            // so we reduce the balance of LYR, or the collateral, of 0.00000001
-            if (sendToTradeBlock.Balances[order.crypto] != 0)
-                sendToTradeBlock.Balances[order.crypto] = 0;
+            if(order.dir == TradeDirection.Sell)
+            {
+                // when delist, the crypto balance is already zero. 
+                // no balance change will vialate the rule of send
+                // so we reduce the balance of LYR, or the collateral, of 0.00000001
+                if (sendToTradeBlock.Balances[order.crypto] != 0)
+                    sendToTradeBlock.Balances[order.crypto] = 0;
+            }
+            else
+            {
+                // the buy order has no crypto at all.
+            }
             
             sendToTradeBlock.Balances["LYR"] = 0;          // all remaining LYR
 
