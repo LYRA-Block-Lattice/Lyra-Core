@@ -67,6 +67,8 @@ namespace Lyra.Core.Blocks
                     Signature = "",
                     Height = 0,
                     TimeStamp = DateTime.UtcNow,
+                    Fee = 0m,
+                    FeeType = AuthorizationFeeTypes.NoFee
                 });
         }
 

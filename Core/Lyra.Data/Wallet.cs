@@ -1496,7 +1496,10 @@ namespace Lyra.Core.Accounts
             foreach (var chg in new_transfer_info.Transfer.Changes)
             {
                 if (recvBalances.ContainsKey(chg.Key))
+                {
                     recvBalances[chg.Key] += chg.Value;
+                    //Console.WriteLine($"Receiving {chg.Key}: {chg.Value}");
+                }                    
                 else
                     recvBalances.Add(chg.Key, chg.Value);
             }

@@ -25,7 +25,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 Steps = new[] { 
                     ChangeStateAsync, 
                     SendCryptoProductFromTradeToBuyerAsync, 
-                    SendCollateralFromDAOToBuyerAsync
+                    SendCollateralFromDAOToTradeOwnerAsync
                 }
             };
         }
@@ -93,9 +93,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralFromDAOToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
         {
-            var tradelatest = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
             var trade = (tradelatest as IOtcTrade).Trade;
             var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
@@ -105,52 +105,41 @@ namespace Lyra.Core.WorkFlow.OTC
             var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
 
             // buyer fee calculated as LYR
-            var buyerFee = Math.Round(((trade.pay * (odrgen as IOtcOrder).Order.fiatPrice) * daoforodr.BuyerFeeRatio) / (odrgen as IOtcOrder).Order.collateralPrice, 8);
-            var amountToSeller = trade.collateral - buyerFee;
-
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendCollateral = new DaoSendBlock
+            var totalAmount = trade.amount;
+            decimal totalFee = 0;
+            var order = (odrgen as IOtcOrder).Order;
+            // transaction fee
+            if (trade.dir == TradeDirection.Sell)
             {
-                // block
-                ServiceHash = sb.Hash,
+                totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
+            }
+            else
+            {
+                totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
+            }
 
-                // trans
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                AccountID = daolastblock.AccountID,
+            // network fee
+            var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
 
-                // send
-                DestinationAccountId = (tradelatest as IBrokerAccount).OwnerAccountId,
+            var amountToSeller = trade.collateral - totalFee;
+            //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");
 
-                // broker
-                Name = ((IBrokerAccount)daolastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)daolastblock).OwnerAccountId,
-                RelatedTx = sendBlock.Hash,
+            return await TransactionOperateAsync(sys, send.Hash, daolastblock,
+                () => daolastblock.GenInc<DaoSendBlock>(),
+                (b) =>
+                {
+                    // block
+                    b.Fee = networkFee;
+                    b.FeeType = AuthorizationFeeTypes.Dynamic;
 
-                // profiting
-                PType = ((IProfiting)daolastblock).PType,
-                ShareRito = ((IProfiting)daolastblock).ShareRito,
-                Seats = ((IProfiting)daolastblock).Seats,
+                    // recv
+                    (b as SendTransferBlock).DestinationAccountId = (tradelatest as IOtcTrade).OwnerAccountId;
 
-                // dao
-                SellerFeeRatio = ((IDao)daolastblock).SellerFeeRatio,
-                BuyerFeeRatio = ((IDao)daolastblock).BuyerFeeRatio,
-                SellerPar = ((IDao)daolastblock).SellerPar,
-                BuyerPar = ((IDao)daolastblock).BuyerPar,
-                Description = ((IDao)daolastblock).Description,
-                Treasure = ((IDao)daolastblock).Treasure.ToDecimalDict().ToLongDict(),
-            };
-
-            // calculate balance
-            var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
-            sendCollateral.Balances = dict.ToLongDict();
-
-            sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-            sendCollateral.InitializeBlock(daolastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendCollateral;
+                    // balance
+                    var oldbalance = b.Balances.ToDecimalDict();
+                    oldbalance[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
+                    b.Balances = oldbalance.ToLongDict();
+                });
         }
 
         protected Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)

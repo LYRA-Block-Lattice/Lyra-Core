@@ -1098,7 +1098,26 @@ namespace UnitTests
                 $"Trade status not changed to ProductReleased");
 
             await test2Wallet.SyncAsync(null);
-            var buyerfee = Math.Round(200m * order.fiatPrice * 0.001m / order.collateralPrice, 8);
+
+            // buyer fee calculated as LYR
+            var totalAmount = tradgen.Trade.amount;
+            decimal totalFee = 0;
+            var trade = tradgen.Trade;
+            // transaction fee
+            if (trade.dir == TradeDirection.Sell)
+            {
+                totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoblk.SellerFeeRatio) / order.collateralPrice, 8);
+            }
+            else
+            {
+                totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoblk.BuyerFeeRatio) / order.collateralPrice, 8);
+            }
+
+            // network fee
+            var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
+
+            var buyerfee = totalFee + networkFee;
+            Console.WriteLine($"Cost calculated txfee: {totalFee} netfee: {networkFee} Real: {test2balance - test2Wallet.BaseBalance} should be: {totalFee + networkFee + 26}");
             var buyershouldget = test2balance - 13 - buyerfee - 13;
             // create trade 10 lyr, send confirm 1, fee 2, cancel 13
             Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
@@ -1130,9 +1149,18 @@ namespace UnitTests
             await CheckDAO(name, desc);
 
             await testWallet.SyncAsync(null);
-            var sellerfeeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.01m) / order.collateralPrice, 8);
+
+            if (order.dir == TradeDirection.Sell)
+            {
+                totalFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoblk.SellerFeeRatio) / order.collateralPrice, 8);
+            }
+            else
+            {
+                totalFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoblk.BuyerFeeRatio) / order.collateralPrice, 8);
+            }
+
             var networkfeeToPay = Math.Round((((2000m * 0.1m) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
-            var lyrshouldbe = testbalance - 10000 - 10 - 4 - 1 - sellerfeeToPay - networkfeeToPay; 
+            var lyrshouldbe = testbalance - 10000 - 10 - 4 - 1 - totalFee - networkfeeToPay; 
             // mint, create order, 4 send, 1 LYR for close order
             
             if (!firstTime)
