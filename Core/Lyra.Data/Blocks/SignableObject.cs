@@ -13,9 +13,9 @@ namespace Lyra.Core.Blocks
 {
     abstract public class SignableObject : IEquatable<SignableObject>
     {
-        public string Hash { get; set; }
+        public string? Hash { get; set; }
 
-        public string Signature { get; set; }
+        public string? Signature { get; set; }
 
         public abstract string GetHashInput();
 
@@ -105,12 +105,12 @@ namespace Lyra.Core.Blocks
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as SignableObject);
         }
 
-        public bool Equals(SignableObject other)
+        public bool Equals(SignableObject? other)
         {
             return other != null &&
                    Hash == other.Hash;
@@ -121,12 +121,12 @@ namespace Lyra.Core.Blocks
             return HashCode.Combine(Hash);
         }
 
-        public static bool operator ==(SignableObject left, SignableObject right)
+        public static bool operator ==(SignableObject? left, SignableObject? right)
         {
             return EqualityComparer<SignableObject>.Default.Equals(left, right);
         }
 
-        public static bool operator !=(SignableObject left, SignableObject right)
+        public static bool operator !=(SignableObject? left, SignableObject? right)
         {
             return !(left == right);
         }

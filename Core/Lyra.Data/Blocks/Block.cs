@@ -52,22 +52,27 @@ namespace Lyra.Core.Blocks
         public Block()
         {
             TimeStamp = DateTime.UtcNow;
+            ServiceHash = "need overwrite";   // disable warning
         }
 
         public virtual T GenInc<T>() where T : Block
         {
+            var x = Activator.CreateInstance<T>();
             return this.ConvertTo<T>()  //gender change
                 .With(new
                 {
                     // most necessary!
+                    BlockType = x.BlockType,
                     Hash = "",
                     Signature = "",
                     Height = 0,
                     TimeStamp = DateTime.UtcNow,
+                    Fee = 0m,
+                    FeeType = AuthorizationFeeTypes.NoFee
                 });
         }
 
-        public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
+        public void InitializeBlock(Block? prevBlock, string PrivateKey, string AccountId)
         {
             if (prevBlock != null)
             {
@@ -135,16 +140,19 @@ namespace Lyra.Core.Blocks
             if ((self == null && other != null) || (self != null && other == null))
                 return false;
 
-            if (self.Count != other.Count)
-                return false;
-
-            foreach (var kvp in self)
+            if(self != null && other != null)
             {
-                if (!other.ContainsKey(kvp.Key))
+                if (self.Count != other.Count)
                     return false;
 
-                if (!EqualityComparer<T>.Default.Equals(other[kvp.Key], kvp.Value))
-                    return false;
+                foreach (var kvp in self)
+                {
+                    if (!other.ContainsKey(kvp.Key))
+                        return false;
+
+                    if (!EqualityComparer<T>.Default.Equals(other[kvp.Key], kvp.Value))
+                        return false;
+                }
             }
 
             return true;
@@ -250,10 +258,10 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
-        public Block Clone()
-        {
-            return MemberwiseClone() as Block;
-        }
+        //public Block Clone()
+        //{
+        //    return MemberwiseClone() as Block;
+        //}
 
         public void AddTag(string tagKey, string tagValue)
         {
@@ -271,25 +279,25 @@ namespace Lyra.Core.Blocks
             return true == Tags?.ContainsKey(tagKey);
         }
 
-        private bool CompareDict(Dictionary<string, long> thisDict, Dictionary<string, long> otherDict)
-        {
-            if (thisDict == null && otherDict == null)
-                return true;
+        //private bool CompareDict(Dictionary<string, long> thisDict, Dictionary<string, long> otherDict)
+        //{
+        //    if (thisDict == null && otherDict == null)
+        //        return true;
 
-            if (thisDict.Count != otherDict.Count)
-                return false;
+        //    if (thisDict.Count != otherDict.Count)
+        //        return false;
 
-            foreach (var kvp in thisDict)
-            {
-                if (!otherDict.ContainsKey(kvp.Key))
-                    return false;
+        //    foreach (var kvp in thisDict)
+        //    {
+        //        if (!otherDict.ContainsKey(kvp.Key))
+        //            return false;
 
-                if (otherDict[kvp.Key] != kvp.Value)
-                    return false;
-            }
+        //        if (otherDict[kvp.Key] != kvp.Value)
+        //            return false;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
     }
 
     public enum BlockTypes : byte
@@ -662,5 +670,6 @@ namespace Lyra.Core.Blocks
         PriceChanged,
         InvalidDecimalDigitalCount,
         InvalidDealerServer,
+        NotOwnerOfOrder,
     }
 }

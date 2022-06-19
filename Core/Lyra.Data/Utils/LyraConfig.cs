@@ -37,7 +37,11 @@ namespace Lyra.Data.Utils
 
             try
             {
-                Mode = (NodeMode)Enum.Parse(typeof(NodeMode), section.GetSection("Mode").Value, true);
+                var sec = section.GetSection("Mode");
+                if(string.IsNullOrEmpty(sec.Value))
+                    Mode = NodeMode.Normal;
+                else
+                    Mode = (NodeMode)Enum.Parse(typeof(NodeMode), section.GetSection("Mode").Value, true);
             }
             catch
             {

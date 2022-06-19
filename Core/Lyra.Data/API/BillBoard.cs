@@ -40,9 +40,9 @@ namespace Lyra.Data.API
         // for other block, validate from primary authorizers.
         public List<string> PrimaryAuthorizers { get; set; }
 
-        public string CurrentLeader { get; set; }
+        public string? CurrentLeader { get; set; }
 
-        public string LeaderCandidate { get; set; }
+        public string? LeaderCandidate { get; set; }
         public int LeaderCandidateVotes { get; set; }
 
 
@@ -52,6 +52,7 @@ namespace Lyra.Data.API
             ActiveNodes = new List<ActiveNode>();
             AllVoters = new List<string>();
             PrimaryAuthorizers = new List<string>();
+            _avs = new List<string>();
         }
 
         public void UpdatePrimary(List<string> list)
@@ -62,24 +63,24 @@ namespace Lyra.Data.API
 
     public class ActiveNode
     {
-        public string AccountID { get; set; }
+        public string AccountID { get; set; } = null!;
         public DateTime LastActive { get; set; }
-        public string AuthorizerSignature { get; set; }
+        public string AuthorizerSignature { get; set; } = null!;
         public decimal Votes { get; set; }
         public BlockChainState State { get; set; }
-        public string ThumbPrint { get; set; }
-        public string ProfitingAccountId { get; set; }
+        public string? ThumbPrint { get; set; }
+        public string? ProfitingAccountId { get; set; }
     }
 
     public class PosNode
     {
         public string AccountID { get; set; }
-        public string IPAddress { get; set; }
+        public string IPAddress { get; set; } = null!;
         public decimal Votes { get; set; }
         public DateTime LastStaking { get; set; }
-        public string AuthorizerSignature { get; set; }
-        public string NodeVersion { get; set; }
-        public string ThumbPrint { get; set; }
+        public string AuthorizerSignature { get; set; } = null!;
+        public string NodeVersion { get; set; } = null!;
+        public string ThumbPrint { get; set; } = null!;
 
         public PosNode(string accountId)
         {

@@ -86,7 +86,6 @@ namespace Lyra.Core.WorkFlow.DAO
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(daoid) as TransactionBlock;
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
-            var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
             return await TransactionOperateAsync(sys, send.Hash, prevBlock, 
                 () => prevBlock.GenInc<DaoVotedChangeBlock>(),

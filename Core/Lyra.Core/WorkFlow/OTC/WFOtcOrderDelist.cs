@@ -65,53 +65,28 @@ namespace Lyra.Core.WorkFlow.OTC
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
             var order = (lastblock as IOtcOrder).Order;
 
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToTradeBlock = new OtcOrderSendBlock
-            {
-                // block
-                ServiceHash = sb.Hash,
-
-                // trans
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                AccountID = lastblock.AccountID,
-                Balances = lastblock.Balances.ToDecimalDict().ToLongDict(),
-
-                // send
-                DestinationAccountId = (lastblock as IBrokerAccount).OwnerAccountId,
-
-                // broker
-                Name = ((IBrokerAccount)lastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
-                RelatedTx = send.Hash,
-
-                // otc
-                Order = new OTCOrder
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<OtcOrderSendBlock>(),
+                (b) =>
                 {
-                    daoId = ((IOtcOrder)lastblock).Order.daoId,
-                    dir = ((IOtcOrder)lastblock).Order.dir,
-                    crypto = ((IOtcOrder)lastblock).Order.crypto,
-                    fiat = ((IOtcOrder)lastblock).Order.fiat,
-                    fiatPrice = ((IOtcOrder)lastblock).Order.fiatPrice,
-                    priceType = ((IOtcOrder)lastblock).Order.priceType,
-                    price = ((IOtcOrder)lastblock).Order.price,
-                    limitMax = ((IOtcOrder)lastblock).Order.limitMax,
-                    limitMin = ((IOtcOrder)lastblock).Order.limitMin,
-                    payBy = ((IOtcOrder)lastblock).Order.payBy,
-                    amount = 0,
-                    collateral = ((IOtcOrder)lastblock).Order.collateral,   // this is the difference with close.
-                    collateralPrice = ((IOtcOrder)lastblock).Order.collateralPrice
-                },
-                OOStatus = OTCOrderStatus.Delist,
-            };
+                        // send
+                    (b as SendTransferBlock).DestinationAccountId = (lastblock as IBrokerAccount).OwnerAccountId;
 
-            sendToTradeBlock.Balances[order.crypto] = 0;
+                    var dict = lastblock.Balances.ToDecimalDict();
+                    if (order.dir == TradeDirection.Sell)
+                    {
+                        // send the amount of crypto to order owner
+                        dict[order.crypto] = 0;
+                    }
+                    else
+                    {
+                        dict[LyraGlobal.OFFICIALTICKERCODE] -= 1;   // must send something
+                    }
 
-            sendToTradeBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+                    b.Balances = dict.ToLongDict();
 
-            sendToTradeBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendToTradeBlock;
+                    (b as IOtcOrder).OOStatus = OTCOrderStatus.Delist;
+                });
         }
     }
 }

@@ -26,12 +26,33 @@ namespace Lyra.Core.WorkFlow
             {
                 Action = BrokerActions.BRK_OTC_CRTRD,
                 RecvVia = BrokerRecvType.DaoRecv,
-                Steps = new[]
-                {
+            };
+        }
+
+        public override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
+        {
+            if (send.Tags == null)
+                throw new ArgumentNullException();
+
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            if(trade == null)
+                throw new ArgumentNullException();
+
+            if (trade.dir == TradeDirection.Buy)
+            {
+                return Task.FromResult(new[] {
+                    SendTokenFromOrderToTradeAsync,
+                    TradeGenesisReceiveAsync });
+            }
+            else
+            {
+                return Task.FromResult(new[] {
+                    SendTokenFromDaoToOrderAsync,
+                    OrderReceiveCryptoAsync,
                     SendTokenFromOrderToTradeAsync,
                     TradeGenesisReceiveAsync
-                }
-            };
+                });
+            }
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
@@ -91,14 +112,38 @@ namespace Lyra.Core.WorkFlow
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.collateral)
                 return APIResultCodes.InvalidCollateral;
 
+            if(trade.dir == TradeDirection.Sell)
+            {
+                if(!chgs.Changes.ContainsKey(trade.crypto) ||
+                    chgs.Changes[trade.crypto] != trade.amount ||
+                        chgs.Changes.Count != 2)
+                {
+                    return APIResultCodes.InvalidAmountToSend;
+                }
+            }
+            else
+            {
+                if (chgs.Changes.Count != 1)
+                    return APIResultCodes.InvalidAmountToSend;
+            }
+
             // check the price of order and collateral.
             var dlrblk = await sys.Storage.FindLatestBlockAsync(trade.dealerId);
             var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
             var dealer = new DealerClient(uri);
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = order.crypto.Split('/')[1];
-            if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
-                return APIResultCodes.CollateralNotEnough;
+
+            if(trade.dir == TradeDirection.Buy)
+            {
+                if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
+                    return APIResultCodes.CollateralNotEnough;
+            }
+            else
+            {
+                if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount  * ((dao as IDao).SellerPar / 100))
+                    return APIResultCodes.CollateralNotEnough;
+            }
 
             return APIResultCodes.Success;
         }
@@ -107,6 +152,7 @@ namespace Lyra.Core.WorkFlow
         {
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
+            // send token from order to trade
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{trade.crypto},{send.AccountID}";
@@ -118,17 +164,17 @@ namespace Lyra.Core.WorkFlow
             var sendtotrade = nextblock
                 .With(new
                 {
-                    // generic
+                        // generic
                     ServiceHash = sb.Hash,
                     BlockType = BlockTypes.OTCOrderSend,
 
-                    // send & recv
+                        // send & recv
                     DestinationAccountId = AccountId,
 
-                    // broker
+                        // broker
                     RelatedTx = send.Hash,
 
-                    // business object
+                        // business object
                     Order = nextblock.Order.With(new
                     {
                         amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
@@ -143,6 +189,50 @@ namespace Lyra.Core.WorkFlow
             sendtotrade.Balances = dict.ToLongDict();
             sendtotrade.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendtotrade;
+        }
+
+        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+
+            var lastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
+
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<DaoSendBlock>(),
+                (b) =>
+                {
+                    // send
+                    (b as SendTransferBlock).DestinationAccountId = trade.orderId;
+
+                    // send the amount of crypto from dao to order
+                    var dict = lastblock.Balances.ToDecimalDict();
+                    dict[trade.crypto] -= trade.amount;
+                    b.Balances = dict.ToLongDict();
+                });
+        }
+
+        async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+
+            var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<OtcOrderRecvBlock>(),
+                (b) =>
+                {
+                    // send
+                    (b as ReceiveTransferBlock).SourceHash = blocks.Last().Hash;
+
+                    // send the amount of crypto from dao to order
+                    var dict = lastblock.Balances.ToDecimalDict();
+                    if (dict.ContainsKey(trade.crypto))
+                        dict[trade.crypto] += trade.amount;
+                    else
+                        dict.Add(trade.crypto, trade.amount);
+                    b.Balances = dict.ToLongDict();
+                });
         }
 
         async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, SendTransferBlock send)

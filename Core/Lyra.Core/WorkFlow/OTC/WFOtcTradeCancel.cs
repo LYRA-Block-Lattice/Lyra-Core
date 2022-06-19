@@ -25,12 +25,31 @@ namespace Lyra.Core.WorkFlow.OTC
             {
                 Action = BrokerActions.BRK_OTC_TRDCANCEL,
                 RecvVia = BrokerRecvType.None,
-                Steps = new [] { 
-                    SealTradeAsync, 
+            };
+        }
+
+        public async override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var tradeid = send.Tags["tradeid"];
+            var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
+
+            if (trade.Trade.dir == TradeDirection.Buy)
+            {
+                return new[] {
+                    SealTradeAsync,
                     SendTokenFromTradeToOrderAsync,
                     OrderReceiveTokenFromTradeAsync,
-                    SendCollateralToBuyerAsync }
-            };
+                    SendCollateralToBuyerAsync };
+            }
+            else
+            {
+                //todo: sell trade should send token to trade owner.
+                return new[] {
+                    SealTradeAsync,
+                    SendTokenFromTradeToTradeOwnerAsync,
+                    SendCollateralToBuyerAsync
+                };
+            }
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
@@ -59,7 +78,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidTrade;
 
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Open)
-                return APIResultCodes.InvalidTrade;
+                return APIResultCodes.InvalidOperation;
 
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if(orderblk == null || (tradeblk as IOtcTrade).Trade.orderId != orderid
@@ -92,16 +111,13 @@ namespace Lyra.Core.WorkFlow.OTC
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
 
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
+
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeRecvBlock>(),
                 (b) =>
                 {
                     // recv
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
-
-                    // broker
-                    (b as IBrokerAccount).RelatedTx = send.Hash;
 
                     // balance
                     var oldbalance = b.Balances.ToDecimalDict();
@@ -123,7 +139,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
 
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
+
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeSendBlock>(),
                 (b) =>
@@ -152,7 +168,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var lastblockorder = await sys.Storage.FindLatestBlockAsync((lastblocktrade as IOtcTrade).Trade.orderId) as TransactionBlock;
 
             var txInfo = lastblocktrade.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(lastblocktrade.PreviousHash) as TransactionBlock);
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
+
             return await TransactionOperateAsync(sys, send.Hash, lastblockorder,
                 () => lastblockorder.GenInc<OtcOrderRecvBlock>(),
                 (b) =>
@@ -184,8 +200,6 @@ namespace Lyra.Core.WorkFlow.OTC
             var tradeblk = tradelatest as IOtcTrade;
             var daolastblock = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.daoId) as TransactionBlock;
 
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
                 (b) =>
@@ -199,6 +213,32 @@ namespace Lyra.Core.WorkFlow.OTC
                     // balance
                     var oldbalance = b.Balances.ToDecimalDict();
                     oldbalance["LYR"] -= tradeblk.Trade.collateral;
+                    b.Balances = oldbalance.ToLongDict();
+                });
+        }
+
+        async Task<TransactionBlock> SendTokenFromTradeToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var tradeid = send.Tags["tradeid"];
+            var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
+
+            var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
+
+            var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
+
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<OtcTradeSendBlock>(),
+                (b) =>
+                {
+                    // send
+                    (b as SendTransferBlock).DestinationAccountId = (lastblock as IOtcTrade).OwnerAccountId;
+
+                    // broker
+                    (b as IBrokerAccount).RelatedTx = send.Hash;
+
+                    // balance
+                    var oldbalance = b.Balances.ToDecimalDict();
+                    oldbalance[trade.Trade.crypto] = 0;
                     b.Balances = oldbalance.ToLongDict();
                 });
         }

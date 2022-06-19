@@ -27,7 +27,7 @@ namespace Lyra.Data.API.Identity
     {
         // plaintiff
         public DisputeLevels Level { get; set; }
-        public string RaisedBy { get; set; }
+        public string RaisedBy { get; set; } = null!;
         public DateTime RaisedTime { get; set; }
 
         public decimal ClaimedLost { get; set; }
@@ -37,8 +37,8 @@ namespace Lyra.Data.API.Identity
         public DateTime PeerAcceptanceTime { get; set; }   
         
         // mediator
-        public string MediatorID { get; set; }
-        public ODRResolution Resolution { get; set; }
+        public string? MediatorID { get; set; }
+        public ODRResolution? Resolution { get; set; }
         public DateTime ResolutionTime { get; set; }
 
         // final result

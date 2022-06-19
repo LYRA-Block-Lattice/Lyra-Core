@@ -16,6 +16,9 @@ namespace Lyra.Data.API.WorkFlow
         public TradeDirection dir { get; set; }
         public string crypto { get; set; }
         public string fiat { get; set; }
+        /// <summary>
+        /// decide weather follow the market with a fixed commission
+        /// </summary>
         public PriceType priceType { get; set; }
         /// <summary>
         /// price in specified fiat
@@ -25,8 +28,18 @@ namespace Lyra.Data.API.WorkFlow
         /// 1 fiat in USD
         /// </summary>
         public decimal fiatPrice { get; set; }
+
+        /// <summary>
+        /// always crypto
+        /// </summary>
         public decimal amount { get; set; }
+        /// <summary>
+        /// always fiat
+        /// </summary>
         public decimal limitMin { get; set; }
+        /// <summary>
+        /// always fiat
+        /// </summary>
         public decimal limitMax { get; set; }
         public string[] payBy { get; set; }
         /// <summary>

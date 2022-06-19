@@ -1368,6 +1368,7 @@ namespace Lyra.Core.Decentralize
             //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
         }
 
+        // TODO: check conditions when block not generated
         private async Task ConsolidateBlocksAsync()
         {
             if (_stateMachine.State != BlockChainState.Almighty
@@ -1404,7 +1405,6 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-
                 // consolidate time from lastcons to now - 18s
 
                 var timeShift = -18;
@@ -1438,13 +1438,13 @@ namespace Lyra.Core.Decentralize
                     }
                     catch (Exception ex)
                     {
-                        _log.LogError($"In creating consolidation block: {ex.Message}");
+                        _log.LogError($"In creating consolidation block: {ex}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _log.LogError("Error In GenerateConsolidateBlock: " + ex.Message);
+                _log.LogError($"Error In GenerateConsolidateBlock: {ex}");
             }
             finally
             {

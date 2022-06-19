@@ -1353,6 +1353,27 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var stats = await NodeService.Dag.Storage.GetOtcTradeStatsForUsersAsync(req.AccountIDs);
+
+                result.JsonString = Json(stats);
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetOtcTradeStatsForUsersAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
         public async Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             var result = new MultiBlockAPIResult();

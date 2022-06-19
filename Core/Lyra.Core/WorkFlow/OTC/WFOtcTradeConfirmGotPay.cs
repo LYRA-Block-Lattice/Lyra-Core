@@ -22,12 +22,19 @@ namespace Lyra.Core.WorkFlow.OTC
             {
                 Action = BrokerActions.BRK_OTC_TRDPAYGOT,
                 RecvVia = BrokerRecvType.None,
-                Steps = new[] { ChangeStateAsync, SendCryptoProductToBuyerAsync, SendCollateralToBuyerAsync }
+                Steps = new[] { 
+                    ChangeStateAsync, 
+                    SendCryptoProductFromTradeToBuyerAsync, 
+                    SendCollateralFromDAOToTradeOwnerAsync
+                }
             };
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
+            if (send.Tags == null)
+                throw new ArgumentNullException();
+
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
@@ -38,37 +45,57 @@ namespace Lyra.Core.WorkFlow.OTC
             if (tradeblk == null)
                 return APIResultCodes.InvalidTrade;
 
-            if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.FiatSent)
-                return APIResultCodes.InvalidTradeStatus;
+            var trade = tradeblk as IOtcTrade;
+            if (trade == null)
+                return APIResultCodes.InvalidParameterFormat;
 
             // check if seller is the order's owner
-            var orderid = (tradeblk as IOtcTrade).Trade.orderId;
+            var orderid = trade.Trade.orderId;
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
 
-            if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+            var order = orderblk as IOtcOrder;
+            if (order == null)
+                return APIResultCodes.InvalidParameterFormat;
+
+            if (trade.OTStatus != OTCTradeStatus.FiatSent)
+                return APIResultCodes.InvalidTradeStatus;
+
+            if(trade.Trade.dir == TradeDirection.Buy && order.OwnerAccountId != send.AccountID)
+            {
                 return APIResultCodes.NotSellerOfTrade;
+            }
+            if(trade.Trade.dir == TradeDirection.Sell && trade.OwnerAccountId != send.AccountID)
+            {
+                return APIResultCodes.NotOwnerOfTrade;
+            }
 
             return APIResultCodes.Success;
         }
 
-        protected Task<TransactionBlock> SendCryptoProductToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             return TradeBlockOperateAsync(sys, sendBlock,
                 () => new OtcTradeSendBlock(),
                 (b) =>
                 {
-                    (b as IOtcTrade).OTStatus = OTCTradeStatus.CryptoReleased;
-                    (b as SendTransferBlock).DestinationAccountId = (b as IOtcTrade).OwnerAccountId;
-                    (b as SendTransferBlock).Balances[(b as IOtcTrade).Trade.crypto] = 0;
-                    (b as SendTransferBlock).Balances[LyraGlobal.OFFICIALTICKERCODE] = 0;
+                    var trade = b as IOtcTrade;
+
+                    trade.OTStatus = OTCTradeStatus.CryptoReleased;
+
+                    if(trade.Trade.dir == TradeDirection.Buy)
+                        (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
+                    else
+                        (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
+
+                    b.Balances[trade.Trade.crypto] = 0;
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
         {
-            var tradelatest = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
             var trade = (tradelatest as IOtcTrade).Trade;
             var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
@@ -78,52 +105,41 @@ namespace Lyra.Core.WorkFlow.OTC
             var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
 
             // buyer fee calculated as LYR
-            var buyerFee = Math.Round(((trade.pay * (odrgen as IOtcOrder).Order.fiatPrice) * daoforodr.BuyerFeeRatio) / (odrgen as IOtcOrder).Order.collateralPrice, 8);
-            var amountToSeller = trade.collateral - buyerFee;
-
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendCollateral = new DaoSendBlock
+            var totalAmount = trade.amount;
+            decimal totalFee = 0;
+            var order = (odrgen as IOtcOrder).Order;
+            // transaction fee
+            if (trade.dir == TradeDirection.Sell)
             {
-                // block
-                ServiceHash = sb.Hash,
+                totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
+            }
+            else
+            {
+                totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
+            }
 
-                // trans
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                AccountID = daolastblock.AccountID,
+            // network fee
+            var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
 
-                // send
-                DestinationAccountId = (tradelatest as IBrokerAccount).OwnerAccountId,
+            var amountToSeller = trade.collateral - totalFee;
+            //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");
 
-                // broker
-                Name = ((IBrokerAccount)daolastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)daolastblock).OwnerAccountId,
-                RelatedTx = sendBlock.Hash,
+            return await TransactionOperateAsync(sys, send.Hash, daolastblock,
+                () => daolastblock.GenInc<DaoSendBlock>(),
+                (b) =>
+                {
+                    // block
+                    b.Fee = networkFee;
+                    b.FeeType = AuthorizationFeeTypes.Dynamic;
 
-                // profiting
-                PType = ((IProfiting)daolastblock).PType,
-                ShareRito = ((IProfiting)daolastblock).ShareRito,
-                Seats = ((IProfiting)daolastblock).Seats,
+                    // recv
+                    (b as SendTransferBlock).DestinationAccountId = (tradelatest as IOtcTrade).OwnerAccountId;
 
-                // dao
-                SellerFeeRatio = ((IDao)daolastblock).SellerFeeRatio,
-                BuyerFeeRatio = ((IDao)daolastblock).BuyerFeeRatio,
-                SellerPar = ((IDao)daolastblock).SellerPar,
-                BuyerPar = ((IDao)daolastblock).BuyerPar,
-                Description = ((IDao)daolastblock).Description,
-                Treasure = ((IDao)daolastblock).Treasure.ToDecimalDict().ToLongDict(),
-            };
-
-            // calculate balance
-            var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
-            sendCollateral.Balances = dict.ToLongDict();
-
-            sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-            sendCollateral.InitializeBlock(daolastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendCollateral;
+                    // balance
+                    var oldbalance = b.Balances.ToDecimalDict();
+                    oldbalance[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
+                    b.Balances = oldbalance.ToLongDict();
+                });
         }
 
         protected Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)

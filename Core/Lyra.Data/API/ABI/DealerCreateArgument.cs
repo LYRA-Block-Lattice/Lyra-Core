@@ -9,10 +9,10 @@ namespace Lyra.Data.API.ABI
 {
     public class DealerCreateArgument
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string DealerAccountId { get; set; }
-        public string ServiceUrl { get; set; }
+        public string Name { get; set; } = null!;
+        public string Description { get; set; } = null!;
+        public string DealerAccountId { get; set; } = null!;
+        public string ServiceUrl { get; set; } = null!;
         public ClientMode Mode { get; set; }
     }
 }

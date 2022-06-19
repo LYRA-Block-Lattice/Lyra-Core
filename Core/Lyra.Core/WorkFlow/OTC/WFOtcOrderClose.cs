@@ -125,11 +125,18 @@ namespace Lyra.Core.WorkFlow.OTC
                 OOStatus = OTCOrderStatus.Closed,
             };
 
-            // when delist, the crypto balance is already zero. 
-            // no balance change will vialate the rule of send
-            // so we reduce the balance of LYR, or the collateral, of 0.00000001
-            if (sendToTradeBlock.Balances[order.crypto] != 0)
-                sendToTradeBlock.Balances[order.crypto] = 0;
+            if(order.dir == TradeDirection.Sell)
+            {
+                // when delist, the crypto balance is already zero. 
+                // no balance change will vialate the rule of send
+                // so we reduce the balance of LYR, or the collateral, of 0.00000001
+                if (sendToTradeBlock.Balances[order.crypto] != 0)
+                    sendToTradeBlock.Balances[order.crypto] = 0;
+            }
+            else
+            {
+                // the buy order has no crypto at all.
+            }
             
             sendToTradeBlock.Balances["LYR"] = 0;          // all remaining LYR
 
@@ -149,20 +156,35 @@ namespace Lyra.Core.WorkFlow.OTC
             // get dao for order genesis
             var odrgen = await sys.Storage.FindFirstBlockAsync(orderid) as ReceiveTransferBlock;
             var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
+            var order = (odrgen as IOtcOrder).Order;
 
+            // order owner's fee is calculated on order close.
+            // trade owner's fee is calculated on trade close.
             // calculate fees
             // dao fee + network fee
+            decimal totalFee = 0;
 
             var allTrades = await sys.Storage.FindOtcTradeForOrderAsync(orderid);
             var totalAmount = allTrades.Cast<IOtcTrade>()
                 .Where(a => a.OTStatus == OTCTradeStatus.CryptoReleased)
                 .Sum(a => a.Trade.amount);
 
-            // seller fee calculated as LYR
-            var order = (odrgen as IOtcOrder).Order;
-            var sellerFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
+            // transaction fee
+            if (order.dir == TradeDirection.Sell)
+            {
+                totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
+            }
+            else
+            {
+                totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
+            }
+
+            // network fee
             var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
-            var amountToSeller = order.collateral - sellerFee - networkFee;
+            
+            var amountToSeller = order.collateral - totalFee;
+
+            //Console.WriteLine($"collateral: {order.collateral} txfee: {totalFee} netfee: {networkFee} remains: {order.collateral - totalFee - networkFee} cost: {totalFee + networkFee}");
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendCollateral = new DaoSendBlock
@@ -200,7 +222,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             // calculate balance
             var dict = daolastblock.Balances.ToDecimalDict();
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller + networkFee;
+            dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
             sendCollateral.Balances = dict.ToLongDict();
 
             sendCollateral.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

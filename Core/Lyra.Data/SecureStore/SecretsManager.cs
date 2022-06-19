@@ -27,11 +27,7 @@ namespace NeoSmart.SecureStore
         public static Versioning.VaultVersionPolicy VaultVersionPolicy { get; set; } = Versioning.VaultVersionPolicy.Upgrade;
 
         internal static ThreadLocal<RandomNumberGenerator> SecureRng = new ThreadLocal<RandomNumberGenerator> (() =>
-#if NETSTANDARD1_3 || NETSTANDARD2_0 || NETCOREAPP3_0 || NETSTANDARD2_1
             RandomNumberGenerator.Create()
-#else
-            new RNGCryptoServiceProvider()
-#endif
         );
 
         internal static Encoding DefaultEncoding { get; } = new UTF8Encoding(false);
@@ -41,7 +37,7 @@ namespace NeoSmart.SecureStore
         private const int PBKDF2ROUNDS = 256000;
         private const int IVSIZE = 16;
 
-        private Vault _vault;
+        private Vault? _vault;
         private SecureBuffer? _encryptionKey;
         private SecureBuffer? _hmacKey;
         private bool _vaultUpgradePending = false;

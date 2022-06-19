@@ -65,33 +65,46 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidDealerServer;
 
             // check every field of Order
-            // dir, priceType
-            if (order.dir != TradeDirection.Sell ||
-                order.priceType != PriceType.Fixed)
-                return APIResultCodes.InvalidTagParameters;
-
             // crypto
             var tokenGenesis = await sys.Storage.FindTokenGenesisBlockAsync(null, order.crypto);
             if (tokenGenesis == null)
                 return APIResultCodes.TokenNotFound;
 
+            if (order.priceType != PriceType.Fixed)
+                return APIResultCodes.InvalidTagParameters;
+
             // fiat
             if (!FIATS.Contains(order.fiat))
                 return APIResultCodes.Unsupported;
 
+            // payBy
+            if (order.payBy == null || order.payBy.Length == 0)
+                return APIResultCodes.InvalidOrder;
+
             // price, amount
             if (order.price <= 0.00001m || order.amount < 0.0001m)
                 return APIResultCodes.InvalidAmount;
-
-            // payBy
-            if(order.payBy == null || order.payBy.Length == 0)
-                return APIResultCodes.InvalidOrder;
 
             // verify collateral
             var chgs = send.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.collateral)
                 return APIResultCodes.InvalidCollateral;
+
+            // verify crypto
+            if(order.dir == TradeDirection.Sell)
+            {
+                if (!chgs.Changes.ContainsKey(order.crypto) ||
+                    chgs.Changes[order.crypto] != order.amount ||
+                    chgs.Changes.Count != 2)
+                    return APIResultCodes.InvalidAmountToSend;
+            }
+            else
+            {
+                // buy order
+                if (chgs.Changes.Count != 1)
+                    return APIResultCodes.InvalidAmountToSend;
+            }
 
             // check the price of order and collateral.
             var dlrblk = await sys.Storage.FindLatestBlockAsync(order.dealerId);
@@ -103,9 +116,6 @@ namespace Lyra.Core.WorkFlow
             if (order.collateralPrice != prices["LYR"] || order.fiatPrice != prices[order.fiat.ToLower()])
                 return APIResultCodes.PriceChanged;
 
-            if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
-                return APIResultCodes.CollateralNotEnough;
-
             if (order.collateralPrice != prices["LYR"])
                 return APIResultCodes.PriceChanged;
 
@@ -115,7 +125,11 @@ namespace Lyra.Core.WorkFlow
             if (tokenSymbol == "USDT") usdprice = prices["USDT"];
             var selcryptoprice = Math.Round(usdprice / prices[order.fiat.ToLower()], 2);
 
-            var total = selcryptoprice * order.amount;
+            if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
+                return APIResultCodes.CollateralNotEnough;
+
+            // dir, priceType
+            var total = order.price * order.amount;
             // limit
             if (order.limitMin <= 0 || order.limitMax < order.limitMin
                 || order.limitMax > total)
@@ -169,7 +183,10 @@ namespace Lyra.Core.WorkFlow
             
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
-            dict[order.crypto] -= order.amount;
+
+            if(order.dir == TradeDirection.Sell)
+                dict[order.crypto] -= order.amount;
+
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
 
@@ -214,7 +231,9 @@ namespace Lyra.Core.WorkFlow
                 OOStatus = OTCOrderStatus.Open,
             };
 
-            otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());
+            if(order.dir == TradeDirection.Sell)
+                otcblock.Balances.Add(order.crypto, order.amount.ToBalanceLong());
+
             otcblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 
             otcblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

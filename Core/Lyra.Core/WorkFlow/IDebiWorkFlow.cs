@@ -11,6 +11,8 @@ namespace Lyra.Core.WorkFlow
     public interface IDebiWorkFlow
     {
         WorkFlowDescription GetDescription();
+        Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send);
+
         Task<WrokflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
         Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context);
     }

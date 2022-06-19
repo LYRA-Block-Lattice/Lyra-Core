@@ -22,10 +22,10 @@ namespace Lyra.Data.API
         public string TradeId { get; set; } = null!;
         public DateTime Created { get; set; }
         public int Rating { get; set; }
-        public string Content { get; set; }
-        public string Title { get; set; }
-        public string EncContent { get; set; }
-        public string EncTitle { get; set; }
+        public string Content { get; set; } = null!;
+        public string Title { get; set; } = null!;
+        public string EncContent { get; set; } = null!;
+        public string EncTitle { get; set; } = null!;
         public bool Confirm { get; set; }
 
         public override string GetHashInput()
@@ -44,15 +44,15 @@ namespace Lyra.Data.API
 
     public class FiatInfo
     {
-        public string symbol { get; set; }
-        public string name { get; set; }
-        public string unit { get; set; }
+        public string symbol { get; set; } = null!;
+        public string name { get; set; } = null!;
+        public string unit { get; set; } = null!;
     }
 
     public class DealerBrief
     {
-        public string AccountId { get; set; }
-        public string TelegramBotUsername { get; set; }
+        public string AccountId { get; set; } = null!;
+        public string TelegramBotUsername { get; set; } = null!;
     }
 
     /// <summary>
@@ -80,12 +80,12 @@ namespace Lyra.Data.API
         {
             var result = await GetAsync<SimpleJsonAPIResult>("GetPrices");
             if (result.Successful())
-                return JsonConvert.DeserializeObject<Dictionary<string, decimal>>(result.JsonString);
+                return JsonConvert.DeserializeObject<Dictionary<string, decimal>>(result.JsonString)!;
             else
                 throw new Exception($"Error GetPricesAsync: {result.ResultCode}, {result.ResultMessage}");
         }
 
-        public async Task<FiatInfo> GetFiatAsync(string symbol)
+        public async Task<FiatInfo?> GetFiatAsync(string symbol)
         {
             var args = new Dictionary<string, string>
             {
@@ -93,7 +93,7 @@ namespace Lyra.Data.API
             };
             var fiat = await GetAsync<SimpleJsonAPIResult>("GetFiat", args);
             if (fiat.Successful() && fiat.JsonString != "null")
-                return JsonConvert.DeserializeObject<FiatInfo>(fiat.JsonString);
+                return JsonConvert.DeserializeObject<FiatInfo>(fiat.JsonString)!;
             
             return null;
         }
@@ -187,7 +187,7 @@ namespace Lyra.Data.API
             return await PostAsync("CommentTrade", cfg);
         }
 
-        public async Task<List<CommentConfig>> GetCommentsForTradeAsync(string tradeId)
+        public async Task<List<CommentConfig>?> GetCommentsForTradeAsync(string tradeId)
         {
             var args = new Dictionary<string, string>
             {
