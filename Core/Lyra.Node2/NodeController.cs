@@ -703,7 +703,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetOtcTradeStatsForUsers")]
-        [HttpGet]
+        [HttpPost]
         public async Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req)
         {
             if (!CheckServiceStatus()) return null;

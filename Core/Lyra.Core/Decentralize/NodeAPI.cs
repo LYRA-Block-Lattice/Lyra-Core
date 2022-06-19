@@ -1362,6 +1362,7 @@ namespace Lyra.Core.Decentralize
                 var stats = await NodeService.Dag.Storage.GetOtcTradeStatsForUsersAsync(req.AccountIDs);
 
                 result.JsonString = Json(stats);
+                result.ResultCode = APIResultCodes.Success;
             }
             catch (Exception e)
             {
