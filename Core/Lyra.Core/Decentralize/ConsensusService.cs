@@ -1396,6 +1396,9 @@ namespace Lyra.Core.Decentralize
             if (pendingCons.Any(a => !a.State.IsSaved))
                 return;
 
+            if (_lastCons == null)
+                return;
+
             try
             {
                 var lastCons = _lastCons;
