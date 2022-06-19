@@ -682,6 +682,11 @@ namespace Lyra.Data.API
             return SeedClient.FindOtcTradeByStatusAsync(daoid, status, page, pageSize);
         }
 
+        public Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            return SeedClient.GetOtcTradeStatsForUsersAsync(req);
+        }
+
         public Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             return SeedClient.FindAllVotesByDaoAsync(daoid, openOnly);

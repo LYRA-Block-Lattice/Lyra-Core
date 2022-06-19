@@ -2240,6 +2240,23 @@ namespace Lyra.Core.Accounts
             return q.ToList();
         }
 
+        public async Task<List<TradeStats>> GetOtcTradeStatsForUsersAsync(List<string> accountIds)
+        {
+            var stats = new List<TradeStats>();
+            // 1, as trade owner; 2, as order owner; 
+            foreach(var accountId in accountIds)
+            {
+                var trades = await FindOtcTradeAsync(accountId, false, -1, -1); // so if the api changes, modify here
+                stats.Add(new TradeStats
+                {
+                    AccountId = accountId,
+                    TotalTrades = trades.Count,
+                    FinishedCount = trades.Where(a => (a as IOtcTrade).OTStatus == OTCTradeStatus.CryptoReleased).Count(),
+                });
+            }
+            return stats;
+        }
+
         public async Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             var filter = Builders<TransactionBlock>.Filter;

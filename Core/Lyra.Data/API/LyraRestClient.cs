@@ -199,6 +199,24 @@ namespace Lyra.Core.API
             }
         }
 
+        private async Task<T> PostAsync<T>(string action, object obj)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync(
+                action, obj, _cancel.Token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<T>();
+                return result;
+            }
+            else
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed for {action}: {resp}");
+            }
+        }
+
         private async Task<T> GetAsync<T>(string action, Dictionary<string, string> args)
         {
             var url = $"{action}/?" + args?.Aggregate(new StringBuilder(),
@@ -858,6 +876,12 @@ namespace Lyra.Core.API
             };
 
             return GetAsync<MultiBlockAPIResult>("FindOtcTradeByStatus", args);
+        }
+
+
+        public Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            return PostAsync<SimpleJsonAPIResult>("GetOtcTradeStatsForUsers", req);
         }
 
         public Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)

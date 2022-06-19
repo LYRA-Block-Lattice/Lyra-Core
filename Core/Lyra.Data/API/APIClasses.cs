@@ -173,4 +173,16 @@ namespace Lyra.Data.API
         public List<string> posAccountIds { get; set; } = null!;
         public DateTime endTime { get; set; }
     }
+
+    public class TradeStatsReq
+    {
+        public List<string> AccountIDs { get; set; } = null!;
+    }
+
+    public class TradeStats
+    {
+        public string AccountId { get; set; } = null!;
+        public int TotalTrades { get; set; }
+        public int FinishedCount { get; set; }
+    }
 }

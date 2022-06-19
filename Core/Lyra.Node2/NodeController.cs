@@ -702,6 +702,14 @@ namespace LyraLexWeb2
             return await _node.FindOtcTradeByStatusAsync(daoid, status, page, pageSize);
         }
 
+        [Route("GetOtcTradeStatsForUsers")]
+        [HttpGet]
+        public async Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetOtcTradeStatsForUsersAsync(req);
+        }        
+
         [Route("FindAllVotesByDao")]
         [HttpGet]
         public async Task<MultiBlockAPIResult> FindAllVotesByDaoAsync(string daoid, bool openOnly)
