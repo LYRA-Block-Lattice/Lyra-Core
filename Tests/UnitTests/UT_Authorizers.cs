@@ -1731,6 +1731,14 @@ namespace UnitTests
             dlr = gdret.As<IDealer>();
             Assert.IsNotNull(dlr, "unable to get dealder genesis block");
 
+            // register user to dealer
+            var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
+            var lsb = await devnetLyra.GetLastServiceBlockAsync();
+            var regret = await dealer.RegisterAsync(testWallet.AccountId,
+                    "test", "Unit", "", "Test", "t@", "1111", "1111", "",
+                    Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId));
+            Assert.IsTrue(regret.Successful());
+
             ResetAuthFail();
         }
     }

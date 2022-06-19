@@ -110,6 +110,22 @@ namespace Lyra.Core.WorkFlow
             var dlrblk = await sys.Storage.FindLatestBlockAsync(order.dealerId);
             var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
             var dealer = new DealerClient(uri);
+
+            // verify user registered on dealer
+            bool userOk = false;
+            try
+            {
+                var user = await dealer.GetUserByAccountIdAsync(send.AccountID);
+                if (user.Successful())
+                {
+                    var stats = JsonConvert.DeserializeObject<UserStats>(user.JsonString);
+                    userOk = !string.IsNullOrEmpty(stats.UserName);
+                }
+            }catch { }
+
+            if (!userOk)
+                return APIResultCodes.NotRegisteredToDealer;
+
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = order.crypto.Split('/')[1];
 
