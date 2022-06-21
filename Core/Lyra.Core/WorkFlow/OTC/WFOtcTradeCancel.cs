@@ -68,21 +68,21 @@ namespace Lyra.Core.WorkFlow.OTC
             var orderid = send.Tags["orderid"];
             var daoid = send.Tags["daoid"];
 
-            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
-            var daoblk = await sys.Storage.FindLatestBlockAsync((tradeblk as IOtcTrade).Trade.daoId);
-            if (daoblk == null || tradeblk == null || (daoblk as TransactionBlock).AccountID != daoid ||
-                (tradeblk as IOtcTrade).Trade.daoId != (daoblk as TransactionBlock).AccountID)
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
+            var daoblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.daoId) as IDao;
+            if (daoblk == null || tradeblk == null || daoblk.AccountID != daoid ||
+                tradeblk.Trade.daoId != daoblk.AccountID)
                 return APIResultCodes.InvalidTrade;
 
-            if ((tradeblk as IBrokerAccount).OwnerAccountId != send.AccountID)
+            if (tradeblk.OwnerAccountId != send.AccountID && tradeblk.Trade.orderOwnerId != send.AccountID)
                 return APIResultCodes.InvalidTrade;
 
-            if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Open)
+            if (tradeblk.OTStatus != OTCTradeStatus.Open)
                 return APIResultCodes.InvalidOperation;
 
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid);
-            if(orderblk == null || (tradeblk as IOtcTrade).Trade.orderId != orderid
-                || (tradeblk as IOtcTrade).Trade.daoId != daoid)
+            if(orderblk == null || tradeblk.Trade.orderId != orderid
+                || tradeblk.Trade.daoId != daoid)
             {
                 return APIResultCodes.InvalidTrade;
             }
@@ -93,7 +93,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 var lsb = sys.Storage.GetLastServiceBlock();
                 var wallet = sys.PosWallet;
                 var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
-                var dlrblk = await sys.Storage.FindLatestBlockAsync((tradeblk as IOtcTrade).Trade.dealerId);
+                var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
                 var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
                 var dealer = new DealerClient(uri);
                 var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
