@@ -87,7 +87,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidTrade;
             }
 
-            if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest")
+            if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest" && !string.IsNullOrEmpty(tradeblk.Trade.dealerId))
             {
                 // check if trade is cancellable
                 var lsb = sys.Storage.GetLastServiceBlock();
