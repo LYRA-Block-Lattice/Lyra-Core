@@ -84,6 +84,9 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidOrder;
 
             var order = orderblk.Order;
+            if (string.IsNullOrWhiteSpace(order.dealerId))
+                return APIResultCodes.InvalidOrder;
+
             if (order.daoId != trade.daoId ||
                 order.dealerId != trade.dealerId ||
                 order.crypto != trade.crypto ||
