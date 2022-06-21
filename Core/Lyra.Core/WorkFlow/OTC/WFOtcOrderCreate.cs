@@ -129,6 +129,9 @@ namespace Lyra.Core.WorkFlow
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = order.crypto.Split('/')[1];
 
+            if (prices["LYR"] <= 0)
+                return APIResultCodes.RequotaNeeded;
+
             if (order.collateralPrice != prices["LYR"] || order.fiatPrice != prices[order.fiat.ToLower()])
                 return APIResultCodes.PriceChanged;
 

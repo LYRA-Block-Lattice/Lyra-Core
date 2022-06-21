@@ -163,24 +163,28 @@ namespace Lyra.Core.WorkFlow.OTC
             // calculate fees
             // dao fee + network fee
             decimal totalFee = 0;
+            decimal networkFee = 0;
 
             var allTrades = await sys.Storage.FindOtcTradeForOrderAsync(orderid);
             var totalAmount = allTrades.Cast<IOtcTrade>()
                 .Where(a => a.OTStatus == OTCTradeStatus.CryptoReleased)
                 .Sum(a => a.Trade.amount);
 
-            // transaction fee
-            if (order.dir == TradeDirection.Sell)
+            if(order.collateralPrice > 0)       // the price should not be zero. for compatibile only.
             {
-                totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
-            }
-            else
-            {
-                totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
-            }
+                // transaction fee
+                if (order.dir == TradeDirection.Sell)
+                {
+                    totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
+                }
+                else
+                {
+                    totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
+                }
 
-            // network fee
-            var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
+                // network fee
+                networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
+            }
             
             var amountToSeller = order.collateral - totalFee;
 

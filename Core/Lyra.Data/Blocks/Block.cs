@@ -591,7 +591,7 @@ namespace Lyra.Core.Blocks
         InvalidSwapSlippage,
         SwapSlippageExcceeded,
         PoolOutOfLiquidaty,
-        ReQuotaNeeded,  // pool or target account is busy
+        RequotaNeeded,  // pool or target account is busy
         InvalidBlockTags,
         InvalidProfitingAccount,
         VotingDaysTooSmall,
