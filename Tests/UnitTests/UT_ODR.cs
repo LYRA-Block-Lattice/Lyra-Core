@@ -36,7 +36,7 @@ namespace UnitTests
         private async Task CancelTrade(IOtcTrade trade)
         {
             var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
-            Assert.IsTrue(cloret.Successful(), $"Error close trade: {cloret.ResultCode}");
+            Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
             await WaitWorkflow(cloret.TxHash, "CancelOTCTradeAsync", false);
 
             var tradeQueryRet = await test2Wallet.RPC.FindOtcTradeAsync(test2Wallet.AccountId, false, 0, 10);
@@ -75,7 +75,13 @@ namespace UnitTests
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
             var tradeQueryResultBlocks = tradeQueryRet.GetBlocks();
 
-            return tradeQueryResultBlocks.Last() as IOtcTrade;
+            var itrade = tradeQueryResultBlocks
+                .OrderBy(a => a.TimeStamp)
+                .Last() as IOtcTrade;
+
+            Assert.AreEqual(traderet.TxHash, itrade.RelatedTx);
+            Assert.AreEqual(OTCTradeStatus.Open, itrade.OTStatus);
+            return itrade;
         }
 
         private async Task CloseOrder(IOtcOrder order)
