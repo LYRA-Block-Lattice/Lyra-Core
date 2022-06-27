@@ -202,5 +202,17 @@ namespace Lyra.Data.API
 
             return new List<CommentConfig>();
         }
+
+        public async Task<APIResult> ComplainAsync(string tradeId, decimal claimedLost, string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "tradeId", tradeId },
+                { "accountId", accountId },
+                { "signature", signature },
+                { "claimedLost", claimedLost.ToString() },
+            };
+            return await GetAsync<APIResult>("Complain", args);
+        }
     }
 }

@@ -45,6 +45,12 @@ namespace UnitTests.OTC
             Assert.IsTrue(!trades.Any(a => (a as IOtcTrade).OTStatus == OTCTradeStatus.Open));
         }
 
+        protected async Task CancelTradeShouldFail(IOtcTrade trade)
+        {
+            var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
+            Assert.IsTrue(!cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
+        }
+
         protected async Task<IOtcTrade> CreateTrade(IOtcOrder order)
         {
             var trade = new OTCTrade
@@ -58,7 +64,7 @@ namespace UnitTests.OTC
                 fiat = fiat,
                 price = order.Order.price,
 
-                collateral = 15000000,
+                collateral = Math.Round(2m * 0.02m / order.Order.collateralPrice * 1.5m + 10000, 0),
                 payVia = "Paypal",
                 amount = 0.01m,
                 pay = order.Order.price * 0.01m,
@@ -89,6 +95,12 @@ namespace UnitTests.OTC
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
             await WaitWorkflow(closeret.TxHash, "Close order");
+        }
+
+        protected async Task CloseOrderShouldFail(IOtcOrder order)
+        {
+            var closeret = await testWallet.CloseOTCOrderAsync(order.Order.daoId, order.AccountID);
+            Assert.IsTrue(!closeret.Successful(), $"Should fail to close order: {closeret.ResultCode}");
         }
 
         protected async Task<IOtcOrder> CreateOrder()
@@ -135,7 +147,7 @@ namespace UnitTests.OTC
                 fiatPrice = prices[fiat.ToLower()],
                 priceType = PriceType.Fixed,
                 price = 2,
-                collateral = 25_000_000,
+                collateral = Math.Round(2m * 0.02m / prices["LYR"] * dao.SellerFeeRatio + 10000, 0),
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
 
