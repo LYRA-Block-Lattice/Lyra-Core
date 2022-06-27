@@ -22,8 +22,6 @@ namespace UnitTests
     {
         IDealer dlr;
 
-        DealerClient dealer;
-
         [TestMethod]
         public async Task TestDAO()
         {

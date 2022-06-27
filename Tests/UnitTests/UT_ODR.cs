@@ -25,7 +25,57 @@ namespace UnitTests
             var order = await CreateOrder();
             Assert.IsNotNull(order);
 
+            var trade = await CreateTrade(order);
+            Assert.IsNotNull(trade);
+
+            await CancelTrade(trade);
+
             await CloseOrder(order);
+        }
+
+        private async Task CancelTrade(IOtcTrade trade)
+        {
+            var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
+            Assert.IsTrue(cloret.Successful(), $"Error close trade: {cloret.ResultCode}");
+            await WaitWorkflow(cloret.TxHash, "CancelOTCTradeAsync", false);
+
+            var tradeQueryRet = await test2Wallet.RPC.FindOtcTradeAsync(test2Wallet.AccountId, false, 0, 10);
+            Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
+            var trades = tradeQueryRet.GetBlocks();
+
+            Assert.IsTrue(!trades.Any(a => (a as IOtcTrade).OTStatus == OTCTradeStatus.Open));
+        }
+
+        private async Task<IOtcTrade> CreateTrade(IOtcOrder order)
+        {
+            var trade = new OTCTrade
+            {
+                daoId = order.Order.daoId,
+                dealerId = order.Order.dealerId,
+                orderId = order.AccountID,
+                orderOwnerId = order.OwnerAccountId,
+                dir = order.Order.dir == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell,
+                crypto = "unittest/ETH",
+                fiat = fiat,
+                price = order.Order.price,
+
+                collateral = 15000000,
+                payVia = "Paypal",
+                amount = 0.01m,
+                pay = order.Order.price * 0.01m,
+            };
+
+            var traderet = await test2Wallet.CreateOTCTradeAsync(trade);
+            Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
+
+            await WaitWorkflow(traderet.TxHash, "Create trade");
+
+            var tradeQueryRet = await test2Wallet.RPC.FindOtcTradeAsync(test2Wallet.AccountId, false, 0, 10);
+            Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
+            var tradeQueryResultBlocks = tradeQueryRet.GetBlocks();
+
+            return tradeQueryResultBlocks.Last() as IOtcTrade;
         }
 
         private async Task CloseOrder(IOtcOrder order)
@@ -68,8 +118,6 @@ namespace UnitTests
             var dao = daoret.GetBlock() as IDao;
             Assert.AreEqual(name, dao.Name);
 
-            var url = "https://dealer.devnet.lyra.live:7070";
-            var dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
             var prices = await dealer.GetPricesAsync();
 
             var order = new OTCOrder

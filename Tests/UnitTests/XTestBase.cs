@@ -10,6 +10,7 @@ using Lyra.Core.Utils;
 using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -71,6 +72,7 @@ namespace UnitTests
         List<string> _endedWorkflows = new List<string>();
 
         LyraEventClient _eventClient;
+        protected DealerClient dealer;
 
         [TestInitialize]
         public void TestSetup()
@@ -436,6 +438,20 @@ namespace UnitTests
             genesisWallet = Wallet.Open(walletStor, "gensisi", "1234", client);
             var ret = await genesisWallet.SyncAsync(client);
             Assert.IsTrue(ret == APIResultCodes.Success);
+
+            // make sure test and test2 has been registed to dealer
+            var url = "https://dealer.devnet.lyra.live:7070";
+            dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
+
+            var lsb = await client.GetLastServiceBlockAsync();
+            var rret = await dealer.RegisterAsync(testPublicKey, "unittest1", "Unit", "", "Test 1", "u1@", "111", "111", "",
+                Signatures.GetSignature(testPrivateKey, (lsb.GetBlock().Hash), testPublicKey)
+                );
+            Assert.IsTrue(rret.Successful());
+            var rret2 = await dealer.RegisterAsync(test2PublicKey, "unittest2", "Unit", "", "Test 2", "u1@", "222", "111", "",
+                Signatures.GetSignature(test2PrivateKey, (lsb.GetBlock().Hash), test2PublicKey)
+                );
+            Assert.IsTrue(rret2.Successful());
         }
 
         protected async Task WaitBlock(string target)
