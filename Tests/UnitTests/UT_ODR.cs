@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -12,15 +13,20 @@ namespace UnitTests
     [TestClass]
     public class UT_ODR : XTestBase
     {
+        string dealerID = "L9vh5kuijpaDiqYAaHoV6EejAL3qUXF15JrSR1LvHien3h4fHR3B9p65ubF9AgQnnMzUxdLbDTPtjwpbxB5SPPtSaF4wMr";
+
         [TestMethod]
         public async Task TestODR()
         {
             await SetupWallets("devnet");
 
-            await CreateOrder();
+            await SetupEventsListener();
+
+            var order = await CreateOrder();
+            Assert.IsNotNull(order);
         }
 
-        private async Task CreateOrder()
+        private async Task<IOtcOrder> CreateOrder()
         {
             var crypto = "unittest/ETH";
 
@@ -51,6 +57,40 @@ namespace UnitTests
             }
             var dao = daoret.GetBlock() as IDao;
             Assert.AreEqual(name, dao.Name);
+
+            var url = "https://dealer.devnet.lyra.live:7070";
+            var dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
+            var prices = await dealer.GetPricesAsync();
+
+            var order = new OTCOrder
+            {
+                daoId = dao.AccountID,
+                dealerId = dealerID,
+                dir = TradeDirection.Sell,
+                crypto = crypto,
+                fiat = fiat,
+                fiatPrice = prices[fiat.ToLower()],
+                priceType = PriceType.Fixed,
+                price = 2,
+                collateral = 25_000_000,
+                collateralPrice = prices["LYR"],
+                payBy = new string[] { "Paypal" },
+
+                amount = 0.02m,
+                limitMin = 0.01m,
+                limitMax = 0.02m,
+            };
+
+            var ret = await testWallet.CreateOTCOrderAsync(order);
+            Assert.IsTrue(ret.Successful(), $"can't create order: {ret.ResultCode}");
+
+            //await WaitWorkflow("create order");
+            await Task.Delay(10000);
+
+            var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
+            Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
+            var otcs = otcret.GetBlocks();
+            return otcs.Last() as IOtcOrder;
         }
     }
 }

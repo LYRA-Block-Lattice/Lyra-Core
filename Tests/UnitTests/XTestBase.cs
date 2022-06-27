@@ -68,6 +68,8 @@ namespace UnitTests
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
 
+        LyraEventClient _eventClient;
+
         [TestInitialize]
         public void TestSetup()
         {
@@ -522,6 +524,37 @@ namespace UnitTests
             Assert.AreEqual(test4PublicKey, test4Wallet.AccountId);
 
             await test4Wallet.SyncAsync(client);
+        }
+
+        protected async Task SetupEventsListener()
+        {
+            var url = $"https://devnet.lyra.live:4504/events";
+            _eventClient = new LyraEventClient(LyraEventHelper.CreateConnection(new Uri(url)));
+
+            _eventClient.RegisterOnEvent(async evt => await ProcessEventAsync(evt));
+
+            await _eventClient.StartAsync();
+        }
+
+        private async Task ProcessEventAsync(EventContainer evt)
+        {
+            try
+            {
+                var obj = evt.Get();
+                if (obj is WorkflowEvent wf)
+                {
+                    Console.WriteLine($"Workflow State: {wf.State}, Message: {wf.Message}");
+
+                    if (wf.State == "Finished")
+                    {
+                        _workflowEnds.Set();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ProcessEventAsync: {ex}");
+            }
         }
     }
 }

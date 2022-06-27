@@ -261,6 +261,9 @@ namespace Lyra.Core.WorkFlow
                                         .CancelCondition(data => data.State == WFState.Running, true)
                                 )
                             ) // do
+                .Then<CustomMessage>()
+                    .Name("Log")
+                    .Input(step => step.Message, data => $"Workflow has been finished.")
                 .Then(a =>
                 {
                     //Console.WriteLine("Ends.");
