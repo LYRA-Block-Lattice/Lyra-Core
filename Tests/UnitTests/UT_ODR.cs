@@ -24,6 +24,16 @@ namespace UnitTests
 
             var order = await CreateOrder();
             Assert.IsNotNull(order);
+
+            await CloseOrder(order);
+        }
+
+        private async Task CloseOrder(IOtcOrder order)
+        {
+            var closeret = await testWallet.CloseOTCOrderAsync(order.Order.daoId, order.AccountID);
+            Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
+
+            await WaitWorkflow(closeret.TxHash, "Close order");
         }
 
         private async Task<IOtcOrder> CreateOrder()
@@ -84,8 +94,9 @@ namespace UnitTests
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"can't create order: {ret.ResultCode}");
 
-            //await WaitWorkflow("create order");
-            await Task.Delay(10000);
+            Console.WriteLine($"Send Hash is {ret.TxHash}");
+            await WaitWorkflow(ret.TxHash, "create order");
+            //await Task.Delay(10000);
 
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");

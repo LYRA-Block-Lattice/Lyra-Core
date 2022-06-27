@@ -65,6 +65,8 @@ namespace UnitTests
 
         protected AuthResult _lastAuthResult;
         AutoResetEvent _newAuth = new AutoResetEvent(false);
+
+        string _workflowKey;
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
 
@@ -445,6 +447,12 @@ namespace UnitTests
 
         protected async Task WaitWorkflow(string target, bool checklock = true)
         {
+            await WaitWorkflow(null, target, checklock);
+        }
+
+        protected async Task WaitWorkflow(string key, string target, bool checklock = true)
+        {
+            _workflowKey = key;
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
 #if DEBUG
             var ret = _workflowEnds.WaitOne(100000);
@@ -543,11 +551,15 @@ namespace UnitTests
                 var obj = evt.Get();
                 if (obj is WorkflowEvent wf)
                 {
-                    Console.WriteLine($"Workflow State: {wf.State}, Message: {wf.Message}");
+                    //Console.WriteLine($"Workflow {wf.Key} State: {wf.State}, Message: {wf.Message}");
 
                     if (wf.State == "Finished")
                     {
-                        _workflowEnds.Set();
+                        if(_workflowKey != null && _workflowKey == wf.Key)
+                            _workflowEnds.Set();
+
+                        if(_workflowKey == null)
+                            _workflowEnds.Set();
                     }
                 }
             }
