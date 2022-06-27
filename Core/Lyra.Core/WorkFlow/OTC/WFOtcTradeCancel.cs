@@ -97,7 +97,11 @@ namespace Lyra.Core.WorkFlow.OTC
                 var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
                 var dealer = new DealerClient(uri);
                 var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
-                if (!ret.Successful() || !ret.Deserialize<TradeBrief>().IsCancellable)
+                if (!ret.Successful())
+                    return APIResultCodes.InvalidOperation;
+
+                var brief = ret.Deserialize<TradeBrief>();
+                if (brief == null || !brief.IsCancellable)
                     return APIResultCodes.InvalidOperation;
             }
 
