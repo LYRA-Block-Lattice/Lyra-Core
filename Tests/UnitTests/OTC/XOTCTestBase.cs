@@ -8,32 +8,31 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UnitTests
+namespace UnitTests.OTC
 {
-    [TestClass]
-    public class UT_ODR : XTestBase
+    public class XOTCTestBase : XTestBase
     {
         string dealerID = "L9vh5kuijpaDiqYAaHoV6EejAL3qUXF15JrSR1LvHien3h4fHR3B9p65ubF9AgQnnMzUxdLbDTPtjwpbxB5SPPtSaF4wMr";
 
-        [TestMethod]
-        public async Task TestODR()
-        {
-            await SetupWallets("devnet");
+        //[TestMethod]
+        //public async Task TestODR()
+        //{
+        //    await SetupWallets("devnet");
 
-            await SetupEventsListener();
+        //    await SetupEventsListener();
 
-            var order = await CreateOrder();
-            Assert.IsNotNull(order);
+        //    var order = await CreateOrder();
+        //    Assert.IsNotNull(order);
 
-            var trade = await CreateTrade(order);
-            Assert.IsNotNull(trade);
+        //    var trade = await CreateTrade(order);
+        //    Assert.IsNotNull(trade);
 
-            await CancelTrade(trade);
+        //    await CancelTrade(trade);
 
-            await CloseOrder(order);
-        }
+        //    await CloseOrder(order);
+        //}
 
-        private async Task CancelTrade(IOtcTrade trade)
+        protected async Task CancelTrade(IOtcTrade trade)
         {
             var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
             Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
@@ -46,7 +45,7 @@ namespace UnitTests
             Assert.IsTrue(!trades.Any(a => (a as IOtcTrade).OTStatus == OTCTradeStatus.Open));
         }
 
-        private async Task<IOtcTrade> CreateTrade(IOtcOrder order)
+        protected async Task<IOtcTrade> CreateTrade(IOtcOrder order)
         {
             var trade = new OTCTrade
             {
@@ -84,7 +83,7 @@ namespace UnitTests
             return itrade;
         }
 
-        private async Task CloseOrder(IOtcOrder order)
+        protected async Task CloseOrder(IOtcOrder order)
         {
             var closeret = await testWallet.CloseOTCOrderAsync(order.Order.daoId, order.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
@@ -92,7 +91,7 @@ namespace UnitTests
             await WaitWorkflow(closeret.TxHash, "Close order");
         }
 
-        private async Task<IOtcOrder> CreateOrder()
+        protected async Task<IOtcOrder> CreateOrder()
         {
             var crypto = "unittest/ETH";
 

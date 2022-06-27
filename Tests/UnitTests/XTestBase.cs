@@ -74,7 +74,6 @@ namespace UnitTests
         LyraEventClient _eventClient;
         protected DealerClient dealer;
 
-        [TestInitialize]
         public void TestSetup()
         {
             SimpleLogger.Factory = new NullLoggerFactory();
@@ -495,7 +494,10 @@ namespace UnitTests
         protected async Task SetupWallets(string networkId)
         {
             if(networkId == "xtest")
+            {
+                TestSetup();
                 await CreateTestBlockchainAsync();
+            }                
             else
                 await CreateDevnet();
 
