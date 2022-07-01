@@ -42,7 +42,10 @@ namespace UnitTests.OTC
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
             var trades = tradeQueryRet.GetBlocks();
 
-            Assert.IsTrue(!trades.Any(a => (a as IOtcTrade).OTStatus == OTCTradeStatus.Open));
+            var lastTrade = trades.Last() as IOtcTrade;
+            Assert.IsTrue(trade.AccountID == lastTrade.AccountID && lastTrade.OTStatus == OTCTradeStatus.Canceled);
+
+            //Assert.IsTrue(!trades.Any(a => (a as IOtcTrade).OTStatus == OTCTradeStatus.Open), $"real state is: {}");
         }
 
         protected async Task CancelTradeShouldFail(IOtcTrade trade)

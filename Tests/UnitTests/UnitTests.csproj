@@ -58,6 +58,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
     <PackageReference Include="StreamJsonRpc" Version="2.10.44" />
     <PackageReference Include="WorkflowCore.Testing" Version="3.6.3" />
   </ItemGroup>

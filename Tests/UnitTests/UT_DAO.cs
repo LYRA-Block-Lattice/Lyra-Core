@@ -1052,6 +1052,8 @@ namespace UnitTests
 
         private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)
         {
+            ResetAuthFail();
+
             var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 30, true);
             Assert.IsTrue(crstkret.Successful());
 

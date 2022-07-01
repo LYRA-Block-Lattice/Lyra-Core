@@ -13,10 +13,12 @@ using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Neo;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +28,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WorkflowCore.Interface;
 using WorkflowCore.Services;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace UnitTests
 {
@@ -76,7 +79,13 @@ namespace UnitTests
 
         public void TestSetup()
         {
-            SimpleLogger.Factory = new NullLoggerFactory();
+            var serilogLogger = new LoggerConfiguration()
+                //.MinimumLevel.Verbose()
+                .WriteTo.File("c:\\tmp\\unittestlog.txt")
+                .CreateLogger();
+
+            SimpleLogger.Factory = new LoggerFactory();
+            SimpleLogger.Factory.AddSerilog(serilogLogger);
 
             var probe = CreateTestProbe();
             var ta = new TestAuthorizer(probe);
@@ -467,8 +476,7 @@ namespace UnitTests
 
         protected async Task WaitWorkflow(string key, string target, bool checklock = true)
         {
-            _workflowKey = key;
-            _workflowEnds.Reset();
+            _workflowKey = key;            
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 #if DEBUG
@@ -476,6 +484,7 @@ namespace UnitTests
 #else
             var ret = _workflowEnds.WaitOne(3000);
 #endif
+            _workflowEnds.Reset();
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");
             if(checklock)
