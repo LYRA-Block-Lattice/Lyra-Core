@@ -91,7 +91,7 @@ namespace Lyra.Core.WorkFlow
         }
     }
 
-    public enum WFState { Init, Running, Finished, ConsensusTimeout, Error };
+    public enum WFState { Init, Running, Finished, ConsensusTimeout, Error, Exited };
 
     public class ContextSerializer : SerializerBase<LyraContext>
     {
@@ -273,7 +273,7 @@ namespace Lyra.Core.WorkFlow
                             ) // do
                 .Then<CustomMessage>()
                     .Name("Log")
-                    .Input(step => step.Message, data => $"Workflow has been finished.")
+                    .Input(step => step.Message, data => $"Workflow is done.")
                 .Then(a =>
                 {
                     //Console.WriteLine("Ends.");
@@ -353,7 +353,7 @@ namespace Lyra.Core.WorkFlow
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
             {
                 Owner = ctx.OwnerAccountId,
-                State = ctx.State.ToString(),
+                State = Message == "Workflow is done." ? "Exited" : ctx.State.ToString(),
                 Name = ctx.SvcRequest,
                 Key = ctx.SendHash,
                 Action = ctx.LastBlockType.ToString(),

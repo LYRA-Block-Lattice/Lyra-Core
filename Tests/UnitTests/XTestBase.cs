@@ -468,7 +468,9 @@ namespace UnitTests
         protected async Task WaitWorkflow(string key, string target, bool checklock = true)
         {
             _workflowKey = key;
-            Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: {target}");
+            _workflowEnds.Reset();
+
+            Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 #if DEBUG
             var ret = _workflowEnds.WaitOne(100000);
 #else
@@ -478,7 +480,6 @@ namespace UnitTests
             Assert.IsTrue(ret, "workflow not finished properly.");
             if(checklock)
                 Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
-            _workflowEnds.Reset();
         }
 
         private async Task CreateConsolidation()
@@ -569,15 +570,15 @@ namespace UnitTests
                 var obj = evt.Get();
                 if (obj is WorkflowEvent wf)
                 {
-                    //Console.WriteLine($"Workflow {wf.Key} State: {wf.State}, Message: {wf.Message}");
+                    Console.WriteLine($"Workflow {wf.Key} State: {wf.State}, Message: {wf.Message}");
 
-                    if (wf.State == "Finished")
+                    if (wf.State == "Exited")
                     {
                         if(_workflowKey != null && _workflowKey == wf.Key)
                             _workflowEnds.Set();
 
-                        if(_workflowKey == null)
-                            _workflowEnds.Set();
+                        //if(_workflowKey == null)
+                        //    _workflowEnds.Set();
                     }
                 }
             }

@@ -76,7 +76,7 @@ namespace UnitTests.OTC
             Assert.IsTrue(traderet.Successful(), $"OTC Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
-            await WaitWorkflow(traderet.TxHash, "Create trade");
+            await WaitWorkflow(traderet.TxHash, $"Create trade, hash {traderet.TxHash}");
 
             var tradeQueryRet = await test2Wallet.RPC.FindOtcTradeAsync(test2Wallet.AccountId, false, 0, 10);
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");
