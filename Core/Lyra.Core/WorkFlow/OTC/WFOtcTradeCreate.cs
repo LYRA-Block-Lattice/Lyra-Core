@@ -161,37 +161,58 @@ namespace Lyra.Core.WorkFlow
             var keyStr = $"{send.Hash.Substring(0, 16)},{trade.crypto},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-
-            var nextblock = lastblock.GenInc<OtcOrderSendBlock>();  //gender change
-            var sendtotrade = nextblock
-                .With(new
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<OtcOrderSendBlock>(),
+                () => WFState.Running,
+                (b) =>
                 {
-                        // generic
-                    ServiceHash = sb.Hash,
-                    BlockType = BlockTypes.OTCOrderSend,
+                    // send
+                    (b as SendTransferBlock).DestinationAccountId = AccountId;
 
-                        // send & recv
-                    DestinationAccountId = AccountId,
-
-                        // broker
-                    RelatedTx = send.Hash,
-
-                        // business object
-                    Order = nextblock.Order.With(new
+                    // IOTCTrade
+                    var nextOdr = b as IOtcOrder;
+                    nextOdr.Order = nextOdr.Order.With(new
                     {
                         amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
-                    }),
-                    OOStatus = ((IOtcOrder)lastblock).Order.amount - trade.amount == 0 ?
-                        OTCOrderStatus.Closed : OTCOrderStatus.Partial,
+                    });
+                    nextOdr.OOStatus = ((IOtcOrder)lastblock).Order.amount - trade.amount == 0 ?
+                        OTCOrderStatus.Closed : OTCOrderStatus.Partial;
+
+                    // calculate balance
+                    var dict = lastblock.Balances.ToDecimalDict();
+                    dict[trade.crypto] -= trade.amount;
+                    b.Balances = dict.ToLongDict();
                 });
 
-            // calculate balance
-            var dict = lastblock.Balances.ToDecimalDict();
-            dict[trade.crypto] -= trade.amount;
-            sendtotrade.Balances = dict.ToLongDict();
-            sendtotrade.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendtotrade;
+            //var nextblock = lastblock.GenInc<OtcOrderSendBlock>();  //gender change
+            //var sendtotrade = nextblock
+            //    .With(new
+            //    {
+            //            // generic
+            //        ServiceHash = sb.Hash,
+            //        BlockType = BlockTypes.OTCOrderSend,
+
+            //            // send & recv
+            //        DestinationAccountId = AccountId,
+
+            //            // broker
+            //        RelatedTx = send.Hash,
+
+            //            // business object
+            //        Order = nextblock.Order.With(new
+            //        {
+            //            amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
+            //        }),
+            //        OOStatus = ((IOtcOrder)lastblock).Order.amount - trade.amount == 0 ?
+            //            OTCOrderStatus.Closed : OTCOrderStatus.Partial,
+            //    });
+
+            //// calculate balance
+            //var dict = lastblock.Balances.ToDecimalDict();
+            //dict[trade.crypto] -= trade.amount;
+            //sendtotrade.Balances = dict.ToLongDict();
+            //sendtotrade.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            //return sendtotrade;
         }
 
         async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
@@ -202,6 +223,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<DaoSendBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     // send
@@ -223,6 +245,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcOrderRecvBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     // send
@@ -273,7 +296,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             otcblock.Balances.Add(trade.crypto, trade.amount.ToBalanceLong());
-            otcblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            otcblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             otcblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

@@ -66,7 +66,16 @@ namespace Lyra.Core.WorkFlow
                     _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
                     if (block != null)
+                    {
                         count++;
+                        if (!block.ContainsTag(Block.MANAGEDTAG))
+                            throw new Exception("Missing MANAGEDTAG");
+
+                        if (!Enum.TryParse(block.Tags[Block.MANAGEDTAG], out WFState mgdstate))
+                            throw new Exception("Invalid MANAGEDTAG");
+
+                        ctx.State = mgdstate;
+                    }
                     else
                         ctx.State = WFState.Finished;
                 }
@@ -218,7 +227,7 @@ namespace Lyra.Core.WorkFlow
                         .Input(step => step.Message, data => $"State Changed.")
                     .While(a => a.State != WFState.Finished && a.State != WFState.Error)
                         .Do(x => x
-                            .If(data => data.State == WFState.Running)
+                            .If(data => data.State == WFState.Init || data.State == WFState.Running)
                                 .Do(then => then
                                 .StartWith<Repeator>()
                                     .Input(step => step.count, data => data.Count)
@@ -226,7 +235,8 @@ namespace Lyra.Core.WorkFlow
                                     .Output(data => data.LastBlockType, step => LyraContext.ParseBlock(step.block).type)
                                     .Output(data => data.LastBlockJson, step => LyraContext.ParseBlock(step.block).json)
                                 .If(data => data.LastBlockType != BlockTypes.Null).Do(letConsensus))
-                            .If(data => data.LastBlockType != BlockTypes.Null && data.LastResult == ConsensusResult.Nay).Do(then => then
+                            .If(data => data.LastBlockType != BlockTypes.Null && data.LastResult == ConsensusResult.Nay)
+                                .Do(then => then
                                 .StartWith<CustomMessage>()
                                     .Name("Log")
                                     .Input(step => step.Message, data => $"Consensus Nay. workflow failed.")
@@ -337,7 +347,7 @@ namespace Lyra.Core.WorkFlow
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
-            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.SendHash}, {ctx.Count}/, {Message}";
+            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.SendHash}, {ctx.Count}/{ctx.State}, {Message}";
             _logger.LogInformation(log);
 
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent

@@ -62,48 +62,27 @@ namespace Lyra.Core.WorkFlow.OTC
             var txInfo = sendBlock.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock);
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
-            var lsb = await sys.Storage.GetLastServiceBlockAsync();
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<OtcTradeRecvBlock>(),
+                () => WFState.Finished,
+                (b) =>
+                {
+                    (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
+                    (b as IOtcTrade).OTStatus = OTCTradeStatus.FiatSent;
 
-            var receiveBlock = new OtcTradeRecvBlock
-            {
-                // block
-                ServiceHash = lsb.Hash,
+                    // calculate balance
+                    var latestBalances = lastblock.Balances.ToDecimalDict();
+                    var recvBalances = lastblock.Balances.ToDecimalDict();
+                    foreach (var chg in txInfo.Changes)
+                    {
+                        if (recvBalances.ContainsKey(chg.Key))
+                            recvBalances[chg.Key] += chg.Value;
+                        else
+                            recvBalances.Add(chg.Key, chg.Value);
+                    }
 
-                // transaction
-                AccountID = sendBlock.DestinationAccountId,
-                SourceHash = sendBlock.Hash,
-                Balances = new Dictionary<string, long>(),
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-
-                // broker
-                Name = ((IBrokerAccount)lastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
-                RelatedTx = sendBlock.Hash,
-
-                // trade     
-                Trade = ((IOtcTrade)lastblock).Trade,
-                OTStatus = OTCTradeStatus.FiatSent,
-            };
-
-            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-            var latestBalances = lastblock.Balances.ToDecimalDict();
-            var recvBalances = lastblock.Balances.ToDecimalDict();
-            foreach (var chg in txInfo.Changes)
-            {
-                if (recvBalances.ContainsKey(chg.Key))
-                    recvBalances[chg.Key] += chg.Value;
-                else
-                    recvBalances.Add(chg.Key, chg.Value);
-            }
-
-            receiveBlock.Balances = recvBalances.ToLongDict();
-
-            await receiveBlock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
-
-            return receiveBlock;
+                    b.Balances = recvBalances.ToLongDict();
+                });
         }
     }
 }

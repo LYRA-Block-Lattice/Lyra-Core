@@ -90,7 +90,7 @@ namespace Lyra.Core.WorkFlow.PFT
                 RelatedTx = send.Hash
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
 
             if (latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
             {
@@ -198,7 +198,7 @@ namespace Lyra.Core.WorkFlow.PFT
 
             pftNext.Balances = recvBalances.ToLongDict();
 
-            pftNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            pftNext.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             pftNext.InitializeBlock(lastPft, sys.PosWallet.PrivateKey, AccountId: sys.PosWallet.AccountId);
@@ -270,7 +270,7 @@ namespace Lyra.Core.WorkFlow.PFT
                     Console.WriteLine($"CreateBenefiting for {reqHash}");
                     var pftSend = CreateBenefiting(lastblkx as TransactionBlock, sb,
                         target, reqHash,
-                        amount);
+                        amount, sentBlocks.Count == targets.Count() * 2);
 
                     Console.WriteLine($"CreateBenefiting for {reqHash} generated {pftSend?.Hash} to {pftSend.DestinationAccountId}");
                     return pftSend;
@@ -294,7 +294,7 @@ namespace Lyra.Core.WorkFlow.PFT
                         if (xsend == null)
                             continue;
 
-                        var compstk = await WFStakingAddStaking.CNOAddStakingImplAsync(sys, xsend, reqHash);
+                        var compstk = await WFStakingAddStaking.CNOAddStakingImplAsync(sys, xsend, reqHash, sentBlocks.Count == targets.Count() * 2);
 
                         Console.WriteLine($"CNOAddStakingImplAsync for {reqHash} generated {compstk?.Hash}");
                         if (compstk != null)
@@ -314,14 +314,15 @@ namespace Lyra.Core.WorkFlow.PFT
 
             var sb2 = await sys.Storage.GetLastServiceBlockAsync();
             var lastblk = await sys.Storage.FindLatestBlockAsync(pftid) as TransactionBlock;
-            var ownrSend = CreateBenefiting(lastblk, sb2, new Staker { OwnerAccount = lastBlock.OwnerAccountId }, reqHash, lastblk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
+            var ownrSend = CreateBenefiting(lastblk, sb2, new Staker { OwnerAccount = lastBlock.OwnerAccountId }, reqHash, lastblk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal()
+                , sentBlocks.Count == targets.Count() * 2);
 
             return ownrSend;
         }
 
         private static BenefitingBlock CreateBenefiting(TransactionBlock lastPft, ServiceBlock sb,
             Staker target, string relatedTx,
-            decimal amount
+            decimal amount, bool finalOne
             )
         {
             Console.WriteLine("CR Dividend: CreateBenefiting");
@@ -354,7 +355,7 @@ namespace Lyra.Core.WorkFlow.PFT
             lastBalance -= amount.ToBalanceLong();
             pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
 
-            pftSend.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            pftSend.AddTag(Block.MANAGEDTAG, finalOne ? WFState.Finished.ToString() : WFState.Running.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             pftSend.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

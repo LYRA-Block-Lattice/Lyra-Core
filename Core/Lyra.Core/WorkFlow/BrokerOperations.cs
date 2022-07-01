@@ -56,7 +56,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.FullFee,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Init.ToString());
 
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
@@ -114,7 +114,7 @@ namespace Lyra.Core.WorkFlow
                 Description = ((IDao)lastblock).Description,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Init.ToString());
 
             var latestBalances = lastblock.Balances.ToDecimalDict();
             var recvBalances = lastblock.Balances.ToDecimalDict();
@@ -167,7 +167,7 @@ namespace Lyra.Core.WorkFlow
                 Trade = ((IOtcTrade)lastblock).Trade,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Init.ToString());
 
             var latestBalances = lastblock.Balances.ToDecimalDict();
             var recvBalances = lastblock.Balances.ToDecimalDict();

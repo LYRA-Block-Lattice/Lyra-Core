@@ -118,6 +118,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeRecvBlock>(),
+                () => WFState.Init,
                 (b) =>
                 {
                     // recv
@@ -146,6 +147,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeSendBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     // send
@@ -175,6 +177,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblockorder,
                 () => lastblockorder.GenInc<OtcOrderRecvBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     // send
@@ -206,6 +209,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
+                () => WFState.Finished,
                 (b) =>
                 {
                     // recv
@@ -232,6 +236,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeSendBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     // send

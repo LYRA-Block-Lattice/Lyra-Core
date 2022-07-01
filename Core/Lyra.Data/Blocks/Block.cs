@@ -68,7 +68,8 @@ namespace Lyra.Core.Blocks
                     Height = 0,
                     TimeStamp = DateTime.UtcNow,
                     Fee = 0m,
-                    FeeType = AuthorizationFeeTypes.NoFee
+                    FeeType = AuthorizationFeeTypes.NoFee,
+                    FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 });
         }
 
@@ -103,7 +104,12 @@ namespace Lyra.Core.Blocks
                 PreviousHash = prevBlock.Hash;
 
                 if (prevBlock.Hash != prevBlock.CalculateHash())
+                {
+                    //remove this debug code
+                    //System.IO.File.AppendAllText("c:\\tmp\\hashs.txt", "ERRRR!\n\n" + prevBlock.GetHashInput() + "\n\n");
+
                     throw new Exception("Invalid previous block, possible data tampered.");
+                }                    
             }
             else
             {

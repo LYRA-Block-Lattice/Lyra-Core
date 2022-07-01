@@ -30,7 +30,7 @@ namespace Lyra.Core.WorkFlow.OTC
         // user pay via off-chain ways and confirm payment in OTC trade.
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            if (send.Tags.Count == 3 ||
+            if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("data") || 
                 string.IsNullOrEmpty(send.Tags["data"]) ||
                 !send.Tags.ContainsKey("voteid")) // || string.IsNullOrEmpty(send.Tags["voteid"])
@@ -100,13 +100,14 @@ namespace Lyra.Core.WorkFlow.OTC
                 };
 
                 return await SlashCollateral(sys, send,
-                    tos[resolv.actions[blocks.Count - 1].to], resolv.actions[blocks.Count - 1].amount);
+                    tos[resolv.actions[blocks.Count - 1].to], resolv.actions[blocks.Count - 1].amount,
+                    blocks.Count == resolv.actions.Length);
             }
             else
                 return null;
         }
 
-        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, SendTransferBlock send, string to, decimal amount)
+        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, SendTransferBlock send, string to, decimal amount, bool finalOne)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
@@ -116,6 +117,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             var daosendblk = await TransactionOperateAsync(sys, send.Hash, daolatest,
                 () => daolatest.GenInc<DaoSendBlock>(),
+                () => finalOne ? WFState.Finished : WFState.Running,
                 (b) =>
                 {
                     // send
@@ -142,6 +144,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<OtcVotedResolutionBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     // recv

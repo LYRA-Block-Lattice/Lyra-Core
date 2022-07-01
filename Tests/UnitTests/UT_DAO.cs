@@ -1221,12 +1221,12 @@ namespace UnitTests
 
             // we temp disable the dealer creation.
             var ret = await testWallet.ServiceRequestAsync(dealerAbi);
-            await WaitWorkflow($"Create Dealer");
             Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
+            await WaitWorkflow($"Create Dealer");
 
             var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
-            await WaitBlock($"Create Dealer 2");
             Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+            await WaitBlock($"Create Dealer 2");
 
             // get dealers
             var gdret = await testWallet.RPC.GetDealerByAccountIdAsync(testWallet.AccountId);

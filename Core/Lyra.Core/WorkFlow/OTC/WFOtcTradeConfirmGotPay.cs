@@ -74,10 +74,13 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        protected Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
-            return TradeBlockOperateAsync(sys, sendBlock,
-                () => new OtcTradeSendBlock(),
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<OtcTradeSendBlock>(),
+                () => WFState.Running,
                 (b) =>
                 {
                     var trade = b as IOtcTrade;
@@ -126,6 +129,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
+                () => WFState.Finished,
                 (b) =>
                 {
                     // block
@@ -142,12 +146,18 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        protected Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
-            return TradeBlockOperateAsync(sys, sendBlock,
-                () => new OtcTradeRecvBlock(),
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<OtcTradeRecvBlock>(),
+                () => WFState.Init,
                 (b) =>
                 {
+                    // recv
+                    (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
+
                     var txInfo = sendBlock.GetBalanceChanges(sys.Storage.FindBlockByHash(sendBlock.PreviousHash) as TransactionBlock);
 
                     var recvBalances = b.Balances.ToDecimalDict();
@@ -164,49 +174,49 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        protected async Task<TransactionBlock> TradeBlockOperateAsync(
-            DagSystem sys, 
-            SendTransferBlock sendBlock,
-            Func<TransactionBlock> GenBlock,
-            Action<TransactionBlock> ChangeBlock
-            )
-        {
-            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+        //protected async Task<TransactionBlock> TradeBlockOperateAsyncx(
+        //    DagSystem sys, 
+        //    SendTransferBlock sendBlock,
+        //    Func<TransactionBlock> GenBlock,
+        //    Action<TransactionBlock> ChangeBlock
+        //    )
+        //{
+        //    var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
-            var lsb = await sys.Storage.GetLastServiceBlockAsync();
+        //    var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var nextblock = GenBlock();
+        //    var nextblock = GenBlock();
 
-            // block
-            nextblock.ServiceHash = lsb.Hash;
+        //    // block
+        //    nextblock.ServiceHash = lsb.Hash;
 
-            // transaction
-            nextblock.AccountID = sendBlock.DestinationAccountId;
-            nextblock.Balances = new Dictionary<string, long>();
-            nextblock.Fee = 0;
-            nextblock.FeeCode = LyraGlobal.OFFICIALTICKERCODE;
-            nextblock.FeeType = AuthorizationFeeTypes.NoFee;
+        //    // transaction
+        //    nextblock.AccountID = sendBlock.DestinationAccountId;
+        //    nextblock.Balances = new Dictionary<string, long>();
+        //    nextblock.Fee = 0;
+        //    nextblock.FeeCode = LyraGlobal.OFFICIALTICKERCODE;
+        //    nextblock.FeeType = AuthorizationFeeTypes.NoFee;
 
-            // broker
-            (nextblock as IBrokerAccount).Name = ((IBrokerAccount)lastblock).Name;
-            (nextblock as IBrokerAccount).OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId;
-            (nextblock as IBrokerAccount).RelatedTx = sendBlock.Hash;
+        //    // broker
+        //    (nextblock as IBrokerAccount).Name = ((IBrokerAccount)lastblock).Name;
+        //    (nextblock as IBrokerAccount).OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId;
+        //    (nextblock as IBrokerAccount).RelatedTx = sendBlock.Hash;
 
-            // trade     
-            (nextblock as IOtcTrade).Trade = ((IOtcTrade)lastblock).Trade;
-            (nextblock as IOtcTrade).OTStatus = ((IOtcTrade)lastblock).OTStatus;
+        //    // trade     
+        //    (nextblock as IOtcTrade).Trade = ((IOtcTrade)lastblock).Trade;
+        //    (nextblock as IOtcTrade).OTStatus = ((IOtcTrade)lastblock).OTStatus;
 
-            nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+        //    nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
-            var latestBalances = lastblock.Balances.ToDecimalDict();
-            var recvBalances = lastblock.Balances.ToDecimalDict();
-            nextblock.Balances = recvBalances.ToLongDict();
+        //    var latestBalances = lastblock.Balances.ToDecimalDict();
+        //    var recvBalances = lastblock.Balances.ToDecimalDict();
+        //    nextblock.Balances = recvBalances.ToLongDict();
 
-            ChangeBlock(nextblock);
+        //    ChangeBlock(nextblock);
 
-            await nextblock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
+        //    await nextblock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
 
-            return nextblock;
-        }
+        //    return nextblock;
+        //}
     }
 }

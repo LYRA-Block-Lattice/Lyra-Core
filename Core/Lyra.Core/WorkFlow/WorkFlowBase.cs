@@ -236,8 +236,9 @@ namespace Lyra.Core.WorkFlow
         protected async Task<TransactionBlock> TransactionOperateAsync(
             DagSystem sys,
             string relatedHash,
-            Block prevBlock,
+            TransactionBlock prevBlock,
             Func<TransactionBlock> GenBlock,
+            Func<WFState> NewState,
             Action<TransactionBlock> ChangeBlock
             )
         {
@@ -247,8 +248,11 @@ namespace Lyra.Core.WorkFlow
 
             // block
             nextblock.ServiceHash = lsb.Hash;
-            nextblock.Tags?.Clear();
-            nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            nextblock.Tags = null;
+            nextblock.AddTag(Block.MANAGEDTAG, NewState().ToString());
+
+            // transactions
+            nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
 
             // ibroker
             (nextblock as IBrokerAccount).RelatedTx = relatedHash;
@@ -257,6 +261,9 @@ namespace Lyra.Core.WorkFlow
                 ChangeBlock(nextblock);
 
             await nextblock.InitializeBlockAsync(prevBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
+
+            //remove this debug code
+            //System.IO.File.AppendAllText("c:\\tmp\\hashs.txt", nextblock.GetHashInput() + "\n\n");
 
             return nextblock;
         }

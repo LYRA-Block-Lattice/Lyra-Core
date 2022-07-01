@@ -122,7 +122,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash
             };
 
-            poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            poolGenesis.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -221,7 +221,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = sendBlock.Hash
             };
 
-            depositBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            depositBlock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -340,7 +340,7 @@ namespace Lyra.Core.WorkFlow
 
             var sendBlock = await sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
 
-            withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored            
+            withdrawBlock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());           
 
             var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
             var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
@@ -476,7 +476,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = sendBlock.Hash
             };
 
-            swapInBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            swapInBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -549,7 +549,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash
             };
 
-            swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            swapOutBlock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(recv.AccountID) as PoolGenesisBlock;
             var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(recv.AccountID) as TransactionBlock;

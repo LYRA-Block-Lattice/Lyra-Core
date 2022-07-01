@@ -46,9 +46,9 @@ namespace Lyra.Core.WorkFlow.STK
 
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
-            return await CNOAddStakingImplAsync(sys, send, send.Hash);
+            return await CNOAddStakingImplAsync(sys, send, send.Hash, true);
         }
-        public static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, SendTransferBlock send, string relatedTx)
+        public static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, SendTransferBlock send, string relatedTx, bool finalOne)
         {
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
@@ -98,7 +98,7 @@ namespace Lyra.Core.WorkFlow.STK
             var chgs = send.GetBalanceChanges(sendPrev);
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
 
-            stkNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            stkNext.AddTag(Block.MANAGEDTAG, finalOne ? WFState.Finished.ToString() : WFState.Running.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

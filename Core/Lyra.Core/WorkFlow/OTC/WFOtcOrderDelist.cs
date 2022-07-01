@@ -67,6 +67,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcOrderSendBlock>(),
+                () => WFState.Finished,
                 (b) =>
                 {
                         // send

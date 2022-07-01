@@ -74,11 +74,14 @@ namespace Lyra.Core.Authorizers
 
             if (block.ContainsTag(Block.MANAGEDTAG))
             {
-                if (block.Tags[Block.MANAGEDTAG] != "")
-                {
-                    Console.WriteLine("block.Tags[Block.MANAGEDTAG] != ''");
-                    return APIResultCodes.InvalidManagementBlock;
-                }
+                //if(!Enum.TryParse(block.Tags[Block.MANAGEDTAG], out Block.ManagedState mgdstate))
+                //    return APIResultCodes.InvalidManagementBlock;
+
+                //if (block.Tags[Block.MANAGEDTAG] != "")
+                //{
+                //    Console.WriteLine("block.Tags[Block.MANAGEDTAG] != ''");
+                //    return APIResultCodes.InvalidManagementBlock;
+                //}
 
                 //if (!(block is IBrokerAccount) && !(block is PoolFactoryBlock) && !(block is IPool))
                 //    return APIResultCodes.InvalidBrokerAcount;
@@ -153,11 +156,14 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidManagementBlock;
                 }
 
-                if (blockt.Tags[Block.MANAGEDTAG] != "")
-                {
-                    Console.WriteLine("blockt.Tags[Block.MANAGEDTAG] != ''");
-                    return APIResultCodes.InvalidManagementBlock;
-                }
+                //if (!Enum.TryParse(blockt.Tags[Block.MANAGEDTAG], out Block.ManagedState mgdstate))
+                //    return APIResultCodes.InvalidManagementBlock;
+
+                //if (blockt.Tags[Block.MANAGEDTAG] != "")
+                //{
+                //    Console.WriteLine("blockt.Tags[Block.MANAGEDTAG] != ''");
+                //    return APIResultCodes.InvalidManagementBlock;
+                //}
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 verifyAgainst = board.CurrentLeader;

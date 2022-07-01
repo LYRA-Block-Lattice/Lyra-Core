@@ -174,7 +174,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 },
             };
 
-            gens.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            gens.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             gens.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

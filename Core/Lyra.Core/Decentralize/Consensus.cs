@@ -2,6 +2,7 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.WorkFlow;
 using Lyra.Data;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
@@ -677,7 +678,7 @@ namespace Lyra.Core.Decentralize
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
             };
 
-            pf.AddTag(Block.MANAGEDTAG, "");        // no othere variables.
+            pf.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());        // no othere variables.
 
             // pool blocks are service block so all service block signed by leader node
             pf.InitializeBlock(null, _sys.PosWallet.PrivateKey, AccountId: _sys.PosWallet.AccountId);
