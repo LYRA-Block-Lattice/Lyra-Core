@@ -53,6 +53,8 @@ namespace UnitTests.OTC
 
         protected async Task<IOtcTrade> CreateTrade(IOtcOrder order)
         {
+            var prices = await dealer.GetPricesAsync();
+            var collt = Math.Round((prices["ETH"] * 0.01m / prices["LYR"]) * 150 / 100 + 10000, 0);
             var trade = new OTCTrade
             {
                 daoId = order.Order.daoId,
@@ -64,7 +66,7 @@ namespace UnitTests.OTC
                 fiat = fiat,
                 price = order.Order.price,
 
-                collateral = Math.Round(2m * 0.02m / order.Order.collateralPrice * 1.5m + 10000, 0),
+                collateral = collt,
                 payVia = "Paypal",
                 amount = 0.01m,
                 pay = order.Order.price * 0.01m,
@@ -137,6 +139,7 @@ namespace UnitTests.OTC
 
             var prices = await dealer.GetPricesAsync();
 
+            var collt = Math.Round((prices["ETH"] * 0.02m / prices["LYR"]) * dao.SellerPar / 100 + 10000, 0);
             var order = new OTCOrder
             {
                 daoId = dao.AccountID,
@@ -147,7 +150,7 @@ namespace UnitTests.OTC
                 fiatPrice = prices[fiat.ToLower()],
                 priceType = PriceType.Fixed,
                 price = 2,
-                collateral = Math.Round(2m * 0.02m / prices["LYR"] * dao.SellerFeeRatio + 10000, 0),
+                collateral = collt,
                 collateralPrice = prices["LYR"],
                 payBy = new string[] { "Paypal" },
 
