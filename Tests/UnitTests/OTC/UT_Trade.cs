@@ -70,6 +70,46 @@ namespace UnitTests.OTC
         }
 
         /// <summary>
+        /// dispute level: Peer
+        /// Buyer raise complain and seller will accept it.
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task ResolveDisputeOnPeer()
+        {
+            await Setup();
+
+            var tradeid = "L7a5PbrrgHv86LWjKWGG9z3R9dUTU8CYvc8t1xm9RBZujXxva1xrbVtyHiyMFmi46FF1JiN9Bj4BLtk1KeKk63CJdVLKCF";
+            var trade = (await client.GetLastBlockAsync(tradeid)).As<IOtcTrade>();
+            Assert.IsTrue(trade != null && trade.OTStatus == OTCTradeStatus.Open);
+
+            var lsb = await client.GetLastServiceBlockAsync();
+            var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(DisputeLevels.Peer, brief0.DisputeLevel);
+
+            // seems dao owner is test1
+            var dao = (await client.GetLastBlockAsync(trade.Trade.daoId)).As<IDao>();
+            Assert.AreEqual(testPublicKey, dao.OwnerAccountId);
+
+            // seller submit resolution
+            var resolution = await CreateODRResolution(dao, trade);
+            var sesret = await dealer.SubmitResolutionAsync(resolution, testPublicKey,
+                Signatures.GetSignature(testPrivateKey, lsb.GetBlock().Hash, testPublicKey)
+                );
+            Assert.IsTrue(sesret.Successful());
+
+            // buyer accept the resolution
+            var acpret = await dealer.AnswerToResolutionAsync(resolution, true, test2PublicKey,
+                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
+                );
+            Assert.IsTrue(acpret.Successful());
+
+            //// dao owner execute the resolution
+            //var ret = await testWallet.ExecuteResolution(null, resolution);
+            //Assert.IsTrue(ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
+        }
+
+        /// <summary>
         /// dispute level: DAO
         /// DAO try to provide resolution and both part will accept it.
         /// </summary>

@@ -2,6 +2,7 @@
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API.Identity;
+using Lyra.Data.API.ODR;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
 using System;
@@ -213,6 +214,29 @@ namespace Lyra.Data.API
                 { "claimedLost", claimedLost.ToString() },
             };
             return await GetAsync<APIResult>("Complain", args);
+        }
+
+        public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution, string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "resolutionJson", JsonConvert.SerializeObject(resolution) },
+                { "accountId", accountId },
+                { "signature", signature },
+            };
+            return await GetAsync<APIResult>("SubmitResolution", args);
+        }
+
+        public async Task<APIResult> AnswerToResolutionAsync(ODRResolution resolution, bool accepted, string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "resolutionJson", JsonConvert.SerializeObject(resolution) },
+                { "accountId", accountId },
+                { "signature", signature },
+                { "accepted", accepted.ToString() },
+            };
+            return await GetAsync<APIResult>("AnswerToResolution", args);
         }
     }
 }
