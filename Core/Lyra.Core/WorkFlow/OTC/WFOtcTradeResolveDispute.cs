@@ -62,10 +62,10 @@ namespace Lyra.Core.WorkFlow.OTC
 
             // verify resolution
             var resolution = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
-            if (resolution == null || resolution.actions == null || resolution.actions.Length == 0)
+            if (resolution == null || resolution.Actions == null || resolution.Actions.Length == 0)
                 return APIResultCodes.InvalidOperation;
 
-            foreach(var act in resolution.actions)
+            foreach(var act in resolution.Actions)
             {
                 if (act.amount <= 0)
                     return APIResultCodes.InvalidOperation;
@@ -88,10 +88,10 @@ namespace Lyra.Core.WorkFlow.OTC
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
-            if (blocks.Count < resolv.actions.Length + 1)
+            if (blocks.Count < resolv.Actions.Length + 1)
             {
                 // populate tos
-                var tradegen = await sys.Storage.FindFirstBlockAsync(resolv.tradeid) as IOtcTrade;
+                var tradegen = await sys.Storage.FindFirstBlockAsync(resolv.TradeId) as IOtcTrade;
                 var tos = new Dictionary<Parties, string>
                 {
                     { Parties.Seller, tradegen.Trade.orderOwnerId },
@@ -100,8 +100,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 };
 
                 return await SlashCollateral(sys, send,
-                    tos[resolv.actions[blocks.Count - 1].to], resolv.actions[blocks.Count - 1].amount,
-                    blocks.Count == resolv.actions.Length);
+                    tos[resolv.Actions[blocks.Count - 1].to], resolv.Actions[blocks.Count - 1].amount,
+                    blocks.Count == resolv.Actions.Length);
             }
             else
                 return null;
@@ -112,7 +112,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
 
-            var tradelatest = await sys.Storage.FindLatestBlockAsync(resolv.tradeid) as IOtcTrade;
+            var tradelatest = await sys.Storage.FindLatestBlockAsync(resolv.TradeId) as IOtcTrade;
             var daolatest = await sys.Storage.FindLatestBlockAsync(tradelatest.Trade.daoId) as TransactionBlock;
 
             var daosendblk = await TransactionOperateAsync(sys, send.Hash, daolatest,

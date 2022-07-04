@@ -678,5 +678,6 @@ namespace Lyra.Core.Blocks
         InvalidDealerServer,
         NotOwnerOfOrder,
         NotRegisteredToDealer,
+        ResolutionPending,
     }
 }

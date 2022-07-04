@@ -5,6 +5,7 @@ using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MongoDB.Bson.Serialization.IdGenerators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +55,8 @@ namespace UnitTests.OTC
             var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(trade.AccountID, brief0.TradeId);
             Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
+            Assert.AreEqual(null, brief0.DisputeHistory);
+            Assert.AreEqual(null, brief0.ResolutionHistory);
 
             var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
                 Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)                
@@ -79,30 +82,71 @@ namespace UnitTests.OTC
         {
             await Setup();
 
-            var tradeid = "L7a5PbrrgHv86LWjKWGG9z3R9dUTU8CYvc8t1xm9RBZujXxva1xrbVtyHiyMFmi46FF1JiN9Bj4BLtk1KeKk63CJdVLKCF";
-            var trade = (await client.GetLastBlockAsync(tradeid)).As<IOtcTrade>();
-            Assert.IsTrue(trade != null && trade.OTStatus == OTCTradeStatus.Open);
+            var order = await CreateOrder();
+            Assert.IsNotNull(order);
+
+            var trade = await CreateTrade(order);
+            Assert.IsNotNull(trade);
 
             var lsb = await client.GetLastServiceBlockAsync();
             var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
-            Assert.AreEqual(DisputeLevels.Peer, brief0.DisputeLevel);
+            Assert.AreEqual(trade.AccountID, brief0.TradeId);
+            Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
+            Assert.AreEqual(null, brief0.DisputeHistory);
+            Assert.AreEqual(null, brief0.ResolutionHistory);
+
+            var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
+                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
+                );
+            Assert.IsTrue(ret.Successful());
+
+            var brief00 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(DisputeLevels.Peer, brief00.DisputeLevel);
+
+            Assert.AreEqual(1, brief00.DisputeHistory.Count);
+            Assert.AreEqual(null, brief00.ResolutionHistory);
 
             // seems dao owner is test1
             var dao = (await client.GetLastBlockAsync(trade.Trade.daoId)).As<IDao>();
             Assert.AreEqual(testPublicKey, dao.OwnerAccountId);
 
-            // seller submit resolution
+            //// seller submit resolution
             var resolution = await CreateODRResolution(dao, trade);
+            resolution.CaseId = brief00.DisputeHistory.First().Id;
             var sesret = await dealer.SubmitResolutionAsync(resolution, testPublicKey,
                 Signatures.GetSignature(testPrivateKey, lsb.GetBlock().Hash, testPublicKey)
                 );
-            Assert.IsTrue(sesret.Successful());
+            Assert.IsTrue(sesret.Successful(), $"Should success but {sesret.ResultCode}");
+
+            // submit again will get error
+            var sesret2 = await dealer.SubmitResolutionAsync(resolution, testPublicKey,
+                Signatures.GetSignature(testPrivateKey, lsb.GetBlock().Hash, testPublicKey)
+                );
+            Assert.IsTrue(sesret2.ResultCode == APIResultCodes.ResolutionPending, $"should pending but {sesret2.ResultCode}");
+
+            // verify brief
+            var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(DisputeLevels.Peer, brief1.DisputeLevel);
+
+            Assert.AreEqual(1, brief1.DisputeHistory.Count);
+            Assert.AreEqual(1, brief1.ResolutionHistory.Count);
 
             // buyer accept the resolution
-            var acpret = await dealer.AnswerToResolutionAsync(resolution, true, test2PublicKey,
+            var acpret = await dealer.AnswerToResolutionAsync(trade.AccountID, brief1.ResolutionHistory.First().Id, true, test2PublicKey,
                 Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
                 );
-            Assert.IsTrue(acpret.Successful());
+            Assert.IsTrue(acpret.Successful(), $"Can't answer resolution: {acpret.ResultCode}");
+
+            // verify brief
+            var brief2 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(DisputeLevels.None, brief2.DisputeLevel);
+
+            Assert.AreEqual(1, brief2.DisputeHistory.Count);
+            Assert.AreEqual(1, brief2.ResolutionHistory.Count);
+
+            await CancelTrade(trade);
+
+            await CloseOrder(order);
 
             //// dao owner execute the resolution
             //var ret = await testWallet.ExecuteResolution(null, resolution);
@@ -158,9 +202,9 @@ namespace UnitTests.OTC
             var resolution = new ODRResolution
             {
                 RType = ResolutionType.OTCTrade,
-                creator = testWallet.AccountId,
-                tradeid = trade.AccountID,
-                actions = moves,
+                Creator = testWallet.AccountId,
+                TradeId = trade.AccountID,
+                Actions = moves,
             };
             //daoprosl = new VoteProposal
             //{

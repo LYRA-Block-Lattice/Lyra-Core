@@ -1,4 +1,5 @@
-﻿using Lyra.Data.API.WorkFlow;
+﻿using Lyra.Data.API.ODR;
+using Lyra.Data.API.WorkFlow;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 using System;
@@ -30,10 +31,9 @@ namespace Lyra.Data.API.Identity
 
         public bool IsCancellable { get; set; }
 
-        // dispute
-        [JsonIgnore]
-        public DisputeLevels DisputeLevel => DisputeHistory == null ? DisputeLevels.None : (DisputeLevels)DisputeHistory.Count;
+        public DisputeLevels DisputeLevel { get; set; }
 
         public List<DisputeCase>? DisputeHistory { get; set; }
+        public List<ODRResolution>? ResolutionHistory { get; set; }
     }
 }

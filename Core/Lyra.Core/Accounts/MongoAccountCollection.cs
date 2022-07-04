@@ -2294,7 +2294,7 @@ namespace Lyra.Core.Accounts
                 if((vote as IVoting).Proposal.pptype == ProposalType.DisputeResolution)
                 {
                     var pp = (vote as IVoting).Proposal.Deserialize() as ODRResolution;
-                    if (pp != null && pp.tradeid == tradeid)
+                    if (pp != null && pp.TradeId == tradeid)
                         myvotes.Add(vote);
                 }
             }

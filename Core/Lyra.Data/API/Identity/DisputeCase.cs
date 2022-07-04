@@ -1,6 +1,7 @@
 ﻿using Lyra.Data.API.ODR;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.IdGenerators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,11 @@ namespace Lyra.Data.API.Identity
     /// </summary>
     public class DisputeCase
     {
+        /// <summary>
+        /// Case ID, start from 1.
+        /// </summary>
+        public int Id { get; set; }
+
         // plaintiff
         public DisputeLevels Level { get; set; }
         public string RaisedBy { get; set; } = null!;

@@ -2397,7 +2397,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, 1 },
             };
 
-            var result = await SendExAsync(resolution.tradeid, amounts, tags);
+            var result = await SendExAsync(resolution.TradeId, amounts, tags);
             return result;
         }
 

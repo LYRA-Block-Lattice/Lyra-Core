@@ -306,9 +306,9 @@ namespace UnitTests
             var resolution = new ODRResolution
             {
                 RType = ResolutionType.OTCTrade,
-                creator = testWallet.AccountId,
-                tradeid = disputeTradeId,
-                actions = new []
+                Creator = testWallet.AccountId,
+                TradeId = disputeTradeId,
+                Actions = new []
                 {
                     new TransMove
                     {
@@ -387,7 +387,7 @@ namespace UnitTests
 
             // trade should be dispute state
             var res1 = summary.Spec.Proposal.Deserialize() as ODRResolution;
-            var latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(res1.tradeid);
+            var latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(res1.TradeId);
             var latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
             Assert.AreEqual(OTCTradeStatus.Dispute, latestTrade.OTStatus);
 
@@ -401,7 +401,7 @@ namespace UnitTests
             await WaitWorkflow("ExecuteResolution");
 
             // now the state should be DisputeClosed 
-            latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(res1.tradeid);
+            latestTradeRet = await genesisWallet.RPC.GetLastBlockAsync(res1.TradeId);
             latestTrade = latestTradeRet.GetBlock() as IOtcTrade;
             Assert.AreEqual(OTCTradeStatus.DisputeClosed, latestTrade.OTStatus);
 

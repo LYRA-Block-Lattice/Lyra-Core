@@ -227,11 +227,12 @@ namespace Lyra.Data.API
             return await GetAsync<APIResult>("SubmitResolution", args);
         }
 
-        public async Task<APIResult> AnswerToResolutionAsync(ODRResolution resolution, bool accepted, string accountId, string signature)
+        public async Task<APIResult> AnswerToResolutionAsync(string tradeId, int resolutionId, bool accepted, string accountId, string signature)
         {
             var args = new Dictionary<string, string>
             {
-                { "resolutionJson", JsonConvert.SerializeObject(resolution) },
+                { "tradeId", tradeId },
+                { "resolutionId", resolutionId.ToString() },
                 { "accountId", accountId },
                 { "signature", signature },
                 { "accepted", accepted.ToString() },

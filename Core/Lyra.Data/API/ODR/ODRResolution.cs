@@ -1,67 +1,48 @@
-﻿using Lyra.Core.Blocks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 
 namespace Lyra.Data.API.ODR
 {
     public enum ResolutionType { OTCTrade };
     public class ODRResolution
     {
+        public int Id { get; set; }
+
         /// <summary>
         /// account ID of the resolution owner
         /// </summary>
-        public string creator { get; set; }
+        public string Creator { get; set; } = null!;
 
         public ResolutionType RType { get; set; }
-        public string tradeid { get; set; }
+        public string TradeId { get; set; } = null!;
+        // target
+        public int CaseId { get; set; }
 
-        public TransMove[] actions { get; set; }
+        public TransMove[] Actions { get; set; } = null!;
 
         /// <summary>
         /// say something about the resolution, optional the dispute itself
         /// </summary>
-        public string description { get; set; }
+        public string? Description { get; set; }
 
         public string GetExtraData()
         {
-            var actstr = string.Join("|", actions.Select(x => x.GetExtraData()));
-            return $"{creator}|{RType}|{tradeid}|{actstr}|{description}";
+            var actstr = string.Join("|", Actions.Select(x => x.GetExtraData()));
+            return $"{Creator}|{RType}|{TradeId}|{CaseId}|{actstr}|{Description}";
         }
 
         public override string ToString()
         {
-            var result = $"Creator: {creator}\n";
+            var result = $"Creator: {Creator}\n";
 
             result += $"Resolution Type: {RType}\n";            
-            result += $"On Trade: {tradeid}\n";
-            foreach(var act in actions)
+            result += $"On Trade: {TradeId}\n";
+            result += $"On Dispute Case ID: {CaseId}\n";
+            foreach(var act in Actions)
             {
                 result += $"Action: {act}\n";
             }
-            result += $"Description: {description}";
+            result += $"Description: {Description}";
             return result;
         }
-    }
-
-    public class ODRNegotiationRound
-    {
-        public DateTime Timestamp { get; set; }
-        public string tradeid { get; set; }
-
-        // complain
-        public string complainBy { get; set; }
-        public string resoluteBy { get; set; }
-        public ODRResolution resolution { get; set; }
-
-        // accepance
-        public string acceptanceBy { get; set; }
-        public bool acceptanceResult { get; set; }
-
-        // execution
-        public bool executed { get; set; }
-        public DateTime? executedTime { get; set; }
     }
 }

@@ -78,15 +78,15 @@ namespace Lyra.Core.WorkFlow.DAO
             if(resolution != null)
             {
                 // verify ODR resolution subject
-                if (string.IsNullOrEmpty(resolution.tradeid) ||
-                    string.IsNullOrEmpty(resolution.creator) ||
-                    resolution.actions == null ||
-                    resolution.actions.Length < 2
+                if (string.IsNullOrEmpty(resolution.TradeId) ||
+                    string.IsNullOrEmpty(resolution.Creator) ||
+                    resolution.Actions == null ||
+                    resolution.Actions.Length < 2
                     )
                     return APIResultCodes.InvalidArgument;
 
                 // trade's dao == subject' dao
-                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.tradeid) as IOtcTrade;
+                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.TradeId) as IOtcTrade;
                 if(tradeblk == null)
                     return APIResultCodes.InvalidArgument;
 
