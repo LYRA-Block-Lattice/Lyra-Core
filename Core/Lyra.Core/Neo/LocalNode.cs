@@ -131,7 +131,9 @@ namespace Neo.Network.P2P
             {
                 return null;
             }
-            ipAddress = entry.AddressList.FirstOrDefault(p => p.AddressFamily == AddressFamily.InterNetwork || p.IsIPv6Teredo);
+            ipAddress = entry.AddressList.FirstOrDefault(p => p.AddressFamily == AddressFamily.InterNetwork 
+                || p.AddressFamily == AddressFamily.InterNetworkV6 
+                || p.IsIPv6Teredo);
             if (ipAddress == null) return null;
             return new IPEndPoint(ipAddress, port);
         }
