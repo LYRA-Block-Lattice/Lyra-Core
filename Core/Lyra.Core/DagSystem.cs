@@ -86,8 +86,8 @@ namespace Lyra
         {
             StartNode(new ChannelsConfig
             {
-                Tcp = new IPEndPoint(IPAddress.Any, Settings.Default.P2P.Port),
-                WebSocket = new IPEndPoint(IPAddress.Any, Settings.Default.P2P.WsPort),
+                Tcp = new IPEndPoint(IPAddress.IPv6Any, Settings.Default.P2P.Port),
+                WebSocket = new IPEndPoint(IPAddress.IPv6Any, Settings.Default.P2P.WsPort),
                 MinDesiredConnections = Settings.Default.P2P.MinDesiredConnections,
                 MaxConnections = Settings.Default.P2P.MaxConnections,
                 MaxConnectionsPerAddress = Settings.Default.P2P.MaxConnectionsPerAddress

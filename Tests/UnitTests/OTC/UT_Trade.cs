@@ -40,7 +40,7 @@ namespace UnitTests.OTC
             await CloseOrder(order);
         }
 
-        [TestMethod]
+        //[TestMethod]
         public async Task DisputeRaiseLevel1()
         {
             await Setup();
@@ -72,13 +72,24 @@ namespace UnitTests.OTC
             await CloseOrderShouldFail(order);
         }
 
+        [TestMethod]
+        public async Task ResolveDisputeOnPeerSuccess()
+        {
+            await ResolveDisputeOnPeer(true);
+        }
+
+        [TestMethod]
+        public async Task ResolveDisputeOnPeerFailed()
+        {
+            await ResolveDisputeOnPeer(false);
+        }
+
         /// <summary>
         /// dispute level: Peer
         /// Buyer raise complain and seller will accept it.
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
-        public async Task ResolveDisputeOnPeer()
+        public async Task ResolveDisputeOnPeer(bool accepted)
         {
             await Setup();
 
@@ -132,21 +143,37 @@ namespace UnitTests.OTC
             Assert.AreEqual(1, brief1.ResolutionHistory.Count);
 
             // buyer accept the resolution
-            var acpret = await dealer.AnswerToResolutionAsync(trade.AccountID, brief1.ResolutionHistory.First().Id, true, test2PublicKey,
+            var acpret = await dealer.AnswerToResolutionAsync(trade.AccountID, brief1.ResolutionHistory.First().Id, accepted, test2PublicKey,
                 Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
                 );
             Assert.IsTrue(acpret.Successful(), $"Can't answer resolution: {acpret.ResultCode}");
 
             // verify brief
             var brief2 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
-            Assert.AreEqual(DisputeLevels.None, brief2.DisputeLevel);
+            if(accepted)
+            {
+                Assert.AreEqual(DisputeLevels.None, brief2.DisputeLevel);
+            }
+            else
+            {
+                Assert.AreEqual(DisputeLevels.Peer, brief2.DisputeLevel);
+            }
 
             Assert.AreEqual(1, brief2.DisputeHistory.Count);
             Assert.AreEqual(1, brief2.ResolutionHistory.Count);
 
-            await CancelTrade(trade);
+            if(accepted)
+            {
+                await CancelTrade(trade);
 
-            await CloseOrder(order);
+                await CloseOrder(order);
+            }
+            else
+            {
+                await CancelTradeShouldFail(trade);
+
+                await CloseOrderShouldFail(order);
+            }
 
             //// dao owner execute the resolution
             //var ret = await testWallet.ExecuteResolution(null, resolution);
@@ -158,7 +185,7 @@ namespace UnitTests.OTC
         /// DAO try to provide resolution and both part will accept it.
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        //[TestMethod]
         public async Task ResolveDisputeOnDAO()
         {
             await Setup();
