@@ -19,7 +19,6 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Neo.Network.P2P.LocalNode;
 using Settings = Neo.Settings;
 using Stateless;
 using Org.BouncyCastle.Utilities.Net;
@@ -69,10 +68,11 @@ namespace Lyra.Core.Decentralize
         List<Vote> _lastVotes;
         private readonly BillBoard _board;
         private readonly List<TransStats> _stats;
-        private System.Net.IPAddress _myIpAddress;
+        private string _myIpAddress;
         private string _lastServiceHash;
         private ConsolidationBlock _lastCons;
 
+        public int DefaultAPIPort => Settings.Default.LyraNode.Lyra.NetworkId == "mainnet" ? 5504 : 4504;
         public bool IsThisNodePrimary => Board.PrimaryAuthorizers.Contains(_sys.PosWallet.AccountId);
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
@@ -279,7 +279,7 @@ namespace Lyra.Core.Decentralize
                 }
             );
 
-            ReceiveAsync<SignedMessageRelay>(async relayMsg =>
+            ReceiveAsync<LocalNode.SignedMessageRelay>(async relayMsg =>
             {
                 try
                 {
@@ -649,19 +649,18 @@ namespace Lyra.Core.Decentralize
                         {
                             var n = new Random().Next(1, 4).ToString();
                             var host = $"seed{n}.{Settings.Default.LyraNode.Lyra.NetworkId}.lyra.live";
+                            var seedhost = $"{host}:{DefaultAPIPort}";
 
-                            if (await Shared.GetPublicIPAddress.IsThisHostMeAsync(host))
+                            // remember to set endpoint to seeds.
+
+                            if (seedhost == _myIpAddress)
                             {
                                 // self
                                 await Task.Delay(1000);
                                 continue;
                             }
 
-                            ushort peerPort = 4504;
-                            if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
-                                peerPort = 5504;
-
-                            var client = new LyraRestClient("", "", "", $"https://{host}:{peerPort}/api/Node/");
+                            var client = new LyraRestClient("", "", "", $"https://{seedhost}/api/Node/");
                             //var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
                             //await client.InitAsync();
 
@@ -1091,14 +1090,31 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             // declare to the network
-            (var myipv4, var myipv6) = await GetPublicIPAddress.PublicIPAddressAsync();
-            _myIpAddress = myipv4 ?? myipv6; //await GetPublicIPAddress.PublicIPAddressAsync();
+            if(_myIpAddress == null)
+            {
+                if(string.IsNullOrWhiteSpace(Neo.Settings.Default.P2P.Endpoint))
+                {
+                    (var addr, _) = await GetPublicIPAddress.PublicIPAddressAsync();
+                    _myIpAddress = $"{addr}:{DefaultAPIPort}";
+                }
+                else
+                {
+                    _myIpAddress = Neo.Settings.Default.P2P.Endpoint;
+                }
+            }
+
+            if (_myIpAddress == null)
+                return null;
+
             PosNode me = new PosNode(_sys.PosWallet.AccountId)
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
-                IPAddress = $"{_myIpAddress}",
+                IPAddress = _myIpAddress,
             };
+
+            // p2p address can use ipv6 freely. not all node need to connect to it.
+            // api address must use ipv4 to allow all to query data. it can be dstnat'ed one.
 
             //_log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
 
@@ -1121,7 +1137,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
+            OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress, me.ThumbPrint);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -1139,7 +1155,7 @@ namespace Lyra.Core.Decentralize
             OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
         }
 
-        private void OnNodeActive(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
+        private void OnNodeActive(string accountId, string authSign, BlockChainState state, string endpoint, string thumbPrint)
         {
             var signAgainst = _lastServiceHash ?? ProtocolSettings.Default.StandbyValidators[0];
 
@@ -1184,8 +1200,17 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.Add(node);
             }
 
-            if (!string.IsNullOrWhiteSpace(ip))
+            if (!string.IsNullOrWhiteSpace(endpoint))
             {
+                string ip = endpoint;
+                var port = DefaultAPIPort;
+
+                if (endpoint.Contains(":"))
+                {
+                    var secs = endpoint.Split(":");
+                    ip = secs[0];
+                    port = int.Parse(secs[1]);
+                }
                 if (System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress addr))
                 {
                     // one IP, one account id
@@ -1200,7 +1225,8 @@ namespace Lyra.Core.Decentralize
                             _board.NodeAddresses.TryRemove(exip.Key, out _);
                         }
 
-                        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+                        var updt = $"{ip}:{port}";
+                        _board.NodeAddresses.AddOrUpdate(accountId, updt, (key, oldValue) => updt);
                     }
 
                     //if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
@@ -1264,7 +1290,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no IP {ip}");
+                _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no endpoint: ({endpoint})");
             }
 
             var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddMinutes(-60)).ToList();

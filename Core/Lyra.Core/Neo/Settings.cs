@@ -50,7 +50,7 @@ namespace Neo
     {
         public ushort Port { get; }
         public ushort WsPort { get; }
-        public ushort WebAPI { get; }
+        public string Endpoint { get; }
         public int MinDesiredConnections { get; }
         public int MaxConnections { get; }
         public int MaxConnectionsPerAddress { get; }
@@ -59,7 +59,7 @@ namespace Neo
         {
             this.Port = ushort.Parse(section.GetSection("Port").Value);
             this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
-            this.WebAPI = ushort.Parse(section.GetSection("WebAPI").Value);
+            this.Endpoint = section.GetValue("Endpoint", "").Trim().Trim(new char[] { ':'});   // docker may give ":4504" when no host name
 
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
             this.MaxConnections = section.GetValue("MaxConnections", Peer.DefaultMaxConnections);
