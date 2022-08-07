@@ -157,6 +157,15 @@ namespace Neo.Network.P2P
             }
         }
 
+        private class BeforeBind : Inet.SocketOptionV2
+        {
+            public override void BeforeServerSocketBind(Socket ss)
+            {
+                ss.DualMode = true;
+                base.BeforeServerSocketBind(ss);
+            }
+        }
+
         private void OnStart(ChannelsConfig config)
         {
             ListenerTcpPort = config.Tcp?.Port ?? 0;
@@ -183,7 +192,7 @@ namespace Neo.Network.P2P
             }
             if (ListenerTcpPort > 0)
             {
-                tcp_manager.Tell(new Tcp.Bind(Self, config.Tcp, options: new[] { new Inet.SO.ReuseAddress(true) }));
+                tcp_manager.Tell(new Tcp.Bind(Self, config.Tcp, options: new Inet.SocketOption [] { new Inet.SO.ReuseAddress(true), new BeforeBind() }));
             }
             //if (ListenerWsPort > 0)
             //{
