@@ -26,12 +26,30 @@ namespace Lyra.Data
                 .FirstOrDefault(b => getPublicIP ? !IsPrivate(b.ToString()) : true);
 
             string localIP = ip1.ToString();
-            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+
+            // check if have ipv4 address
+            try
             {
-                socket.Connect("8.8.8.8", 65530);
-                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                localIP = endPoint.Address.ToString();
+                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                {
+                    socket.Connect("8.8.8.8", 65530);
+                    IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                    localIP = endPoint.Address.ToString();
+                }
             }
+            catch
+            {
+                try
+                {
+                    using (Socket socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, 0))
+                    {
+                        socket.Connect("2001:4860:4860::8888", 65530);
+                        IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                        localIP = $"[{endPoint.Address}]";
+                    }
+                }
+                catch { }
+            }          
 
             return IPAddress.Parse(localIP);
         }
