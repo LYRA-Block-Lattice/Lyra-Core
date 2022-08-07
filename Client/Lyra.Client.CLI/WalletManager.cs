@@ -145,8 +145,8 @@ namespace Lyra.Client.CLI
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
                     int port = network_id.Equals("mainnet", StringComparison.InvariantCultureIgnoreCase) ? 5504 : 4504;
-                    var hoststr = options.Node.Contains(":") ? $"[{options.Node}]" : options.Node;
-                    var apiUrl = $"https://{hoststr}:{port}/api/Node/";
+                    var hoststr = options.Node.Contains(":") ? options.Node : $"{options.Node}:{port}";
+                    var apiUrl = $"https://{hoststr}/api/Node/";
                     rpcClient = LyraRestClient.Create(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
                 }
                 else

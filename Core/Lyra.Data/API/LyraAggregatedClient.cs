@@ -37,11 +37,23 @@ namespace Lyra.Data.API
             return Enumerable.Range(1, 4).Select(a => $"seed{a}.{_networkId}.lyra.live").ToArray();
         }
 
-        private string Ipv6SafeHostStr(string hostAddrStr)
+        private int PeerPort
         {
-            var hoststr = hostAddrStr.Contains(":") ? $"[{hostAddrStr}]" : hostAddrStr;
+            get
+            {
+                ushort peerPort = 4504;
+                if (_networkId == "mainnet")
+                    peerPort = 5504;
+                return peerPort;
+            }
+        }
+
+        private string SafeHostStr(string hostAddrStr)
+        {
+            var hoststr = hostAddrStr.Contains(":") ? hostAddrStr : $"{hostAddrStr}:{PeerPort}";
             return hoststr;
         }
+
         public async Task InitAsync()
         {
             ServicePointManager.DefaultConnectionLimit = 30;
@@ -49,14 +61,10 @@ namespace Lyra.Data.API
             var appName = "LyraAggregatedClient";
             var appVer = "1.0";
 
-            ushort peerPort = 4504;
-            if (_networkId == "mainnet")
-                peerPort = 5504;
-
             // get nodes list (from billboard)
             var seedNodes = GetSeedNodes();
 
-            var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{Ipv6SafeHostStr(a)}:{peerPort}/api/Node/")).ToList();
+            var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(a)}/api/Node/")).ToList();
 
             BillBoard currentBillBoard = null;
             do
@@ -69,7 +77,7 @@ namespace Lyra.Data.API
                     {
                         try
                         {
-                            var apiClient = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{Ipv6SafeHostStr(sd)}:{peerPort}/api/Node/");
+                            var apiClient = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(sd)}/api/Node/");
                             currentBillBoard = await apiClient.GetBillBoardAsync();
                             Console.WriteLine($"LyraAggregatedClient.InitAsync Got billboard from {sd}");
                             break;
@@ -121,7 +129,7 @@ namespace Lyra.Data.API
                     {
                         // create clients for primary nodes
                         _primaryClients = seedNodes
-                            .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{Ipv6SafeHostStr(c)}:{peerPort}/api/Node/"))
+                            .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c)}/api/Node/"))
                             .ToList();
                     }
                     else if (currentBillBoard == null)
@@ -136,7 +144,7 @@ namespace Lyra.Data.API
                         _primaryClients = currentBillBoard.NodeAddresses
                             .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
                             .Where(a => a.Key != _poswallet)
-                            .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{Ipv6SafeHostStr(c.Value)}:{peerPort}/api/Node/"))
+                            .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c.Value)}/api/Node/"))
                             //.Take(7)    // don't spam the whole network
                             .ToList();
                     }

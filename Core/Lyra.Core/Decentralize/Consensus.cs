@@ -710,8 +710,8 @@ namespace Lyra.Core.Decentralize
                 if (Board.NodeAddresses.ContainsKey(Board.CurrentLeader))
                 {
                     var hostAddrStr = Board.NodeAddresses[Board.CurrentLeader];
-                    var hoststr = hostAddrStr.Contains(":") ? $"[{hostAddrStr}]" : hostAddrStr;
-                    var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{hoststr}:{peerPort}/api/Node/");
+                    var hoststr = hostAddrStr.Contains(":") ? hostAddrStr : $"{hostAddrStr}:{peerPort}";
+                    var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{hoststr}/api/Node/");
                     _ = client.GetPoolAsync("a", "b");
                 }     
             }

@@ -72,7 +72,7 @@ namespace Lyra.Core.Decentralize
         private string _lastServiceHash;
         private ConsolidationBlock _lastCons;
 
-        public int DefaultAPIPort => Settings.Default.LyraNode.Lyra.NetworkId == "mainnet" ? 5504 : 4504;
+        public static int DefaultAPIPort => Settings.Default.LyraNode.Lyra.NetworkId == "mainnet" ? 5504 : 4504;
         public bool IsThisNodePrimary => Board.PrimaryAuthorizers.Contains(_sys.PosWallet.AccountId);
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
