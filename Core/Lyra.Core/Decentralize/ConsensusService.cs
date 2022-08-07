@@ -1091,7 +1091,8 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             // declare to the network
-            _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync();
+            (var myipv4, var myipv6) = await GetPublicIPAddress.PublicIPAddressAsync();
+            _myIpAddress = myipv4 ?? myipv6; //await GetPublicIPAddress.PublicIPAddressAsync();
             PosNode me = new PosNode(_sys.PosWallet.AccountId)
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),

@@ -23,8 +23,8 @@ namespace Lyra.Shared
         public static async Task<bool> IsThisHostMeAsync(string host)
         {
             var he = await Dns.GetHostEntryAsync(host);
-            var myip = await PublicIPAddressAsync();
-            if (he.AddressList.Any() && he.AddressList.First().Equals(myip))
+            (var myipv4, var myipv6) = await PublicIPAddressAsync();
+            if (he.AddressList.Any() && he.AddressList.Any(a => a == myipv4 || a == myipv6))
             {
                 // self
                 return true;
@@ -33,10 +33,11 @@ namespace Lyra.Shared
                 return false;
         }
 
-        public static async Task<IPAddress> PublicIPAddressAsync()
+        public static async Task<(IPAddress? ipv4addr, IPAddress? ipv6addr)> PublicIPAddressAsync()
         {
-            int retry = 10;
-            IPAddress myIp = null;
+            (var myIpv4, var myIpv6) = Utilities.LocalIPAddress(false);
+
+            int retry = 10;            
             while (retry-- > 0)
             {
                 try
@@ -44,25 +45,24 @@ namespace Lyra.Shared
                     var netid = Environment.GetEnvironmentVariable("LYRA_NETWORK");
                     if (netid != "mainnet" && netid != "testnet")
                     {
-                        myIp = Utilities.LocalIPAddress(false);
+                        return (myIpv4, myIpv6);
                     }
                     else
                     {
                         var wc = new HttpClient();
                         var json = await wc.GetStringAsync(url[0]);
-                        myIp = IPAddress.Parse(json.Trim());
-                        break;
+                        myIpv4 = IPAddress.Parse(json.Trim());
+                        
+                        return (myIpv4, myIpv6);
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"In getting IP: {ex.Message}");
-                    myIp = Utilities.LocalIPAddress(false);
                     await Task.Delay(5000);
                 }
             }
 
-            return myIp;
+            return (myIpv4, myIpv6);
         }
     }
 

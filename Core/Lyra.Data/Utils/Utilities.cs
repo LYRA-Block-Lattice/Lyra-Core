@@ -11,47 +11,49 @@ namespace Lyra.Data
 {
     public class Utilities
     {
-        public static IPAddress LocalIPAddress(bool getPublicIP)
+        public static (IPAddress? ipv4addr, IPAddress? ipv6addr) LocalIPAddress(bool getPublicIP)
         {
             if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                return null;
+                return (null, null);
             }
 
-            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+            //IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
 
-            var ip1 = host
-                .AddressList
-                .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
-                .FirstOrDefault(b => getPublicIP ? !IsPrivate(b.ToString()) : true);
+            //var ip1 = host
+            //    .AddressList
+            //    .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+            //    .FirstOrDefault(b => getPublicIP ? !IsPrivate(b.ToString()) : true);
 
-            string localIP = ip1.ToString();
+            //string localIP = ip1.ToString();
 
             // check if have ipv4 address
+            IPAddress? ipv4addr = null;
+            IPAddress? ipv6addr = null;
             try
             {
                 using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
                 {
                     socket.Connect("8.8.8.8", 65530);
                     IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                    localIP = endPoint.Address.ToString();
+                    ipv4addr = endPoint.Address;
                 }
             }
             catch
             {
-                try
+            }
+            try
+            {
+                using (Socket socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, 0))
                 {
-                    using (Socket socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Dgram, 0))
-                    {
-                        socket.Connect("2001:4860:4860::8888", 65530);
-                        IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
-                        localIP = $"[{endPoint.Address}]";
-                    }
+                    socket.Connect("2001:4860:4860::8888", 65530);
+                    IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                    ipv6addr = endPoint.Address;
                 }
-                catch { }
-            }          
+            }
+            catch { }
 
-            return IPAddress.Parse(localIP);
+            return (ipv4addr, ipv6addr);
         }
 
         public static bool IsPrivate(string ipAddress)
