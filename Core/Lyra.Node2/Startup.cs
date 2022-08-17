@@ -35,6 +35,7 @@ using System.Linq;
 using WorkflowCore.Services;
 using System.Reflection;
 using MongoDB.Bson.Serialization;
+using System.Net;
 
 namespace Lyra.Node2
 {
@@ -58,6 +59,8 @@ namespace Lyra.Node2
             var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
             if (networkId == null)
                 networkId = "devnet";   // for dev convenient
+
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls| SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 
             LyraNodeConfig.Init(networkId);
 
