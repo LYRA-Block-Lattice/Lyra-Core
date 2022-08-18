@@ -1112,9 +1112,7 @@ namespace Lyra.Core.Decentralize
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
-                //IPAddress = _myIpAddress,
-                // TODO: update till next release
-                IPAddress = _myIpAddress.Contains(":") ? _myIpAddress.Split(':')[0] : _myIpAddress
+                IPAddress = _myIpAddress,
             };
 
             // p2p address can use ipv6 freely. not all node need to connect to it.
@@ -1215,7 +1213,7 @@ namespace Lyra.Core.Decentralize
                     ip = secs[0];
                     port = int.Parse(secs[1]);
                 }
-                if (true)//System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress addr))
+                if (System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress? addr))
                 {
                     // temp code. make it compatible.
                     if (true)//_verifiedIP.ContainsKey(safeIp))
@@ -1226,9 +1224,7 @@ namespace Lyra.Core.Decentralize
                             _board.NodeAddresses.TryRemove(exip.Key, out _);
                         }
 
-                        //var updt = $"{ip}:{port}";
-                        var updt = ip; // TODO: this update make compatible. next update make it full endpoint
-                        _board.NodeAddresses.AddOrUpdate(accountId, updt, (key, oldValue) => updt);
+                        _board.NodeAddresses.AddOrUpdate(accountId, endpoint, (key, oldValue) => endpoint);
                     }
 
                     //if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
