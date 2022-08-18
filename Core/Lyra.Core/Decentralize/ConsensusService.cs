@@ -1219,13 +1219,14 @@ namespace Lyra.Core.Decentralize
                     // temp code. make it compatible.
                     if (true)//_verifiedIP.ContainsKey(safeIp))
                     {
-                        var existingIP = _board.NodeAddresses.Where(x => x.Value == safeIp).ToList();
+                        var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(safeIp)).ToList();
                         foreach (var exip in existingIP)
                         {
                             _board.NodeAddresses.TryRemove(exip.Key, out _);
                         }
 
-                        var updt = $"{ip}:{port}";
+                        //var updt = $"{ip}:{port}";
+                        var updt = safeIp; // TODO: this update make compatible. next update make it full endpoint
                         _board.NodeAddresses.AddOrUpdate(accountId, updt, (key, oldValue) => updt);
                     }
 
