@@ -1215,22 +1215,19 @@ namespace Lyra.Core.Decentralize
                     ip = secs[0];
                     port = int.Parse(secs[1]);
                 }
-                if (System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress addr))
+                if (true)//System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress addr))
                 {
-                    // one IP, one account id
-                    var safeIp = addr.ToString();
-
                     // temp code. make it compatible.
                     if (true)//_verifiedIP.ContainsKey(safeIp))
                     {
-                        var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(safeIp)).ToList();
+                        var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(ip)).ToList();
                         foreach (var exip in existingIP)
                         {
                             _board.NodeAddresses.TryRemove(exip.Key, out _);
                         }
 
                         //var updt = $"{ip}:{port}";
-                        var updt = safeIp; // TODO: this update make compatible. next update make it full endpoint
+                        var updt = ip; // TODO: this update make compatible. next update make it full endpoint
                         _board.NodeAddresses.AddOrUpdate(accountId, updt, (key, oldValue) => updt);
                     }
 
