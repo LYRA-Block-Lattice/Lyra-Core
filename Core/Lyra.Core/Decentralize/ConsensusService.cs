@@ -1159,141 +1159,148 @@ namespace Lyra.Core.Decentralize
 
         private void OnNodeActive(string accountId, string authSign, BlockChainState state, string endpoint, string thumbPrint)
         {
-            var signAgainst = _lastServiceHash ?? ProtocolSettings.Default.StandbyValidators[0];
-
-            // verify pftaccount !! genesis mode!!
-            //if (!string.IsNullOrWhiteSpace(pftAccount))
-            //{
-            //    var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
-            //    var pft = pfts.FirstOrDefault();
-            //    if (pft == null || pft.AccountID != pftAccount)
-            //    {
-            //        var exists = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == accountId);
-            //        if (exists != null)
-            //            _board.ActiveNodes.Remove(exists);
-            //        return;
-            //    }
-            //}
-
-            ActiveNode node;
-            if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
+            try
             {
-                node = _board.ActiveNodes.First(a => a.AccountID == accountId);
-                node.LastActive = DateTime.Now;
-                node.State = state;
-                node.AuthorizerSignature = authSign;
+                var signAgainst = _lastServiceHash ?? ProtocolSettings.Default.StandbyValidators[0];
 
-                if (thumbPrint != null)
-                    node.ThumbPrint = thumbPrint;
-            }
-            else
-            {
-                node = new ActiveNode
+                // verify pftaccount !! genesis mode!!
+                //if (!string.IsNullOrWhiteSpace(pftAccount))
+                //{
+                //    var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
+                //    var pft = pfts.FirstOrDefault();
+                //    if (pft == null || pft.AccountID != pftAccount)
+                //    {
+                //        var exists = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == accountId);
+                //        if (exists != null)
+                //            _board.ActiveNodes.Remove(exists);
+                //        return;
+                //    }
+                //}
+
+                ActiveNode node;
+                if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
                 {
-                    AccountID = accountId,
-                    State = state,
-                    LastActive = DateTime.Now,
-                    AuthorizerSignature = authSign
-                };
+                    node = _board.ActiveNodes.First(a => a.AccountID == accountId);
+                    node.LastActive = DateTime.Now;
+                    node.State = state;
+                    node.AuthorizerSignature = authSign;
 
-                if (thumbPrint != null)
-                    node.ThumbPrint = thumbPrint;
-
-                _board.ActiveNodes.Add(node);
-            }
-
-            if (!string.IsNullOrWhiteSpace(endpoint))
-            {
-                string ip = endpoint;
-                var port = DefaultAPIPort;
-
-                if (endpoint.Contains(":"))
-                {
-                    var secs = endpoint.Split(":");
-                    ip = secs[0];
-                    port = int.Parse(secs[1]);
+                    if (thumbPrint != null)
+                        node.ThumbPrint = thumbPrint;
                 }
-                if (System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress? addr))
+                else
                 {
-                    // temp code. make it compatible.
-                    if (true)//_verifiedIP.ContainsKey(safeIp))
+                    node = new ActiveNode
                     {
-                        var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(ip)).ToList();
-                        foreach (var exip in existingIP)
+                        AccountID = accountId,
+                        State = state,
+                        LastActive = DateTime.Now,
+                        AuthorizerSignature = authSign
+                    };
+
+                    if (thumbPrint != null)
+                        node.ThumbPrint = thumbPrint;
+
+                    _board.ActiveNodes.Add(node);
+                }
+
+                if (!string.IsNullOrWhiteSpace(endpoint))
+                {
+                    string ip = endpoint;
+                    var port = DefaultAPIPort;
+
+                    if (endpoint.Contains(":"))
+                    {
+                        var secs = endpoint.Split(":");
+                        ip = secs[0];
+                        port = int.Parse(secs[1]);
+                    }
+                    if (System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress? addr) || Dns.GetHostEntry(ip) != null)
+                    {
+                        // temp code. make it compatible.
+                        if (true)//_verifiedIP.ContainsKey(safeIp))
                         {
-                            _board.NodeAddresses.TryRemove(exip.Key, out _);
+                            var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(ip)).ToList();
+                            foreach (var exip in existingIP)
+                            {
+                                _board.NodeAddresses.TryRemove(exip.Key, out _);
+                            }
+
+                            _board.NodeAddresses.AddOrUpdate(accountId, endpoint, (key, oldValue) => endpoint);
                         }
 
-                        _board.NodeAddresses.AddOrUpdate(accountId, endpoint, (key, oldValue) => endpoint);
+                        //if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
+                        //{
+                        //    // if thumbPrint != null means its a node up signal.
+                        //    // this will help make the voters list consistent across all nodes.
+                        //    _ = Task.Run(async () =>
+                        //    {
+                        //        try
+                        //        {
+                        //            var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
+                        //                .Select(x => x.Key)
+                        //                .ToList();
+
+                        //            foreach (var od in outDated)
+                        //                _verifiedIP.TryRemove(od, out _);
+
+                        //            // just send it to the leader
+                        //            var platform = Environment.OSVersion.Platform.ToString();
+                        //            var appName = "LyraNode";
+                        //            var appVer = "1.0";
+                        //            var networkId = Settings.Default.LyraNode.Lyra.NetworkId;
+                        //            ushort peerPort = 4504;
+                        //            if (networkId == "mainnet")
+                        //                peerPort = 5504;
+
+                        //            var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{safeIp}:{peerPort}/api/Node/");
+
+                        //            var ver = await client.GetVersion(1, appName, appVer);
+                        //            if (ver.PosAccountId == node.AccountID 
+                        //                && client.ServerThumbPrint != null
+                        //                && client.ServerThumbPrint == node.ThumbPrint)
+                        //                _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);                                
+                        //        }
+                        //        catch (Exception ex)
+                        //        {
+                        //            _log.LogInformation($"Failure in get node thumbprint: {ex.Message} for {safeIp}");
+                        //        }
+                        //    });
+                        //}
+
+                        // backslash. will do this later
+                        //var platform = Environment.OSVersion.Platform.ToString();
+                        //var appName = "LyraAggregatedClient";
+                        //var appVer = "1.0";
+                        //ushort peerPort = 4504;
+                        //var networkdId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
+                        //if (networkdId == "mainnet")
+                        //    peerPort = 5504;
+                        //var client = LyraRestClient.Create(networkdId, platform, appName, appVer, $"https://{ip}:{peerPort}/api/Node/");
+                        //var lsb = await client.GetLastServiceBlock();
+                        //if(lsb.ResultCode == APIResultCodes.Success)
+                        //{
+                        //    var block = lsb.GetBlock();
+                        //    if(block?.Hash == lastSb.Hash)
+                        //    {
+                        //        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+                        //    }
+                        //}                    
                     }
-
-                    //if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
-                    //{
-                    //    // if thumbPrint != null means its a node up signal.
-                    //    // this will help make the voters list consistent across all nodes.
-                    //    _ = Task.Run(async () =>
-                    //    {
-                    //        try
-                    //        {
-                    //            var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
-                    //                .Select(x => x.Key)
-                    //                .ToList();
-
-                    //            foreach (var od in outDated)
-                    //                _verifiedIP.TryRemove(od, out _);
-
-                    //            // just send it to the leader
-                    //            var platform = Environment.OSVersion.Platform.ToString();
-                    //            var appName = "LyraNode";
-                    //            var appVer = "1.0";
-                    //            var networkId = Settings.Default.LyraNode.Lyra.NetworkId;
-                    //            ushort peerPort = 4504;
-                    //            if (networkId == "mainnet")
-                    //                peerPort = 5504;
-
-                    //            var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{safeIp}:{peerPort}/api/Node/");
-
-                    //            var ver = await client.GetVersion(1, appName, appVer);
-                    //            if (ver.PosAccountId == node.AccountID 
-                    //                && client.ServerThumbPrint != null
-                    //                && client.ServerThumbPrint == node.ThumbPrint)
-                    //                _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);                                
-                    //        }
-                    //        catch (Exception ex)
-                    //        {
-                    //            _log.LogInformation($"Failure in get node thumbprint: {ex.Message} for {safeIp}");
-                    //        }
-                    //    });
-                    //}
-
-                    // backslash. will do this later
-                    //var platform = Environment.OSVersion.Platform.ToString();
-                    //var appName = "LyraAggregatedClient";
-                    //var appVer = "1.0";
-                    //ushort peerPort = 4504;
-                    //var networkdId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
-                    //if (networkdId == "mainnet")
-                    //    peerPort = 5504;
-                    //var client = LyraRestClient.Create(networkdId, platform, appName, appVer, $"https://{ip}:{peerPort}/api/Node/");
-                    //var lsb = await client.GetLastServiceBlock();
-                    //if(lsb.ResultCode == APIResultCodes.Success)
-                    //{
-                    //    var block = lsb.GetBlock();
-                    //    if(block?.Hash == lastSb.Hash)
-                    //    {
-                    //        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
-                    //    }
-                    //}                    
                 }
-            }
-            else
-            {
-                _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no endpoint: ({endpoint})");
-            }
+                else
+                {
+                    _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no endpoint: ({endpoint})");
+                }
 
-            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddMinutes(-60)).ToList();
-            foreach (var n in deadList)
-                _board.NodeAddresses.TryRemove(n.AccountID, out _);
+                var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddMinutes(-60)).ToList();
+                foreach (var n in deadList)
+                    _board.NodeAddresses.TryRemove(n.AccountID, out _);
+            }
+            catch(Exception ex)
+            {
+                _log.LogError($"In OnNodeActive: {ex}");
+            }
         }
 
         private async Task HeartBeatAsync()
