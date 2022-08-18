@@ -1092,7 +1092,9 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             if(_myIpAddress == null)
             {
-                if(string.IsNullOrWhiteSpace(Neo.Settings.Default.P2P.Endpoint) || Neo.Settings.Default.P2P.Endpoint.StartsWith(":"))
+                if(string.IsNullOrWhiteSpace(Neo.Settings.Default.P2P.Endpoint) 
+                    || Neo.Settings.Default.P2P.Endpoint.StartsWith(":")
+                    || !Neo.Settings.Default.P2P.Endpoint.Contains("."))
                 {
                     (var addr, _) = await GetPublicIPAddress.PublicIPAddressAsync();
                     _myIpAddress = $"{addr}:{DefaultAPIPort}";
