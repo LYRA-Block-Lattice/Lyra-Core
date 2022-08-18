@@ -1092,7 +1092,7 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             if(_myIpAddress == null)
             {
-                if(string.IsNullOrWhiteSpace(Neo.Settings.Default.P2P.Endpoint))
+                if(string.IsNullOrWhiteSpace(Neo.Settings.Default.P2P.Endpoint) || Neo.Settings.Default.P2P.Endpoint.StartsWith(":"))
                 {
                     (var addr, _) = await GetPublicIPAddress.PublicIPAddressAsync();
                     _myIpAddress = $"{addr}:{DefaultAPIPort}";
@@ -1110,7 +1110,9 @@ namespace Lyra.Core.Decentralize
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
-                IPAddress = _myIpAddress,
+                //IPAddress = _myIpAddress,
+                // TODO: update till next release
+                IPAddress = _myIpAddress.Contains(":") ? _myIpAddress.Split(':')[0] : _myIpAddress
             };
 
             // p2p address can use ipv6 freely. not all node need to connect to it.
