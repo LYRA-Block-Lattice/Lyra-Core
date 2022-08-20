@@ -30,6 +30,7 @@ services:
       LYRA_API_PORT: ${LYRA_API_PORT}
       ASPNETCORE_URLS: https://*:${LYRA_API_PORT}
       ASPNETCORE_HTTPS_PORT: ${LYRA_API_PORT}
+      LYRA_ApplicationConfiguration__P2P__Port: ${LYRA_P2P_PORT}
       LYRA_ApplicationConfiguration__P2P__Endpoint: ${LYRA_API_HOST}:${LYRA_API_PORT}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode: $LYRA_NODE_MODE
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo
