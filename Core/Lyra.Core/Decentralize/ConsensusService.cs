@@ -1097,7 +1097,7 @@ namespace Lyra.Core.Decentralize
                     || !Neo.Settings.Default.P2P.Endpoint.Contains("."))
                 {
                     (var addr, _) = await GetPublicIPAddress.PublicIPAddressAsync();
-                    _myIpAddress = $"{addr}:{DefaultAPIPort}";
+                    _myIpAddress = $"{addr}";
                 }
                 else
                 {
