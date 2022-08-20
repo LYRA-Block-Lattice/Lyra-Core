@@ -83,7 +83,7 @@ namespace Lyra.Core.API
 
         public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
-            _timeout = TimeSpan.FromSeconds(10);
+            _timeout = TimeSpan.FromSeconds(15);
             _platform = platform;
             _url = url;
             _appName = appName;

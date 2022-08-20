@@ -19,5 +19,8 @@
     <None Include="init-mongo.sh" />
     <None Include="node-create-pftid.txt" />
     <None Include="README.md" />
+    <None Include="upgrade_dualnet.sh" />
+    <None Include="upgrade_mainnet.sh" />
+    <None Include="upgrade_testnet.sh" />
   </ItemGroup>
 </Project>

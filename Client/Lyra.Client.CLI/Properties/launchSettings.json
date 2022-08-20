@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--networkid devnet -w testx"
+      "commandLineArgs": "--networkid mainnet"
     },
     "Docker": {
       "commandName": "Docker"
