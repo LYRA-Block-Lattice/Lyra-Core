@@ -10,11 +10,12 @@
     <None Include=".env.dualnet-example" />
     <None Include=".env.testnet-example" />
     <None Include=".env.devnet-example" />
+    <None Include="dbrestore-testnet.sh" />
     <None Include="dbrestore-mainnet.sh" />
     <None Include="docker-compose-dualnet.yml" />
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
-    <None Include="dbrestore.sh" />
+    <None Include="dbrestore-dualnet.sh" />
     <None Include="init-mongo.sh" />
     <None Include="node-create-pftid.txt" />
     <None Include="README.md" />

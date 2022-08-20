@@ -141,8 +141,8 @@ namespace Lyra.Core.API
                 return new HttpClient()
                 {
                     BaseAddress = uri,
-                    Timeout = new TimeSpan(0, 0, 15)
-                };
+                    Timeout = _timeout
+            };
             }
             else
             {
@@ -150,7 +150,7 @@ namespace Lyra.Core.API
                 return new HttpClient(insecureHandler)
                 {
                     BaseAddress = uri,
-                    Timeout = new TimeSpan(0, 0, 15)
+                    Timeout = _timeout
                 };
             }
         }
@@ -180,8 +180,7 @@ namespace Lyra.Core.API
 
         private async Task<T> PostBlockAsync<T>(string action, object obj)
         {
-            using var client = CreateClient();
-            client.Timeout = _timeout;
+            using var client = CreateClient();            
 
             HttpResponseMessage response = await client.PostAsJsonAsync(
                 action, obj, _cancel.Token).ConfigureAwait(false);

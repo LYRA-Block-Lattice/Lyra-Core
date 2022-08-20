@@ -1220,11 +1220,11 @@ namespace Lyra.Core.Decentralize
                         // temp code. make it compatible.
                         if (true)//_verifiedIP.ContainsKey(safeIp))
                         {
-                            var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(ip)).ToList();
-                            foreach (var exip in existingIP)
-                            {
-                                _board.NodeAddresses.TryRemove(exip.Key, out _);
-                            }
+                            //var existingIP = _board.NodeAddresses.Where(x => x.Value.StartsWith(ip)).ToList();
+                            //foreach (var exip in existingIP)
+                            //{
+                            //    _board.NodeAddresses.TryRemove(exip.Key, out _);
+                            //}
 
                             _board.NodeAddresses.AddOrUpdate(accountId, endpoint, (key, oldValue) => endpoint);
                         }
