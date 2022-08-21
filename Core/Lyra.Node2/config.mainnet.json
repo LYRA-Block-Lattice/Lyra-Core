@@ -19,8 +19,7 @@
     },
     "P2P": {
       "Port": 5503,
-      "WsPort": 0,
-      "WebAPI": 5505
+      "Endpoint": ""
     },
     "PluginURL": ""
   }

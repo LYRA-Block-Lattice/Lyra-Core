@@ -19,7 +19,6 @@
     },
     "P2P": {
       "Port": 4503,
-      "WsPort": 0,
       "Endpoint": ""
     },
     "PluginURL": ""
