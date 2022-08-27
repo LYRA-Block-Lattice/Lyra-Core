@@ -55,7 +55,7 @@ namespace Neo.Network.P2P
         protected HashSet<IPAddress> TrustedIpAddresses { get; } = new HashSet<IPAddress>();
 
         public int ListenerTcpPort { get; private set; }
-        public int ListenerWsPort { get; private set; }
+        //public int ListenerWsPort { get; private set; }
         public int MaxConnectionsPerAddress { get; private set; } = 3;
         public int MinDesiredConnections { get; private set; } = DefaultMinDesiredConnections;
         public int MaxConnections { get; private set; } = DefaultMaxConnections;
@@ -169,7 +169,7 @@ namespace Neo.Network.P2P
         private void OnStart(ChannelsConfig config)
         {
             ListenerTcpPort = config.Tcp?.Port ?? 0;
-            ListenerWsPort = config.WebSocket?.Port ?? 0;
+            //ListenerWsPort = config.WebSocket?.Port ?? 0;
 
             MinDesiredConnections = config.MinDesiredConnections;
             MaxConnections = config.MaxConnections;
@@ -177,7 +177,7 @@ namespace Neo.Network.P2P
 
             // schedule time to trigger `OnTimer` event every TimerMillisecondsInterval ms
             timer = Context.System.Scheduler.ScheduleTellRepeatedlyCancelable(0, 5000, Context.Self, new Timer(), ActorRefs.NoSender);
-            if ((ListenerTcpPort > 0 || ListenerWsPort > 0)
+            if ((ListenerTcpPort > 0/* || ListenerWsPort > 0*/)
                 && localAddresses.All(p => !p.IsIPv4MappedToIPv6 || IsIntranetAddress(p))
                 && UPnP.Discover())
             {
@@ -186,7 +186,7 @@ namespace Neo.Network.P2P
                     localAddresses.Add(UPnP.GetExternalIP());
 
                     if (ListenerTcpPort > 0) UPnP.ForwardPort(ListenerTcpPort, ProtocolType.Tcp, "NEO Tcp");
-                    if (ListenerWsPort > 0) UPnP.ForwardPort(ListenerWsPort, ProtocolType.Tcp, "NEO WebSocket");
+                    //if (ListenerWsPort > 0) UPnP.ForwardPort(ListenerWsPort, ProtocolType.Tcp, "NEO WebSocket");
                 }
                 catch { }
             }

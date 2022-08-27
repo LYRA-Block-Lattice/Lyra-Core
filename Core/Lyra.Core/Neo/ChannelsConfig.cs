@@ -12,7 +12,7 @@ namespace Neo.Network.P2P
         /// <summary>
         /// Web socket configuration
         /// </summary>
-        public IPEndPoint WebSocket { get; set; }
+        //public IPEndPoint WebSocket { get; set; }
 
         /// <summary>
         /// Minimum desired connections

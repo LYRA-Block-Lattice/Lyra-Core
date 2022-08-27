@@ -49,7 +49,7 @@ namespace Neo
     public class P2PSettings
     {
         public ushort Port { get; }
-        public ushort WsPort { get; }
+        //public ushort WsPort { get; }
         public string Endpoint { get; }
         public int MinDesiredConnections { get; }
         public int MaxConnections { get; }
@@ -58,7 +58,7 @@ namespace Neo
         public P2PSettings(IConfigurationSection section)
         {
             this.Port = ushort.Parse(section.GetSection("Port").Value);
-            this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
+            //this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
             this.Endpoint = section.GetValue("Endpoint", "").Trim().Trim(new char[] { ':'});   // docker may give ":4504" when no host name
 
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
