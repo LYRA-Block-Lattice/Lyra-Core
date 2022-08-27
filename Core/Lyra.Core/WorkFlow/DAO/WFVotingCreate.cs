@@ -81,7 +81,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 if (string.IsNullOrEmpty(resolution.TradeId) ||
                     string.IsNullOrEmpty(resolution.Creator) ||
                     resolution.Actions == null ||
-                    resolution.Actions.Length < 2
+                    resolution.Actions.Length < 1
                     )
                     return APIResultCodes.InvalidArgument;
 
