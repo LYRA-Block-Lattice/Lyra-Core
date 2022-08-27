@@ -6,6 +6,7 @@ using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Bson.Serialization.IdGenerators;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +82,26 @@ namespace UnitTests.OTC
         [TestMethod]
         public async Task ResolveDisputeOnPeerFailed()
         {
-            await ResolveGuestComplainByHost(false);
+            var trade = await ResolveGuestComplainByHost(false);
+
+            // guest complain again to raise the dispute level
+            await GuestComplainLevel1(trade);
+
+            var resolution = await CreateODRResolution(trade);
+            Assert.IsNotNull(resolution);
+
+            // dao owner need to create a vote
+            var vote = await DaoOwnerCreateAVote(trade, resolution);
+
+            // test3 as staker vote yay
+            var voteRet2 = await test3Wallet.Vote(vote.AccountID, 1);
+            Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
+
+            await Task.Delay(2000);
+
+            // dao owner execute the resolution
+            var ret = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
+            Assert.IsTrue(ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
         }
 
         /// <summary>
@@ -89,7 +109,7 @@ namespace UnitTests.OTC
         /// Buyer raise complain and seller will accept it.
         /// </summary>
         /// <returns></returns>
-        public async Task ResolveGuestComplainByHost(bool accepted)
+        public async Task<IOtcTrade> ResolveGuestComplainByHost(bool accepted)
         {
             await Setup();
 
@@ -113,7 +133,7 @@ namespace UnitTests.OTC
             Assert.AreEqual(test4PublicKey, dao.OwnerAccountId);
 
             //// host submit resolution
-            var resolution = await CreateODRResolution(dao, trade);
+            var resolution = await CreateODRResolution(trade);
             resolution.CaseId = brief00.DisputeHistory.First().Id;
             var sesret = await dealer.SubmitResolutionAsync(resolution, testPublicKey,
                 Signatures.GetSignature(testPrivateKey, lsb.GetBlock().Hash, testPublicKey)
@@ -133,7 +153,7 @@ namespace UnitTests.OTC
             Assert.AreEqual(1, brief1.DisputeHistory.Count);
             Assert.AreEqual(1, brief1.ResolutionHistory.Count);
 
-            // buyer accept the resolution
+            // guest accept the resolution?
             var acpret = await dealer.AnswerToResolutionAsync(trade.AccountID, brief1.ResolutionHistory.First().Id, accepted, test2PublicKey,
                 Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
                 );
@@ -164,13 +184,46 @@ namespace UnitTests.OTC
                 await CancelTradeShouldFail(trade);
 
                 await CloseOrderShouldFail(order);
-
-                // dao owner execute the resolution
-                var ret = await test4Wallet.ExecuteResolution(null, resolution);
-                Assert.IsTrue(!ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
             }
+
+            return trade;
         }
 
+        private async Task<IVoting> DaoOwnerCreateAVote(IOtcTrade trade, ODRResolution resolution)
+        {
+            var title = $"Now let vote on case ID {Random.Shared.NextInt64()}";
+            VotingSubject subject = new VotingSubject
+            {
+                Type = SubjectType.OTCDispute,
+                DaoId = trade.Trade.daoId,
+                Issuer = test4Wallet.AccountId,
+                TimeSpan = 100,
+                Title = title,
+                Description = "bla bla bla",
+                Options = new[] { "Yay", "Nay" },
+            };
+
+            var proposal = new VoteProposal
+            {
+                pptype = ProposalType.DisputeResolution,
+                data = JsonConvert.SerializeObject(resolution),
+            };
+
+            var voteCrtRet = await test4Wallet.CreateVoteSubject(subject, proposal);
+            Assert.IsTrue(voteCrtRet.Successful(), $"Create vote subject error {voteCrtRet.ResultCode}");
+
+            await Task.Delay(4000);
+            // find method 2
+            var votefindret2 = await test4Wallet.RPC.FindAllVoteForTradeAsync(trade.AccountID);
+            Assert.IsTrue(votefindret2.Successful(), $"Can't find vote: {votefindret2.ResultCode}");
+            var votes2 = votefindret2.GetBlocks();
+            var curvote2 = votes2.Last() as IVoting;
+            Assert.AreEqual(subject.Title, curvote2.Subject.Title);
+
+            return curvote2;
+        }
+
+        // peer/dealer level
         private async Task GuestComplainLevel0(IOtcTrade trade)
         {
             var lsb = await client.GetLastServiceBlockAsync();
@@ -184,6 +237,33 @@ namespace UnitTests.OTC
                 Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
                 );
             Assert.IsTrue(ret.Successful());
+        }
+
+        // dao level
+        private async Task GuestComplainLevel1(IOtcTrade trade)
+        {
+            var lsb = await client.GetLastServiceBlockAsync();
+            var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(trade.AccountID, brief0.TradeId);
+            Assert.AreEqual(DisputeLevels.Peer, brief0.DisputeLevel);
+            Assert.AreNotEqual(null, brief0.DisputeHistory);
+            Assert.AreNotEqual(null, brief0.ResolutionHistory);
+
+            // seller not got the payment. seller raise a dispute
+            var crdptret = await test2Wallet.OTCTradeRaiseDisputeAsync(trade.AccountID);
+            Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
+
+            await Task.Delay(2000);
+
+            var ret = await dealer.DisputeCreatedAsync(trade.AccountID, test2PublicKey,
+                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey));
+            Assert.IsTrue(ret.Successful(), $"failed to call DisputeCreatedAsync: {ret.ResultCode}");
+
+            var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(trade.AccountID, brief1.TradeId);
+            Assert.AreEqual(DisputeLevels.DAO, brief1.DisputeLevel);
+            Assert.AreNotEqual(null, brief0.DisputeHistory);
+            Assert.AreNotEqual(null, brief0.ResolutionHistory);
         }
 
         /// <summary>
@@ -209,7 +289,7 @@ namespace UnitTests.OTC
             Assert.AreEqual(testPublicKey, dao.OwnerAccountId);
 
             // dao owner create a resolution
-            var resolution = await CreateODRResolution(dao, trade);
+            var resolution = await CreateODRResolution(trade);
             Assert.IsNotNull(resolution);
 
             // resolution submit to dealer
@@ -221,7 +301,7 @@ namespace UnitTests.OTC
             Assert.IsTrue(ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
         }
 
-        private async Task<ODRResolution> CreateODRResolution(IDao dao, IOtcTrade trade)
+        private async Task<ODRResolution> CreateODRResolution(IOtcTrade trade)
         {
             TransMove[] moves = new TransMove[1];
             moves[0] = new TransMove

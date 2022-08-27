@@ -64,7 +64,7 @@ namespace Lyra.Data.API.WorkFlow
     }
 
     public enum VoteStatus { InProgress, Decided, Uncertain }
-    public interface IVoting
+    public interface IVoting : IBrokerAccount
     {
         VoteStatus VoteState { get; set; }  
         VotingSubject Subject { get; set; }

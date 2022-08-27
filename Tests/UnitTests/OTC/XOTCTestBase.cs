@@ -143,6 +143,13 @@ namespace UnitTests.OTC
             var dao = daoret.GetBlock() as IDao;
             Assert.AreEqual(name, dao.Name);
 
+            if(dao.Treasure.Count == 0)
+            {
+                // the dao should have at least one staking to let vote doable. so test3 should be the staker
+                var invret4 = await test3Wallet.JoinDAOAsync(dao.AccountID, 50000m);
+                Assert.IsTrue(invret4.Successful());
+            }
+
             var prices = await dealer.GetPricesAsync();
 
             var collt = Math.Round((prices["ETH"] * 0.02m / prices["LYR"]) * dao.SellerPar / 100 + 10000, 0);
@@ -165,17 +172,20 @@ namespace UnitTests.OTC
                 limitMax = 0.02m,
             };
 
+            var dt = DateTime.UtcNow;
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"can't create order: {ret.ResultCode}");
 
             Console.WriteLine($"Send Hash is {ret.TxHash}");
             await WaitWorkflow(ret.TxHash, "create order");
-            //await Task.Delay(10000);
+            await Task.Delay(1000);
 
             var otcret = await testWallet.RPC.GetOtcOrdersByOwnerAsync(testWallet.AccountId);
             Assert.IsTrue(otcret.Successful(), $"Can't get otc gensis block. {otcret.ResultCode}");
             var otcs = otcret.GetBlocks();
-            return otcs.Last() as IOtcOrder;
+            var odr = otcs.Last();
+            Assert.IsTrue(odr.TimeStamp >= dt, "not get last order properly");
+            return odr as IOtcOrder;
         }
     }
 }
