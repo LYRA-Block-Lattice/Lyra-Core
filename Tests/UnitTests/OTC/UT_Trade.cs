@@ -25,19 +25,19 @@ namespace UnitTests.OTC
         }
 
         [TestMethod]
-        public async Task TradeCancelling()
+        public async Task GuestTradeCancelling()
         {
             await Setup();
 
-            var order = await CreateOrder();
+            var order = await HostCreateOrder();
             Assert.IsNotNull(order);
 
-            var trade = await CreateTrade(order);
+            var trade = await GuestCreateTrade(order);
             Assert.IsNotNull(trade);
 
-            await CancelTrade(trade);
+            await GuestCancelTradeAsync(trade);
 
-            await CloseOrder(order);
+            await HostCloseOrder(order);
         }
 
         //[TestMethod]
@@ -45,10 +45,10 @@ namespace UnitTests.OTC
         {
             await Setup();
 
-            var order = await CreateOrder();
+            var order = await HostCreateOrder();
             Assert.IsNotNull(order);
 
-            var trade = await CreateTrade(order);
+            var trade = await GuestCreateTrade(order);
             Assert.IsNotNull(trade);
 
             var lsb = await client.GetLastServiceBlockAsync();
@@ -75,13 +75,13 @@ namespace UnitTests.OTC
         [TestMethod]
         public async Task ResolveDisputeOnPeerSuccess()
         {
-            await ResolveDisputeOnPeer(true);
+            await ResolveGuestComplainByHost(true);
         }
 
         [TestMethod]
         public async Task ResolveDisputeOnPeerFailed()
         {
-            await ResolveDisputeOnPeer(false);
+            await ResolveGuestComplainByHost(false);
         }
 
         /// <summary>
@@ -89,27 +89,18 @@ namespace UnitTests.OTC
         /// Buyer raise complain and seller will accept it.
         /// </summary>
         /// <returns></returns>
-        public async Task ResolveDisputeOnPeer(bool accepted)
+        public async Task ResolveGuestComplainByHost(bool accepted)
         {
             await Setup();
 
-            var order = await CreateOrder();
+            var order = await HostCreateOrder();
             Assert.IsNotNull(order);
 
-            var trade = await CreateTrade(order);
+            var trade = await GuestCreateTrade(order);
             Assert.IsNotNull(trade);
 
             var lsb = await client.GetLastServiceBlockAsync();
-            var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
-            Assert.AreEqual(trade.AccountID, brief0.TradeId);
-            Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
-            Assert.AreEqual(null, brief0.DisputeHistory);
-            Assert.AreEqual(null, brief0.ResolutionHistory);
-
-            var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
-                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
-                );
-            Assert.IsTrue(ret.Successful());
+            await GuestComplainLevel0(trade);
 
             var brief00 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(DisputeLevels.Peer, brief00.DisputeLevel);
@@ -117,11 +108,11 @@ namespace UnitTests.OTC
             Assert.AreEqual(1, brief00.DisputeHistory.Count);
             Assert.AreEqual(null, brief00.ResolutionHistory);
 
-            // seems dao owner is test1
+            // seems dao owner is test4
             var dao = (await client.GetLastBlockAsync(trade.Trade.daoId)).As<IDao>();
-            Assert.AreEqual(testPublicKey, dao.OwnerAccountId);
+            Assert.AreEqual(test4PublicKey, dao.OwnerAccountId);
 
-            //// seller submit resolution
+            //// host submit resolution
             var resolution = await CreateODRResolution(dao, trade);
             resolution.CaseId = brief00.DisputeHistory.First().Id;
             var sesret = await dealer.SubmitResolutionAsync(resolution, testPublicKey,
@@ -164,20 +155,35 @@ namespace UnitTests.OTC
 
             if(accepted)
             {
-                await CancelTrade(trade);
+                await GuestCancelTradeAsync(trade);
 
-                await CloseOrder(order);
+                await HostCloseOrder(order);
             }
             else
             {
                 await CancelTradeShouldFail(trade);
 
                 await CloseOrderShouldFail(order);
-            }
 
-            //// dao owner execute the resolution
-            //var ret = await testWallet.ExecuteResolution(null, resolution);
-            //Assert.IsTrue(ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
+                // dao owner execute the resolution
+                var ret = await test4Wallet.ExecuteResolution(null, resolution);
+                Assert.IsTrue(!ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
+            }
+        }
+
+        private async Task GuestComplainLevel0(IOtcTrade trade)
+        {
+            var lsb = await client.GetLastServiceBlockAsync();
+            var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(trade.AccountID, brief0.TradeId);
+            Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
+            Assert.AreEqual(null, brief0.DisputeHistory);
+            Assert.AreEqual(null, brief0.ResolutionHistory);
+
+            var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
+                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
+                );
+            Assert.IsTrue(ret.Successful());
         }
 
         /// <summary>

@@ -36,7 +36,7 @@ namespace UnitTests
             // request a wallet
             var crret = await dexwallet.CreateDexWalletAsync("TRX", "native");
             Assert.IsTrue(crret.Successful());
-            await Task.Delay(4000);
+            await Task.Delay(5000);
 
             await TestDepositWithdraw(dexwallet);
         }

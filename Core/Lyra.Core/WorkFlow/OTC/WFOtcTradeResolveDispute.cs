@@ -27,7 +27,6 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        // user pay via off-chain ways and confirm payment in OTC trade.
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
             if (send.Tags.Count != 3 ||
@@ -48,6 +47,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.Unauthorized;
 
             var voteid = send.Tags["voteid"];
+            if (voteid == null)
+                return APIResultCodes.Unauthorized;
+
             // check who execute the vote result
             if (send.AccountID != LyraGlobal.LORDACCOUNTID)
             {

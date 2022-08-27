@@ -14,6 +14,8 @@ namespace UnitTests.OTC
     {
         string dealerID = "L9vh5kuijpaDiqYAaHoV6EejAL3qUXF15JrSR1LvHien3h4fHR3B9p65ubF9AgQnnMzUxdLbDTPtjwpbxB5SPPtSaF4wMr";
 
+        // testWallet is host, testWallet2 is guest.
+
         //[TestMethod]
         //public async Task TestODR()
         //{
@@ -32,7 +34,7 @@ namespace UnitTests.OTC
         //    await CloseOrder(order);
         //}
 
-        protected async Task CancelTrade(IOtcTrade trade)
+        protected async Task GuestCancelTradeAsync(IOtcTrade trade)
         {
             var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
             Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
@@ -54,7 +56,7 @@ namespace UnitTests.OTC
             Assert.IsTrue(!cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
         }
 
-        protected async Task<IOtcTrade> CreateTrade(IOtcOrder order)
+        protected async Task<IOtcTrade> GuestCreateTrade(IOtcOrder order)
         {
             var prices = await dealer.GetPricesAsync();
             var collt = Math.Round((prices["ETH"] * 0.01m / prices["LYR"]) * 150 / 100 + 10000, 0);
@@ -94,7 +96,7 @@ namespace UnitTests.OTC
             return itrade;
         }
 
-        protected async Task CloseOrder(IOtcOrder order)
+        protected async Task HostCloseOrder(IOtcOrder order)
         {
             var closeret = await testWallet.CloseOTCOrderAsync(order.Order.daoId, order.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
@@ -108,7 +110,7 @@ namespace UnitTests.OTC
             Assert.IsTrue(!closeret.Successful(), $"Should fail to close order: {closeret.ResultCode}");
         }
 
-        protected async Task<IOtcOrder> CreateOrder()
+        protected async Task<IOtcOrder> HostCreateOrder()
         {
             var crypto = "unittest/ETH";
 
@@ -129,13 +131,14 @@ namespace UnitTests.OTC
             Assert.IsTrue(testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto));
 
             // first create a DAO
-            var name = "First DAO";
+            var name = "Test4's DAO";
             var desc = "Doing great business!";
-            var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
+            var daoret = await test4Wallet.RPC.GetDaoByNameAsync(name);
             if (!daoret.Successful())
             {
-                var dcret = await testWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.001m, 10, 120, 130);
+                var dcret = await test4Wallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.001m, 10, 120, 130);
                 Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
+                await Task.Delay(3000);// wait it to be created.
             }
             var dao = daoret.GetBlock() as IDao;
             Assert.AreEqual(name, dao.Name);
