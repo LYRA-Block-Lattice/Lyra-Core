@@ -57,7 +57,13 @@ namespace Lyra.Core.API
         /// <summary>
         /// account who can execute on vote result in the lyra council.
         /// </summary>
-        public const string LORDACCOUNTID = "LordPMWVwhnprsexZjNCoYG54BMkDC7B6UeVXV2HuoTHWbA5sdR8GRogktH5NGXjDwXCggkXaXRXbxCUxD76NvJMD6byE";
+        public static string GetLordAccountId(string networkId)
+        {
+            if (networkId == "mainnet")
+                return "LordPMWVwhnprsexZjNCoYG54BMkDC7B6UeVXV2HuoTHWbA5sdR8GRogktH5NGXjDwXCggkXaXRXbxCUxD76NvJMD6byE";
+            else
+                return "LDevMSGvVCs2s7oD42zp3pcY2M77YTvKSvsUzYRtASBzeFYkU5sbFMUjUb3ev68ETNCuY7CEUU1J1yo4bKRduqqPvEEnVu";    // for dev only
+        }
 
         #endregion
 

@@ -53,7 +53,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.Unauthorized;
 
             // check who execute the vote result
-            if (send.AccountID != LyraGlobal.LORDACCOUNTID)
+            if (send.AccountID != LyraGlobal.GetLordAccountId(Settings.Default.LyraNode.Lyra.NetworkId))
             {
                 // check vote status
                 var vs = await sys.Storage.GetVoteSummaryAsync(voteid);

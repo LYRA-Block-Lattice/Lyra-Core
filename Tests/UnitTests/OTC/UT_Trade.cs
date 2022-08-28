@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
@@ -141,7 +142,84 @@ namespace UnitTests.OTC
 
             // dao owner execute the resolution
             var retex = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
-            Assert.IsTrue(!retex.Successful(), $"Should failed to execute resolution: {retex.ResultCode}");
+            Assert.IsTrue(retex.ResultCode == APIResultCodes.DisputeLevelWasRaised, $"Should failed to execute resolution: {retex.ResultCode}");
+        }
+
+        [TestMethod]
+        public async Task ResolveDisputeOnPeerFailedAndFailedOnDAOSuccessOnCouncil()
+        {
+            var trade = await ResolveGuestComplainByHost(false);
+
+            // guest complain again to raise the dispute level
+            await GuestComplainLevel1(trade);
+
+            var resolution = await CreateODRResolution(trade);
+            Assert.IsNotNull(resolution);
+
+            // dao owner need to create a vote
+            var vote = await DaoOwnerCreateAVote(trade, resolution);
+
+            // test3 as staker vote yay
+            var voteRet2 = await test3Wallet.Vote(vote.AccountID, 1);
+            Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
+
+            await Task.Delay(2000);
+
+            // after voting is decided, there will be a time delay to execute. such as one day.
+            // then the DAO could execute the resolution. in the time delay, anyone can raise the
+            // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
+
+            // the guest is not willing to accept the decision
+            var lsb = await client.GetLastServiceBlockAsync();
+            var ret = await dealer.RaiseToCouncilAsync(trade.AccountID, test2PublicKey,
+            Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
+            );
+            Assert.IsTrue(ret.Successful());
+
+            // dao owner execute the resolution
+            var retex = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
+            Assert.IsTrue(retex.ResultCode == APIResultCodes.DisputeLevelWasRaised, $"Should failed to execute resolution: {retex.ResultCode}");
+
+            // then the council will handle it
+            await LyraCouncilHandleDispute(trade);
+        }
+
+        private async Task LyraCouncilHandleDispute(IOtcTrade trade)
+        {
+            var resolution = await CreateODRResolution(trade);
+            Assert.IsNotNull(resolution);
+
+            // get lord of dev
+            var devLordKey = Environment.GetEnvironmentVariable("DevLordKey");
+            var walletStor5 = new AccountInMemoryStorage();
+            Wallet.Create(walletStor5, "xunit2", "1234", networkId, devLordKey);
+            var devLord = Wallet.Open(walletStor5, "xunit2", "1234", client);
+            devLord.NoConsole = true;
+            await devLord.SyncAsync(client);
+            Assert.IsTrue(devLord.BaseBalance > 10000, "Lord dev have no balance!");
+
+            // dao owner need to create a vote
+            var vote = await TheLordCreateAVote(devLord, trade, resolution);
+
+            // all primary node should vote yay
+            var primaryKeys = Environment.GetEnvironmentVariable("AllPrimaryKeys").Split(";");
+            foreach(var key in primaryKeys)
+            {
+                var walletStorx = new AccountInMemoryStorage();
+                Wallet.Create(walletStorx, "xunit2", "1234", networkId, key);
+                var primx = Wallet.Open(walletStorx, "xunit2", "1234", client);
+                primx.NoConsole = true;
+                await primx.SyncAsync(client);
+                Assert.IsTrue(primx.BaseBalance > 10000, "Primx have no balance!");
+
+                var voteRetx = await primx.Vote(vote.AccountID, 1);
+                Assert.IsTrue(voteRetx.Successful(), $"Vote error: {voteRetx.ResultCode}");
+                await Task.Delay(2000);
+            }            
+
+            // after voting is decided, the decision is final and the lord will execute it.
+            var retex = await devLord.ExecuteResolution(vote.AccountID, resolution);
+            Assert.IsTrue(retex.Successful(), $"Dev Lord failed to execute resolution: {retex.ResultCode}");
         }
 
         /// <summary>
@@ -250,6 +328,40 @@ namespace UnitTests.OTC
             };
 
             var voteCrtRet = await test4Wallet.CreateVoteSubject(subject, proposal);
+            Assert.IsTrue(voteCrtRet.Successful(), $"Create vote subject error {voteCrtRet.ResultCode}");
+
+            await Task.Delay(4000);
+            // find method 2
+            var votefindret2 = await test4Wallet.RPC.FindAllVoteForTradeAsync(trade.AccountID);
+            Assert.IsTrue(votefindret2.Successful(), $"Can't find vote: {votefindret2.ResultCode}");
+            var votes2 = votefindret2.GetBlocks();
+            var curvote2 = votes2.Last() as IVoting;
+            Assert.AreEqual(subject.Title, curvote2.Subject.Title);
+
+            return curvote2;
+        }
+
+        private async Task<IVoting> TheLordCreateAVote(Wallet devLord, IOtcTrade trade, ODRResolution resolution)
+        {
+            var title = $"Now let vote on case ID {Random.Shared.NextInt64()}";
+            VotingSubject subject = new VotingSubject
+            {
+                Type = SubjectType.OTCDispute,
+                DaoId = trade.Trade.daoId,
+                Issuer = test4Wallet.AccountId,
+                TimeSpan = 100,
+                Title = title,
+                Description = "bla bla bla",
+                Options = new[] { "Yay", "Nay" },
+            };
+
+            var proposal = new VoteProposal
+            {
+                pptype = ProposalType.DisputeResolution,
+                data = JsonConvert.SerializeObject(resolution),
+            };
+
+            var voteCrtRet = await devLord.CreateVoteSubject(subject, proposal);
             Assert.IsTrue(voteCrtRet.Successful(), $"Create vote subject error {voteCrtRet.ResultCode}");
 
             await Task.Delay(4000);
