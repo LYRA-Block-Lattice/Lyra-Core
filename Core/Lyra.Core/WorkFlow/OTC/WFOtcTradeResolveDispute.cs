@@ -2,10 +2,12 @@
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Neo;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -36,13 +38,13 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.DestinationAccountId;
-            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
             if (tradeblk == null || tradeblk is not IOtcTrade)
                 return APIResultCodes.InvalidTrade;
             
             // shoult not be the litigant
-            if ((tradeblk as IBrokerAccount).OwnerAccountId == send.AccountID ||
-                (tradeblk as IOtcTrade).Trade.orderOwnerId == send.AccountID
+            if (tradeblk.OwnerAccountId == send.AccountID ||
+                tradeblk.Trade.orderOwnerId == send.AccountID
                 )
                 return APIResultCodes.Unauthorized;
 
@@ -57,6 +59,28 @@ namespace Lyra.Core.WorkFlow.OTC
                 var vs = await sys.Storage.GetVoteSummaryAsync(voteid);
                 if (!vs.IsDecided)
                     return APIResultCodes.Unauthorized;
+
+                // and the dispute was not raised to lyra council
+                if (Settings.Default.LyraNode.Lyra.NetworkId != "xtest" && !string.IsNullOrEmpty(tradeblk.Trade.dealerId))
+                {
+                    // check if trade is cancellable
+                    var lsb = sys.Storage.GetLastServiceBlock();
+                    var wallet = sys.PosWallet;
+                    var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
+                    var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
+                    var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+                    var dealer = new DealerClient(uri);
+                    var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
+                    if (!ret.Successful())
+                        return APIResultCodes.InvalidOperation;
+
+                    var brief = ret.Deserialize<TradeBrief>();
+                    if (brief == null)
+                        return APIResultCodes.InvalidOperation;
+
+                    if (brief.DisputeLevel == DisputeLevels.LyraCouncil)
+                        return APIResultCodes.DisputeLevelWasRaised;
+                }
             }
 
             if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Dispute)

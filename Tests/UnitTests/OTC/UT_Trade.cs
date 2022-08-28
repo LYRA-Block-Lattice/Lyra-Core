@@ -80,7 +80,7 @@ namespace UnitTests.OTC
         }
 
         [TestMethod]
-        public async Task ResolveDisputeOnPeerFailed()
+        public async Task ResolveDisputeOnPeerFailedSuccessOnDAO()
         {
             var trade = await ResolveGuestComplainByHost(false);
 
@@ -99,9 +99,49 @@ namespace UnitTests.OTC
 
             await Task.Delay(2000);
 
+            // after voting is decided, there will be a time delay to execute. such as one day.
+            // then the DAO could execute the resolution. in the time delay, anyone can raise the
+            // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
+
             // dao owner execute the resolution
             var ret = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
             Assert.IsTrue(ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
+        }
+
+        [TestMethod]
+        public async Task ResolveDisputeOnPeerFailedAndFailedOnDAO()
+        {
+            var trade = await ResolveGuestComplainByHost(false);
+
+            // guest complain again to raise the dispute level
+            await GuestComplainLevel1(trade);
+
+            var resolution = await CreateODRResolution(trade);
+            Assert.IsNotNull(resolution);
+
+            // dao owner need to create a vote
+            var vote = await DaoOwnerCreateAVote(trade, resolution);
+
+            // test3 as staker vote yay
+            var voteRet2 = await test3Wallet.Vote(vote.AccountID, 1);
+            Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
+
+            await Task.Delay(2000);
+
+            // after voting is decided, there will be a time delay to execute. such as one day.
+            // then the DAO could execute the resolution. in the time delay, anyone can raise the
+            // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
+
+            // the guest is not willing to accept the decision
+            var lsb = await client.GetLastServiceBlockAsync();
+            var ret = await dealer.RaiseToCouncilAsync(trade.AccountID, test2PublicKey,
+            Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
+            );
+            Assert.IsTrue(ret.Successful());
+
+            // dao owner execute the resolution
+            var retex = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
+            Assert.IsTrue(!retex.Successful(), $"Should failed to execute resolution: {retex.ResultCode}");
         }
 
         /// <summary>

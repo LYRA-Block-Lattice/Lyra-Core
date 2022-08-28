@@ -227,6 +227,17 @@ namespace Lyra.Data.API
             return await GetAsync<APIResult>("DisputeCreated", args);
         }
 
+        public async Task<APIResult> RaiseToCouncilAsync(string tradeId, string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "tradeId", tradeId },
+                { "accountId", accountId },
+                { "signature", signature },
+            };
+            return await GetAsync<APIResult>("RaiseToCouncil", args);
+        }
+
         public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution, string accountId, string signature)
         {
             var args = new Dictionary<string, string>

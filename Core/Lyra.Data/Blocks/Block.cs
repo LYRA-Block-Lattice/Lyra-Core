@@ -679,5 +679,6 @@ namespace Lyra.Core.Blocks
         NotOwnerOfOrder,
         NotRegisteredToDealer,
         ResolutionPending,
+        DisputeLevelWasRaised,
     }
 }
