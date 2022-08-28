@@ -92,7 +92,7 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        private static async List<string> GetBrokerAccountID(DagSystem sys, SendTransferBlock send)
+        private static async Task<List<string>> GetBrokerAccountIDAsync(DagSystem sys, SendTransferBlock send)
         {
             string action = null;
             if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
@@ -175,7 +175,7 @@ namespace Lyra.Core.WorkFlow
                 case BrokerActions.BRK_OTC_CRDPT:
                 case BrokerActions.BRK_OTC_RSLDPT:
                     brkaccount = send.DestinationAccountId; // trade id
-                    var tradeDspt = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as IOtcTrade;
+                    var tradeDspt = (await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId)) as IOtcTrade;
                     brkaccount2 = tradeDspt.Trade.daoId;
                     break;
 
@@ -217,7 +217,7 @@ namespace Lyra.Core.WorkFlow
 
         public virtual Task<List<string>> GetLockedAccountIds(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
-            return Task.FromResult(GetBrokerAccountID(sys, send));
+            return GetBrokerAccountIDAsync(sys, send);
         }
         public abstract Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
 
