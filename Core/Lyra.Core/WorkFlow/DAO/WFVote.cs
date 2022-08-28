@@ -57,7 +57,15 @@ namespace Lyra.Core.WorkFlow.DAO
             var dao = await sys.Storage.FindBlockByHashAsync(
                 allreltx.First(a => a is DaoRecvBlock).Hash);
 
-            if(!(dao as IDao).Treasure.ContainsKey(send.AccountID))
+            if((votel as IVoting).OwnerAccountId == LyraGlobal.GetLordAccountId(Neo.Settings.Default.LyraNode.Lyra.NetworkId))
+            {
+                // this is a vote create by lyra council via the Lord
+                // so the voter should be in current view
+                var lsb = sys.Storage.GetLastServiceBlock();
+                if(!lsb.Authorizers.Keys.Contains(send.AccountID))
+                    return APIResultCodes.Unauthorized;
+            }
+            else if(!(dao as IDao).Treasure.ContainsKey(send.AccountID))
             {
                 return APIResultCodes.Unauthorized;
             }
