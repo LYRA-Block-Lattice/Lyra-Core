@@ -89,11 +89,14 @@ namespace Lyra.Core.Decentralize
                         await cs.HeartBeatAsync();
                     }
 
-                    // connect to more peer if connected peer count < 86%
-                    var status = await cs.GetNodeStatusAsync();
-                    if(status.connectedPeers / (float)status.activePeers < 0.86)
+                    if(Neo.Settings.Default.LyraNode.Lyra.NetworkId != "devnet")    // devnet < 80%
                     {
-                        Neo.Network.P2P.LocalNode.Singleton.ConnectMoreNodes(status.activePeers - status.connectedPeers);
+                        // connect to more peer if connected peer count < 86%
+                        var status = await cs.GetNodeStatusAsync();
+                        if (status.connectedPeers / (float)status.activePeers < 0.86)
+                        {
+                            Neo.Network.P2P.LocalNode.Singleton.ConnectMoreNodes(status.activePeers - status.connectedPeers);
+                        }
                     }
                 }
                 catch(Exception ex)
