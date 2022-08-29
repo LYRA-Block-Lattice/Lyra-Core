@@ -162,6 +162,10 @@ namespace Neo.Network.P2P
             return UnconnectedPeers;
         }
 
+        public void ConnectMoreNodes(int count)
+        {
+            NeedMorePeers(count);
+        }
         /// <summary>
         /// Override of abstract class that is triggered when <see cref="UnconnectedPeers"/> is empty.
         /// Performs a BroadcastMessage with the command `MessageCommand.GetAddr`, which, eventually, tells all known connections.

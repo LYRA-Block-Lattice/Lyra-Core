@@ -78,17 +78,27 @@ namespace Lyra.Core.Decentralize
         {
             public async Task Execute(IJobExecutionContext context)
             {
+                var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+                if (cs == null)
+                    return;
+
                 try
                 {
                     if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                     {
-                        var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
                         await cs.HeartBeatAsync();
                     }
-                }
-                catch(Exception)
-                {
 
+                    // connect to more peer if connected peer count < 86%
+                    var status = await cs.GetNodeStatusAsync();
+                    if(status.connectedPeers / (float)status.activePeers < 0.86)
+                    {
+                        Neo.Network.P2P.LocalNode.Singleton.ConnectMoreNodes(status.activePeers - status.connectedPeers);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    cs._log.LogError($"In HeartBeater: {ex}");
                 }
             }
         }
