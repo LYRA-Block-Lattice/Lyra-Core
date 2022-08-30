@@ -85,6 +85,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
+			// TODO: use time shift to fix this bug: missing a separater
 			return $"{From}|{MsgType}|{Version}" +
 					$"{TimeStamp.Ticks}|";
 		}

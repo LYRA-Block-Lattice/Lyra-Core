@@ -30,11 +30,11 @@ namespace Lyra.Data.API.Identity
         /// Case ID, start from 1.
         /// </summary>
         public int Id { get; set; }
+        public DateTime RaisedTime { get; set; }
+
 
         // plaintiff
-        public DisputeLevels Level { get; set; }
-        public string RaisedBy { get; set; } = null!;
-        public DateTime RaisedTime { get; set; }
+        public ComplaintCfg Complaint { get; set; } = null!;
 
         public decimal ClaimedLost { get; set; }
 

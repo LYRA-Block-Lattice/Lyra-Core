@@ -42,37 +42,45 @@ namespace UnitTests.OTC
             await HostCloseOrder(order);
         }
 
-        //[TestMethod]
-        public async Task DisputeRaiseLevel1()
-        {
-            await Setup();
+        ////[TestMethod]
+        //public async Task DisputeRaiseLevel1()
+        //{
+        //    await Setup();
 
-            var order = await HostCreateOrder();
-            Assert.IsNotNull(order);
+        //    var order = await HostCreateOrder();
+        //    Assert.IsNotNull(order);
 
-            var trade = await GuestCreateTrade(order);
-            Assert.IsNotNull(trade);
+        //    var trade = await GuestCreateTrade(order);
+        //    Assert.IsNotNull(trade);
 
-            var lsb = await client.GetLastServiceBlockAsync();
-            var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
-            Assert.AreEqual(trade.AccountID, brief0.TradeId);
-            Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
-            Assert.AreEqual(null, brief0.DisputeHistory);
-            Assert.AreEqual(null, brief0.ResolutionHistory);
+        //    var lsb = await client.GetLastServiceBlockAsync();
+        //    var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+        //    Assert.AreEqual(trade.AccountID, brief0.TradeId);
+        //    Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
+        //    Assert.AreEqual(null, brief0.DisputeHistory);
+        //    Assert.AreEqual(null, brief0.ResolutionHistory);
 
-            var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
-                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)                
-                );
-            Assert.IsTrue(ret.Successful());
+        //    // buyer complain
+        //    var cfg = new ComplaintCfg
+        //    {
+        //        ownerId = test2PublicKey,
+        //        tradeId = trade.AccountID,
+        //        level = DisputeLevels.DAO
+        //    };
 
-            var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
-            Assert.AreEqual(trade.AccountID, brief1.TradeId);
-            Assert.AreEqual(DisputeLevels.Peer, brief1.DisputeLevel);
+        //    var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
+        //        Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)                
+        //        );
+        //    Assert.IsTrue(ret.Successful());
 
-            await CancelTradeShouldFail(trade);
+        //    var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+        //    Assert.AreEqual(trade.AccountID, brief1.TradeId);
+        //    Assert.AreEqual(DisputeLevels.Peer, brief1.DisputeLevel);
 
-            await CloseOrderShouldFail(order);
-        }
+        //    await CancelTradeShouldFail(trade);
+
+        //    await CloseOrderShouldFail(order);
+        //}
 
         [TestMethod]
         public async Task ResolveDisputeOnPeerSuccess()
@@ -135,9 +143,26 @@ namespace UnitTests.OTC
 
             // the guest is not willing to accept the decision
             var lsb = await client.GetLastServiceBlockAsync();
-            var ret = await dealer.RaiseToCouncilAsync(trade.AccountID, test2PublicKey,
-            Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
-            );
+
+            // buyer complain
+            var cfg = new ComplaintCfg
+            {
+                created = DateTime.UtcNow,
+
+                ownerId = test2PublicKey,
+                tradeId = trade.AccountID,
+                level = DisputeLevels.LyraCouncil,
+                role = ComplaintByRole.Buyer,
+                fiatState = ComplaintFiatStates.SelfPaid,
+                request = ComplaintRequest.ContinueTrade,
+
+                statement = "test",
+                imageHashes = null,
+            };
+            cfg.Sign(test2PrivateKey, test2PublicKey);
+
+            var ret = await dealer.ComplainAsync(cfg);
+
             Assert.IsTrue(ret.Successful());
 
             // dao owner execute the resolution
@@ -170,10 +195,25 @@ namespace UnitTests.OTC
             // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
 
             // the guest is not willing to accept the decision
-            var lsb = await client.GetLastServiceBlockAsync();
-            var ret = await dealer.RaiseToCouncilAsync(trade.AccountID, test2PublicKey,
-            Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
-            );
+            // buyer complain
+            var cfg = new ComplaintCfg
+            {
+                created = DateTime.UtcNow,
+
+                ownerId = test2PublicKey,
+                tradeId = trade.AccountID,
+                level = DisputeLevels.LyraCouncil,
+                role = ComplaintByRole.Buyer,
+                fiatState = ComplaintFiatStates.SelfPaid,
+                request = ComplaintRequest.ContinueTrade,
+
+                statement = "test",
+                imageHashes = null,
+            };
+            cfg.Sign(test2PrivateKey, test2PublicKey);
+
+            var ret = await dealer.ComplainAsync(cfg);
+
             Assert.IsTrue(ret.Successful());
 
             // dao owner execute the resolution
@@ -385,9 +425,24 @@ namespace UnitTests.OTC
             Assert.AreEqual(null, brief0.DisputeHistory);
             Assert.AreEqual(null, brief0.ResolutionHistory);
 
-            var ret = await dealer.ComplainAsync(trade.AccountID, trade.Trade.collateral, test2PublicKey,
-                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey)
-                );
+            // buyer complain
+            var cfg = new ComplaintCfg
+            {
+                created = DateTime.UtcNow,
+
+                ownerId = test2PublicKey,
+                tradeId = trade.AccountID,
+                level = DisputeLevels.Peer,
+                role = ComplaintByRole.Buyer,
+                fiatState = ComplaintFiatStates.SelfPaid,
+                request = ComplaintRequest.ContinueTrade,
+
+                statement = "test",
+                imageHashes = null,
+            };
+            cfg.Sign(test2PrivateKey, test2PublicKey);
+
+            var ret = await dealer.ComplainAsync(cfg);
             Assert.IsTrue(ret.Successful());
         }
 
@@ -407,8 +462,25 @@ namespace UnitTests.OTC
 
             await Task.Delay(2000);
 
-            var ret = await dealer.DisputeCreatedAsync(trade.AccountID, test2PublicKey,
-                Signatures.GetSignature(test2PrivateKey, lsb.GetBlock().Hash, test2PublicKey));
+            // buyer complain
+            var cfg = new ComplaintCfg
+            {
+                created = DateTime.UtcNow,
+
+                ownerId = test2PublicKey,
+                tradeId = trade.AccountID,
+                level = DisputeLevels.DAO,
+                role = ComplaintByRole.Buyer,
+                fiatState = ComplaintFiatStates.SelfPaid,
+                request = ComplaintRequest.ContinueTrade,
+
+                statement = "test",
+                imageHashes = null,
+            };
+            cfg.Sign(test2PrivateKey, test2PublicKey);
+
+            var ret = await dealer.ComplainAsync(cfg);
+
             Assert.IsTrue(ret.Successful(), $"failed to call DisputeCreatedAsync: {ret.ResultCode}");
 
             var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);

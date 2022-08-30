@@ -4,7 +4,9 @@ using Lyra.Core.Blocks;
 using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
 using Lyra.Data.Crypto;
+using MessagePack.Formatters;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -54,6 +56,35 @@ namespace Lyra.Data.API
     {
         public string AccountId { get; set; } = null!;
         public string TelegramBotUsername { get; set; } = null!;
+    }
+
+    public enum ComplaintByRole { Buyer, Seller }
+    public enum ComplaintRequest { CancelTrade, ContinueTrade }
+    public enum ComplaintFiatStates { SelfUnpaid, SelfPaid, PeerUnpaid, PeerPaid }
+
+    public class ComplaintCfg : SignableObject
+    {
+        public string ownerId { get; set; } = null!;
+        public string tradeId { get; set; } = null!;
+        public DateTime created { get; set; }
+        public DisputeLevels level { get; set; } 
+        public ComplaintByRole role { get; set; } 
+        public ComplaintFiatStates fiatState { get; set; }
+        public ComplaintRequest request { get; set; }
+        public string statement { get;set; } = null!;
+        public string[]? imageHashes { get; set; }
+
+        public override string GetHashInput()
+        {
+            return $"{ownerId}|{tradeId}|{DateTimeToString(created)}|{level}|{role}|{fiatState}|{request}|" +
+                    $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(statement))}|" +
+                    imageHashes?.Aggregate("", (a, b) => a + "," + b) ?? "";
+        }
+
+        protected override string GetExtraData()
+        {
+            return "";
+        }
     }
 
     /// <summary>
@@ -204,38 +235,9 @@ namespace Lyra.Data.API
             return new List<CommentConfig>();
         }
 
-        public async Task<APIResult> ComplainAsync(string tradeId, decimal claimedLost, string accountId, string signature)
+        public async Task<APIResult> ComplainAsync(ComplaintCfg complaint)
         {
-            var args = new Dictionary<string, string>
-            {
-                { "tradeId", tradeId },
-                { "accountId", accountId },
-                { "signature", signature },
-                { "claimedLost", claimedLost.ToString() },
-            };
-            return await GetAsync<APIResult>("Complain", args);
-        }
-
-        public async Task<APIResult> DisputeCreatedAsync(string tradeId, string accountId, string signature)
-        {
-            var args = new Dictionary<string, string>
-            {
-                { "tradeId", tradeId },
-                { "accountId", accountId },
-                { "signature", signature },
-            };
-            return await GetAsync<APIResult>("DisputeCreated", args);
-        }
-
-        public async Task<APIResult> RaiseToCouncilAsync(string tradeId, string accountId, string signature)
-        {
-            var args = new Dictionary<string, string>
-            {
-                { "tradeId", tradeId },
-                { "accountId", accountId },
-                { "signature", signature },
-            };
-            return await GetAsync<APIResult>("RaiseToCouncil", args);
+            return await PostAsync("Complain", complaint);
         }
 
         public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution, string accountId, string signature)
