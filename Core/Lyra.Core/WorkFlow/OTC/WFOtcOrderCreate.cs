@@ -60,8 +60,8 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidOrgnization;
 
             // verify Dealer exists
-            var dlr = await sys.Storage.FindLatestBlockAsync(order.dealerId);
-            if (string.IsNullOrEmpty(order.dealerId) || dlr == null || dlr is not IDealer)
+            var dlr = sys.Storage.FindFirstBlock(order.dealerId);
+            if (string.IsNullOrEmpty(order.dealerId) || dlr == null || dlr is not DealerGenesisBlock)
                 return APIResultCodes.InvalidDealerServer;
 
             // check every field of Order
@@ -107,8 +107,7 @@ namespace Lyra.Core.WorkFlow
             }
 
             // check the price of order and collateral.
-            var dlrblk = await sys.Storage.FindLatestBlockAsync(order.dealerId);
-            var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+            var uri = new Uri(new Uri((dlr as IDealer).Endpoint), "/api/dealer/");
             var dealer = new DealerClient(uri);
 
             // verify user registered on dealer
