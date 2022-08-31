@@ -95,23 +95,25 @@ namespace Lyra.Core.WorkFlow.OTC
 
             if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest" && !string.IsNullOrEmpty(tradeblk.Trade.dealerId))
             {
-                if(send.AccountID == dlr.OwnerAccountId)
+                // check if trade is cancellable
+                var lsb = sys.Storage.GetLastServiceBlock();
+                var wallet = sys.PosWallet;
+                var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
+                var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
+                var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+                var dealer = new DealerClient(uri);
+                var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
+                if (!ret.Successful())
+                    return APIResultCodes.InvalidOperation;
+
+                if (send.AccountID == dlr.OwnerAccountId)
                 {
-                    // dealer do cancel. we do nothing.
+                    // dealer do cancel. we also authorize this action to prevent abuse.
+                    // TODO: we verify cancel request and reply by signature.
+
                 }
                 else
                 {
-                    // check if trade is cancellable
-                    var lsb = sys.Storage.GetLastServiceBlock();
-                    var wallet = sys.PosWallet;
-                    var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
-                    var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
-                    var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
-                    var dealer = new DealerClient(uri);
-                    var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
-                    if (!ret.Successful())
-                        return APIResultCodes.InvalidOperation;
-
                     var brief = ret.Deserialize<TradeBrief>();
                     if (brief == null || !brief.IsCancellable)
                         return APIResultCodes.InvalidOperation;

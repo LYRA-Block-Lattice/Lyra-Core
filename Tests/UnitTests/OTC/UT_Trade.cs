@@ -355,7 +355,10 @@ namespace UnitTests.OTC
                 var ret = await dealer.ComplainReplyAsync(reply);
                 Assert.IsTrue(ret.Successful());
 
-                await GuestCancelTradeAsync(trade);
+                await Task.Delay(2000);
+
+                // trade has been canceled by dealer based on the complaint and reply 
+                await CancelTradeShouldFail(trade);
 
                 await HostCloseOrder(order);
             }
@@ -482,7 +485,7 @@ namespace UnitTests.OTC
             Assert.AreEqual(trade.AccountID, brief0.TradeId);
             Assert.AreEqual(DisputeLevels.Peer, brief0.DisputeLevel);
             Assert.AreNotEqual(null, brief0.DisputeHistory);
-            Assert.AreNotEqual(null, brief0.ResolutionHistory);
+            Assert.AreEqual(null, brief0.ResolutionHistory);
 
             // seller not got the payment. seller raise a dispute
             var crdptret = await test2Wallet.OTCTradeRaiseDisputeAsync(trade.AccountID);
@@ -515,7 +518,7 @@ namespace UnitTests.OTC
             Assert.AreEqual(trade.AccountID, brief1.TradeId);
             Assert.AreEqual(DisputeLevels.DAO, brief1.DisputeLevel);
             Assert.AreNotEqual(null, brief0.DisputeHistory);
-            Assert.AreNotEqual(null, brief0.ResolutionHistory);
+            Assert.AreEqual(null, brief0.ResolutionHistory);
         }
 
         /// <summary>
