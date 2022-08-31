@@ -95,7 +95,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest" && !string.IsNullOrEmpty(tradeblk.Trade.dealerId))
             {
-                if(send.AccountID == tradeblk.Trade.dealerId)
+                if(send.AccountID == dlr.OwnerAccountId)
                 {
                     // dealer do cancel. we do nothing.
                 }
