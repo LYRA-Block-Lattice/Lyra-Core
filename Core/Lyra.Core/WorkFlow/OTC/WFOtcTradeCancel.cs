@@ -74,9 +74,13 @@ namespace Lyra.Core.WorkFlow.OTC
                 tradeblk.Trade.daoId != daoblk.AccountID)
                 return APIResultCodes.InvalidTrade;
 
+            var dlr = sys.Storage.FindFirstBlock(tradeblk.Trade.dealerId) as IDealer;
+            if (dlr == null)
+                return APIResultCodes.InvalidDealerServer;
+
             if (tradeblk.OwnerAccountId != send.AccountID 
                 && tradeblk.Trade.orderOwnerId != send.AccountID
-                && tradeblk.Trade.dealerId != send.AccountID)
+                && send.AccountID != dlr.OwnerAccountId)    // dealer owner can cancel the trade
                 return APIResultCodes.InvalidTrade;
 
             if (tradeblk.OTStatus != OTCTradeStatus.Open)
