@@ -74,7 +74,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 tradeblk.Trade.daoId != daoblk.AccountID)
                 return APIResultCodes.InvalidTrade;
 
-            if (tradeblk.OwnerAccountId != send.AccountID && tradeblk.Trade.orderOwnerId != send.AccountID)
+            if (tradeblk.OwnerAccountId != send.AccountID 
+                && tradeblk.Trade.orderOwnerId != send.AccountID
+                && tradeblk.Trade.dealerId != send.AccountID)
                 return APIResultCodes.InvalidTrade;
 
             if (tradeblk.OTStatus != OTCTradeStatus.Open)
