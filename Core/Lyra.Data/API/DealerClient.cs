@@ -7,11 +7,15 @@ using Lyra.Data.Crypto;
 using MessagePack.Formatters;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.X509.Qualified;
+using StreamJsonRpc;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -60,23 +64,23 @@ namespace Lyra.Data.API
 
     public enum ComplaintByRole { Buyer, Seller }
     public enum ComplaintRequest { CancelTrade, ContinueTrade }
+    public enum ComplaintResponse { AgreeCancel, AgreeContinue, RefuseCancel, RefuseContinue }
     public enum ComplaintFiatStates { SelfUnpaid, SelfPaid, PeerUnpaid, PeerPaid }
 
-    public class ComplaintCfg : SignableObject
+    public class ComplaintBase : SignableObject
     {
         public string ownerId { get; set; } = null!;
         public string tradeId { get; set; } = null!;
         public DateTime created { get; set; }
-        public DisputeLevels level { get; set; } 
-        public ComplaintByRole role { get; set; } 
+        public DisputeLevels level { get; set; }
+        public ComplaintByRole role { get; set; }
         public ComplaintFiatStates fiatState { get; set; }
-        public ComplaintRequest request { get; set; }
-        public string statement { get;set; } = null!;
+        public string statement { get; set; } = null!;
         public string[]? imageHashes { get; set; }
 
         public override string GetHashInput()
         {
-            return $"{ownerId}|{tradeId}|{DateTimeToString(created)}|{level}|{role}|{fiatState}|{request}|" +
+            return $"{ownerId}|{tradeId}|{DateTimeToString(created)}|{level}|{role}|{fiatState}|" +
                     $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(statement))}|" +
                     imageHashes?.Aggregate("", (a, b) => a + "," + b) ?? "";
         }
@@ -84,6 +88,26 @@ namespace Lyra.Data.API
         protected override string GetExtraData()
         {
             return "";
+        }
+    }
+
+    public class ComplaintClaim : ComplaintBase
+    {
+        public ComplaintRequest request { get; set; }
+
+        protected override string GetExtraData()
+        {
+            return base.GetExtraData() + $"|{request}";
+        }
+    }
+
+    public class ComplaintReply : ComplaintBase
+    {
+        public string complaintHash { get; set; } = null!;
+        public ComplaintResponse response { get; set; }
+        protected override string GetExtraData()
+        {
+            return base.GetExtraData() + $"|{complaintHash}|{response}";
         }
     }
 
@@ -235,9 +259,14 @@ namespace Lyra.Data.API
             return new List<CommentConfig>();
         }
 
-        public async Task<APIResult> ComplainAsync(ComplaintCfg complaint)
+        public async Task<APIResult> ComplainAsync(ComplaintClaim complaint)
         {
             return await PostAsync("Complain", complaint);
+        }
+
+        public async Task<APIResult> ComplainReplyAsync(ComplaintReply reply)
+        {
+            return await PostAsync("ComplainReply", reply);
         }
 
         public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution, string accountId, string signature)

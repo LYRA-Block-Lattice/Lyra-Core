@@ -34,24 +34,25 @@ namespace Lyra.Data.API.Identity
 
 
         // plaintiff
-        public ComplaintCfg Complaint { get; set; } = null!;
+        public ComplaintClaim Complaint { get; set; } = null!;
+        public ComplaintReply? Reply { get; set; }
 
-        public decimal ClaimedLost { get; set; }
+        //public decimal ClaimedLost { get; set; }
 
-        // defendant
-        public bool PeerAcceptance { get; set; }
-        public DateTime PeerAcceptanceTime { get; set; }   
+        //// defendant
+        //public bool PeerAcceptance { get; set; }
+        //public DateTime PeerAcceptanceTime { get; set; }   
         
-        // mediator
-        public string? MediatorID { get; set; }
-        public ODRResolution? Resolution { get; set; }
-        public DateTime ResolutionTime { get; set; }
+        //// mediator
+        //public string? MediatorID { get; set; }
+        //public ODRResolution? Resolution { get; set; }
+        //public DateTime ResolutionTime { get; set; }
 
-        // final result
-        public bool AcceptanceByPlaintiff { get; set; }
-        public DateTime AcceptanceTimeByPlaintiff { get; set; }
+        //// final result
+        //public bool AcceptanceByPlaintiff { get; set; }
+        //public DateTime AcceptanceTimeByPlaintiff { get; set; }
 
-        public bool AcceptanceByDefendant { get; set; }
-        public DateTime AcceptanceTimeByDefendant { get; set; }
+        //public bool AcceptanceByDefendant { get; set; }
+        //public DateTime AcceptanceTimeByDefendant { get; set; }
     }
 }

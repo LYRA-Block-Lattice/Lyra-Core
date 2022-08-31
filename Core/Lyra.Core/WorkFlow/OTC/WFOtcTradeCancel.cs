@@ -89,20 +89,27 @@ namespace Lyra.Core.WorkFlow.OTC
 
             if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest" && !string.IsNullOrEmpty(tradeblk.Trade.dealerId))
             {
-                // check if trade is cancellable
-                var lsb = sys.Storage.GetLastServiceBlock();
-                var wallet = sys.PosWallet;
-                var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
-                var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
-                var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
-                var dealer = new DealerClient(uri);
-                var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
-                if (!ret.Successful())
-                    return APIResultCodes.InvalidOperation;
+                if(send.AccountID == tradeblk.Trade.dealerId)
+                {
+                    // dealer do cancel. we do nothing.
+                }
+                else
+                {
+                    // check if trade is cancellable
+                    var lsb = sys.Storage.GetLastServiceBlock();
+                    var wallet = sys.PosWallet;
+                    var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
+                    var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
+                    var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+                    var dealer = new DealerClient(uri);
+                    var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
+                    if (!ret.Successful())
+                        return APIResultCodes.InvalidOperation;
 
-                var brief = ret.Deserialize<TradeBrief>();
-                if (brief == null || !brief.IsCancellable)
-                    return APIResultCodes.InvalidOperation;
+                    var brief = ret.Deserialize<TradeBrief>();
+                    if (brief == null || !brief.IsCancellable)
+                        return APIResultCodes.InvalidOperation;
+                }
             }
 
             return APIResultCodes.Success;
