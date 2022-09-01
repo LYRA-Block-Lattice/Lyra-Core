@@ -117,7 +117,9 @@ namespace Lyra.Core.WorkFlow.OTC
                     var lastCase = brief.DisputeHistory.Last();
 
                     if (!lastCase.Complaint.VerifySignature(lastCase.Complaint.ownerId) ||
-                        !lastCase.Reply.VerifySignature(lastCase.Reply.ownerId))
+                        !lastCase.Reply.VerifySignature(lastCase.Reply.ownerId) ||
+                        lastCase.Complaint.tradeId != tradeblk.AccountID ||
+                        lastCase.Reply.tradeId != tradeblk.AccountID)
                         return APIResultCodes.Unauthorized;
 
                     if (lastCase.Complaint.request != ComplaintRequest.CancelTrade || lastCase.Reply.response != ComplaintResponse.AgreeCancel)

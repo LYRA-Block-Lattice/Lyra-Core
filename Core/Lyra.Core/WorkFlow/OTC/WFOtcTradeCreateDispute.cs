@@ -6,6 +6,7 @@ using Lyra.Data.API.Identity;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using StreamJsonRpc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,7 @@ namespace Lyra.Core.WorkFlow.OTC
         }
 
         // user pay via off-chain ways and confirm payment in OTC trade.
+        // 2022.9.1 we change mind to let only dealer to change dispute state of trade.
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
         {
             if (send.Tags.Count != 1)
@@ -37,11 +39,16 @@ namespace Lyra.Core.WorkFlow.OTC
             var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
             if (tradeblk == null)
                 return APIResultCodes.InvalidTrade;
-            
-            if (tradeblk.OwnerAccountId != send.AccountID &&
-                tradeblk.Trade.orderOwnerId != send.AccountID
-                )
-                return APIResultCodes.NotOwnerOfTrade;
+
+            var dlr = sys.Storage.FindFirstBlock(tradeblk.Trade.dealerId) as IDealer;
+            if (dlr == null)
+                return APIResultCodes.InvalidDealerServer;
+
+            //if (tradeblk.OwnerAccountId != send.AccountID &&
+            //    tradeblk.Trade.orderOwnerId != send.AccountID &&
+            // dealer to change the state
+            if (dlr.OwnerAccountId != send.AccountID)
+                return APIResultCodes.PermissionDenied;
 
             // can't reopen closed dispute trade
             if (tradeblk.OTStatus == OTCTradeStatus.Dispute ||
@@ -55,8 +62,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 var lsb = sys.Storage.GetLastServiceBlock();
                 var wallet = sys.PosWallet;
                 var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
-                var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
-                var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+                var uri = new Uri(new Uri((dlr as IDealer).Endpoint), "/api/dealer/");
                 var dealer = new DealerClient(uri);
                 var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
                 if (!ret.Successful())

@@ -680,5 +680,6 @@ namespace Lyra.Core.Blocks
         NotRegisteredToDealer,
         ResolutionPending,
         DisputeLevelWasRaised,
+        PermissionDenied,
     }
 }

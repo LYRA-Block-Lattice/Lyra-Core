@@ -41,12 +41,22 @@ namespace Lyra.Core.WorkFlow.OTC
             var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
             if (tradeblk == null || tradeblk is not IOtcTrade)
                 return APIResultCodes.InvalidTrade;
-            
-            // shoult not be the litigant
-            if (tradeblk.OwnerAccountId == send.AccountID ||
-                tradeblk.Trade.orderOwnerId == send.AccountID
-                )
-                return APIResultCodes.Unauthorized;
+
+            var dlr = sys.Storage.FindFirstBlock(tradeblk.Trade.dealerId) as IDealer;
+            if (dlr == null)
+                return APIResultCodes.InvalidDealerServer;
+
+            //if (tradeblk.OwnerAccountId != send.AccountID &&
+            //    tradeblk.Trade.orderOwnerId != send.AccountID &&
+            // dealer to change the state
+            if (dlr.OwnerAccountId != send.AccountID)
+                return APIResultCodes.PermissionDenied;
+
+            //// shoult not be the litigant
+            //if (tradeblk.OwnerAccountId == send.AccountID ||
+            //    tradeblk.Trade.orderOwnerId == send.AccountID
+            //    )
+            //    return APIResultCodes.Unauthorized;
 
             var voteid = send.Tags["voteid"];
             if (voteid == null)
@@ -67,8 +77,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     var lsb = sys.Storage.GetLastServiceBlock();
                     var wallet = sys.PosWallet;
                     var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
-                    var dlrblk = await sys.Storage.FindLatestBlockAsync(tradeblk.Trade.dealerId);
-                    var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+                    var uri = new Uri(new Uri(dlr.Endpoint), "/api/dealer/");
                     var dealer = new DealerClient(uri);
                     var ret = await dealer.GetTradeBriefAsync(tradeid, wallet.AccountId, sign);
                     if (!ret.Successful())

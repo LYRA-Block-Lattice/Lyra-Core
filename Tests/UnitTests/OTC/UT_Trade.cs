@@ -488,10 +488,10 @@ namespace UnitTests.OTC
             Assert.AreEqual(null, brief0.ResolutionHistory);
 
             // seller not got the payment. seller raise a dispute
-            var crdptret = await test2Wallet.OTCTradeRaiseDisputeAsync(trade.AccountID);
-            Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
+            //var crdptret = await test2Wallet.OTCTradeRaiseDisputeAsync(trade.AccountID);
+            //Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
 
-            await Task.Delay(2000);
+            //await Task.Delay(2000);
 
             // buyer complain
             var cfg = new ComplaintClaim
