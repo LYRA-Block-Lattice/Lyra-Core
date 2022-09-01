@@ -114,26 +114,26 @@ namespace Lyra.Core.WorkFlow.OTC
                 {
                     // dealer do cancel. we also authorize this action to prevent abuse.
                     // we verify cancel request and reply by signature.
-                    var lastCase = brief.DisputeHistory.Last();
+                    var lastCase = brief.GetDisputeHistory().Last();
 
-                    if (!lastCase.Complaint.VerifySignature(lastCase.Complaint.ownerId) ||
-                        !lastCase.Reply.VerifySignature(lastCase.Reply.ownerId) ||
-                        lastCase.Complaint.tradeId != tradeblk.AccountID ||
-                        lastCase.Reply.tradeId != tradeblk.AccountID)
+                    if (!lastCase.Verify(tradeblk))
                         return APIResultCodes.Unauthorized;
 
-                    if (lastCase.Complaint.request != ComplaintRequest.CancelTrade || lastCase.Reply.response != ComplaintResponse.AgreeCancel)
-                        return APIResultCodes.Unauthorized;
+                    if (!lastCase.GetAllowCancel())
+                        return APIResultCodes.InvalidOperation;
 
-                    if(lastCase.Complaint.ownerId == tradeblk.OwnerAccountId && lastCase.Reply.ownerId != orderblk.OwnerAccountId)   // guest
-                    {
-                        return APIResultCodes.Unauthorized;
-                    }
+                    //if (lastCase.Complaint.request != ComplaintRequest.CancelTrade || lastCase.Reply.response != ComplaintResponse.AgreeCancel)
+                    //    return APIResultCodes.Unauthorized;
 
-                    if (lastCase.Complaint.ownerId == orderblk.OwnerAccountId && lastCase.Reply.ownerId != tradeblk.OwnerAccountId)   // host
-                    {
-                        return APIResultCodes.Unauthorized;
-                    }
+                    //if(lastCase.Complaint.ownerId == tradeblk.OwnerAccountId && lastCase.Reply.ownerId != orderblk.OwnerAccountId)   // guest
+                    //{
+                    //    return APIResultCodes.Unauthorized;
+                    //}
+
+                    //if (lastCase.Complaint.ownerId == orderblk.OwnerAccountId && lastCase.Reply.ownerId != tradeblk.OwnerAccountId)   // host
+                    //{
+                    //    return APIResultCodes.Unauthorized;
+                    //}
                 }
             }
 

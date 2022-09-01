@@ -97,8 +97,10 @@ namespace UnitTests.OTC
             // guest complain again to raise the dispute level
             await GuestComplainLevel1(trade);
 
+            await Task.Delay(3000);
+
             var resolution = await CreateODRResolution(trade);
-            Assert.IsNotNull(resolution);
+            Assert.IsNotNull(resolution);            
 
             // dao owner need to create a vote
             var vote = await DaoOwnerCreateAVote(trade, resolution);
@@ -285,8 +287,7 @@ namespace UnitTests.OTC
             var brief00 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(DisputeLevels.Peer, brief00.DisputeLevel);
 
-            Assert.AreEqual(1, brief00.DisputeHistory.Count);
-            Assert.AreEqual(null, brief00.ResolutionHistory);
+            Assert.AreEqual(1, brief00.GetDisputeHistory().Count);
 
             //// seems dao owner is test4
             //var dao = (await client.GetLastBlockAsync(trade.Trade.daoId)).As<IDao>();
@@ -310,7 +311,7 @@ namespace UnitTests.OTC
             var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(DisputeLevels.Peer, brief1.DisputeLevel);
 
-            Assert.AreEqual(1, brief1.DisputeHistory.Count);
+            Assert.AreEqual(1, brief1.GetDisputeHistory().Count);
 
             // guest accept the resolution?
             //var acpret = await dealer.AnswerToResolutionAsync(trade.AccountID, brief1.ResolutionHistory.First().Id, accepted, test2PublicKey,
@@ -451,8 +452,7 @@ namespace UnitTests.OTC
             var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(trade.AccountID, brief0.TradeId);
             Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
-            Assert.AreEqual(null, brief0.DisputeHistory);
-            Assert.AreEqual(null, brief0.ResolutionHistory);
+            Assert.IsTrue(brief0.GetDisputeHistory().Count == 0);
 
             // buyer complain
             var cfg = new ComplaintClaim
@@ -484,8 +484,7 @@ namespace UnitTests.OTC
             var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(trade.AccountID, brief0.TradeId);
             Assert.AreEqual(DisputeLevels.Peer, brief0.DisputeLevel);
-            Assert.AreNotEqual(null, brief0.DisputeHistory);
-            Assert.AreEqual(null, brief0.ResolutionHistory);
+            Assert.IsTrue(brief0.GetDisputeHistory().Count == 1);
 
             // seller not got the payment. seller raise a dispute
             //var crdptret = await test2Wallet.OTCTradeRaiseDisputeAsync(trade.AccountID);
@@ -517,8 +516,7 @@ namespace UnitTests.OTC
             var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(trade.AccountID, brief1.TradeId);
             Assert.AreEqual(DisputeLevels.DAO, brief1.DisputeLevel);
-            Assert.AreNotEqual(null, brief0.DisputeHistory);
-            Assert.AreEqual(null, brief0.ResolutionHistory);
+            Assert.IsTrue(brief0.GetDisputeHistory().Count == 2);
         }
 
         /// <summary>

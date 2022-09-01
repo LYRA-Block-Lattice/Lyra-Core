@@ -1,9 +1,15 @@
-﻿using System.Linq;
+﻿using Lyra.Core.Blocks;
+using Org.BouncyCastle.Asn1.X509.Qualified;
+using System.Data;
+using System;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Text;
 
 namespace Lyra.Data.API.ODR
 {
     public enum ResolutionType { OTCTrade };
-    public class ODRResolution
+    public class ODRResolution : SignableObject
     {
         public int Id { get; set; }
 
@@ -15,7 +21,7 @@ namespace Lyra.Data.API.ODR
         public ResolutionType RType { get; set; }
         public string TradeId { get; set; } = null!;
         // target
-        public int CaseId { get; set; }
+        public string ComplaintHash { get; set; } = null!;
 
         public TransMove[] Actions { get; set; } = null!;
 
@@ -24,10 +30,15 @@ namespace Lyra.Data.API.ODR
         /// </summary>
         public string? Description { get; set; }
 
-        public string GetExtraData()
+        public override string GetHashInput()
+        {
+            return $"";
+        }
+
+        protected override string GetExtraData()
         {
             var actstr = string.Join("|", Actions.Select(x => x.GetExtraData()));
-            return $"{Creator}|{RType}|{TradeId}|{CaseId}|{actstr}|{Description}";
+            return $"{Creator}|{RType}|{TradeId}|{ComplaintHash}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description))}";
         }
 
         public override string ToString()
@@ -36,7 +47,7 @@ namespace Lyra.Data.API.ODR
 
             result += $"Resolution Type: {RType}\n";            
             result += $"On Trade: {TradeId}\n";
-            result += $"On Dispute Case ID: {CaseId}\n";
+            result += $"On Complaint Hash: {ComplaintHash}\n";
             foreach(var act in Actions)
             {
                 result += $"Action: {act}\n";

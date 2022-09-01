@@ -63,11 +63,13 @@ namespace Lyra.Data.API
     }
 
     public enum ComplaintByRole { Buyer, Seller }
-    public enum ComplaintRequest { CancelTrade, ContinueTrade }
-    public enum ComplaintResponse { AgreeCancel, AgreeContinue, RefuseCancel, RefuseContinue }
+    public enum ComplaintRequest { CancelTrade, ContinueTrade, Arbitration }
+    public enum ComplaintResponse { AgreeCancel, AgreeContinue, 
+        RefuseCancel, RefuseContinue, 
+        AgreeResolution, RefuseResolution }
     public enum ComplaintFiatStates { SelfUnpaid, SelfPaid, PeerUnpaid, PeerPaid }
 
-    public class ComplaintBase : SignableObject
+    public abstract class ComplaintBase : SignableObject
     {
         public string ownerId { get; set; } = null!;
         public string tradeId { get; set; } = null!;
@@ -269,15 +271,9 @@ namespace Lyra.Data.API
             return await PostAsync("ComplainReply", reply);
         }
 
-        public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution, string accountId, string signature)
+        public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution)
         {
-            var args = new Dictionary<string, string>
-            {
-                { "resolutionJson", JsonConvert.SerializeObject(resolution) },
-                { "accountId", accountId },
-                { "signature", signature },
-            };
-            return await GetAsync<APIResult>("SubmitResolution", args);
+            return await PostAsync("SubmitResolution", resolution);
         }
 
         public async Task<APIResult> AnswerToResolutionAsync(string tradeId, int resolutionId, bool accepted, string accountId, string signature)
