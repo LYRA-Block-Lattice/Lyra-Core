@@ -88,7 +88,8 @@ namespace Lyra.Data.API.Identity
 
         public override bool GetAllowCancel()
         {
-            throw new NotImplementedException();
+            return Reply != null && Complaint.request == ComplaintRequest.CancelTrade
+                && Reply.response == ComplaintResponse.AgreeCancel;
         }
 
         public override bool Verify(IOtcTrade trade)
@@ -109,7 +110,7 @@ namespace Lyra.Data.API.Identity
 
         public override bool GetAllowCancel()
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public override bool Verify(IOtcTrade trade)
