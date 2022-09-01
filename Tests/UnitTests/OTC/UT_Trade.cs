@@ -15,6 +15,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using static Akka.Actor.Status;
 
 namespace UnitTests.OTC
 {
@@ -140,6 +141,71 @@ namespace UnitTests.OTC
             var retsr = await dealer.SubmitResolutionAsync(resolution, vote.AccountID);
             Assert.IsTrue(retsr.Successful(), $"Unable to submit resolution: {retsr.ResultCode}");
 
+            await ReplyToResolution(trade, claim, success);
+
+            // the trade should be dispute closed.
+            var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IOtcTrade>();
+            if(success)
+                Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.DisputeClosed, $"dispute not close properly");
+            else
+                Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.Dispute, $"dispute should not be closed");
+
+            return trade;
+        }
+
+        private async Task LyraCouncilHandleDispute(IOtcTrade trade)
+        {
+            // guest complain again to raise the dispute level
+            var claim = await GuestComplainLevel2(trade);
+
+            await Task.Delay(3000);
+
+            var resolution = await CreateODRResolution(trade);
+            resolution.ComplaintHash = claim.Hash;
+
+            Assert.IsNotNull(resolution);
+            resolution.Sign(test4PrivateKey, test4PublicKey);
+
+            // get lord of dev
+            var devLordKey = Environment.GetEnvironmentVariable("DevLordKey");
+            var walletStor5 = new AccountInMemoryStorage();
+            Wallet.Create(walletStor5, "xunit2", "1234", networkId, devLordKey);
+            var devLord = Wallet.Open(walletStor5, "xunit2", "1234", client);
+            devLord.NoConsole = true;
+            await devLord.SyncAsync(client);
+            Assert.IsTrue(devLord.BaseBalance > 10000, "Lord dev have no balance!");
+
+            // dao owner need to create a vote
+            var vote = await TheLordCreateAVote(devLord, trade, resolution);
+
+            // all primary node should vote yay
+            var primaryKeys = Environment.GetEnvironmentVariable("AllPrimaryKeys").Split(";");
+            foreach(var key in primaryKeys)
+            {
+                var walletStorx = new AccountInMemoryStorage();
+                Wallet.Create(walletStorx, "xunit2", "1234", networkId, key);
+                var primx = Wallet.Open(walletStorx, "xunit2", "1234", client);
+                primx.NoConsole = true;
+                await primx.SyncAsync(client);
+                Assert.IsTrue(primx.BaseBalance > 10000, "Primx have no balance!");
+
+                var voteRetx = await primx.Vote(vote.AccountID, 1);
+                //Assert.IsTrue(voteRetx.Successful(), $"Vote error: {voteRetx.ResultCode}");
+                await Task.Delay(2000);
+            }
+
+            var retsr = await dealer.SubmitResolutionAsync(resolution, vote.AccountID);
+            Assert.IsTrue(retsr.Successful(), $"Unable to submit resolution: {retsr.ResultCode}");
+
+            await ReplyToResolution(trade, claim, true);
+            await Task.Delay(3000);
+
+            var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IOtcTrade>();
+            Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.DisputeClosed, $"lyra council arbitration failed!");
+        }
+
+        private async Task ReplyToResolution(IOtcTrade trade, ComplaintClaim claim, bool success)
+        {
             // buyer and seller send 'agree' to the resolution
             var sellerAgree = new ComplaintReply
             {
@@ -183,53 +249,6 @@ namespace UnitTests.OTC
 
             // then the dealer execute the resolution automatically
             await Task.Delay(3000);
-
-            // the trade should be dispute closed.
-            var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IOtcTrade>();
-            if(success)
-                Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.DisputeClosed, $"dispute not close properly");
-            else
-                Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.Dispute, $"dispute should not be closed");
-
-            return trade;
-        }
-
-        private async Task LyraCouncilHandleDispute(IOtcTrade trade)
-        {
-            var resolution = await CreateODRResolution(trade);
-            Assert.IsNotNull(resolution);
-
-            // get lord of dev
-            var devLordKey = Environment.GetEnvironmentVariable("DevLordKey");
-            var walletStor5 = new AccountInMemoryStorage();
-            Wallet.Create(walletStor5, "xunit2", "1234", networkId, devLordKey);
-            var devLord = Wallet.Open(walletStor5, "xunit2", "1234", client);
-            devLord.NoConsole = true;
-            await devLord.SyncAsync(client);
-            Assert.IsTrue(devLord.BaseBalance > 10000, "Lord dev have no balance!");
-
-            // dao owner need to create a vote
-            var vote = await TheLordCreateAVote(devLord, trade, resolution);
-
-            // all primary node should vote yay
-            var primaryKeys = Environment.GetEnvironmentVariable("AllPrimaryKeys").Split(";");
-            foreach(var key in primaryKeys)
-            {
-                var walletStorx = new AccountInMemoryStorage();
-                Wallet.Create(walletStorx, "xunit2", "1234", networkId, key);
-                var primx = Wallet.Open(walletStorx, "xunit2", "1234", client);
-                primx.NoConsole = true;
-                await primx.SyncAsync(client);
-                Assert.IsTrue(primx.BaseBalance > 10000, "Primx have no balance!");
-
-                var voteRetx = await primx.Vote(vote.AccountID, 1);
-                //Assert.IsTrue(voteRetx.Successful(), $"Vote error: {voteRetx.ResultCode}");
-                await Task.Delay(2000);
-            }            
-
-            // after voting is decided, the decision is final and the lord will execute it.
-            var retex = await devLord.ExecuteResolution(vote.AccountID, resolution);
-            Assert.IsTrue(retex.Successful(), $"Dev Lord failed to execute resolution: {retex.ResultCode}");
         }
 
         /// <summary>
@@ -484,6 +503,50 @@ namespace UnitTests.OTC
             Assert.AreEqual(trade.AccountID, brief1.TradeId);
             Assert.AreEqual(DisputeLevels.DAO, brief1.DisputeLevel);
             Assert.IsTrue(brief1.GetDisputeHistory().Count == 2, "brief history should be 2");
+
+            return cfg;
+        }
+
+        // lyra council level
+        private async Task<ComplaintClaim> GuestComplainLevel2(IOtcTrade trade)
+        {
+            var lsb = await client.GetLastServiceBlockAsync();
+            var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(trade.AccountID, brief0.TradeId);
+            Assert.AreEqual(DisputeLevels.DAO, brief0.DisputeLevel);
+            Assert.IsTrue(brief0.GetDisputeHistory().Count == 2);
+
+            // seller not got the payment. seller raise a dispute
+            //var crdptret = await test2Wallet.OTCTradeRaiseDisputeAsync(trade.AccountID);
+            //Assert.IsTrue(crdptret.Successful(), $"Raise dispute failed: {crdptret.ResultCode}");
+
+            //await Task.Delay(2000);
+
+            // buyer complain
+            var cfg = new ComplaintClaim
+            {
+                created = DateTime.UtcNow,
+
+                ownerId = test2PublicKey,
+                tradeId = trade.AccountID,
+                level = DisputeLevels.LyraCouncil,
+                role = ComplaintByRole.Buyer,
+                fiatState = ComplaintFiatStates.SelfPaid,
+                request = ComplaintRequest.Arbitration,
+
+                statement = "test",
+                imageHashes = null,
+            };
+            cfg.Sign(test2PrivateKey, test2PublicKey);
+
+            var ret = await dealer.ComplainAsync(cfg);
+
+            Assert.IsTrue(ret.Successful(), $"failed to call DisputeCreatedAsync: {ret.ResultCode}");
+
+            var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+            Assert.AreEqual(trade.AccountID, brief1.TradeId);
+            Assert.AreEqual(DisputeLevels.LyraCouncil, brief1.DisputeLevel);
+            Assert.IsTrue(brief1.GetDisputeHistory().Count == 3, "brief history should be 3");
 
             return cfg;
         }

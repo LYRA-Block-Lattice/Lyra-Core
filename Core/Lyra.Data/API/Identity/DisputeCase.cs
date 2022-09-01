@@ -142,4 +142,12 @@ namespace Lyra.Data.API.Identity
             return true;
         }
     }
+
+    public class CouncilDisputeCase : DaoDisputeCase
+    {
+        public CouncilDisputeCase()
+        {
+            
+        }
+    }
 }

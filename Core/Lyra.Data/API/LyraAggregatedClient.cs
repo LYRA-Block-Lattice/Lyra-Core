@@ -152,8 +152,8 @@ namespace Lyra.Data.API
                     if (_primaryClients.Count < 2)      // billboard not harvest address enough
                         await Task.Delay(2000);
 
-                    foreach (var primaryClient in _primaryClients)
-                        primaryClient.SetTimeout(TimeSpan.FromSeconds(5));
+                    //foreach (var primaryClient in _primaryClients)
+                    //    primaryClient.SetTimeout(TimeSpan.FromSeconds(5));
                 }
                 catch (Exception exx)
                 {
