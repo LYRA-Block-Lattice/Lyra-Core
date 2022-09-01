@@ -43,7 +43,7 @@ namespace Lyra.Data.API.Identity
 
         public DisputeNegotiationStates State { get; set; }
 
-        protected (string complaintant, string respondant) GetRoles(IOtcTrade trade)
+        public (string complaintant, string respondant) GetRoles(IOtcTrade trade)
         {
             if (trade.OwnerAccountId == Complaint.ownerId)
                 return (trade.OwnerAccountId, trade.Trade.orderOwnerId);
@@ -104,6 +104,7 @@ namespace Lyra.Data.API.Identity
 
     public class DaoDisputeCase : DisputeCase
     {
+        public string VoteId { get; set; }
         public ODRResolution? Resolution { get; set; }
         public List<ComplaintReply>? Replies { get; set; }
         public DateTime LastUpdateTime { get; set; }

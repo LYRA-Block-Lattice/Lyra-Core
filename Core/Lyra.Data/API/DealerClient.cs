@@ -271,9 +271,9 @@ namespace Lyra.Data.API
             return await PostAsync("ComplainReply", reply);
         }
 
-        public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution)
+        public async Task<APIResult> SubmitResolutionAsync(ODRResolution resolution, string voteid)
         {
-            return await PostAsync("SubmitResolution", resolution);
+            return await PostAsync($"SubmitResolution/?voteid={voteid}", resolution);
         }
 
         public async Task<APIResult> AnswerToResolutionAsync(string tradeId, int resolutionId, bool accepted, string accountId, string signature)

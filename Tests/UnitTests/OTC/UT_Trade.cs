@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -90,46 +91,39 @@ namespace UnitTests.OTC
         }
 
         [TestMethod]
-        public async Task ResolveDisputeOnPeerFailedSuccessOnDAO()
+        public async Task ResolutionOnDaoSuccess()
+        {
+            await ResolveDisputeOnDAO(true);
+        }
+
+        //[TestMethod]
+        //public async Task ResolutionOnDaoFailed()
+        //{
+        //    await ResolveDisputeOnDAO(false);
+        //}
+
+        [TestMethod]
+        public async Task ResolutionOnLyraCouncilSuccess()
+        {
+            var trade = await ResolveDisputeOnDAO(false);
+
+            await LyraCouncilHandleDispute(trade);
+        }
+
+        public async Task<IOtcTrade> ResolveDisputeOnDAO(bool success)
         {
             var trade = await ResolveGuestComplainByHost(false);
 
             // guest complain again to raise the dispute level
-            await GuestComplainLevel1(trade);
+            var claim = await GuestComplainLevel1(trade);
 
             await Task.Delay(3000);
 
             var resolution = await CreateODRResolution(trade);
-            Assert.IsNotNull(resolution);            
+            resolution.ComplaintHash = claim.Hash;
 
-            // dao owner need to create a vote
-            var vote = await DaoOwnerCreateAVote(trade, resolution);
-
-            // test3 as staker vote yay
-            var voteRet2 = await test3Wallet.Vote(vote.AccountID, 1);
-            Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
-
-            await Task.Delay(2000);
-
-            // after voting is decided, there will be a time delay to execute. such as one day.
-            // then the DAO could execute the resolution. in the time delay, anyone can raise the
-            // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
-
-            // dao owner execute the resolution
-            var ret = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
-            Assert.IsTrue(ret.Successful(), $"Failed to execute resolution: {ret.ResultCode}");
-        }
-
-        [TestMethod]
-        public async Task ResolveDisputeOnPeerFailedAndFailedOnDAO()
-        {
-            var trade = await ResolveGuestComplainByHost(false);
-
-            // guest complain again to raise the dispute level
-            await GuestComplainLevel1(trade);
-
-            var resolution = await CreateODRResolution(trade);
             Assert.IsNotNull(resolution);
+            resolution.Sign(test4PrivateKey, test4PublicKey);
 
             // dao owner need to create a vote
             var vote = await DaoOwnerCreateAVote(trade, resolution);
@@ -143,88 +137,61 @@ namespace UnitTests.OTC
             // after voting is decided, there will be a time delay to execute. such as one day.
             // then the DAO could execute the resolution. in the time delay, anyone can raise the
             // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
+            var retsr = await dealer.SubmitResolutionAsync(resolution, vote.AccountID);
+            Assert.IsTrue(retsr.Successful(), $"Unable to submit resolution: {retsr.ResultCode}");
 
-            // the guest is not willing to accept the decision
-            var lsb = await client.GetLastServiceBlockAsync();
+            // buyer and seller send 'agree' to the resolution
+            var sellerAgree = new ComplaintReply
+            {
+                created = DateTime.UtcNow,
 
-            // buyer complain
-            var cfg = new ComplaintClaim
+                ownerId = testPublicKey,
+                tradeId = trade.AccountID,
+                level = DisputeLevels.DAO,
+                role = ComplaintByRole.Seller,
+                fiatState = ComplaintFiatStates.SelfPaid,
+                response = ComplaintResponse.AgreeResolution,
+
+                statement = "seller agree the resolution",
+                imageHashes = null,
+
+                complaintHash = claim.Hash,
+            };
+            sellerAgree.Sign(testPrivateKey, testPublicKey);
+            var slragrret = await dealer.ComplainReplyAsync(sellerAgree);
+            Assert.IsTrue(slragrret.Successful(), $"Seller agree to the resolution failed: {slragrret.ResultCode}");
+
+            var buyerAgree = new ComplaintReply
             {
                 created = DateTime.UtcNow,
 
                 ownerId = test2PublicKey,
                 tradeId = trade.AccountID,
-                level = DisputeLevels.LyraCouncil,
+                level = DisputeLevels.DAO,
                 role = ComplaintByRole.Buyer,
-                fiatState = ComplaintFiatStates.SelfPaid,
-                request = ComplaintRequest.ContinueTrade,
+                fiatState = ComplaintFiatStates.PeerPaid,
+                response = success ? ComplaintResponse.AgreeResolution : ComplaintResponse.RefuseResolution,
 
-                statement = "test",
+                statement = "buyer agree the resolution",
                 imageHashes = null,
+
+                complaintHash = claim.Hash,
             };
-            cfg.Sign(test2PrivateKey, test2PublicKey);
+            buyerAgree.Sign(test2PrivateKey, test2PublicKey);
+            var buyagrret = await dealer.ComplainReplyAsync(buyerAgree);
+            Assert.IsTrue(buyagrret.Successful(), $"Seller agree to the resolution failed: {buyagrret.ResultCode}");
 
-            var ret = await dealer.ComplainAsync(cfg);
+            // then the dealer execute the resolution automatically
+            await Task.Delay(3000);
 
-            Assert.IsTrue(ret.Successful());
+            // the trade should be dispute closed.
+            var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IOtcTrade>();
+            if(success)
+                Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.DisputeClosed, $"dispute not close properly");
+            else
+                Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.Dispute, $"dispute should not be closed");
 
-            // dao owner execute the resolution
-            var retex = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
-            Assert.IsTrue(retex.ResultCode == APIResultCodes.DisputeLevelWasRaised, $"Should failed to execute resolution: {retex.ResultCode}");
-        }
-
-        [TestMethod]
-        public async Task ResolveDisputeOnPeerFailedAndFailedOnDAOSuccessOnCouncil()
-        {
-            var trade = await ResolveGuestComplainByHost(false);
-
-            // guest complain again to raise the dispute level
-            await GuestComplainLevel1(trade);
-
-            var resolution = await CreateODRResolution(trade);
-            Assert.IsNotNull(resolution);
-
-            // dao owner need to create a vote
-            var vote = await DaoOwnerCreateAVote(trade, resolution);
-
-            // test3 as staker vote yay
-            var voteRet2 = await test3Wallet.Vote(vote.AccountID, 1);
-            Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
-
-            await Task.Delay(2000);
-
-            // after voting is decided, there will be a time delay to execute. such as one day.
-            // then the DAO could execute the resolution. in the time delay, anyone can raise the
-            // dispute to Lyra council level via 1) reason 2) payment of judgement fee.
-
-            // the guest is not willing to accept the decision
-            // buyer complain
-            var cfg = new ComplaintClaim
-            {
-                created = DateTime.UtcNow,
-
-                ownerId = test2PublicKey,
-                tradeId = trade.AccountID,
-                level = DisputeLevels.LyraCouncil,
-                role = ComplaintByRole.Buyer,
-                fiatState = ComplaintFiatStates.SelfPaid,
-                request = ComplaintRequest.ContinueTrade,
-
-                statement = "test",
-                imageHashes = null,
-            };
-            cfg.Sign(test2PrivateKey, test2PublicKey);
-
-            var ret = await dealer.ComplainAsync(cfg);
-
-            Assert.IsTrue(ret.Successful());
-
-            // dao owner execute the resolution
-            var retex = await test4Wallet.ExecuteResolution(vote.AccountID, resolution);
-            Assert.IsTrue(retex.ResultCode == APIResultCodes.DisputeLevelWasRaised, $"Should failed to execute resolution: {retex.ResultCode}");
-
-            // then the council will handle it
-            await LyraCouncilHandleDispute(trade);
+            return trade;
         }
 
         private async Task LyraCouncilHandleDispute(IOtcTrade trade)
@@ -478,7 +445,7 @@ namespace UnitTests.OTC
         }
 
         // dao level
-        private async Task GuestComplainLevel1(IOtcTrade trade)
+        private async Task<ComplaintClaim> GuestComplainLevel1(IOtcTrade trade)
         {
             var lsb = await client.GetLastServiceBlockAsync();
             var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
@@ -516,7 +483,9 @@ namespace UnitTests.OTC
             var brief1 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(trade.AccountID, brief1.TradeId);
             Assert.AreEqual(DisputeLevels.DAO, brief1.DisputeLevel);
-            Assert.IsTrue(brief0.GetDisputeHistory().Count == 2);
+            Assert.IsTrue(brief1.GetDisputeHistory().Count == 2, "brief history should be 2");
+
+            return cfg;
         }
 
         /// <summary>
@@ -568,7 +537,7 @@ namespace UnitTests.OTC
             var resolution = new ODRResolution
             {
                 RType = ResolutionType.OTCTrade,
-                Creator = testWallet.AccountId,
+                Creator = test4Wallet.AccountId,
                 TradeId = trade.AccountID,
                 Actions = moves,
             };
