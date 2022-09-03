@@ -63,7 +63,7 @@ namespace Neo
 
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
             this.MaxConnections = section.GetValue("MaxConnections", Peer.DefaultMaxConnections);
-            this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 2);
+            this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 6);
         }
     }
 }
