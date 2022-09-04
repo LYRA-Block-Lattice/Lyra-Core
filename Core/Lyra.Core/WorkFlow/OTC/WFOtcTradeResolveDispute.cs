@@ -49,7 +49,7 @@ namespace Lyra.Core.WorkFlow.OTC
             //if (tradeblk.OwnerAccountId != send.AccountID &&
             //    tradeblk.Trade.orderOwnerId != send.AccountID &&
             // dealer to change the state
-            if (dlr.OwnerAccountId != send.AccountID)
+            if (dlr.OwnerAccountId != send.AccountID && send.AccountID != LyraGlobal.GetLordAccountId(Settings.Default.LyraNode.Lyra.NetworkId))
                 return APIResultCodes.PermissionDenied;
 
             //// shoult not be the litigant

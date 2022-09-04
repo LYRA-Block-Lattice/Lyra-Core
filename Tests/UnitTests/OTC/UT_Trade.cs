@@ -200,6 +200,11 @@ namespace UnitTests.OTC
             await ReplyToResolution(trade, claim, true);
             await Task.Delay(3000);
 
+            // the Lord try to execute the resolution.
+            var resret = await devLord.ExecuteResolution(vote.AccountID, resolution);
+            Assert.IsTrue(resret.Successful(), $"The Lord can't execute the resolution: {resret.ResultCode}");
+            await Task.Delay(3000);
+
             var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IOtcTrade>();
             Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.DisputeClosed, $"lyra council arbitration failed!");
         }

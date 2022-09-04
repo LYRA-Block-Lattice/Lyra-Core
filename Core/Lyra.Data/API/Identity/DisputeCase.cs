@@ -145,9 +145,10 @@ namespace Lyra.Data.API.Identity
 
     public class CouncilDisputeCase : DaoDisputeCase
     {
+        public bool AutoExecute { get; set; }
         public CouncilDisputeCase()
         {
-            
+            AutoExecute = false;
         }
     }
 }
