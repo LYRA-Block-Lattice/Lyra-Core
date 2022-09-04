@@ -62,14 +62,14 @@ namespace Lyra.Core.WorkFlow.OTC
             if (voteid == null)
                 return APIResultCodes.Unauthorized;
 
+            // check vote status
+            var vs = await sys.Storage.GetVoteSummaryAsync(voteid);
+            if (!vs.IsDecided)
+                return APIResultCodes.Unauthorized;
+
             // check who execute the vote result
             if (send.AccountID != LyraGlobal.GetLordAccountId(Settings.Default.LyraNode.Lyra.NetworkId))
             {
-                // check vote status
-                var vs = await sys.Storage.GetVoteSummaryAsync(voteid);
-                if (!vs.IsDecided)
-                    return APIResultCodes.Unauthorized;
-
                 // and the dispute was not raised to lyra council
                 if (Settings.Default.LyraNode.Lyra.NetworkId != "xtest" && !string.IsNullOrEmpty(tradeblk.Trade.dealerId))
                 {
