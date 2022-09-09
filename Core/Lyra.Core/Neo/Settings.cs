@@ -1,4 +1,5 @@
 using Lyra.Core.Utils;
+using Lyra.Data;
 using Lyra.Data.Utils;
 using Microsoft.Extensions.Configuration;
 using Neo.Network.P2P;
@@ -59,11 +60,13 @@ namespace Neo
         {
             this.Port = ushort.Parse(section.GetSection("Port").Value);
             //this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
-            this.Endpoint = section.GetValue("Endpoint", "").Trim().Trim(new char[] { ':'});   // docker may give ":4504" when no host name
+            var ep = section.GetValue("Endpoint", "").Trim().Trim(new char[] { ':' });   // docker may give ":4504" when no host name
+            // ep is either: (empty), port, host:port. 
+            this.Endpoint = ep;
 
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
             this.MaxConnections = section.GetValue("MaxConnections", Peer.DefaultMaxConnections);
-            this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 6);
+            this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 16);   // allow more node behind one ip
         }
     }
 }

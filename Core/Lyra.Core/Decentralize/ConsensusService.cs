@@ -1084,7 +1084,7 @@ namespace Lyra.Core.Decentralize
             //}
         }
 
-        private async Task<ActiveNode> DeclareConsensusNodeAsync()
+        private async Task<ActiveNode?> DeclareConsensusNodeAsync()
         {
             if (Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.App)
                 return null;
@@ -1092,17 +1092,39 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             if(_myIpAddress == null)
             {
-                if(string.IsNullOrWhiteSpace(Neo.Settings.Default.P2P.Endpoint) 
-                    || Neo.Settings.Default.P2P.Endpoint.StartsWith(":")
-                    || !Neo.Settings.Default.P2P.Endpoint.Contains("."))
+                // (empty), port, or host:port, or ip:port, or ip, or host
+                int epport = DefaultAPIPort;
+                string host = "";
+                (var addr, _) = await GetPublicIPAddress.PublicIPAddressAsync();
+                if (addr == null)
+                    return null;
+
+                if(string.IsNullOrEmpty(Neo.Settings.Default.P2P.Endpoint))
                 {
-                    (var addr, _) = await GetPublicIPAddress.PublicIPAddressAsync();
-                    _myIpAddress = $"{addr}";
+                    host = addr.ToString();
                 }
+                else if (int.TryParse(Neo.Settings.Default.P2P.Endpoint, out epport))
+                {
+                    host = addr.ToString();
+                }
+                else if(Neo.Settings.Default.P2P.Endpoint.Contains(':'))
+                {
+                    var secs = Neo.Settings.Default.P2P.Endpoint.Split(':');
+                    if (secs.Length != 2 || !int.TryParse(secs[1], out _))
+                        return null;
+
+                    host = secs[0];
+                    epport = int.Parse(secs[1]);
+                }
+                else // pure host
+                {
+                    host = Neo.Settings.Default.P2P.Endpoint;
+                }
+
+                if (epport == DefaultAPIPort)
+                    _myIpAddress = host;
                 else
-                {
-                    _myIpAddress = Neo.Settings.Default.P2P.Endpoint;
-                }
+                    _myIpAddress = $"{host}:{epport}";
             }
 
             if (_myIpAddress == null)
