@@ -1119,6 +1119,7 @@ namespace Lyra.Core.Decentralize
                 else // pure host
                 {
                     host = Neo.Settings.Default.P2P.Endpoint;
+                    epport = DefaultAPIPort;
                 }
 
                 if (epport == DefaultAPIPort)
