@@ -38,6 +38,8 @@ LYRA_POS_WALLET_PASSWORD=VeryStrongP@ssW0rd
 # testnet ports: 4503 & 4504
 LYRA_P2P_PORT=5503
 LYRA_API_PORT=5504
+# specify endpoint with or without host. like port, host:port. 
+LYRA_API_ENDPOINT=5504
 
 ```
 
