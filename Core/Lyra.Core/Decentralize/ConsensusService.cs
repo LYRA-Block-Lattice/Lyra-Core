@@ -63,7 +63,7 @@ namespace Lyra.Core.Decentralize
 
         readonly ILogger _log;
         IHostEnv _hostEnv;
-        //readonly ConcurrentDictionary<string, DateTime> _criticalMsgCache;
+        readonly ConcurrentDictionary<string, DateTime> _criticalMsgCache;
         readonly ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         List<Vote> _lastVotes;
         private readonly BillBoard _board;
@@ -119,7 +119,7 @@ namespace Lyra.Core.Decentralize
             _successBlockCount = 0;
             _lastConsolidateTry = DateTime.UtcNow;
 
-            //_criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
+            _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
 
@@ -293,23 +293,23 @@ namespace Lyra.Core.Decentralize
                         if (signedMsg.VerifySignature(signedMsg.From))
                         {
                             await OnNextConsensusMessageAsync(signedMsg);
-                            ////await CriticalRelayAsync(signedMsg, async (msg) =>
-                            ////{
-                            ////    await OnNextConsensusMessageAsync(msg);
-                            ////});
-
-                            //// not needed anymore
-                            //// seeds take resp to forward heatbeat, once
-                            //if ((IsThisNodeSeed && (
-                            //    signedMsg.MsgType == ChatMessageType.HeartBeat
-                            //    //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
-                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
-                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
-                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
-                            //    )) || CurrentState == BlockChainState.Genesis) 
+                            //await CriticalRelayAsync(signedMsg, async (msg) =>
                             //{
-                            //    await CriticalRelayAsync(signedMsg, null);
-                            //}
+                            //    await OnNextConsensusMessageAsync(msg);
+                            //});
+
+                            // not needed anymore
+                            // seeds take resp to forward heatbeat, once
+                            if ((IsThisNodeSeed && (
+                                signedMsg.MsgType == ChatMessageType.HeartBeat
+                                //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                                )) || CurrentState == BlockChainState.Genesis)
+                            {
+                                await CriticalRelayAsync(signedMsg, null);
+                            }
                         }
                         else
                         {
@@ -341,30 +341,30 @@ namespace Lyra.Core.Decentralize
             if(_hostEnv != null)    // to support unittest
                 CreateStateMachine();
 
-            //var timr = new System.Timers.Timer(200);
-            //if(_hostEnv != null)
-            //{
-            //    timr.Elapsed += (s, o) =>
-            //    {
-            //        try
-            //        {
-            //            // clean critical msg forward table
-            //            var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
-            //                    .Select(b => b.Key);
+            var timr = new System.Timers.Timer(200);
+            if (_hostEnv != null)
+            {
+                timr.Elapsed += (s, o) =>
+                {
+                    try
+                    {
+                        // clean critical msg forward table
+                        var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
+                                .Select(b => b.Key);
 
-            //            foreach (var hb in oldList)
-            //            {
-            //                _criticalMsgCache.TryRemove(hb, out _);
-            //            }
-            //        }
-            //        catch (Exception e)
-            //        {
-            //            _log.LogError($"In Time keeper: {e}");
-            //        }
-            //    };
-            //    timr.AutoReset = true;
-            //    timr.Enabled = true;
-            //}
+                        foreach (var hb in oldList)
+                        {
+                            _criticalMsgCache.TryRemove(hb, out _);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _log.LogError($"In Time keeper: {e}");
+                    }
+                };
+                timr.AutoReset = true;
+                timr.Enabled = true;
+            }
 
             Singleton = this;
             // for unit test
@@ -1881,31 +1881,31 @@ namespace Lyra.Core.Decentralize
             return;
         }
 
-        //private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
-        //    where T : SourceSignedMessage, new()
-        //{
-        //    //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+        private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
+            where T : SourceSignedMessage, new()
+        {
+            //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
 
-        //    // seed node relay heartbeat, only once
-        //    // this keep the whole network one consist view of active nodes.
-        //    // this is important to make election.
-        //    if (_criticalMsgCache.TryAdd(message.Hash, DateTime.Now))
-        //    {
-        //        // try ever node forward.
-        //        // monitor network traffic closely.
+            // seed node relay heartbeat, only once
+            // this keep the whole network one consist view of active nodes.
+            // this is important to make election.
+            if (_criticalMsgCache.TryAdd(message.Hash, DateTime.Now))
+            {
+                // try ever node forward.
+                // monitor network traffic closely.
 
-        //        _localNode.Tell(message);     // no sign again!!!
+                _localNode.Tell(message);     // no sign again!!!
 
-        //        if (localAction != null)
-        //        {
-        //            await localAction(message);
-        //        }
+                if (localAction != null)
+                {
+                    await localAction(message);
+                }
 
-        //        return true;
-        //    }
-        //    else
-        //        return false;
-        //}
+                return true;
+            }
+            else
+                return false;
+        }
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
