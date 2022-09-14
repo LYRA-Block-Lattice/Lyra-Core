@@ -1,7 +1,9 @@
-﻿using Lyra.Core.API;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
@@ -95,6 +97,41 @@ namespace Lyra.Core.WorkFlow.DAO
 
                 if (tradeblk.OTStatus != OTCTradeStatus.Dispute)
                     return APIResultCodes.InvalidTradeStatus;
+
+                // verify complain is from user. by signature.
+                var dlr = sys.Storage.FindFirstBlock(tradeblk.Trade.dealerId) as IDealer;
+                if (dlr == null)
+                    return APIResultCodes.InvalidDealerServer;
+
+                var uri = new Uri(new Uri(dlr.Endpoint), "/api/dealer/");
+                var dealer = new DealerClient(uri);
+
+                var lsb = sys.Storage.GetLastServiceBlock();
+                var wallet = sys.PosWallet;
+                var sign = Signatures.GetSignature(wallet.PrivateKey, lsb.Hash, wallet.AccountId);
+
+                var ret = await dealer.GetTradeBriefAsync(resolution.TradeId, wallet.AccountId, sign);
+                if (!ret.Successful())
+                    return APIResultCodes.InvalidOperation;
+
+                var brief = ret.Deserialize<TradeBrief>();
+                if (brief == null)
+                    return APIResultCodes.InvalidOperation;
+
+                var thecase = brief.GetDisputeHistory().LastOrDefault();
+                if (thecase == null)
+                {
+                    return APIResultCodes.InvalidOperation;
+                }
+                
+                var complaint = thecase.Complaint;
+                if ((complaint.ownerId == tradeblk.Trade.orderOwnerId && complaint.VerifySignature(tradeblk.Trade.orderOwnerId))
+                    || (complaint.ownerId == tradeblk.OwnerAccountId && complaint.VerifySignature(tradeblk.OwnerAccountId)))
+                {
+
+                }
+                else
+                    return APIResultCodes.Unauthorized;
             }
 
             var daochg = proposal as DAOChange;
