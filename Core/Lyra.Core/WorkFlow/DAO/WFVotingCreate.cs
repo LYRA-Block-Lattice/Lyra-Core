@@ -118,8 +118,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 if (brief == null)
                     return APIResultCodes.InvalidOperation;
 
-                var thecase = brief.GetDisputeHistory().LastOrDefault();
-                if (thecase == null)
+                // there may be several cases
+                var thecase = brief.GetDisputeHistory().FirstOrDefault(a => a.Complaint.Hash == resolution.ComplaintHash);
+                if (thecase == null || thecase.State != DisputeNegotiationStates.NewlyCreated)
                 {
                     return APIResultCodes.InvalidOperation;
                 }
