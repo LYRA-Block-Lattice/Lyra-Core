@@ -35,7 +35,6 @@ services:
     ports:
       - ${LYRA_MAINNET_P2P_PORT}:${LYRA_MAINNET_P2P_PORT}
       - ${LYRA_MAINNET_API_PORT}:${LYRA_MAINNET_API_PORT}
-      - 443:${LYRA_MAINNET_API_PORT}
     volumes:
       - ~/.lyra:/root/.lyra
     depends_on:
