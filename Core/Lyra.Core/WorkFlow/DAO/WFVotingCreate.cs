@@ -129,7 +129,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 if ((complaint.ownerId == tradeblk.Trade.orderOwnerId && complaint.VerifySignature(tradeblk.Trade.orderOwnerId))
                     || (complaint.ownerId == tradeblk.OwnerAccountId && complaint.VerifySignature(tradeblk.OwnerAccountId)))
                 {
-
+                    // seems OK
                 }
                 else
                     return APIResultCodes.Unauthorized;
