@@ -32,13 +32,13 @@ namespace Lyra.Data.API.ODR
 
         public override string GetHashInput()
         {
-            return $"";
+            return GetExtraData();
         }
 
         protected override string GetExtraData()
         {
             var actstr = string.Join("|", Actions.Select(x => x.GetExtraData()));
-            return $"{Creator}|{RType}|{TradeId}|{ComplaintHash}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description))}";
+            return $"{Creator}|{RType}|{TradeId}|{ComplaintHash}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description??""))}";
         }
 
         public override string ToString()

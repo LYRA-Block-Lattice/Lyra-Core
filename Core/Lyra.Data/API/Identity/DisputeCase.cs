@@ -6,6 +6,7 @@ using MongoDB.Bson.Serialization.IdGenerators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,6 +30,7 @@ namespace Lyra.Data.API.Identity
         AcceptanceConfirmed,
         Executed,   // after a yay acceptance
         Failed,    // after a nay acceptance
+        PlaintiffWithdraw,  // the owner of complaint withdraw
     }
     /// <summary>
     /// lost is calculated in LYR
@@ -42,6 +44,9 @@ namespace Lyra.Data.API.Identity
         public DateTime RaisedTime { get; set; }
 
         public DisputeNegotiationStates State { get; set; }
+        public bool IsPending => State == DisputeNegotiationStates.NewlyCreated || 
+            State == DisputeNegotiationStates.AllPartiesNotified ||
+            State == DisputeNegotiationStates.AcceptanceConfirmed;
 
         public (string complaintant, string respondant) GetRoles(IOtcTrade trade)
         {

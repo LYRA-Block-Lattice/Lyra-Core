@@ -273,12 +273,16 @@ namespace UnitTests.OTC
 
             // guest create complaint
             var lsb = await client.GetLastServiceBlockAsync();
-            var claim = await GuestComplainLevel0(trade);
+            var claim = await GuestComplainLevel0(trade, APIResultCodes.Success);
 
             var brief00 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(DisputeLevels.Peer, brief00.DisputeLevel);
-
             Assert.AreEqual(1, brief00.GetDisputeHistory().Count);
+
+            // complain again should failed. ComplainPending
+            await GuestComplainLevel0(trade, APIResultCodes.ResolutionPending);  
+            // a withdraw should success
+
 
             //// seems dao owner is test4
             //var dao = (await client.GetLastBlockAsync(trade.Trade.daoId)).As<IDao>();
@@ -340,10 +344,14 @@ namespace UnitTests.OTC
                 complaintHash = claim.Hash,
             };
             reply.Sign(testPrivateKey, testPublicKey);
+            Assert.IsTrue(reply.VerifySignature(testPublicKey));
 
             if (accepted)
             {
                 reply.response = ComplaintResponse.AgreeCancel;
+
+                Assert.IsTrue(reply.VerifySignature(testPublicKey));
+
                 var ret = await dealer.ComplainReplyAsync(reply);
                 Assert.IsTrue(ret.Successful());
 
@@ -357,6 +365,8 @@ namespace UnitTests.OTC
             else
             {
                 reply.response = ComplaintResponse.RefuseCancel;
+                Assert.IsTrue(reply.VerifySignature(testPublicKey));
+
                 var ret = await dealer.ComplainReplyAsync(reply);
                 Assert.IsTrue(ret.Successful());
 
@@ -437,13 +447,13 @@ namespace UnitTests.OTC
         }
 
         // peer/dealer level
-        private async Task<ComplaintClaim> GuestComplainLevel0(IOtcTrade trade)
+        private async Task<ComplaintClaim> GuestComplainLevel0(IOtcTrade trade, APIResultCodes shouldRet)
         {
             var lsb = await client.GetLastServiceBlockAsync();
             var brief0 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
             Assert.AreEqual(trade.AccountID, brief0.TradeId);
-            Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
-            Assert.IsTrue(brief0.GetDisputeHistory().Count == 0);
+            //Assert.AreEqual(DisputeLevels.None, brief0.DisputeLevel);
+            //Assert.IsTrue(brief0.GetDisputeHistory().Count == 0);   
 
             // buyer complain
             var cfg = new ComplaintClaim
@@ -463,7 +473,7 @@ namespace UnitTests.OTC
             cfg.Sign(test2PrivateKey, test2PublicKey);
 
             var ret = await dealer.ComplainAsync(cfg);
-            Assert.IsTrue(ret.Successful());
+            Assert.IsTrue(shouldRet == ret.ResultCode, $"Complain got return {ret.ResultCode} with {ret.ResultMessage}");
 
             return cfg;
         }
