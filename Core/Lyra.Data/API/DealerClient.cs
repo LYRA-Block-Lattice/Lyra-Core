@@ -86,7 +86,7 @@ namespace Lyra.Data.API
         {
             return $"{ownerId}|{tradeId}|{DateTimeToString(created)}|{level}|{role}|{fiatState}|" +
                     $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(statement))}|" +
-                    imageHashes?.Aggregate("", (a, b) => a + "," + b) ?? ""
+                    (imageHashes?.Aggregate("", (a, b) => a + "," + b) ?? "")
                     + "|" + GetExtraData();
         }
 
