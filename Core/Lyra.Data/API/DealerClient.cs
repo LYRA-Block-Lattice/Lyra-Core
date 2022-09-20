@@ -66,7 +66,9 @@ namespace Lyra.Data.API
     public enum ComplaintRequest { CancelTrade, ContinueTrade, Arbitration }
     public enum ComplaintResponse { AgreeCancel, AgreeContinue, 
         RefuseCancel, RefuseContinue, 
-        AgreeResolution, RefuseResolution }
+        AgreeResolution, RefuseResolution,
+        OwnerWithdraw   // the complain initiator withdraw it
+    }
     public enum ComplaintFiatStates { SelfUnpaid, SelfPaid, PeerUnpaid, PeerPaid }
 
     public abstract class ComplaintBase : SignableObject
@@ -84,7 +86,8 @@ namespace Lyra.Data.API
         {
             return $"{ownerId}|{tradeId}|{DateTimeToString(created)}|{level}|{role}|{fiatState}|" +
                     $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(statement))}|" +
-                    imageHashes?.Aggregate("", (a, b) => a + "," + b) ?? "";
+                    (imageHashes?.Aggregate("", (a, b) => a + "," + b) ?? "")
+                    + "|" + GetExtraData();
         }
 
         protected override string GetExtraData()
