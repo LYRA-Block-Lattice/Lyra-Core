@@ -55,6 +55,8 @@ namespace Lyra.Core.WorkFlow.STK
                 return null;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
+
+            // TODO: sendPrev may be null
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
             var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
             var lastStk = lastBlock as TransactionBlock;
