@@ -870,7 +870,7 @@ namespace Lyra.Core.Decentralize
             _log.LogError($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
         }
 
-        public int GetQualifiedNodeCount(List<ActiveNode> allNodes)
+        public static int GetQualifiedNodeCount()
         {
             return Settings.Default.LyraNode.Lyra.NetworkId switch
             {
@@ -931,7 +931,7 @@ namespace Lyra.Core.Decentralize
                 .ThenBy(a => a.AccountID)
                 .ToList();
 
-            var list2 = list.Take(GetQualifiedNodeCount(list))
+            var list2 = list.Take(GetQualifiedNodeCount())
                 .Select(a => a.AccountID)
                 .ToList();
             return list2;

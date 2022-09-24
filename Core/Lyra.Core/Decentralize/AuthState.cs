@@ -74,18 +74,7 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusResult? CommitConsensus => CheckCommitedResults();
 
-        public virtual int WinNumber
-        {
-            get
-            {
-                if (_validNodes == null)
-                {
-                    return ProtocolSettings.Default.StandbyValidators.Length;
-                }
-                var minCount = LyraGlobal.GetMajority(_validNodes.Count());
-                return minCount;
-            }
-        }
+        public virtual int WinNumber => LyraGlobal.GetMajority(ConsensusService.GetQualifiedNodeCount());
 
         readonly ILogger _log;
 
