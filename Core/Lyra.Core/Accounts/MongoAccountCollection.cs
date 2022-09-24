@@ -1461,7 +1461,7 @@ namespace Lyra.Core.Accounts
 
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                _log.LogWarning($"AccountCollection=>AddBlock: Block with such Hash already exists! {block.BlockType}, {block.Hash}");
                 return false;
             }
 
@@ -1470,7 +1470,7 @@ namespace Lyra.Core.Accounts
             {
                 if (await FindBlockByIndexAsync(tx.AccountID, tx.Height) != null)
                 {
-                    _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+                    _log.LogWarning($"AccountCollection=>AddBlock: Block with such Index already exists! {block.BlockType}, {block.Hash} {tx.AccountID} {tx.Height}");
                     return false;
                 }
             }
