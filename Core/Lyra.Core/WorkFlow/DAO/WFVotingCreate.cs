@@ -132,7 +132,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 }
 
                 // there should be no pending or success resolutions.
-                if(brief.Resolutions.Any(a => a.Status == ResolutionStatus.Pending || a.Status == ResolutionStatus.Success))
+                if(brief.Resolutions != null && brief.Resolutions.Any(a => a.Status == ResolutionStatus.Pending || a.Status == ResolutionStatus.Success))
                 {
                     return APIResultCodes.ResolutionPending;
                 }

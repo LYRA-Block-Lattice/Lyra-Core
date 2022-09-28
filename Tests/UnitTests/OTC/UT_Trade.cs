@@ -122,7 +122,6 @@ namespace UnitTests.OTC
             await Task.Delay(3000);
 
             var resolution = await CreateODRResolution(trade);
-            resolution.ComplaintHashes = new[] { claim.Hash };
 
             Assert.IsNotNull(resolution);
             resolution.Sign(test4PrivateKey, test4PublicKey);
@@ -162,7 +161,6 @@ namespace UnitTests.OTC
             await Task.Delay(3000);
 
             var resolution = await CreateODRResolution(trade);
-            resolution.ComplaintHashes = new[] { claim.Hash };
 
             Assert.IsNotNull(resolution);
             resolution.Sign(test4PrivateKey, test4PublicKey);
@@ -629,6 +627,9 @@ namespace UnitTests.OTC
 
         private async Task<ODRResolution> CreateODRResolution(IOtcTrade trade)
         {
+            var lsb = await client.GetLastServiceBlockAsync();
+            var brief00 = await GetBrief(lsb.GetBlock().Hash, trade.AccountID);
+
             TransMove[] moves = new TransMove[1];
             moves[0] = new TransMove
             {
@@ -638,12 +639,16 @@ namespace UnitTests.OTC
                 desc = "return collateral to buyer"
             };
 
+            var hist = brief00.GetDisputeHistory();
             var resolution = new ODRResolution
             {
                 RType = ResolutionType.OTCTrade,
                 Creator = test4Wallet.AccountId,
                 TradeId = trade.AccountID,
                 Actions = moves,
+                ComplaintHashes = hist.Select(a => a.Complaint.Hash).ToArray(),
+                Description = "a test resolution",
+                Id = 1,
             };
             //daoprosl = new VoteProposal
             //{
