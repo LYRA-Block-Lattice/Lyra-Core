@@ -681,5 +681,6 @@ namespace Lyra.Core.Blocks
         ResolutionPending,
         DisputeLevelWasRaised,
         PermissionDenied,
+        DisputeCaseWasNotIncluded,
     }
 }

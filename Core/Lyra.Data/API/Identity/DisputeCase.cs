@@ -35,6 +35,8 @@ namespace Lyra.Data.API.Identity
     /// <summary>
     /// lost is calculated in LYR
     /// </summary>
+    [BsonDiscriminator(Required = true, RootClass = true)]
+    [BsonKnownTypes(typeof(PeerDisputeCase), typeof(DaoDisputeCase), typeof(CouncilDisputeCase))]
     public abstract class DisputeCase
     {
         /// <summary>
@@ -94,7 +96,7 @@ namespace Lyra.Data.API.Identity
         public override bool GetAllowCancel()
         {
             return Reply != null && Complaint.request == ComplaintRequest.CancelTrade
-                && Reply.response == ComplaintResponse.AgreeCancel;
+                && Reply.response == ComplaintResponse.AgreeToCancel;
         }
 
         public override bool Verify(IOtcTrade trade)

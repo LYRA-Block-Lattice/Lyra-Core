@@ -64,12 +64,31 @@ namespace Lyra.Data.API
 
     public enum ComplaintByRole { Buyer, Seller }
     public enum ComplaintRequest { CancelTrade, ContinueTrade, Arbitration }
-    public enum ComplaintResponse { AgreeCancel, AgreeContinue, 
-        RefuseCancel, RefuseContinue, 
-        AgreeResolution, RefuseResolution,
+    public enum ComplaintResponse { AgreeToCancel, AgreeToContinue, 
+        RefuseToCancel, RefuseToContinue,         
         OwnerWithdraw   // the complain initiator withdraw it
     }
     public enum ComplaintFiatStates { SelfUnpaid, SelfPaid, PeerUnpaid, PeerPaid }
+
+    public class AnswerToResolution : SignableObject
+    {
+        public string ownerId { get; set; } = null!;
+        public string tradeId { get; set; } = null!;
+        public DateTime created { get; set; }
+        public string resolutionHash { get; set; } = null!;
+        public bool agreeToResolution { get; set; }
+
+        public override string GetHashInput()
+        {
+            return $"{ownerId}|{tradeId}|{DateTimeToString(created)}|{resolutionHash}|{agreeToResolution}"
+                    + "|" + GetExtraData();
+        }
+
+        protected override string GetExtraData()
+        {
+            return "";
+        }
+    }
 
     public abstract class ComplaintBase : SignableObject
     {
@@ -279,17 +298,9 @@ namespace Lyra.Data.API
             return await PostAsync($"SubmitResolution/?voteid={voteid}", resolution);
         }
 
-        public async Task<APIResult> AnswerToResolutionAsync(string tradeId, int resolutionId, bool accepted, string accountId, string signature)
+        public async Task<APIResult> ResolutionReplyAsync(AnswerToResolution answer)
         {
-            var args = new Dictionary<string, string>
-            {
-                { "tradeId", tradeId },
-                { "resolutionId", resolutionId.ToString() },
-                { "accountId", accountId },
-                { "signature", signature },
-                { "accepted", accepted.ToString() },
-            };
-            return await GetAsync<APIResult>("AnswerToResolution", args);
+            return await PostAsync("ResolutionReply", answer);
         }
     }
 }

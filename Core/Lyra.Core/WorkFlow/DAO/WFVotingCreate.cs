@@ -119,20 +119,26 @@ namespace Lyra.Core.WorkFlow.DAO
                     return APIResultCodes.InvalidOperation;
 
                 // there may be several cases
-                var thecase = brief.GetDisputeHistory().FirstOrDefault(a => a.Complaint.Hash == resolution.ComplaintHash);
-                if (thecase == null || thecase.State != DisputeNegotiationStates.NewlyCreated)
+                var thecases = brief.GetDisputeHistory();
+                foreach(var theCase in thecases)
                 {
-                    return APIResultCodes.InvalidOperation;
+                    if (!resolution.ComplaintHashes.Contains(theCase.Complaint.Hash))
+                        return APIResultCodes.DisputeCaseWasNotIncluded;
+                }
+                foreach(var hash in resolution.ComplaintHashes)
+                {
+                    if (!thecases.Any(a => a.Complaint.Hash == hash))
+                        return APIResultCodes.DisputeCaseWasNotIncluded;
                 }
                 
-                var complaint = thecase.Complaint;
-                if ((complaint.ownerId == tradeblk.Trade.orderOwnerId && complaint.VerifySignature(tradeblk.Trade.orderOwnerId))
-                    || (complaint.ownerId == tradeblk.OwnerAccountId && complaint.VerifySignature(tradeblk.OwnerAccountId)))
-                {
-                    // seems OK
-                }
-                else
-                    return APIResultCodes.Unauthorized;
+                //var complaint = thecase.Complaint;
+                //if ((complaint.ownerId == tradeblk.Trade.orderOwnerId && complaint.VerifySignature(tradeblk.Trade.orderOwnerId))
+                //    || (complaint.ownerId == tradeblk.OwnerAccountId && complaint.VerifySignature(tradeblk.OwnerAccountId)))
+                //{
+                //    // seems OK
+                //}
+                //else
+                //    return APIResultCodes.Unauthorized;
             }
 
             var daochg = proposal as DAOChange;

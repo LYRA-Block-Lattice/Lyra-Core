@@ -122,7 +122,7 @@ namespace UnitTests.OTC
             await Task.Delay(3000);
 
             var resolution = await CreateODRResolution(trade);
-            resolution.ComplaintHash = claim.Hash;
+            resolution.ComplaintHashes = new[] { claim.Hash };
 
             Assert.IsNotNull(resolution);
             resolution.Sign(test4PrivateKey, test4PublicKey);
@@ -142,7 +142,7 @@ namespace UnitTests.OTC
             var retsr = await dealer.SubmitResolutionAsync(resolution, vote.AccountID);
             Assert.IsTrue(retsr.Successful(), $"Unable to submit resolution: {retsr.ResultCode}");
 
-            await ReplyToResolution(trade, claim, success);
+            await ReplyToResolution(trade, resolution, success);
 
             // the trade should be dispute closed.
             var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IOtcTrade>();
@@ -162,7 +162,7 @@ namespace UnitTests.OTC
             await Task.Delay(3000);
 
             var resolution = await CreateODRResolution(trade);
-            resolution.ComplaintHash = claim.Hash;
+            resolution.ComplaintHashes = new[] { claim.Hash };
 
             Assert.IsNotNull(resolution);
             resolution.Sign(test4PrivateKey, test4PublicKey);
@@ -198,7 +198,7 @@ namespace UnitTests.OTC
             var retsr = await dealer.SubmitResolutionAsync(resolution, vote.AccountID);
             Assert.IsTrue(retsr.Successful(), $"Unable to submit resolution: {retsr.ResultCode}");
 
-            await ReplyToResolution(trade, claim, true);
+            await ReplyToResolution(trade, resolution, true);
             await Task.Delay(3000);
 
             // the Lord try to execute the resolution.
@@ -210,47 +210,35 @@ namespace UnitTests.OTC
             Assert.IsTrue(trdblk.OTStatus == OTCTradeStatus.DisputeClosed, $"lyra council arbitration failed!");
         }
 
-        private async Task ReplyToResolution(IOtcTrade trade, ComplaintClaim claim, bool success)
+        private async Task ReplyToResolution(IOtcTrade trade, ODRResolution resolution, bool success)
         {
             // buyer and seller send 'agree' to the resolution
-            var sellerAgree = new ComplaintReply
+            var sellerAgree = new AnswerToResolution
             {
                 created = DateTime.UtcNow,
 
                 ownerId = testPublicKey,
                 tradeId = trade.AccountID,
-                level = DisputeLevels.DAO,
-                role = ComplaintByRole.Seller,
-                fiatState = ComplaintFiatStates.SelfPaid,
-                response = ComplaintResponse.AgreeResolution,
-
-                statement = "seller agree the resolution",
-                imageHashes = null,
-
-                complaintHash = claim.Hash,
+                resolutionHash = resolution.Hash,
+                agreeToResolution = success
             };
             sellerAgree.Sign(testPrivateKey, testPublicKey);
-            var slragrret = await dealer.ComplainReplyAsync(sellerAgree);
-            Assert.IsTrue(slragrret.Successful(), $"Seller agree to the resolution failed: {slragrret.ResultCode}");
 
-            var buyerAgree = new ComplaintReply
+            //guest accept the resolution?
+            var acpret = await dealer.ResolutionReplyAsync(sellerAgree);
+            Assert.IsTrue(acpret.Successful(), $"Can't answer resolution: {acpret.ResultCode}");
+
+            var buyerAgree = new AnswerToResolution
             {
                 created = DateTime.UtcNow,
 
                 ownerId = test2PublicKey,
                 tradeId = trade.AccountID,
-                level = DisputeLevels.DAO,
-                role = ComplaintByRole.Buyer,
-                fiatState = ComplaintFiatStates.PeerPaid,
-                response = success ? ComplaintResponse.AgreeResolution : ComplaintResponse.RefuseResolution,
-
-                statement = "buyer agree the resolution",
-                imageHashes = null,
-
-                complaintHash = claim.Hash,
+                resolutionHash = resolution.Hash,
+                agreeToResolution = success
             };
             buyerAgree.Sign(test2PrivateKey, test2PublicKey);
-            var buyagrret = await dealer.ComplainReplyAsync(buyerAgree);
+            var buyagrret = await dealer.ResolutionReplyAsync(buyerAgree);
             Assert.IsTrue(buyagrret.Successful(), $"Seller agree to the resolution failed: {buyagrret.ResultCode}");
 
             // then the dealer execute the resolution automatically
@@ -358,7 +346,7 @@ namespace UnitTests.OTC
 
             if (accepted)
             {
-                reply.response = ComplaintResponse.AgreeCancel;
+                reply.response = ComplaintResponse.AgreeToCancel;
 
                 reply.Sign(testPrivateKey, testPublicKey);
                 Assert.IsTrue(reply.VerifySignature(testPublicKey));
@@ -375,7 +363,7 @@ namespace UnitTests.OTC
             }
             else
             {
-                reply.response = ComplaintResponse.RefuseCancel;
+                reply.response = ComplaintResponse.RefuseToCancel;
 
                 reply.Sign(testPrivateKey, testPublicKey);
                 Assert.IsTrue(reply.VerifySignature(testPublicKey));

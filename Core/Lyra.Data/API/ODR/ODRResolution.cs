@@ -9,6 +9,10 @@ using System.Text;
 namespace Lyra.Data.API.ODR
 {
     public enum ResolutionType { OTCTrade };
+    /// <summary>
+    /// resolution belongs to trading room. it will cover all current complaint.
+    /// if resolution don't include all complaint, will will failed to submit.
+    /// </summary>
     public class ODRResolution : SignableObject
     {
         public int Id { get; set; }
@@ -21,7 +25,7 @@ namespace Lyra.Data.API.ODR
         public ResolutionType RType { get; set; }
         public string TradeId { get; set; } = null!;
         // target
-        public string ComplaintHash { get; set; } = null!;
+        public string [] ComplaintHashes { get; set; } = null!;
 
         public TransMove[] Actions { get; set; } = null!;
 
@@ -38,7 +42,7 @@ namespace Lyra.Data.API.ODR
         protected override string GetExtraData()
         {
             var actstr = string.Join("|", Actions.Select(x => x.GetExtraData()));
-            return $"{Creator}|{RType}|{TradeId}|{ComplaintHash}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description??""))}";
+            return $"{Creator}|{RType}|{TradeId}|{string.Join(",", ComplaintHashes)}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description??""))}";
         }
 
         public override string ToString()
@@ -47,7 +51,7 @@ namespace Lyra.Data.API.ODR
 
             result += $"Resolution Type: {RType}\n";            
             result += $"On Trade: {TradeId}\n";
-            result += $"On Complaint Hash: {ComplaintHash}\n";
+            result += $"On Complaint Hashes: {string.Join(",", ComplaintHashes)}\n";
             foreach(var act in Actions)
             {
                 result += $"Action: {act}\n";
