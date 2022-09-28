@@ -130,6 +130,12 @@ namespace Lyra.Core.WorkFlow.DAO
                     if (!thecases.Any(a => a.Complaint.Hash == hash))
                         return APIResultCodes.DisputeCaseWasNotIncluded;
                 }
+
+                // there should be no pending or success resolutions.
+                if(brief.Resolutions.Any(a => a.Status == ResolutionStatus.Pending || a.Status == ResolutionStatus.Success))
+                {
+                    return APIResultCodes.ResolutionPending;
+                }
                 
                 //var complaint = thecase.Complaint;
                 //if ((complaint.ownerId == tradeblk.Trade.orderOwnerId && complaint.VerifySignature(tradeblk.Trade.orderOwnerId))

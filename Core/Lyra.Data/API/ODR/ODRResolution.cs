@@ -9,6 +9,7 @@ using System.Text;
 namespace Lyra.Data.API.ODR
 {
     public enum ResolutionType { OTCTrade };
+    public enum ResolutionStatus { Pending, Success, Failed };
     /// <summary>
     /// resolution belongs to trading room. it will cover all current complaint.
     /// if resolution don't include all complaint, will will failed to submit.
@@ -16,6 +17,7 @@ namespace Lyra.Data.API.ODR
     public class ODRResolution : SignableObject
     {
         public int Id { get; set; }
+        public ResolutionStatus Status { get; set; }
 
         /// <summary>
         /// account ID of the resolution owner
@@ -42,14 +44,15 @@ namespace Lyra.Data.API.ODR
         protected override string GetExtraData()
         {
             var actstr = string.Join("|", Actions.Select(x => x.GetExtraData()));
-            return $"{Creator}|{RType}|{TradeId}|{string.Join(",", ComplaintHashes)}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description??""))}";
+            return $"{Creator}|{RType}|{Status}|{TradeId}|{string.Join(",", ComplaintHashes)}|{actstr}|{Convert.ToBase64String(Encoding.UTF8.GetBytes(Description??""))}";
         }
 
         public override string ToString()
         {
             var result = $"Creator: {Creator}\n";
 
-            result += $"Resolution Type: {RType}\n";            
+            result += $"Resolution Type: {RType}\n";
+            result += $"Resolution Status: {Status}\n";
             result += $"On Trade: {TradeId}\n";
             result += $"On Complaint Hashes: {string.Join(",", ComplaintHashes)}\n";
             foreach(var act in Actions)
