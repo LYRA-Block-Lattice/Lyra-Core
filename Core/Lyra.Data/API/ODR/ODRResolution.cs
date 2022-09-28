@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Lyra.Data.API.ODR
 {
@@ -15,6 +16,7 @@ namespace Lyra.Data.API.ODR
     {
         public ODRResolution Resolution { get; set; } = null!;
         public ResolutionStatus Status { get; set; }
+        public List<AnswerToResolution> Replies { get; set; } = null!;
     }
 
     /// <summary>
