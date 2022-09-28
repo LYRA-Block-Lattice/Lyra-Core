@@ -107,19 +107,6 @@ namespace UnitTests
             Assert.IsTrue(result);
         }
 
-        // con't compare signatures directly
-        //[TestMethod]
-        //public void SignNeoAndMono()
-        //{
-        //    var account_id = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
-
-        //    var neo = Signatures.GetSignature(PrivateKey1, message, account_id);
-
-        //    var mono = PortableSignatures.GetSignature(PrivateKey1, message);
-
-        //    Assert.AreEqual(neo, mono);
-        //}
-
         [TestMethod]
         public void GetSharedSecret()
         {
