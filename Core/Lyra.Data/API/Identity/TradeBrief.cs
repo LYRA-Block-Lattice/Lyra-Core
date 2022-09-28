@@ -37,7 +37,7 @@ namespace Lyra.Data.API.Identity
         public string[] CasesData { get; set; } = null!;
         public string[] CaseTypes { get; set; } = null!;
 
-        public List<ODRResolution> Resolutions { get; set; } = null!;
+        public List<ResolutionContainer> Resolutions { get; set; } = null!;
 
         public List<DisputeCase?> GetDisputeHistory()
         {
