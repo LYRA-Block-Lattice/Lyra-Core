@@ -15,6 +15,7 @@ namespace Lyra.Data.API.ODR
     public class ResolutionContainer
     {
         public ODRResolution Resolution { get; set; } = null!;
+        public string VoteId { get; set; } = null!;
         public ResolutionStatus Status { get; set; }
         public List<AnswerToResolution> Replies { get; set; } = null!;
     }

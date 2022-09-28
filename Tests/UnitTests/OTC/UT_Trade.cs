@@ -224,7 +224,10 @@ namespace UnitTests.OTC
 
             //guest accept the resolution?
             var acpret = await dealer.ResolutionReplyAsync(sellerAgree);
-            Assert.IsTrue(acpret.Successful(), $"Can't answer resolution: {acpret.ResultCode}");
+            if(!acpret.Successful())
+            {
+                Assert.IsTrue(acpret.Successful(), $"Can't answer resolution: {acpret.ResultCode}: {acpret.ResultMessage}");
+            }
 
             var buyerAgree = new AnswerToResolution
             {
@@ -237,7 +240,7 @@ namespace UnitTests.OTC
             };
             buyerAgree.Sign(test2PrivateKey, test2PublicKey);
             var buyagrret = await dealer.ResolutionReplyAsync(buyerAgree);
-            Assert.IsTrue(buyagrret.Successful(), $"Seller agree to the resolution failed: {buyagrret.ResultCode}");
+            Assert.IsTrue(buyagrret.Successful(), $"Seller agree to the resolution failed: {buyagrret.ResultCode}: {buyagrret.ResultMessage}");
 
             // then the dealer execute the resolution automatically
             await Task.Delay(3000);
