@@ -66,7 +66,8 @@ namespace Lyra.Data.API
     public enum ComplaintRequest { CancelTrade, ContinueTrade, Arbitration }
     public enum ComplaintResponse { AgreeToCancel, AgreeToContinue, 
         RefuseToCancel, RefuseToContinue,         
-        OwnerWithdraw   // the complain initiator withdraw it
+        OwnerWithdraw,   // the complain initiator withdraw it
+        Comment,    // trader just want to add some comment.
     }
     public enum ComplaintFiatStates { SelfUnpaid, SelfPaid, PeerUnpaid, PeerPaid }
 
