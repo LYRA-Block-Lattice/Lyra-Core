@@ -119,8 +119,8 @@ namespace Lyra.Core.WorkFlow.OTC
                     if (!lastCase.Verify(tradeblk))
                         return APIResultCodes.Unauthorized;
 
-                    if (!lastCase.GetAllowCancel())
-                        return APIResultCodes.InvalidOperation;
+                    //if (!lastCase.GetAllowCancel())
+                    //    return APIResultCodes.InvalidOperation; // cancellation is controlled by trading room
 
                     //if (lastCase.Complaint.request != ComplaintRequest.CancelTrade || lastCase.Reply.response != ComplaintResponse.AgreeCancel)
                     //    return APIResultCodes.Unauthorized;

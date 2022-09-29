@@ -36,16 +36,23 @@ namespace Lyra.Data.API.Identity
     /// lost is calculated in LYR
     /// </summary>
     [BsonDiscriminator(Required = true, RootClass = true)]
-    [BsonKnownTypes(typeof(PeerDisputeCase), typeof(DaoDisputeCase), typeof(CouncilDisputeCase))]
-    public abstract class DisputeCase
+    [BsonKnownTypes(typeof(DaoDisputeCase), typeof(CouncilDisputeCase))]
+    public class DisputeCase
     {
         /// <summary>
         /// Case ID, start from 1.
         /// </summary>
         public int Id { get; set; }
         public DateTime RaisedTime { get; set; }
-
         public DisputeNegotiationStates State { get; set; }
+
+        // plaintiff
+        public ComplaintClaim Complaint { get; set; } = null!;
+
+        public List<ComplaintReply>? Replies { get; set; } = null!;
+
+        public DateTime LastUpdateTime { get; set; }
+
         public bool IsPending => State == DisputeNegotiationStates.NewlyCreated || 
             State == DisputeNegotiationStates.AllPartiesNotified ||
             State == DisputeNegotiationStates.AcceptanceConfirmed;
@@ -57,8 +64,6 @@ namespace Lyra.Data.API.Identity
             else
                 return (trade.Trade.orderOwnerId, trade.OwnerAccountId);
         }
-        // plaintiff
-        public ComplaintClaim Complaint { get; set; } = null!;
 
         public virtual bool Verify(IOtcTrade trade)
         {
@@ -66,9 +71,6 @@ namespace Lyra.Data.API.Identity
                 (trade.OwnerAccountId == Complaint.ownerId || trade.Trade.orderOwnerId == Complaint.ownerId) &&
                 Complaint.VerifySignature(Complaint.ownerId);
         }
-
-        public abstract bool GetAllowCancel();
-            
 
         //public decimal ClaimedLost { get; set; }
 
@@ -89,37 +91,10 @@ namespace Lyra.Data.API.Identity
         //public DateTime AcceptanceTimeByDefendant { get; set; }
     }
 
-    public class PeerDisputeCase : DisputeCase
-    {
-        public ComplaintReply? Reply { get; set; }
-
-        public override bool GetAllowCancel()
-        {
-            return Reply != null && Complaint.request == ComplaintRequest.CancelTrade
-                && Reply.response == ComplaintResponse.AgreeToCancel;
-        }
-
-        public override bool Verify(IOtcTrade trade)
-        {
-            (var complaintantId, var respondantId) = GetRoles(trade);
-            return base.Verify(trade) &&
-                ((Reply?.tradeId ?? trade.AccountID) == trade.AccountID) &&
-                ((Reply?.ownerId ?? respondantId) == respondantId) &&
-                (Reply?.VerifySignature(Reply.ownerId) ?? true);
-        }
-    }
-
     public class DaoDisputeCase : DisputeCase
     {
         public string VoteId { get; set; }
-        public ODRResolution? Resolution { get; set; }
-        public List<ComplaintReply>? Replies { get; set; }
-        public DateTime LastUpdateTime { get; set; }
-
-        public override bool GetAllowCancel()
-        {
-            return false;
-        }
+        public ODRResolution? Resolution { get; set; }     
 
         public override bool Verify(IOtcTrade trade)
         {

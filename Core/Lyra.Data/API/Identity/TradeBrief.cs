@@ -48,7 +48,7 @@ namespace Lyra.Data.API.Identity
                 {
                     DisputeCase? dispute = CaseTypes[i] switch
                     {
-                        "Peer" => JsonConvert.DeserializeObject<PeerDisputeCase>(CasesData[i]),
+                        "Peer" => JsonConvert.DeserializeObject<DisputeCase>(CasesData[i]),
                         "DAO" => JsonConvert.DeserializeObject<DaoDisputeCase>(CasesData[i]),
                         "LyraCouncil" => JsonConvert.DeserializeObject<CouncilDisputeCase>(CasesData[i]),
                         _ => throw new Exception($"Unknown dispute case type: {CaseTypes[i]}"),
