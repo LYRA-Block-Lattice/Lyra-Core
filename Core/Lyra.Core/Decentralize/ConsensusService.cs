@@ -302,7 +302,7 @@ namespace Lyra.Core.Decentralize
                             // seeds take resp to forward heatbeat, once
                             if ((IsThisNodeSeed && (
                                 signedMsg.MsgType == ChatMessageType.HeartBeat
-                                || (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
+                                || (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
