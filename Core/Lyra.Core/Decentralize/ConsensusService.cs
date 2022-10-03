@@ -1632,7 +1632,8 @@ namespace Lyra.Core.Decentralize
 
                 if(doubleSpend != null)
                 {
-                    _log.LogWarning($"Double spend dup: {tx.Height} on {tx.AccountID} hash in queue: {doubleSpend.tx.Hash} hash new: {tx.Hash}");
+                    if(doubleSpend.tx.Hash != tx.Hash)      // seed nodes will forward it
+                        _log.LogWarning($"Double spend dup: {tx.Height} on {tx.AccountID} hash in queue: {doubleSpend.tx.Hash} hash new: {tx.Hash}");
                     return true;
                 }
                 //// make strict check to ensure all account operations are in serial.
