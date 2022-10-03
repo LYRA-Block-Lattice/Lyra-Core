@@ -2357,34 +2357,36 @@ namespace Lyra.Core.Accounts
 
         public async Task FixDbRecordAsync()
         {
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Exists("TradeOrderId");
+            var hash = "EjKVgRZq5SXkMsGxZJMJH1fYqydmFuaf3u8VozrjPARg";
+            await RemoveBlockAsync(hash);
+            //var filter = Builders<Block>.Filter;
+            //var filterDefination = filter.Exists("TradeOrderId");
 
-            var q = _blocks
-                .Find(filterDefination)
-                .ToList();
+            //var q = _blocks
+            //    .Find(filterDefination)
+            //    .ToList();
 
-            foreach(var b in q)
-            {
-                var tx = b as CancelTradeOrderBlock;
-                if(tx != null && tx.TradeOrderId == null)
-                {
-                    //Console.WriteLine($"Will process {tx.Hash}");
-                    var json = JsonConvert.SerializeObject(tx);
-                    var result = new BlockAPIResult
-                    {
-                        BlockData = json,
-                        ResultBlockType = tx.BlockType,
-                    };
-                    var txnew = result.GetBlock();
+            //foreach(var b in q)
+            //{
+            //    var tx = b as CancelTradeOrderBlock;
+            //    if(tx != null && tx.TradeOrderId == null)
+            //    {
+            //        //Console.WriteLine($"Will process {tx.Hash}");
+            //        var json = JsonConvert.SerializeObject(tx);
+            //        var result = new BlockAPIResult
+            //        {
+            //            BlockData = json,
+            //            ResultBlockType = tx.BlockType,
+            //        };
+            //        var txnew = result.GetBlock();
 
-                    await RemoveBlockAsync(tx.Hash);
-                    await Task.Delay(1);
-                    await AddBlockAsync(txnew);
+            //        await RemoveBlockAsync(tx.Hash);
+            //        await Task.Delay(1);
+            //        await AddBlockAsync(txnew);
 
-                    //Console.WriteLine($"Converted to {txnew.BlockType}");
-                }
-            }
+            //        //Console.WriteLine($"Converted to {txnew.BlockType}");
+            //    }
+            //}
 
         }
 

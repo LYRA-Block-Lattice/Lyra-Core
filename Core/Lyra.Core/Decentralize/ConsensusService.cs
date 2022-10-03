@@ -877,7 +877,7 @@ namespace Lyra.Core.Decentralize
                 "mainnet" => 19,
                 "testnet" => 13,
                 "devnet" => 4,
-                _ => 4,
+                _ => int.MaxValue,
             };
 
             //var count = allNodes.Count();
