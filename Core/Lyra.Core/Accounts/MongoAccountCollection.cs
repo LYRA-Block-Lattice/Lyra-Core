@@ -1457,7 +1457,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
+            _log.LogInformation($"AddBlockAsync: {block.BlockType} {block.Height} {block.Hash}");
 
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
@@ -1496,7 +1496,7 @@ namespace Lyra.Core.Accounts
             var ret = await _blocks.DeleteOneAsync(a => a.Hash == hash);
             if (ret.IsAcknowledged && ret.DeletedCount == 1)
             {
-                // _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
+                _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
                 await _snapshots.DeleteOneAsync(a => a.Hash == hash);
             }
             else

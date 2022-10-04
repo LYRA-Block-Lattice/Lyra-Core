@@ -107,6 +107,7 @@ namespace Lyra.Core.Decentralize
                 localState.svcGenHash = seedSvcGen.GetBlock().Hash;
                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
             }
+            localState.lastVerifiedConsHeight -= 3; // always do it to make sure db is good.
 
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
@@ -171,7 +172,6 @@ namespace Lyra.Core.Decentralize
             // here need to sync unconsolidated blocks.
             var lastConsToSyncQuery = await consensusClient.GetLastConsolidationBlockAsync();
             var lastConsToSync = lastConsToSyncQuery.GetBlock() as ConsolidationBlock;
-            _log.LogInformation($"Syncing unconsolidated block after last cons {lastConsToSync.Height}");
             await SyncAllUnConsolidatedBlocks(lastConsToSync, consensusClient);
 
             return IsSuccess;
@@ -179,6 +179,8 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> SyncAllUnConsolidatedBlocks(ConsolidationBlock myLastCons, ILyraAPI client)
         {
+            _log.LogInformation($"Syncing unconsolidated block after last cons {myLastCons.Height}");
+
             bool someBlockSynced = false;
             // sync unconsolidated blocks
             var endTime = DateTime.MaxValue;
@@ -189,7 +191,7 @@ namespace Lyra.Core.Decentralize
                 var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
                 foreach (var h in myUnConsHashes)
                 {
-                    if (!unConsHashResult.Entities.Contains(h))
+                    if (h != myLastCons.Hash && !unConsHashResult.Entities.Contains(h))
                     {
                         await _sys.Storage.RemoveBlockAsync(h);
                         someBlockSynced = true;
@@ -223,6 +225,7 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             }
+            _log.LogInformation($"Synced unconsolidated block. New one? {someBlockSynced}");
             return someBlockSynced;
         }
 
@@ -288,66 +291,7 @@ namespace Lyra.Core.Decentralize
                         continue;
                     }
 
-                    _log.LogInformation($"Engaging: Sync all unconsolidated blocks");
-                    // sync unconsolidated blocks
-                    var endTime = DateTime.MaxValue;
-                    var unConsHashResult = await client.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp.Ticks, endTime.Ticks);
-                    if (unConsHashResult.ResultCode == APIResultCodes.Success)
-                    {
-                        _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
-                        var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
-                        foreach (var h in myUnConsHashes)
-                        {
-                            //if (!unConsHashResult.Entities.Contains(h))
-                            //{
-                                await _sys.Storage.RemoveBlockAsync(h);
-                                someBlockSynced = true;
-                            //}
-                        }
-
-                        foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
-                        {
-                            //_log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
-                            if (hash == myLastCons.Hash)
-                                continue;       // already synced by previous steps
-
-                            var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
-                            if (localBlock != null)
-                                continue;
-
-                            var blockResult = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, hash, null);
-                            if (blockResult.ResultCode == APIResultCodes.Success)
-                            {
-                                await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
-                                someBlockSynced = true;
-                            }
-                            else if(blockResult.ResultCode == APIResultCodes.APISignatureValidationFailed)
-                            {
-                                throw new Exception("Desynced by new service block.");
-                            }
-                            else
-                            {
-                                someBlockSynced = true;
-                                break;
-                            }
-                        }
-                    }
-                    else if (unConsHashResult.ResultCode == APIResultCodes.APIRouteFailed)
-                    {
-                        //_log.LogInformation("Recreate aggregated client...");
-                        //
-                        if(client is LyraAggregatedClient agg)
-                        {
-                            agg.ReBase(true);
-                            await agg.InitAsync();
-                        }
-
-                        continue;
-                    }
-                    else
-                    {
-                        continue;
-                    }
+                    someBlockSynced = await SyncAllUnConsolidatedBlocks(myLastCons, client);
 
                     // update billboard to latest
                     var lastServiceBlock = await _sys.Storage.GetLastServiceBlockAsync();
@@ -500,7 +444,10 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> SyncOneBlockAsync(ILyraAPI client, string hash)
         {
             if(null != await _sys.Storage.FindBlockByHashAsync(hash))
-                await _sys.Storage.RemoveBlockAsync(hash);
+            {
+                return true;
+            }
+            //    await _sys.Storage.RemoveBlockAsync(hash);
 
             var remoteBlock = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, hash, null);
             if (remoteBlock.ResultCode == APIResultCodes.Success)
