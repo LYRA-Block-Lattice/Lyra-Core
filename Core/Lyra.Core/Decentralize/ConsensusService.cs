@@ -553,6 +553,7 @@ namespace Lyra.Core.Decentralize
 #pragma warning disable VSTHRD101 // Avoid unsupported async delegates
                 .OnEntry(async () =>
                 {
+                    _log.LogInformation("while true in BlockChainState.Initializing OnEntry");
                     // remove sync state if db is empty
                     var count = await _sys.Storage.GetBlockCountAsync();
                     if (0 == count)
@@ -596,6 +597,7 @@ namespace Lyra.Core.Decentralize
 
                             while (true)
                             {
+                                _log.LogInformation("while true after dbcc");
                                 try
                                 {
                                     var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
@@ -668,6 +670,7 @@ namespace Lyra.Core.Decentralize
                 {
                     while (true)
                     {
+                        _log.LogInformation("While true in BlockChainState.StaticSync Entry");
                         try
                         {
                             var n = 3;// new Random().Next(1, 4).ToString();
@@ -808,6 +811,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 while (true)
                                 {
+                                    _log.LogInformation("While true in BlockChainState.Engaging Task.Run");
                                     await EngagingSyncAsync();
 
                                     // check block count

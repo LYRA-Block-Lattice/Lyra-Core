@@ -118,6 +118,7 @@ namespace Lyra.Core.Decentralize
 
             while (true)
             {
+                _log.LogInformation("while true in SyncDatabaseAsync");
                 try
                 {
                     var remoteConsQuery = await consensusClient.GetConsolidationBlocksAsync(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
@@ -662,6 +663,7 @@ namespace Lyra.Core.Decentralize
             {
                 while (true)
                 {
+                    _log.LogInformation("while true in CreateServiceGenesisBlockAsync");
                     svcGenesis.Authorizers = new Dictionary<string, string>();
                     foreach (var pn in ProtocolSettings.Default.StandbyValidators)
                     {
