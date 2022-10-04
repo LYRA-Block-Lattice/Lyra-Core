@@ -166,6 +166,7 @@ namespace Lyra.Data.API
 
         public void ReBase(bool toSeedOnly)
         {
+            Console.WriteLine($"LyraAggregatedClient ReBase to seed only? {toSeedOnly}");
             _seedsOnly = toSeedOnly;
             //if (toSeedOnly)
             //    _baseIndex = _baseIndex++ % 4;
