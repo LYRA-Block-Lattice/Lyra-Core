@@ -298,6 +298,8 @@ namespace Lyra.Core.WorkFlow
 
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
+            _logger.LogInformation($"WF Request View Change.");
+
             var ctx = context.Workflow.Data as LyraContext;
 
             ctx.ViewChangeReqCount++;
@@ -308,8 +310,7 @@ namespace Lyra.Core.WorkFlow
                 PermanentFailed = true;
             }
             else
-            {
-                _logger.LogInformation($"Request View Change.");
+            {                
                 await ConsensusService.Singleton.BeginChangeViewAsync("WF Engine", ViewChangeReason.ConsensusTimeout);
             }
 

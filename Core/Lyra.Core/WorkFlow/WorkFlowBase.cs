@@ -40,7 +40,7 @@ namespace Lyra.Core.WorkFlow
             return Task.FromResult(GetDescription().Steps);
         }
         public virtual async Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context)
-        {
+        {            
             return await BrokerOpsAsync(sys, send) ?? await ExtraOpsAsync(sys, send.Hash);
         }
         public virtual async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
