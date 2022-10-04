@@ -61,11 +61,6 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation("In SyncDatabaseAsync");
             var consensusClient = client;
-            //if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
-            //{
-            //    consensusClient = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "DBSync", "1.0",
-            //        $"https://seed3.mainnet.lyra.live:5504/api/Node/");
-            //}
 
             BlockAPIResult seedSvcGen = null;
             for (int i = 0; i < 10; i++)
@@ -236,27 +231,11 @@ namespace Lyra.Core.Decentralize
 
         private async Task EngagingSyncAsync()
         {
-            _log.LogInformation("EngagingSyncAsync, sleep 10s.");
-            await Task.Delay(10000);
-
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            ILyraAPI client;
-            if(false)//Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
-            {
-                client = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "DBSync", "1.0",
-                    $"https://seed3.mainnet.lyra.live:5504/api/Node/");
-            }
-            else
-            {
-                var aclient = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-                await aclient.InitAsync();
-                client = aclient;
-            }
-
-            _log.LogInformation("before Engaging Sync, sleep 10s.");
-            await Task.Delay(10000);
+            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
+            await client.InitAsync();
 
             for (int ii = 0; ii < 15; ii++)
             {
