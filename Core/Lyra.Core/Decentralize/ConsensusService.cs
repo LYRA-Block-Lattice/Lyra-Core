@@ -818,8 +818,12 @@ namespace Lyra.Core.Decentralize
                                     var mysyncstate = await GetNodeStatusAsync();
                                     if(syncstate.Successful())
                                     {
-                                        if (syncstate.Status.totalBlockCount == mysyncstate.totalBlockCount)
+                                        if (syncstate.Status.lastConsolidationHash == mysyncstate.lastConsolidationHash
+                                                && syncstate.Status.lastUnSolidationHash == mysyncstate.lastUnSolidationHash)
+                                        {
+                                            _log.LogInformation("Fully synced.");
                                             break;
+                                        }                                            
                                         else
                                             _log.LogWarning($"Count from network: {syncstate.Status.totalBlockCount}, count of mine: {mysyncstate.totalBlockCount}");
                                     }
