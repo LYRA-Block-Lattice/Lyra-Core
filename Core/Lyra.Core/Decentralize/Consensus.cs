@@ -249,13 +249,14 @@ namespace Lyra.Core.Decentralize
                 client = aclient;
             }
 
-            _log.LogInformation("before Engaging Sync, sleep 4s.");
+            _log.LogInformation("before Engaging Sync, sleep 10s.");
+            await Task.Delay(10000);
 
             for (int ii = 0; ii < 15; ii++)
             {
                 try
                 {
-                    _log.LogInformation("Engaging Sync...");
+                    _log.LogInformation($"No. {ii} Engaging Sync...");
 
                     var someBlockSynced = false;
 
