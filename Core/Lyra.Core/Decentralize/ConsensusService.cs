@@ -295,7 +295,6 @@ namespace Lyra.Core.Decentralize
                         {
                             //await CriticalRelayAsync(signedMsg, null);
 
-
                             await OnNextConsensusMessageAsync(signedMsg);
                             //await CriticalRelayAsync(signedMsg, async (msg) =>
                             //{
@@ -318,21 +317,21 @@ namespace Lyra.Core.Decentralize
                             //    }
                             //}
 
-                            // not needed anymore
-                            // seeds take resp to forward heatbeat, once
-                            if ((IsThisNodeSeed && (
-                                signedMsg.MsgType == ChatMessageType.HeartBeat
-                                //|| bt == BlockTypes.Consolidation
-                                //|| bt == BlockTypes.Service
-                                //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
-                                //|| (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
-                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
-                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
-                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
-                                )) || CurrentState == BlockChainState.Genesis)
-                            {
-                                await CriticalRelayAsync(signedMsg, null);
-                            }
+                            //// not needed anymore
+                            //// seeds take resp to forward heatbeat, once
+                            //if ((IsThisNodeSeed && (
+                            //    signedMsg.MsgType == ChatMessageType.HeartBeat
+                            //    //|| bt == BlockTypes.Consolidation
+                            //    //|| bt == BlockTypes.Service
+                            //    //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
+                            //    //|| (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
+                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                            //    )) || CurrentState == BlockChainState.Genesis)
+                            //{
+                            //    await CriticalRelayAsync(signedMsg, null);
+                            //}
                         }
                         else
                         {
