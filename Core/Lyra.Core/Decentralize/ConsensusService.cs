@@ -432,7 +432,7 @@ namespace Lyra.Core.Decentralize
             InDBCC = true;
             try
             {
-                await ((_sys.Storage as TracedStorage).Store as MongoAccountCollection).FixDbRecordAsync();
+                //await ((_sys.Storage as TracedStorage).Store as MongoAccountCollection).FixDbRecordAsync();
 
                 var blcokcount = await _sys.Storage.GetBlockCountAsync();
                 if(blcokcount == 0) //genesis
@@ -449,7 +449,8 @@ namespace Lyra.Core.Decentralize
                 var fixedHeight = lastCons?.Height ?? 0;
                 var shouldReset = false;
 
-                var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
+                // roll back a little to make sure 
+                var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight - 30;
                 for (long i = lastCons == null ? 0 : lastCons.Height; i >= localSafeCons; i--)
                 {
                     bool missingBlock = false;
@@ -1951,7 +1952,7 @@ namespace Lyra.Core.Decentralize
             if (item is ViewChangeMessage vcm && _viewChangeHandler != null)
             {
                 // need to listen to any view change event.
-                _log.LogInformation($"View change request from {vcm.From.Shorten()}");
+                //_log.LogInformation($"View change request from {vcm.From.Shorten()}");
                 if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.AllVoters.Contains(vcm.From))
                 {
                     await _viewChangeHandler.ProcessMessageAsync(vcm);
