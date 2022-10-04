@@ -298,11 +298,11 @@ namespace Lyra.Core.Decentralize
                         var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
                         foreach (var h in myUnConsHashes)
                         {
-                            if (!unConsHashResult.Entities.Contains(h))
-                            {
+                            //if (!unConsHashResult.Entities.Contains(h))
+                            //{
                                 await _sys.Storage.RemoveBlockAsync(h);
                                 someBlockSynced = true;
-                            }
+                            //}
                         }
 
                         foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
