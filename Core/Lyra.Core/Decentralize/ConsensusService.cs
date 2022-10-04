@@ -591,8 +591,8 @@ namespace Lyra.Core.Decentralize
                             }
 
                             // DBCC
-                            //if (!await DBCCAsync())
-                            //    continue;
+                            if (!await DBCCAsync())
+                                continue;
 
                             while (true)
                             {
@@ -1951,10 +1951,9 @@ namespace Lyra.Core.Decentralize
             if (item is ViewChangeMessage vcm && _viewChangeHandler != null)
             {
                 // need to listen to any view change event.
-                //_log.LogInformation($"View change request from {vcm.From.Shorten()}");
-                if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
+                _log.LogInformation($"View change request from {vcm.From.Shorten()}");
+                if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.AllVoters.Contains(vcm.From))
                 {
-                    return;
                     await _viewChangeHandler.ProcessMessageAsync(vcm);
                 }
                 return;

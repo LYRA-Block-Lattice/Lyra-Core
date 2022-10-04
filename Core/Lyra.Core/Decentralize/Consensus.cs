@@ -191,6 +191,9 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
                 var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
+
+                // first hash is previous consblock
+
                 foreach (var h in myUnConsHashes)
                 {
                     if (h != myLastCons.Hash && !unConsHashResult.Entities.Contains(h))
@@ -351,6 +354,12 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        /// <summary>
+        /// sync consblock and all it's contained blocks. (previous cons -> this cons.)
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="consBlock"></param>
+        /// <returns></returns>
         private async Task<bool> SyncAndVerifyConsolidationBlockAsync(ILyraAPI client, ConsolidationBlock consBlock)
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
@@ -360,9 +369,6 @@ namespace Lyra.Core.Decentralize
                 if (!await SyncOneBlockAsync(client, hash))
                     return false;
             }
-
-            if (null != await _sys.Storage.FindBlockByHashAsync(consBlock.Hash))
-                await _sys.Storage.RemoveBlockAsync(consBlock.Hash);
 
             var mt = new MerkleTree();
             foreach (var hash1 in consBlock.blockHashes)
@@ -403,7 +409,10 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            return await _sys.Storage.AddBlockAsync(consBlock);
+            if (null == await _sys.Storage.FindBlockByHashAsync(consBlock.Hash))
+                await _sys.Storage.AddBlockAsync(consBlock);
+
+            return true;
         }
 
         //private async Task SyncManyBlocksAsync(LyraClientForNode client, ConsolidationBlock consBlock)
@@ -455,7 +464,6 @@ namespace Lyra.Core.Decentralize
             {
                 return true;
             }
-            //    await _sys.Storage.RemoveBlockAsync(hash);
 
             var remoteBlock = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, hash, null);
             if (remoteBlock.ResultCode == APIResultCodes.Success)
