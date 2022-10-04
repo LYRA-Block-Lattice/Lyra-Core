@@ -2357,8 +2357,6 @@ namespace Lyra.Core.Accounts
 
         public async Task FixDbRecordAsync()
         {
-            var hash = "EjKVgRZq5SXkMsGxZJMJH1fYqydmFuaf3u8VozrjPARg";
-            await RemoveBlockAsync(hash);
             //var filter = Builders<Block>.Filter;
             //var filterDefination = filter.Exists("TradeOrderId");
 

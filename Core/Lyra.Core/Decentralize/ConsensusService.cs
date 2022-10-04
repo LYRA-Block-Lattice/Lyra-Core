@@ -35,6 +35,7 @@ using System.Reflection;
 using WorkflowCore.Services;
 using Microsoft.AspNetCore.SignalR;
 using Lyra.Core.Accounts;
+using System.Security.Policy;
 
 namespace Lyra.Core.Decentralize
 {
@@ -286,6 +287,20 @@ namespace Lyra.Core.Decentralize
                     var signedMsg = relayMsg.signedMessage;
 
                     //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
+                    BlockTypes bt = BlockTypes.Null;
+                    if(signedMsg is AuthorizingMsg au)
+                    {
+                        bt = au.Block.BlockType;
+                    }
+                    else if(signedMsg is BlockConsensusMessage bcm)
+                    {
+                        if (_activeConsensus.ContainsKey(bcm.BlockHash))
+                        {
+                            var bx = _activeConsensus[bcm.BlockHash];
+                            if(bx.State != null && bx.State.InputMsg != null)
+                                bt = bx.State.InputMsg.Block.BlockType;
+                        }
+                    }
 
                     if(signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(3) &&
                         signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-30))
@@ -302,10 +317,13 @@ namespace Lyra.Core.Decentralize
                             // seeds take resp to forward heatbeat, once
                             if ((IsThisNodeSeed && (
                                 signedMsg.MsgType == ChatMessageType.HeartBeat
-                                || (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
-                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
-                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
-                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                                || bt == BlockTypes.Consolidation
+                                || bt == BlockTypes.Service
+                                //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
+                                //|| (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
+                                || signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                                || signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                                || signedMsg.MsgType == ChatMessageType.ViewChangeCommit
                                 )) || CurrentState == BlockChainState.Genesis)
                             {
                                 await CriticalRelayAsync(signedMsg, null);
