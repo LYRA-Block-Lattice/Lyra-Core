@@ -591,8 +591,8 @@ namespace Lyra.Core.Decentralize
                             }
 
                             // DBCC
-                            if (!await DBCCAsync())
-                                continue;
+                            //if (!await DBCCAsync())
+                            //    continue;
 
                             while (true)
                             {
@@ -670,7 +670,7 @@ namespace Lyra.Core.Decentralize
                     {
                         try
                         {
-                            var n = new Random().Next(1, 4).ToString();
+                            var n = 3;// new Random().Next(1, 4).ToString();
                             var host = $"seed{n}.{Settings.Default.LyraNode.Lyra.NetworkId}.lyra.live";
                             var seedhost = $"{host}:{DefaultAPIPort}";
 
@@ -831,7 +831,7 @@ namespace Lyra.Core.Decentralize
                                     _log.LogWarning("Can't make sure database consistence. forced to do a full DBCC.");
                                     // reset the dbcc counter
                                     var localState = LocalDbSyncState.Load();
-                                    localState.lastVerifiedConsHeight = 1;
+                                    localState.lastVerifiedConsHeight -= 15;
                                     LocalDbSyncState.Save(localState);
 
                                     await DBCCAsync();

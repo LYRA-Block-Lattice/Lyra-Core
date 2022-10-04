@@ -60,6 +60,11 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> SyncDatabaseAsync(ILyraAPI client)
         {
             var consensusClient = client;
+            if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
+            {
+                consensusClient = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "DBSync", "1.0",
+                    $"https://seed3.mainnet.lyra.live:5504/api/Node/");
+            }
 
             BlockAPIResult seedSvcGen = null;
             for (int i = 0; i < 10; i++)
@@ -109,6 +114,7 @@ namespace Lyra.Core.Decentralize
 
             bool IsSuccess = true;
             var _authorizers = new AuthorizersFactory();
+
             while (true)
             {
                 try
@@ -162,7 +168,62 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
+            // here need to sync unconsolidated blocks.
+            var lastConsToSyncQuery = await consensusClient.GetLastConsolidationBlockAsync();
+            var lastConsToSync = lastConsToSyncQuery.GetBlock() as ConsolidationBlock;
+            _log.LogInformation($"Syncing unconsolidated block after last cons {lastConsToSync.Height}");
+            await SyncAllUnConsolidatedBlocks(lastConsToSync, consensusClient);
+
             return IsSuccess;
+        }
+
+        private async Task<bool> SyncAllUnConsolidatedBlocks(ConsolidationBlock myLastCons, ILyraAPI client)
+        {
+            bool someBlockSynced = false;
+            // sync unconsolidated blocks
+            var endTime = DateTime.MaxValue;
+            var unConsHashResult = await client.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp.Ticks, endTime.Ticks);
+            if (unConsHashResult.ResultCode == APIResultCodes.Success)
+            {
+                _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
+                var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
+                foreach (var h in myUnConsHashes)
+                {
+                    if (!unConsHashResult.Entities.Contains(h))
+                    {
+                        await _sys.Storage.RemoveBlockAsync(h);
+                        someBlockSynced = true;
+                    }
+                }
+
+                foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
+                {
+                    //_log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
+                    if (hash == myLastCons.Hash)
+                        continue;       // already synced by previous steps
+
+                    var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
+                    if (localBlock != null)
+                        continue;
+
+                    var blockResult = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, hash, null);
+                    if (blockResult.ResultCode == APIResultCodes.Success)
+                    {
+                        await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
+                        someBlockSynced = true;
+                    }
+                    else if (blockResult.ResultCode == APIResultCodes.APISignatureValidationFailed)
+                    {
+                        throw new Exception("Desynced by new service block.");
+                    }
+                    else
+                    {
+                        someBlockSynced = true;
+                        break;
+                    }
+                }
+            }
+            return someBlockSynced;
         }
 
         private async Task EngagingSyncAsync()
@@ -170,8 +231,19 @@ namespace Lyra.Core.Decentralize
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-            await client.InitAsync();
+            ILyraAPI client;
+            if(false)//Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
+            {
+                client = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "DBSync", "1.0",
+                    $"https://seed3.mainnet.lyra.live:5504/api/Node/");
+            }
+            else
+            {
+                var aclient = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
+                await aclient.InitAsync();
+                client = aclient;
+            }
+
             for(int ii = 0; ii < 15; ii++)
             {
                 try
@@ -204,11 +276,14 @@ namespace Lyra.Core.Decentralize
 
                         await Task.Delay(10 * 1000);
 
-                        _log.LogInformation("Recreate aggregated client...");
-                        if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
-                            client.ReBase(false);
+                        if(client is LyraAggregatedClient agg)
+                        {
+                            _log.LogInformation("Recreate aggregated client...");
+                            if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
+                                agg.ReBase(false);
 
-                        await client.InitAsync();
+                            await agg.InitAsync();
+                        }
                         
                         continue;
                     }
@@ -216,7 +291,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Engaging: Sync all unconsolidated blocks");
                     // sync unconsolidated blocks
                     var endTime = DateTime.MaxValue;
-                    var unConsHashResult = await client.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
+                    var unConsHashResult = await client.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp.Ticks, endTime.Ticks);
                     if (unConsHashResult.ResultCode == APIResultCodes.Success)
                     {
                         _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
@@ -261,8 +336,12 @@ namespace Lyra.Core.Decentralize
                     {
                         //_log.LogInformation("Recreate aggregated client...");
                         //
-                        client.ReBase(true);
-                        await client.InitAsync();
+                        if(client is LyraAggregatedClient agg)
+                        {
+                            agg.ReBase(true);
+                            await agg.InitAsync();
+                        }
+
                         continue;
                     }
                     else
