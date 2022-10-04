@@ -60,11 +60,11 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> SyncDatabaseAsync(ILyraAPI client)
         {
             var consensusClient = client;
-            if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
-            {
-                consensusClient = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "DBSync", "1.0",
-                    $"https://seed3.mainnet.lyra.live:5504/api/Node/");
-            }
+            //if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
+            //{
+            //    consensusClient = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "DBSync", "1.0",
+            //        $"https://seed3.mainnet.lyra.live:5504/api/Node/");
+            //}
 
             BlockAPIResult seedSvcGen = null;
             for (int i = 0; i < 10; i++)
