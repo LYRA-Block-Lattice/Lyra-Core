@@ -27,7 +27,7 @@ namespace Lyra.Data.API
         public LyraAggregatedClient(string networkId, bool seedsOnly, string poswallet)
         {
             _networkId = networkId;
-            _seedsOnly = seedsOnly;
+            _seedsOnly = true;//seedsOnly;  // tmp to fix seed sync
             _poswallet = poswallet;
         }
 

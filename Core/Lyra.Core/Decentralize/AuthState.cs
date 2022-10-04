@@ -104,16 +104,16 @@ namespace Lyra.Core.Decentralize
 
         public void SetView(IList<string> validNodes)
         {
-            _log.LogInformation($"Authorize with {validNodes.Count} nodes.");
+            _log.LogInformation($"SetView: Authorize with {validNodes.Count} nodes.");
             _validNodes = validNodes;
         }
 
         public virtual bool CheckSenderValid(string from)
         {
-            if (_validNodes != null && !_validNodes.Any(a => a == from))
-                return false;
-            else
+            if (_validNodes != null && _validNodes.Any(a => a == from))
                 return true;
+            else
+                return false;
         }
 
         public bool AddAuthResult(AuthorizedMsg msg)
