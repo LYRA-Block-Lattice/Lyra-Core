@@ -1523,7 +1523,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 // leader may be faulty
                                 var lsp = await _sys.Storage.GetLastServiceBlockAsync();
-                                if(lsp.TimeStamp > DateTime.UtcNow.AddSeconds(-10))
+                                if(lsp.TimeStamp < DateTime.UtcNow.AddSeconds(-30))
                                     await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
                             }
                         }

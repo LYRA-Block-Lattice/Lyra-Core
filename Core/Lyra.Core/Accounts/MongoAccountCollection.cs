@@ -1457,7 +1457,8 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            _log.LogInformation($"AddBlockAsync: {block.BlockType} {block.Height} {block.Hash}");
+            // in unit test maybe null
+            _log?.LogInformation($"AddBlockAsync: {block.BlockType} {block.Height} {block.Hash}");
 
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
