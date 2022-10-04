@@ -289,7 +289,7 @@ namespace Lyra.Data.API
                 }
                 else
                 {
-                    Console.WriteLine($"Result count: {best.Count} / {expectedCount} / {taskss.Count}");
+                    Console.WriteLine($"Aggregator Result count: {best.Count} / {expectedCount} / {taskss.Count}");
                     // print the unconsist ones
                 }
             }
