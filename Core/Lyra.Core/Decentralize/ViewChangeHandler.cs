@@ -235,7 +235,7 @@ namespace Lyra.Core.Decentralize
             {
                 RemoveOutDatedMsgs();
 
-                if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                if (reqMsgs.Count > LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
                     var sb = new StringBuilder();
                     foreach (var msg in reqMsgs)
