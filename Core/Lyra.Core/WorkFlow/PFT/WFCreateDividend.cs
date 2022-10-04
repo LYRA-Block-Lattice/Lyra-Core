@@ -40,8 +40,8 @@ namespace Lyra.Core.WorkFlow.PFT
             if (pft == null)
                 return APIResultCodes.InvalidAccountId;
 
-            var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
-            if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
+            //var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
+            if (/*!stkrs.Any(a => a.OwnerAccount == block.AccountID) && */pft.OwnerAccountId != block.AccountID)
                 return APIResultCodes.RequestNotPermited;
 
             return APIResultCodes.Success;
