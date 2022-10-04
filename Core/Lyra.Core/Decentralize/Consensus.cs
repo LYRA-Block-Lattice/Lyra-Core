@@ -59,6 +59,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> SyncDatabaseAsync(ILyraAPI client)
         {
+            _log.LogInformation("In SyncDatabaseAsync");
             var consensusClient = client;
             //if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
             //{
@@ -78,7 +79,8 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("Recreate aggregated client...");
                 //await client.InitAsync();
             }
-            
+
+            _log.LogInformation("In SyncDatabaseAsync, await GetNodeStatusAsync");
 
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
@@ -113,9 +115,7 @@ namespace Lyra.Core.Decentralize
             if (lastCons == null)
                 return false;
 
-            bool IsSuccess = true;
-            var _authorizers = new AuthorizersFactory();
-
+            bool IsSuccess;
             while (true)
             {
                 _log.LogInformation("while true in SyncDatabaseAsync");
@@ -170,6 +170,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
+            _log.LogInformation($"sync unconsolidated blocks by lastCons");
             // here need to sync unconsolidated blocks.
             var lastConsToSyncQuery = await consensusClient.GetLastConsolidationBlockAsync();
             var lastConsToSync = lastConsToSyncQuery.GetBlock() as ConsolidationBlock;
@@ -248,7 +249,9 @@ namespace Lyra.Core.Decentralize
                 client = aclient;
             }
 
-            for(int ii = 0; ii < 15; ii++)
+            _log.LogInformation("before Engaging Sync, sleep 4s.");
+
+            for (int ii = 0; ii < 15; ii++)
             {
                 try
                 {
