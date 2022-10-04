@@ -799,6 +799,7 @@ namespace Lyra.Core.Decentralize
                         bool shutdown = (bool)finfo.GetValue(host);
                         if (shutdown)
                         {
+                            _log.LogInformation("Start workflow host.Start()");
                             host.OnStepError += Host_OnStepError;
                             host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
                             host.Start();

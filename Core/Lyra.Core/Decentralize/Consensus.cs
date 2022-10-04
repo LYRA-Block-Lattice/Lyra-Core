@@ -233,6 +233,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task EngagingSyncAsync()
         {
+            _log.LogInformation("EngagingSyncAsync, sleep 10s.");
+            await Task.Delay(10000);
+
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
