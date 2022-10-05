@@ -686,9 +686,9 @@ namespace Lyra.Core.Decentralize
                                 continue;
                             }
 
-                            var client = new LyraRestClient("", "", "", $"https://{seedhost}/api/Node/");
-                            //var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
-                            //await client.InitAsync();
+                            //var client = new LyraRestClient("", "", "", $"https://{seedhost}/api/Node/");
+                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true, _sys.PosWallet.AccountId);
+                            await client.InitAsync();
 
                             // when static sync, only query the seed nodes.
                             // three seeds are enough for database sync.
@@ -698,7 +698,7 @@ namespace Lyra.Core.Decentralize
 
                             if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
-                                //client.ReBase(true);
+                                client.ReBase(true);
                                 continue;
                             }
 
