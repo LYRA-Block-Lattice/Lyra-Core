@@ -229,12 +229,12 @@ namespace Lyra.Core.WorkFlow
                         .Do(x => x
                             .If(data => data.State == WFState.Init || data.State == WFState.Running)
                                 .Do(then => then
-                                .StartWith<Repeator>()
+                                .StartWith<Repeator>()      // workflow continue generate new blocks
                                     .Input(step => step.count, data => data.Count)
                                     .Output(data => data.Count, step => step.count)
                                     .Output(data => data.LastBlockType, step => LyraContext.ParseBlock(step.block).type)
                                     .Output(data => data.LastBlockJson, step => LyraContext.ParseBlock(step.block).json)
-                                .If(data => data.LastBlockType != BlockTypes.Null).Do(letConsensus))
+                                .If(data => data.LastBlockType != BlockTypes.Null).Do(letConsensus))    // send to blockchain to authorize
                             .If(data => data.LastBlockType != BlockTypes.Null && data.LastResult == ConsensusResult.Nay)
                                 .Do(then => then
                                 .StartWith<CustomMessage>()
@@ -247,28 +247,8 @@ namespace Lyra.Core.WorkFlow
                                 )
                             .If(data => data.LastBlockType != BlockTypes.Null && data.State == WFState.ConsensusTimeout)
                                 .Do(then => then
-                                .Parallel()
-                                    .Do(then => then
-                                        .StartWith<ReqViewChange>()
-                                            .Output(data => data.State, step => step.PermanentFailed ? WFState.Error : WFState.Running)
-                                        .WaitFor("ViewChanged", data => data.GetLastBlock().ServiceHash, data => DateTime.Now)
-                                            .Output(data => data.LastResult, step => step.EventData)
-                                            .Output(data => data.State, step => WFState.Running)
-                                        .Then<CustomMessage>()
-                                                .Name("Log")
-                                                .Input(step => step.Message, data => $"View changed.")
-                                        )
-                                    .Do(then => then
                                         .StartWith<CustomMessage>()
-                                            .Name("Log")
-                                            .Input(step => step.Message, data => $"View change is monitored.")
-                                        .Delay(data => TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
-                                        .Then<CustomMessage>()
-                                            .Name("Log")
-                                            .Input(step => step.Message, data => $"View change is timeout.")
-                                        )
-                                    .Join()
-                                        .CancelCondition(data => data.State == WFState.Running, true)
+                                            .Output(data => data.State, step => WFState.Error)
                                 )
                             ) // do
                 .Then<CustomMessage>()
