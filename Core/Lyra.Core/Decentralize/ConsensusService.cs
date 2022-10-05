@@ -423,12 +423,20 @@ namespace Lyra.Core.Decentralize
             await BeginChangeViewAsync("consensus network", ViewChangeReason.TooManyViewChangeRquests);
         }
 
-        private async Task<LyraAggregatedClient> CreateAggregatedClientAsync()
+        private async Task<ILyraAPI> CreateAggregatedClientAsync()
         {
-            var useSeedOnly = true;
-            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
-            await client.InitAsync();
-            return client;
+            if("mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
+            {
+                var client = new LyraRestClient("", "", "", $"https://seed4.mainnet.lyra.live:5504/api/Node/");
+                return client;
+            }
+            else
+            {
+                var useSeedOnly = true;
+                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
+                await client.InitAsync();
+                return client;
+            }
         }
 
         private bool InDBCC = false;
@@ -616,8 +624,8 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else if (result.ResultCode == APIResultCodes.APIRouteFailed)
                                     {
-                                        client.ReBase(true);
-                                        await client.InitAsync();
+                                        //client.ReBase(true);
+                                        //await client.InitAsync();
                                         break;
                                     }
                                     else if (result.ResultCode != APIResultCodes.ServiceBlockNotFound)
@@ -703,7 +711,7 @@ namespace Lyra.Core.Decentralize
 
                             if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
-                                client.ReBase(true);
+                                //client.ReBase(true);
                                 continue;
                             }
 
