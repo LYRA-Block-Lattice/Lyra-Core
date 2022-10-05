@@ -425,18 +425,17 @@ namespace Lyra.Core.Decentralize
 
         private async Task<ILyraAPI> CreateAggregatedClientAsync()
         {
-            if("mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
+            var useSeedOnly = false;
+            if ("mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
             {
-                var client = new LyraRestClient("", "", "", $"https://seed4.mainnet.lyra.live:5504/api/Node/");
-                return client;
+                //useSeedOnly = true;
+                //var client = new LyraRestClient("", "", "", $"https://seed4.mainnet.lyra.live:5504/api/Node/");
+                //return client;
             }
-            else
-            {
-                var useSeedOnly = true;
-                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
-                await client.InitAsync();
-                return client;
-            }
+
+            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
+            await client.InitAsync();
+            return client;
         }
 
         private bool InDBCC = false;
