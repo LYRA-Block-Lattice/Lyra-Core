@@ -302,36 +302,36 @@ namespace Lyra.Core.Decentralize
                             //});
 
 
-                            //BlockTypes bt = BlockTypes.Null;
-                            //if (signedMsg is AuthorizingMsg au)
-                            //{
-                            //    bt = au.Block.BlockType;
-                            //}
-                            //else if (signedMsg is BlockConsensusMessage bcm)
-                            //{
-                            //    if (_activeConsensus.ContainsKey(bcm.BlockHash))
-                            //    {
-                            //        var bx = _activeConsensus[bcm.BlockHash];
-                            //        if (bx.State != null && bx.State.InputMsg != null)
-                            //            bt = bx.State.InputMsg.Block.BlockType;
-                            //    }
-                            //}
+                            BlockTypes bt = BlockTypes.Null;
+                            if (signedMsg is AuthorizingMsg au)
+                            {
+                                bt = au.Block.BlockType;
+                            }
+                            else if (signedMsg is BlockConsensusMessage bcm)
+                            {
+                                if (_activeConsensus.ContainsKey(bcm.BlockHash))
+                                {
+                                    var bx = _activeConsensus[bcm.BlockHash];
+                                    if (bx.State != null && bx.State.InputMsg != null)
+                                        bt = bx.State.InputMsg.Block.BlockType;
+                                }
+                            }
 
-                            //// not needed anymore
-                            //// seeds take resp to forward heatbeat, once
-                            //if ((IsThisNodeSeed && (
-                            //    signedMsg.MsgType == ChatMessageType.HeartBeat
-                            //    //|| bt == BlockTypes.Consolidation
-                            //    //|| bt == BlockTypes.Service
-                            //    //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
-                            //    //|| (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
-                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
-                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
-                            //    //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
-                            //    )) || CurrentState == BlockChainState.Genesis)
-                            //{
-                            //    await CriticalRelayAsync(signedMsg, null);
-                            //}
+                            // not needed anymore
+                            // seeds take resp to forward heatbeat, once
+                            if ((IsThisNodeSeed && (
+                                signedMsg.MsgType == ChatMessageType.HeartBeat
+                                || bt == BlockTypes.Consolidation
+                                || bt == BlockTypes.Service
+                                //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
+                                //|| (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                                )) || CurrentState == BlockChainState.Genesis)
+                            {
+                                await CriticalRelayAsync(signedMsg, null);
+                            }
                         }
                         else
                         {
@@ -1917,7 +1917,7 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
             where T : SourceSignedMessage, new()
         {
-            _log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+            //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
 
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
