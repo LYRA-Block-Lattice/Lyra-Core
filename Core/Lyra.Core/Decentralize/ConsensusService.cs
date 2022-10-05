@@ -293,7 +293,7 @@ namespace Lyra.Core.Decentralize
                     {
                         if (signedMsg.VerifySignature(signedMsg.From))
                         {
-                            //await CriticalRelayAsync(signedMsg, null);
+                            await CriticalRelayAsync(signedMsg, null);
 
                             await OnNextConsensusMessageAsync(signedMsg);
                             //await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -301,7 +301,7 @@ namespace Lyra.Core.Decentralize
                             //    await OnNextConsensusMessageAsync(msg);
                             //});
 
-
+                            /*
                             BlockTypes bt = BlockTypes.Null;
                             if (signedMsg is AuthorizingMsg au)
                             {
@@ -324,14 +324,14 @@ namespace Lyra.Core.Decentralize
                                 || bt == BlockTypes.Consolidation
                                 || bt == BlockTypes.Service
                                 //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
-                                //|| (signedMsg is AuthorizingMsg/* au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock)*/)
+                                //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
                                 )) || CurrentState == BlockChainState.Genesis)
                             {
                                 await CriticalRelayAsync(signedMsg, null);
-                            }
+                            }*/
                         }
                         else
                         {
