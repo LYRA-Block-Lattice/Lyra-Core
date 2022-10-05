@@ -423,6 +423,14 @@ namespace Lyra.Core.Decentralize
             await BeginChangeViewAsync("consensus network", ViewChangeReason.TooManyViewChangeRquests);
         }
 
+        private async Task<LyraAggregatedClient> CreateAggregatedClientAsync()
+        {
+            var useSeedOnly = true;
+            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
+            await client.InitAsync();
+            return client;
+        }
+
         private bool InDBCC = false;
         private async Task<bool> DBCCAsync()
         {
@@ -442,8 +450,7 @@ namespace Lyra.Core.Decentralize
 
                 _log.LogInformation($"Database consistent check... It may take a while.");
 
-                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-                await client.InitAsync();
+                var client = await CreateAggregatedClientAsync();
 
                 var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                 var fixedHeight = lastCons?.Height ?? 0;
@@ -600,8 +607,7 @@ namespace Lyra.Core.Decentralize
                                 _log.LogInformation("while true after dbcc");
                                 try
                                 {
-                                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-                                    await client.InitAsync();
+                                    var client = await CreateAggregatedClientAsync();
 
                                     var result = await client.GetLastServiceBlockAsync();
                                     if (result.ResultCode == APIResultCodes.Success)
@@ -687,8 +693,7 @@ namespace Lyra.Core.Decentralize
                             }
 
                             //var client = new LyraRestClient("", "", "", $"https://{seedhost}/api/Node/");
-                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true, _sys.PosWallet.AccountId);
-                            await client.InitAsync();
+                            var client = await CreateAggregatedClientAsync();
 
                             // when static sync, only query the seed nodes.
                             // three seeds are enough for database sync.
@@ -817,8 +822,8 @@ namespace Lyra.Core.Decentralize
 
                                     // check block count
                                     // if total block count is not consistant according to majority of nodes, there must be a damage.
-                                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-                                    await client.InitAsync();
+                                    var client = await CreateAggregatedClientAsync();
+
                                     var syncstate = await client.GetSyncStateAsync();
                                     var mysyncstate = await GetNodeStatusAsync();
                                     if(syncstate.Successful())
