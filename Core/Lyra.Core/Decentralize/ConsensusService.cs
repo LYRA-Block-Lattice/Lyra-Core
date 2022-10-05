@@ -793,18 +793,18 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntry(() =>
                     {
-                        //var host = _hostEnv.GetWorkflowHost();
+                        var host = _hostEnv.GetWorkflowHost();
 
-                        //BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-                        //FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
-                        //bool shutdown = (bool)finfo.GetValue(host);
-                        //if (shutdown)
-                        //{
-                        //    _log.LogInformation("Start workflow host.Start()");
-                        //    host.OnStepError += Host_OnStepError;
-                        //    host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
-                        //    host.Start();
-                        //}
+                        BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+                        FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
+                        bool shutdown = (bool)finfo.GetValue(host);
+                        if (shutdown)
+                        {
+                            _log.LogInformation("Start workflow host.Start()");
+                            host.OnStepError += Host_OnStepError;
+                            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
+                            host.Start();
+                        }
 
                         _ = Task.Run(async () =>
                         {
