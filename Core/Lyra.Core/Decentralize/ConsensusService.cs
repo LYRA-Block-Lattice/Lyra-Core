@@ -339,7 +339,7 @@ namespace Lyra.Core.Decentralize
                             //if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
                             //{
                             //    var json = JsonConvert.SerializeObject(signedMsg);
-                            //    Console.WriteLine("===\n" + json + "\n===");
+                            //    _log.LogInformation("===\n" + json + "\n===");
 
                             //    var jb = JsonConvert.SerializeObject(signedMsg);
                             //}
@@ -793,18 +793,18 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntry(() =>
                     {
-                        var host = _hostEnv.GetWorkflowHost();
+                        //var host = _hostEnv.GetWorkflowHost();
 
-                        BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-                        FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
-                        bool shutdown = (bool)finfo.GetValue(host);
-                        if (shutdown)
-                        {
-                            _log.LogInformation("Start workflow host.Start()");
-                            host.OnStepError += Host_OnStepError;
-                            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
-                            host.Start();
-                        }
+                        //BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+                        //FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
+                        //bool shutdown = (bool)finfo.GetValue(host);
+                        //if (shutdown)
+                        //{
+                        //    _log.LogInformation("Start workflow host.Start()");
+                        //    host.OnStepError += Host_OnStepError;
+                        //    host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
+                        //    host.Start();
+                        //}
 
                         _ = Task.Run(async () =>
                         {
@@ -884,14 +884,14 @@ namespace Lyra.Core.Decentralize
         {
             //lock (lifeo)
             //{
-            //    //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+            //    //_log.LogInformation($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
             //    if (evt.Reference == "end")
             //    {
             //        if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
             //        {
             //            _endedWorkflows.Add(evt.WorkflowInstanceId);
             //            var hash = GetHashForWorkflow(evt.WorkflowInstanceId);
-            //            Console.WriteLine($"Key is {hash} terminated. Set it.");
+            //            _log.LogInformation($"Key is {hash} terminated. Set it.");
             //        }
             //    }
             //}
@@ -1101,17 +1101,17 @@ namespace Lyra.Core.Decentralize
             //if(item is AuthorizingMsg auth && auth.Block is ProfitingGenesis gen)
             //{
             //    var json = JsonConvert.SerializeObject(item);
-            //    Console.WriteLine("===\n" + json + "\n===");
+            //    _log.LogInformation("===\n" + json + "\n===");
 
             //    var jb = JsonConvert.SerializeObject(auth.Block);
             //    var blockx = JsonConvert.DeserializeObject<ProfitingGenesis>(jb);
             //    var v = blockx.VerifyHash();
-            //    Console.WriteLine($"Test convert hash verify result: {v}");
+            //    _log.LogInformation($"Test convert hash verify result: {v}");
             //    if(!v)
             //    {
             //        var jb2 = JsonConvert.SerializeObject(blockx);
-            //        Console.WriteLine($"-----------\n{jb}\n\n{jb2}\n----------");
-            //        Console.WriteLine($"+++++++++++\n{auth.Block.GetHashInput()}\n\n{blockx.GetHashInput()}\n+++++++++++");
+            //        _log.LogInformation($"-----------\n{jb}\n\n{jb2}\n----------");
+            //        _log.LogInformation($"+++++++++++\n{auth.Block.GetHashInput()}\n\n{blockx.GetHashInput()}\n+++++++++++");
             //    }
             //}
         }
@@ -1793,7 +1793,7 @@ namespace Lyra.Core.Decentralize
                     ServiceBlockCreated(serviceBlock);
 
                     var wfhost = _hostEnv.GetWorkflowHost();
-                    Console.WriteLine($"View changed to {serviceBlock.Height} ");
+                    _log.LogInformation($"View changed to {serviceBlock.Height} ");
                     await wfhost.PublishEvent("ViewChanged", $"{serviceBlock.PreviousHash}", result);
                 }
 
@@ -1846,7 +1846,7 @@ namespace Lyra.Core.Decentralize
                 //    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
                 //        ??
                 //    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-                //Console.WriteLine($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
+                //_log.LogInformation($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
 
                 //ctx.SetLastBlock(block);
                 //return block;
@@ -1909,7 +1909,7 @@ namespace Lyra.Core.Decentralize
 
             var wfhost = _hostEnv.GetWorkflowHost();
             if(result != ConsensusResult.Yea)
-                Console.WriteLine($"Key is {key} Publish Consensus event {result} ");
+                _log.LogInformation($"Key is {key} Publish Consensus event {result} ");
             await wfhost.PublishEvent("MgBlkDone", key, result);
             return;
         }

@@ -229,12 +229,12 @@ namespace Lyra.Core.WorkFlow
                         .Do(x => x
                             .If(data => data.State == WFState.Init || data.State == WFState.Running)
                                 .Do(then => then
-                                .StartWith<Repeator>()
+                                .StartWith<Repeator>()      // WF to generate new block
                                     .Input(step => step.count, data => data.Count)
                                     .Output(data => data.Count, step => step.count)
                                     .Output(data => data.LastBlockType, step => LyraContext.ParseBlock(step.block).type)
                                     .Output(data => data.LastBlockJson, step => LyraContext.ParseBlock(step.block).json)
-                                .If(data => data.LastBlockType != BlockTypes.Null).Do(letConsensus))
+                                .If(data => data.LastBlockType != BlockTypes.Null).Do(letConsensus))    // send to consensus network
                             .If(data => data.LastBlockType != BlockTypes.Null && data.LastResult == ConsensusResult.Nay)
                                 .Do(then => then
                                 .StartWith<CustomMessage>()
