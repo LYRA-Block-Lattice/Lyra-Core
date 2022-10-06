@@ -710,12 +710,14 @@ namespace Lyra.Core.Decentralize
 
                             if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
+                                _log.LogInformation("Invalid Sync State.");
                                 //client.ReBase(true);
                                 continue;
                             }
 
                             if (networkStatus.ResultCode != APIResultCodes.Success)
                             {
+                                _log.LogInformation($"Unexpected network state: {networkStatus.ResultCode}");
                                 await Task.Delay(2000);
                                 continue;
                             }
