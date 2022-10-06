@@ -311,7 +311,7 @@ namespace Lyra.Core.Decentralize
                             else
                             {
                                 _log.LogInformation("Waiting for any new changes ...");
-                                await Task.Delay(20000);                                
+                                await Task.Delay(5000);                                
                             }
                         }
                     }

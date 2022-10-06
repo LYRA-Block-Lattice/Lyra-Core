@@ -428,7 +428,7 @@ namespace Lyra.Core.Decentralize
             var useSeedOnly = false;
             if ("mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
             {
-                //useSeedOnly = true;
+                useSeedOnly = true;
                 //var client = new LyraRestClient("", "", "", $"https://seed4.mainnet.lyra.live:5504/api/Node/");
                 //return client;
             }
