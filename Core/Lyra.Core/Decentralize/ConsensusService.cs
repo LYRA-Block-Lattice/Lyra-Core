@@ -1966,7 +1966,7 @@ namespace Lyra.Core.Decentralize
             if (item is ViewChangeMessage vcm && _viewChangeHandler != null)
             {
                 // need to listen to any view change event.
-                //_log.LogInformation($"View change request from {vcm.From.Shorten()}");
+                //_log.LogInformation($"View change request from {vcm.From.Shorten()}, is voter? {Board.AllVoters.Contains(vcm.From)}");
                 if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.AllVoters.Contains(vcm.From))
                 {
                     await _viewChangeHandler.ProcessMessageAsync(vcm);
