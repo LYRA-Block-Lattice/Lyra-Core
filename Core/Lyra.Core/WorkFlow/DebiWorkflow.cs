@@ -320,13 +320,21 @@ namespace Lyra.Core.WorkFlow
 
     public class SubmitBlock : StepBodyAsync
     {
+        private ILogger _logger;
+
         public TransactionBlock block { get; init; }
+
+        public SubmitBlock(ILogger<SubmitBlock> logger)
+        {
+            _logger = logger;
+        }
 
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
 
-            //Console.WriteLine($"In SubmitBlock: {block}");
+            _logger.LogInformation($"In SubmitBlock: Leader? {ConsensusService.Singleton.IsThisNodeLeader} {block.BlockType} {block.Hash} {ctx.State}");
+
             if (ConsensusService.Singleton.IsThisNodeLeader)
                 await ConsensusService.Singleton.LeaderSendBlockToConsensusAndForgetAsync(block);
 
