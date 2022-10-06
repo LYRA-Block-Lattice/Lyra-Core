@@ -159,7 +159,10 @@ namespace Lyra.Core.Decentralize
         internal async Task ProcessMessageAsync(ViewChangeMessage vcm)
         {
             if (vcm.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT))
+            {
+                _log.LogInformation("view change message timeout");
                 return;
+            }
 
             if (vcm is ViewChangeRequestMessage req)
             {
