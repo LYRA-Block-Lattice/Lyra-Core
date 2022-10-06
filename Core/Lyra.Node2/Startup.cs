@@ -97,6 +97,7 @@ namespace Lyra.Node2
 
             services.AddTransient<Repeator>();
             services.AddTransient<ReqViewChange>();
+            services.AddTransient<SubmitBlock>();
             services.AddTransient<CustomMessage>();
 
             services.AddApiVersioning(options => {
