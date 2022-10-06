@@ -158,51 +158,8 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessageAsync(ViewChangeMessage vcm)
         {
-            if (ViewId != 0 && vcm.ViewID != ViewId)
-            {
-                _log.LogInformation($"VC Msgs: view ID {vcm.ViewID} not valid with {ViewId}");
-                if (vcm.ViewID > ViewId)
-                {
-                    // maybe outdated?
-                    if(_vcTaskMutex.Wait(1))
-                    {
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-                                await client.InitAsync();
-                                var lsb = await client.GetLastServiceBlockAsync();
-                                if(lsb.ResultCode == Blocks.APIResultCodes.Success)
-                                {
-                                    var sb = lsb.GetBlock() as ServiceBlock;
-                                    if(sb.Height > ViewId)
-                                    {
-                                        // outdated
-                                        _context.LocalConsolidationFailed(sb.Hash);
-                                    }
-                                }
-                            }
-                            catch(Exception ex)
-                            {
-                                _log.LogError($"In detecting latest view: {ex}");
-                            }
-                            finally
-                            {
-                                // throttle
-                                await Task.Delay(3000);
-                                _vcTaskMutex.Release();
-                            }
-                        }).ConfigureAwait(false);
-                    }
-                }
-                return;
-            }
-
             if (vcm.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT))
                 return;
-
-            RemoveOutDatedMsgs();
 
             if (vcm is ViewChangeRequestMessage req)
             {
@@ -231,11 +188,11 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
-            if(!IsViewChanging)
-            {
-                RemoveOutDatedMsgs();
+            RemoveOutDatedMsgs();
 
-                if (reqMsgs.Count > LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if (!IsViewChanging)
+            {               
+                if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
                     var sb = new StringBuilder();
                     foreach (var msg in reqMsgs)
@@ -246,8 +203,6 @@ namespace Lyra.Core.Decentralize
                     // too many view change request. force into view change mode
                     await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
                 }
-
-                return;
             }
 
             // request
@@ -346,7 +301,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitAsync(ViewChangeCommitMessage vcm)
         {
-            if(!commitMsgs.ContainsKey(vcm.From))
+            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {vcm.Consensus}");
+
+            if (!commitMsgs.ContainsKey(vcm.From))
             {
                 var cmt = new VCCommitWithTime(vcm);
                 commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
@@ -357,7 +314,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckReplyAsync(ViewChangeReplyMessage reply)
         {
-            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
+            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
 
             if (reply.Result == Blocks.APIResultCodes.Success)
             {
@@ -379,24 +336,24 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
         {
-            //_log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
-
             // make sure all request from all voters
             if (!_context.Board.AllVoters.Contains(req.From))
                 return;
 
-            if (reqMsgs.Values.Any(a => a.msg.From == req.From))
-            {
-                reqMsgs.TryRemove(req.From, out _);
-            }
+            if (reqMsgs.Any(a => a.Value.msg.Signature == req.Signature))
+                return;
+
+            _log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
             if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
             {
-                if(reqMsgs.TryAdd(req.From, new VCReqWithTime(req)))
-                    await CheckAllStatsAsync();
+                var reqwt = new VCReqWithTime(req);
+                reqMsgs.AddOrUpdate(req.From, reqwt, (key, old) => reqwt);
+                
+                await CheckAllStatsAsync();
             }
             //else
             //    _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
