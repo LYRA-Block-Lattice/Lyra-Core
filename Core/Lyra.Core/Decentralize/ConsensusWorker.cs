@@ -75,7 +75,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (_context.Board.LeaderCandidate != null && _context.Board.LeaderCandidate != bmsg.From)
                     {
-                        _log.LogWarning($"Service block not from leader candidate {_context.Board.LeaderCandidate.Shorten()} but from {bmsg.From.Shorten()}");
+                        //_log.LogWarning($"Service block not from leader candidate {_context.Board.LeaderCandidate.Shorten()} but from {bmsg.From.Shorten()}");
                         sourceValid = false;
                     }
                 }
@@ -91,7 +91,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (_context.Board.CurrentLeader != bmsg.From)
                     {
-                        _log.LogWarning($"Consolidation block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
+                        //_log.LogWarning($"Consolidation block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
                         sourceValid = false;
                     }
                 }
@@ -136,7 +136,11 @@ namespace Lyra.Core.Decentralize
         {
             try
             {
-                _semaphore.Wait();
+                // check dup first
+                if (_state != null)
+                    return;
+
+                _semaphore.Wait();                
 
                 _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
                 //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
@@ -150,6 +154,10 @@ namespace Lyra.Core.Decentralize
                 if (_state == null)
                 {
                     _state = _context.CreateAuthringState(msg, sourceValid);
+                }
+                else
+                {
+                    return;
                 }
 
                 // if source is invalid, we just listen to the network. 
