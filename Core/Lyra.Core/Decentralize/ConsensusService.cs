@@ -806,7 +806,7 @@ namespace Lyra.Core.Decentralize
 
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntry(() =>
-                    {
+                    {                       
                         var host = _hostEnv.GetWorkflowHost();
 
                         BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -823,10 +823,13 @@ namespace Lyra.Core.Decentralize
                         _ = Task.Run(async () =>
                         {
                             try
-                            {
+                            {                               
                                 while (true)
                                 {
                                     _log.LogInformation("While true in BlockChainState.Engaging Task.Run");
+
+                                    await SetupCurrentView();
+
                                     await EngagingSyncAsync();
 
                                     // check block count
@@ -876,11 +879,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    _lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                    var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-                    _lastServiceHash = lsb.Hash;
-                    _viewChangeHandler.ShiftView(lsb.Height + 1);
-
+                    await SetupCurrentView();
                 }).ConfigureAwait(false))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);
@@ -890,6 +889,14 @@ namespace Lyra.Core.Decentralize
                 _sys.UpdateConsensusState(t.Destination);
                 _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})");
             });
+        }
+
+        private async Task SetupCurrentView()
+        {
+            _lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            _lastServiceHash = lsb.Hash;
+            _viewChangeHandler.ShiftView(lsb.Height + 1);
         }
 
         object lifeo = new object();

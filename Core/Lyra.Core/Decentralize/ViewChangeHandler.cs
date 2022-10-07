@@ -191,7 +191,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
-            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replied: {replySent} Commited: {commitSent}");
+            //_log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replied: {replySent} Commited: {commitSent}");
 
             RemoveOutDatedMsgs();
 
@@ -357,8 +357,8 @@ namespace Lyra.Core.Decentralize
                 reqMsgs.AddOrUpdate(req.From, reqwt, (key, old) => reqwt);
 
                 //_log.LogInformation($"vc id {req.ViewID} after add total request {reqMsgs.Count}");
-
-                await CheckAllStatsAsync();
+                if(reqMsgs.Count >= _context.Board.AllVoters.Count / 3)
+                    await CheckAllStatsAsync();
             }
             //else
             //    _log.LogInformation($"View change request from {req.From.Shorten()} for view {req.ViewID} is not valid. total request {reqMsgs.Count}");

@@ -236,6 +236,9 @@ namespace Lyra.Core.Decentralize
             var emptySyncTimes = 0;
             var client = await CreateAggregatedClientAsync();
 
+            // first make sure db is synced, especially when trans from almighty
+            await SyncDatabaseAsync(client);
+
             for (int ii = 0; ii < 15; ii++)
             {
                 try
