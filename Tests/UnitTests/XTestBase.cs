@@ -166,6 +166,7 @@ namespace UnitTests
 
             services.AddTransient<Repeator>();
             services.AddTransient<ReqViewChange>();
+            services.AddTransient<SubmitBlock>();
             services.AddTransient<CustomMessage>();
 
             //services.AddTransient<DoSomething>();
@@ -480,7 +481,7 @@ namespace UnitTests
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 #if DEBUG
-            var ret = _workflowEnds.WaitOne(100000);
+            var ret = _workflowEnds.WaitOne(1000000);
 #else
             var ret = _workflowEnds.WaitOne(3000);
 #endif

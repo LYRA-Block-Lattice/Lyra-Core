@@ -171,11 +171,11 @@ namespace Lyra.Core.WorkFlow
                         .Output(data => data.LastResult, step => null)
                     .Parallel()
                         .Do(then => then
-                            .StartWith<CustomMessage>()
-                                .Name("Log")
-                                .Input(step => step.Message, data => $"Submiting block {data.GetLastBlock().Hash}...")
-                            .Then<SubmitBlock>()
+                            .StartWith<SubmitBlock>()
                                 .Input(step => step.block, data => data.GetLastBlock())
+                            .Then<CustomMessage>()
+                                .Name("Log")
+                                .Input(step => step.Message, data => $"Block {data.GetLastBlock().Hash} submitted. Waiting for result...")
                             .WaitFor("MgBlkDone", data => data.SendHash, data => new DateTime(data.TimeTicks, DateTimeKind.Utc))
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
@@ -323,7 +323,7 @@ namespace Lyra.Core.WorkFlow
     {
         private ILogger _logger;
 
-        public TransactionBlock block { get; init; }
+        public TransactionBlock? block { get; set; }
 
         public SubmitBlock(ILogger<SubmitBlock> logger)
         {
