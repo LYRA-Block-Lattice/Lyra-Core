@@ -17,11 +17,13 @@ namespace Lyra.Core.API
         public const char ADDRESSPREFIX = 'L';
         public const string WALLETFILEEXT = ".lyrawallet";
 
-        public const int CONSENSUS_TIMEOUT = 8;  // seconds
+        public const int CONSENSUS_TIMEOUT = 15;  // seconds
         public const int VIEWCHANGE_TIMEOUT = 48;    // seconds
         public const int MAXIMUM_VOTER_NODES = MAXIMUM_AUTHORIZERS;
         public const int MAXIMUM_AUTHORIZERS = 19;
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
+
+        public const int CONSOLIDATIONDELAY = -60;      // one minute delay for consolidate blocks
 
         public const int ProtocolVersion = 4;
         public const int DatabaseVersion = 9;

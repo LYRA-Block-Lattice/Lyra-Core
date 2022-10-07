@@ -1469,9 +1469,10 @@ namespace Lyra.Core.Accounts
             var tx = block as TransactionBlock;
             if (tx != null)
             {
-                if (await FindBlockByIndexAsync(tx.AccountID, tx.Height) != null)
+                var curNdx = await FindBlockByIndexAsync(tx.AccountID, tx.Height);
+                if (curNdx != null)
                 {
-                    _log.LogWarning($"AccountCollection=>AddBlock: Block with such Index already exists! {block.BlockType}, {block.Hash} {tx.AccountID} {tx.Height}");
+                    _log.LogWarning($"AccountCollection=>AddBlock: Block with such Index already exists! {block.BlockType}, {block.Hash} {tx.AccountID} {tx.Height} existing: {curNdx.Hash}");
                     return false;
                 }
             }

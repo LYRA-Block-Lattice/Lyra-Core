@@ -1512,12 +1512,7 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                // consolidate time from lastcons to now - 18s
-
-                var timeShift = -18;
-                //var timeNow = IsThisNodeLeader ? DateTime.UtcNow : DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.CONSENSUS_TIMEOUT);
-
-                var timeStamp = DateTime.UtcNow.AddSeconds(timeShift + -1 * LyraGlobal.CONSENSUS_TIMEOUT);
+                var timeStamp = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY); // delay one minute
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                 // if 1 it must be previous consolidation block.
@@ -1538,7 +1533,8 @@ namespace Lyra.Core.Decentralize
                             {
                                 // leader may be faulty
                                 var lsp = await _sys.Storage.GetLastServiceBlockAsync();
-                                if(lsp.TimeStamp < DateTime.UtcNow.AddSeconds(-30))
+                                // give new leader enough time to consolidate blocks
+                                if(lsp.TimeStamp < DateTime.UtcNow.AddSeconds(-45 + LyraGlobal.CONSOLIDATIONDELAY))
                                     await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
                             }
                         }

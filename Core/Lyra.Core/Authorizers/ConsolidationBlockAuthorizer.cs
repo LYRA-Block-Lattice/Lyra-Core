@@ -94,13 +94,13 @@ namespace Lyra.Core.Authorizers
         protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
             var cons = block as ConsolidationBlock;
-            var uniNow = DateTime.UtcNow;
+            var uniTime = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY);
             if (sys.ConsensusState != BlockChainState.StaticSync)
             {
-                // time shift 10 seconds.
-                if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(3))
+                // time shift 15 seconds.
+                if (block.TimeStamp < uniTime.AddSeconds(-15) || block.TimeStamp > uniTime.AddSeconds(15))
                 {
-                    _log.LogInformation($"TimeStamp 3: {block.TimeStamp} Universal Time Now: {uniNow}");
+                    _log.LogInformation($"TimeStamp 3: {block.TimeStamp} Consolidate Time should around: {uniTime}");
                     return APIResultCodes.InvalidBlockTimeStamp;
                 }
             }
