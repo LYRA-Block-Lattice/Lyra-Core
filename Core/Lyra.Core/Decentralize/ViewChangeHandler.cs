@@ -160,7 +160,7 @@ namespace Lyra.Core.Decentralize
         {
             if (vcm.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT))
             {
-                _log.LogInformation("view change message timeout");
+                //_log.LogInformation("view change message timeout");
                 return;
             }
 
@@ -191,6 +191,8 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
+            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replied: {replySent} Commited: {commitSent}");
+
             RemoveOutDatedMsgs();
 
             if (!IsViewChanging)
@@ -234,8 +236,6 @@ namespace Lyra.Core.Decentralize
             {
                 if(replyMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
-                    _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-
                     // reply
                     // only if we have enough reply
                     var decQr = from rep in replyMsgs.Values
@@ -304,7 +304,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitAsync(ViewChangeCommitMessage vcm)
         {
-            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {vcm.Consensus}");
+            //_log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {vcm.Consensus}");
 
             if (!commitMsgs.ContainsKey(vcm.From))
             {
@@ -317,7 +317,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckReplyAsync(ViewChangeReplyMessage reply)
         {
-            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
+            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
 
             if (reply.Result == Blocks.APIResultCodes.Success)
             {
@@ -343,23 +343,25 @@ namespace Lyra.Core.Decentralize
             if (!_context.Board.AllVoters.Contains(req.From))
                 return;
 
-            if (reqMsgs.Any(a => a.Value.msg.Signature == req.Signature))
+            if (reqMsgs.Any(a => a.Value.msg.requestSignature == req.requestSignature))
                 return;
-
-            _log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
             if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
             {
+                //_log.LogInformation($"View change request id {req.ViewID} from {req.From.Shorten()} for view {req.ViewID} is valid. before add total request {reqMsgs.Count}");
+
                 var reqwt = new VCReqWithTime(req);
                 reqMsgs.AddOrUpdate(req.From, reqwt, (key, old) => reqwt);
-                
+
+                //_log.LogInformation($"vc id {req.ViewID} after add total request {reqMsgs.Count}");
+
                 await CheckAllStatsAsync();
             }
             //else
-            //    _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
+            //    _log.LogInformation($"View change request from {req.From.Shorten()} for view {req.ViewID} is not valid. total request {reqMsgs.Count}");
         }
 
         /// <summary>

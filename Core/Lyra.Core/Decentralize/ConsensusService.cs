@@ -988,11 +988,12 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation("UpdateVoters begin...");
             RefreshAllNodesVotes();
             var list = GetQualifiedVoters();
-            if (list.Count >= 4)        // simple check. but real condition is complex.
+            var minVoterNumber = GetQualifiedNodeCount();
+            if (list.Count >= minVoterNumber)        // simple check. but real condition is complex.
                 Board.AllVoters = list;
             else
             {
-                var s = "voters count < 4. network outtage happened. trying to resync";
+                var s = $"voters count < {minVoterNumber}. network outtage happened. trying to resync";
                 LocalConsolidationFailed(null);
                 _log.LogError(s);
                 //throw new InvalidOperationException(s);
@@ -1514,13 +1515,13 @@ namespace Lyra.Core.Decentralize
                 // consolidate time from lastcons to now - 18s
 
                 var timeShift = -18;
-                var timeNow = IsThisNodeLeader ? DateTime.UtcNow : DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.CONSENSUS_TIMEOUT);
+                //var timeNow = IsThisNodeLeader ? DateTime.UtcNow : DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.CONSENSUS_TIMEOUT);
 
-                var timeStamp = timeNow.AddSeconds(timeShift);
+                var timeStamp = DateTime.UtcNow.AddSeconds(timeShift + -1 * LyraGlobal.CONSENSUS_TIMEOUT);
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                 // if 1 it must be previous consolidation block.
-                if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && timeNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+                if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && timeStamp - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     try
                     {
