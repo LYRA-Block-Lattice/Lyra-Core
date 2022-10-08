@@ -42,20 +42,15 @@ namespace Lyra.Core.WorkFlow
                 var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
 
                 SendTransferBlock? sendBlock = null;
-                for (int i = 0; i < 20; i++)
-                {
-                    sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
-                        as SendTransferBlock;
 
-                    if (sendBlock != null)
-                        break;
-
-                    await Task.Delay(100);
-                }
+                sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
+                    as SendTransferBlock;
 
                 if (sendBlock == null)
                 {
-
+                    _logger.LogCritical($"Fatal: Workflow can't find the key send block: {ctx.SendHash}");
+                    block = null;
+                    ctx.State = WFState.Error;
                 }
                 else
                 {

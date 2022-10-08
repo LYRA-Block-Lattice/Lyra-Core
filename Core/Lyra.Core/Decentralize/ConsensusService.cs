@@ -996,15 +996,17 @@ namespace Lyra.Core.Decentralize
             RefreshAllNodesVotes();
             var list = GetQualifiedVoters();
             var minVoterNumber = GetQualifiedNodeCount();
-            if (list.Count >= minVoterNumber)        // simple check. but real condition is complex.
+            if (list.Count >= minVoterNumber)        // we only update this when there is enough voters.
                 Board.AllVoters = list;
-            else
-            {
-                var s = $"voters count < {minVoterNumber}. network outtage happened. trying to resync";
-                LocalConsolidationFailed(null);
-                _log.LogError(s);
-                //throw new InvalidOperationException(s);
-            }
+
+            // note: a resync can't help. only wait for p2p network to reconnect.
+            //else
+            //{
+            //    var s = $"voters count < {minVoterNumber}. network outtage happened. trying to resync";
+            //    LocalConsolidationFailed(null);
+            //    _log.LogError(s);
+            //    //throw new InvalidOperationException(s);
+            //}
             //_log.LogInformation("UpdateVoters ended.");
         }
 
