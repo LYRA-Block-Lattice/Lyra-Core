@@ -293,7 +293,10 @@ namespace Lyra.Core.Decentralize
                     {
                         if (signedMsg.VerifySignature(signedMsg.From))
                         {
-                            await CriticalRelayAsync(signedMsg, null);
+                            if(IsThisNodeSeed)
+                            {
+                                await CriticalRelayAsync(signedMsg, null);
+                            }                            
 
                             await OnNextConsensusMessageAsync(signedMsg);
                             //await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -301,8 +304,7 @@ namespace Lyra.Core.Decentralize
                             //    await OnNextConsensusMessageAsync(msg);
                             //});
 
-                            /*
-                            BlockTypes bt = BlockTypes.Null;
+/*                            BlockTypes bt = BlockTypes.Null;
                             if (signedMsg is AuthorizingMsg au)
                             {
                                 bt = au.Block.BlockType;
@@ -1494,6 +1496,8 @@ namespace Lyra.Core.Decentralize
 
             _lastConsolidateTry = DateTime.UtcNow;
 
+            _log.LogInformation("ConsolidateBlocksAsync: Begin prepare a consolidation block.");
+
             // check if there are pending consolidate blocks
             var pendingCons = _activeConsensus.Values
                 .Where(a =>
@@ -1503,7 +1507,10 @@ namespace Lyra.Core.Decentralize
                     && a.Status != ConsensusWorker.ConsensusWorkerStatus.Commited);
 
             if (pendingCons.Any())
+            {
+                _log.LogInformation("ConsolidateBlocksAsync: A consolidation block is pending.");
                 return;
+            }
 
             // avoid racing condition (commited but not saved)
             if (pendingCons.Any(a => !a.State.IsSaved))
@@ -1517,16 +1524,18 @@ namespace Lyra.Core.Decentralize
                 var lastCons = _lastCons;
                 if(pendingCons.Any(x => x.State.IsSaved && x.State.InputMsg.Block.Height > lastCons.Height))
                 {
-                    _log.LogWarning($"Racing condition: pending cons height > last cons");
+                    _log.LogWarning($"ConsolidateBlocksAsync: Racing condition: pending cons height > last cons");
                     return;
                 }
 
+                _log.LogInformation("ConsolidateBlocksAsync: Finding all floating blocks...");
                 var timeStamp = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY); // delay one minute
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                 // if 1 it must be previous consolidation block.
                 if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && timeStamp - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
+                    _log.LogInformation("ConsolidateBlocksAsync: time to create new one...");
                     try
                     {
                         var InCons = _activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.InAuthorizing
@@ -1539,13 +1548,17 @@ namespace Lyra.Core.Decentralize
                                 await LeaderCreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
                             }
                             else
-                            {
-                                // leader may be faulty
-                                var lsp = await _sys.Storage.GetLastServiceBlockAsync();
-                                // give new leader enough time to consolidate blocks
-                                if(lsp.TimeStamp < DateTime.UtcNow.AddSeconds(-45 + LyraGlobal.CONSOLIDATIONDELAY))
-                                    await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
+                            {                                
+                                //// leader may be faulty
+                                //var lsp = await _sys.Storage.GetLastServiceBlockAsync();
+                                //// give new leader enough time to consolidate blocks
+                                //if(lsp.TimeStamp < DateTime.UtcNow.AddSeconds(-45 + LyraGlobal.CONSOLIDATIONDELAY))
+                                //    await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
                             }
+                        }
+                        else
+                        {
+                            _log.LogInformation("ConsolidateBlocksAsync: consolidation block in queue.");
                         }
                     }
                     catch (Exception ex)

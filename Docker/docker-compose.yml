@@ -15,7 +15,7 @@ services:
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   noded:
-    image: wizdy/lyranoded:3.5.0.4
+    image: wizdy/lyranoded:3.5.0.5
     restart: always
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
