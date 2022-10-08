@@ -429,8 +429,8 @@ namespace Lyra.Core.Decentralize
             if ("mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
             {
                 useSeedOnly = true;
-                var client1 = new LyraRestClient("", "", "", $"https://seed2.mainnet.lyra.live:5504/api/Node/");
-                return client1;
+                //var client1 = new LyraRestClient("", "", "", $"https://seed2.mainnet.lyra.live:5504/api/Node/");
+                //return client1;
             }
 
             var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
