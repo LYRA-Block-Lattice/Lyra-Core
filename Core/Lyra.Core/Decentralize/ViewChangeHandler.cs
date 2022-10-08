@@ -65,9 +65,11 @@ namespace Lyra.Core.Decentralize
         {
             public ViewChangeRequestMessage msg { get; set; }
             public DateTime Time { get; } = DateTime.Now;
-            public VCReqWithTime(ViewChangeRequestMessage Message)
+            public bool IsGood { get; set; }
+            public VCReqWithTime(ViewChangeRequestMessage Message, bool isGood)
             {
                 msg = Message;
+                IsGood = isGood;
             }
         }
         private class VCReplyWithTime
@@ -128,14 +130,9 @@ namespace Lyra.Core.Decentralize
             replySent = false;
             commitSent = false;
             ResetTimer();
-            var r1 = reqMsgs.Where(a => a.Value.msg.ViewID != ViewId).Select(x => x.Key);
-            r1.ForEach(x => reqMsgs.TryRemove(x, out _));
-
-            var r2 = replyMsgs.Where(a => a.Value.msg.ViewID != ViewId).Select(x => x.Key);
-            r2.ForEach(x => replyMsgs.TryRemove(x, out _));
-
-            var r3 = commitMsgs.Where(a => a.Value.msg.ViewID != ViewId).Select(x => x.Key);
-            r3.ForEach(x => commitMsgs.TryRemove(x, out _));
+            reqMsgs.Clear();
+            replyMsgs.Clear();
+            commitMsgs.Clear();
         }
 
         private void RemoveOutDatedMsgs()
@@ -160,7 +157,7 @@ namespace Lyra.Core.Decentralize
         {
             if (vcm.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT))
             {
-                //_log.LogInformation("view change message timeout");
+                _log.LogInformation("view change message timeout");
                 return;
             }
 
@@ -170,7 +167,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            //_log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
+            //_log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {ViewId} ");
 
             if (_context.Board.AllVoters.Contains(vcm.From))      // not the next one
             {
@@ -187,17 +184,21 @@ namespace Lyra.Core.Decentralize
                         break;
                 }
             }
+            else
+            {
+                //_log.LogInformation($"ViewChangeHandler not a voter: From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {ViewId} ");
+            }
         }
 
         private async Task CheckAllStatsAsync()
         {
-            //_log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replied: {replySent} Commited: {commitSent}");
+            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count(a => a.Value.IsGood)} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replied: {replySent} Commited: {commitSent}");
 
             RemoveOutDatedMsgs();
 
             if (!IsViewChanging)
             {               
-                if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                if (reqMsgs.Count(a => a.Value.IsGood) > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
                     var sb = new StringBuilder();
                     foreach (var msg in reqMsgs)
@@ -206,14 +207,16 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
 
                     // too many view change request. force into view change mode
-                    await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
+                    await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count(a => a.Value.IsGood));
                 }
             }
 
             // request
-            if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if (!replySent && reqMsgs.Count(a => a.Value.IsGood) >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+                replySent = true;
+
+                _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count(a => a.Value.IsGood)} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
                 if (string.IsNullOrEmpty(nextLeader))
                     CalculateLeaderCandidate();
@@ -228,7 +231,8 @@ namespace Lyra.Core.Decentralize
 
                 _context.Send2P2pNetwork(reply);
 
-                replySent = true;
+                _log.LogWarning($"Send my view change reply, candidate is {nextLeader}");
+
                 await CheckReplyAsync(reply);
             }
 
@@ -343,25 +347,32 @@ namespace Lyra.Core.Decentralize
             if (!_context.Board.AllVoters.Contains(req.From))
                 return;
 
-            if (reqMsgs.Any(a => a.Value.msg.requestSignature == req.requestSignature))
+            if (req.ViewID != ViewId)
                 return;
 
-            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            if (reqMsgs.Any(a => a.Value.msg.Signature == req.Signature))
+                return;
+
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
-            if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
+            if (Signatures.VerifyAccountSignature($"{lastCons.ServiceHash}|{lastCons.Hash}", req.From, req.requestSignature))
             {
-                //_log.LogInformation($"View change request id {req.ViewID} from {req.From.Shorten()} for view {req.ViewID} is valid. before add total request {reqMsgs.Count}");
+                _log.LogInformation($"View change request id {req.ViewID} from {req.From.Shorten()} for view {req.ViewID} is valid. before add total request {reqMsgs.Count(a => a.Value.IsGood)}");
 
-                var reqwt = new VCReqWithTime(req);
+                var reqwt = new VCReqWithTime(req, true);
                 reqMsgs.AddOrUpdate(req.From, reqwt, (key, old) => reqwt);
 
-                //_log.LogInformation($"vc id {req.ViewID} after add total request {reqMsgs.Count}");
-                if(reqMsgs.Count >= _context.Board.AllVoters.Count / 3)
+                //_log.LogInformation($"vc id {req.ViewID} after add total request {reqMsgs.Count(a => a.Value.IsGood)}");
+                if (reqMsgs.Count(a => a.Value.IsGood) >= _context.Board.AllVoters.Count / 3)
                     await CheckAllStatsAsync();
             }
-            //else
-            //    _log.LogInformation($"View change request from {req.From.Shorten()} for view {req.ViewID} is not valid. total request {reqMsgs.Count}");
+            else
+            {
+                //_log.LogInformation($"View change request from {req.From.Shorten()} for view {req.ViewID} is not valid. total request {reqMsgs.Count(a => a.Value.IsGood)}");
+
+                var reqwt = new VCReqWithTime(req, false);
+                reqMsgs.AddOrUpdate(req.From, reqwt, (key, old) => reqwt);
+            }
         }
 
         /// <summary>
@@ -371,7 +382,7 @@ namespace Lyra.Core.Decentralize
         /// <returns></returns>
         internal async Task BeginChangeViewAsync(ViewChangeReason reason)
         {
-            _log.LogInformation($"BeginChangeViewAsync: VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            _log.LogInformation($"BeginChangeViewAsync: VID: {ViewId} Req: {reqMsgs.Count(a => a.Value.IsGood)} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             _reason = reason;
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -399,7 +410,7 @@ namespace Lyra.Core.Decentralize
                 ViewID = ViewId,
                 prevViewID = lastSb.Height,
                 requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                    $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
+                    $"{lastCons.ServiceHash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
             };
 
             _context.Send2P2pNetwork(req);

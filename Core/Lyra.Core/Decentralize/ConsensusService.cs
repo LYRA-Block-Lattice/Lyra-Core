@@ -1014,7 +1014,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task CheckCreateNewViewAsync()
         {
-            //_log.LogInformation($"Checking new player(s)...");
+            _log.LogInformation($"Checking new player(s)...");
             if (CurrentState != BlockChainState.Almighty)
             {
                 return;
@@ -1034,12 +1034,17 @@ namespace Lyra.Core.Decentralize
 
             if (firstNotSecond.Any() || secondNotFirst.Any())
             {
-                //_log.LogInformation($"voter list is same as previous one.");
+                _log.LogInformation($"voter list is not the same as previous one.");
                 reason = ViewChangeReason.PlayerJoinAndLeft;
             }
             else if(lsb.TimeStamp.AddHours(4) < DateTime.UtcNow)
             {
+                _log.LogInformation($"view 4 hours time out.");
                 reason = ViewChangeReason.ViewTimeout;
+            }
+            else
+            {
+                _log.LogInformation($"no reason to change view");
             }
 
             //_log.LogInformation($"We have new player(s). Change view...");
@@ -1984,14 +1989,11 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if (item is ViewChangeMessage vcm && _viewChangeHandler != null)
+            if (item is ViewChangeMessage vcm)
             {
                 // need to listen to any view change event.
                 //_log.LogInformation($"View change request from {vcm.From.Shorten()}, is voter? {Board.AllVoters.Contains(vcm.From)}");
-                if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.AllVoters.Contains(vcm.From))
-                {
-                    await _viewChangeHandler.ProcessMessageAsync(vcm);
-                }
+                await _viewChangeHandler.ProcessMessageAsync(vcm);
                 return;
             }
             else if (_stateMachine.State == BlockChainState.Genesis ||
