@@ -167,20 +167,25 @@ namespace Lyra.Core.Decentralize
                     if (_localAuthState == LocalAuthState.NotStarted)
                     {
                         _localAuthState = LocalAuthState.InProgress;
-                        _ = Task.Run(async () =>
-                        {
-                            //if (waitHandle != null)
-                            //    await waitHandle.AsTask();
-
-                            await AuthorizeAsync(msg);
-                            _localAuthState = LocalAuthState.Finished;
-                        }).ConfigureAwait(false);
                     }
                 }
             }
             finally
             {
                 _semaphore.Release();
+            }
+
+            if (sourceValid && _localAuthState == LocalAuthState.NotStarted)
+            {
+                _localAuthState = LocalAuthState.InProgress;
+                _ = Task.Run(async () =>
+                {
+                    //if (waitHandle != null)
+                    //    await waitHandle.AsTask();
+
+                    await AuthorizeAsync(msg);
+                    _localAuthState = LocalAuthState.Finished;
+                }).ConfigureAwait(false);
             }
         }
 
