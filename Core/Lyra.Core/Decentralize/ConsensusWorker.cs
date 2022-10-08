@@ -43,7 +43,7 @@ namespace Lyra.Core.Decentralize
         private AuthorizersFactory _authorizers;
 
         AuthState _state;
-        public SemaphoreSlim _semaphore { get; }
+        private SemaphoreSlim _semaphore { get; }
 
         public string Hash { get; }
         public AuthState State { get => _state as AuthState; set => _state = value; }
@@ -107,7 +107,7 @@ namespace Lyra.Core.Decentralize
             switch (msg)
             {
                 case AuthorizingMsg msg1:
-                    OnPrePrepare(msg1, sourceValid);
+                    await OnPrePrepareAsync(msg1, sourceValid);
                     break;
                 case AuthorizedMsg msg2:
                     await OnPrepareAsync(msg2);
@@ -122,26 +122,25 @@ namespace Lyra.Core.Decentralize
 
         // for liveness when block failed we do view change,
         // after view change we need to redo the consensus process
-        public void RedoBlockAuthorizing()
+        public async Task RedoBlockAuthorizingAsync()
         {
             _log.LogInformation("In RedoBlockAuthorizing");
             ResetTimer();
             _state.Reset();
             _state.SetView(State.InputMsg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
             _localAuthState = LocalAuthState.NotStarted;
-            OnPrePrepare(State.InputMsg, true);
+            await OnPrePrepareAsync(State.InputMsg, true);
         }
 
-        private void OnPrePrepare(AuthorizingMsg msg, bool sourceValid)
+        private async Task OnPrePrepareAsync(AuthorizingMsg msg, bool sourceValid)
         {
+            // check dup first
+            if (_state != null)
+                return;
+
+            await _semaphore.WaitAsync();
             try
             {
-                // check dup first
-                if (_state != null)
-                    return;
-
-                _semaphore.Wait();                
-
                 _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
                 //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
 
@@ -162,30 +161,22 @@ namespace Lyra.Core.Decentralize
 
                 // if source is invalid, we just listen to the network. 
                 // we need to detect whether this node is out of sync now.
-                if (sourceValid)
+                if (sourceValid && _localAuthState == LocalAuthState.NotStarted)
                 {
-                    if (_localAuthState == LocalAuthState.NotStarted)
+                    _localAuthState = LocalAuthState.InProgress;
+                    _ = Task.Run(async () =>
                     {
-                        _localAuthState = LocalAuthState.InProgress;
-                    }
+                        //if (waitHandle != null)
+                        //    await waitHandle.AsTask();
+
+                        await AuthorizeAsync(msg);
+                        _localAuthState = LocalAuthState.Finished;
+                    }).ConfigureAwait(false);
                 }
             }
             finally
             {
                 _semaphore.Release();
-            }
-
-            if (sourceValid && _localAuthState == LocalAuthState.NotStarted)
-            {
-                _localAuthState = LocalAuthState.InProgress;
-                _ = Task.Run(async () =>
-                {
-                    //if (waitHandle != null)
-                    //    await waitHandle.AsTask();
-
-                    await AuthorizeAsync(msg);
-                    _localAuthState = LocalAuthState.Finished;
-                }).ConfigureAwait(false);
             }
         }
 
