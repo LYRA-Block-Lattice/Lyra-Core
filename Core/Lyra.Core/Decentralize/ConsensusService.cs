@@ -1529,7 +1529,7 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                _log.LogInformation("ConsolidateBlocksAsync: Finding all floating blocks...");
+                //_log.LogInformation("ConsolidateBlocksAsync: Finding all floating blocks...");
                 var timeStamp = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY); // delay one minute
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
