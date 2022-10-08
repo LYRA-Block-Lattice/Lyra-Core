@@ -135,7 +135,7 @@ namespace Lyra.Core.Decentralize
         private async Task OnPrePrepareAsync(AuthorizingMsg msg, bool sourceValid)
         {
             // check dup first
-            if (_state != null)
+            if (_localAuthState != LocalAuthState.NotStarted)
                 return;
 
             await _semaphore.WaitAsync();
@@ -153,10 +153,6 @@ namespace Lyra.Core.Decentralize
                 if (_state == null)
                 {
                     _state = _context.CreateAuthringState(msg, sourceValid);
-                }
-                else
-                {
-                    return;
                 }
 
                 // if source is invalid, we just listen to the network. 

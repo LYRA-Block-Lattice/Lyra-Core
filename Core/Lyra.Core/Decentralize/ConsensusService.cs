@@ -1496,7 +1496,7 @@ namespace Lyra.Core.Decentralize
 
             _lastConsolidateTry = DateTime.UtcNow;
 
-            _log.LogInformation("ConsolidateBlocksAsync: Begin prepare a consolidation block.");
+            //_log.LogInformation("ConsolidateBlocksAsync: Begin prepare a consolidation block.");
 
             // check if there are pending consolidate blocks
             var pendingCons = _activeConsensus.Values
@@ -1508,7 +1508,8 @@ namespace Lyra.Core.Decentralize
 
             if (pendingCons.Any())
             {
-                _log.LogInformation("ConsolidateBlocksAsync: A consolidation block is pending.");
+                var ts = DateTime.UtcNow - pendingCons.First().TimeStarted;
+                //_log.LogInformation($"ConsolidateBlocksAsync: A consolidation block is pending, {ts.TotalSeconds}s ago.");
                 return;
             }
 
@@ -1548,7 +1549,8 @@ namespace Lyra.Core.Decentralize
                                 await LeaderCreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
                             }
                             else
-                            {                                
+                            {
+                                _log.LogInformation("ConsolidateBlocksAsync: Not the leader.");
                                 //// leader may be faulty
                                 //var lsp = await _sys.Storage.GetLastServiceBlockAsync();
                                 //// give new leader enough time to consolidate blocks

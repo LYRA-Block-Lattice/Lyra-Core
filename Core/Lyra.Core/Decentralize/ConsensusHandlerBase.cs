@@ -23,16 +23,16 @@ namespace Lyra.Core.Decentralize
         {
             _log = new SimpleLogger("ConsensusHandlerBase").Logger;
             _context = context;
-            TimeStarted = DateTime.Now;
+            TimeStarted = DateTime.UtcNow;
 
             _outOfOrderedMessages = new ConcurrentQueue<ConsensusMessage>();
         }
 
-        public virtual bool IsTimeout => DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT);
+        public virtual bool IsTimeout => DateTime.UtcNow - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT);
 
         public void ResetTimer()
         {
-            TimeStarted = DateTime.Now;
+            TimeStarted = DateTime.UtcNow;
         }
 
         public async virtual Task ProcessMessageAsync(ConsensusMessage msg)

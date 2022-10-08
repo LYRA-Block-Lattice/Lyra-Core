@@ -141,8 +141,21 @@ namespace Lyra.Core.Decentralize
                         }
                         else
                         {
-                            IsSuccess = true;
-                            break;
+                            _log.LogInformation($"sync unconsolidated blocks by lastCons");
+                            // here need to sync unconsolidated blocks.
+                            var lastConsToSyncQuery = await consensusClient.GetLastConsolidationBlockAsync();
+                            if (lastConsToSyncQuery.Successful())
+                            {
+                                var lastConsToSync = lastConsToSyncQuery.GetBlock() as ConsolidationBlock;
+                                await SyncAllUnConsolidatedBlocks(lastConsToSync, consensusClient);
+
+                                IsSuccess = true;
+                                break;
+                            }
+                            else
+                            {
+                                throw new Exception("Failed to sync uncons blocks. reason: " + remoteConsQuery.ResultCode);
+                            }
                         }
                     }
                     else if(remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
@@ -165,11 +178,8 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            _log.LogInformation($"sync unconsolidated blocks by lastCons");
-            // here need to sync unconsolidated blocks.
-            var lastConsToSyncQuery = await consensusClient.GetLastConsolidationBlockAsync();
-            var lastConsToSync = lastConsToSyncQuery.GetBlock() as ConsolidationBlock;
-            await SyncAllUnConsolidatedBlocks(lastConsToSync, consensusClient);
+
+
 
             return IsSuccess;
         }

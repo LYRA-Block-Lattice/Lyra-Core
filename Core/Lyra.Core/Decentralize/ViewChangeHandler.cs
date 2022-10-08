@@ -120,7 +120,7 @@ namespace Lyra.Core.Decentralize
         }
 
         // debug only. should remove after
-        public override bool IsTimeout => DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT);
+        public override bool IsTimeout => DateTime.UtcNow - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT);
 
         public void Reset()
         {
