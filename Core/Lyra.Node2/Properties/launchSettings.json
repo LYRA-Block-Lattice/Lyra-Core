@@ -1,12 +1,4 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:61395/",
-      "sslPort": 0
-    }
-  },
   "profiles": {
     "Lyra.Node2": {
       "commandName": "Project",
@@ -38,6 +30,24 @@
     },
     "Docker": {
       "commandName": "Docker"
+    },
+    "Lyra.Node Testnet": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "http://*:4505;https://*:15651",
+        "ASPNETCORE_HTTPS_PORT": "15651",
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "LYRA_NETWORK": "testnet"
+      },
+      "applicationUrl": "https://0.0.0.0:5504;http://0.0.0.0:5505"
+    }
+  },
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:61395/",
+      "sslPort": 0
     }
   }
 }
