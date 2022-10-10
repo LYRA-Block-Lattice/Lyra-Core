@@ -507,8 +507,14 @@ namespace Lyra.Core.WorkFlow
 
             var dc = new DexClient(LyraNodeConfig.GetNetworkId());
             var ret = await dc.RequestWithdrawAsync(burnbrk.OwnerAccountId, burn.ExtSymbol, burn.ExtProvider,
+
+                // dexid, reqhash
                 burn.AccountID, hash,
+
+                // address, amount
                 burn.WithdrawToExtAddress, burn.BurnAmount,
+
+                // authid
                 NodeService.Dag.PosWallet.AccountId,
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, hash, NodeService.Dag.PosWallet.AccountId));
 

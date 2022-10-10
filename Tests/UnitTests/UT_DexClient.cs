@@ -27,18 +27,18 @@ namespace UnitTests
 
             // first get some coin
             var gens = await GetGenesisWalletAsync();
-            var dexwallet = await GetWalletAsync(pvtx);
+            var dexUserWallet = await GetWalletAsync(pvtx);
 
-            await gens.SendAsync(100, dexwallet.AccountId);
-            await dexwallet.SyncAsync(null);
-            Assert.AreEqual(100, dexwallet.BaseBalance);
+            await gens.SendAsync(100, dexUserWallet.AccountId);
+            await dexUserWallet.SyncAsync(null);
+            Assert.AreEqual(100, dexUserWallet.BaseBalance);
 
             // request a wallet
-            var crret = await dexwallet.CreateDexWalletAsync("TRX", "native");
-            Assert.IsTrue(crret.Successful());
-            await Task.Delay(5000);
+            var crret = await dexUserWallet.CreateDexWalletAsync("TRX", "native");
+            Assert.IsTrue(crret.Successful(), $"dex can't create wallet: {crret.ResultCode} {crret.ResultMessage}");
+            await Task.Delay(3000);
 
-            await TestDepositWithdraw(dexwallet);
+            await TestDepositWithdraw(dexUserWallet);
         }
         
         private async Task<Wallet> GetGenesisWalletAsync()
@@ -64,16 +64,17 @@ namespace UnitTests
             return w;
         }
 
-        private async Task TestDepositWithdraw(Wallet dexWallet)
+        private async Task TestDepositWithdraw(Wallet dexUserWallet)
         {
-            //// prepare dex
-            //string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
-            //var walletStore = new SecuredWalletStore(lyrawalletfolder);
-            //var dexWallet = Wallet.Open(walletStore, "dex", "");
-            //await genesisWallet.SendAsync(100000m, dexWallet.AccountId);
-            //await Task.Delay(1000);
-            //await dexWallet.SyncAsync(genesisWallet.RPC);
-            //Assert.IsTrue(dexWallet.BaseBalance >= 100000m);
+            // prepare dex
+            string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
+            var walletStore = new SecuredWalletStore(lyrawalletfolder);
+            var dexWallet = Wallet.Open(walletStore, "dex", "");
+            var genesisWallet = await GetGenesisWalletAsync();
+            await genesisWallet.SendAsync(100000m, dexWallet.AccountId);
+            await Task.Delay(1000);
+            await dexWallet.SyncAsync(genesisWallet.RPC);
+            Assert.IsTrue(dexWallet.BaseBalance >= 100000m);
 
             // external token genesis
             var lsbret = await client.GetLastServiceBlockAsync();
@@ -89,27 +90,26 @@ namespace UnitTests
                 Assert.IsTrue(tokenGenesisResult.Successful(), "dex token genesis failed");
             }
 
-            var dexws = await dexWallet.GetAllDexWalletsAsync(dexWallet.AccountId);
+            var dexws = await dexUserWallet.GetAllDexWalletsAsync(dexUserWallet.AccountId);
             Assert.IsNotNull(dexws, "DEX Wallet not setup.");
-            var wcnt = dexws.Count(a => (a as IDexWallet).ExtSymbol == "TRX" && (a as IDexWallet).ExtProvider == "native");
+            var wcnt = dexws.Count(a => a.ExtSymbol == "TRX" && a.ExtProvider == "native");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
 
             // must fail
-            await dexWallet.SyncAsync(null);
-            var getokretx = await dexWallet.DexGetTokenAsync((dexws.First() as TransactionBlock).AccountID, 500m);
+            await dexUserWallet.SyncAsync(null);
+            var getokretx = await dexUserWallet.DexGetTokenAsync((dexws.First() as TransactionBlock).AccountID, 500m);
             Assert.IsTrue(!getokretx.Successful(), "Should not success");
 
             // mint via dex account
-            /*
-            var 
             var dexbrk1 = dexws.First() as TransactionBlock;
             var mintRet = await dexWallet.DexMintTokenAsync(dexbrk1.AccountID, 1000m);
-            Assert.IsTrue(mintRet.Successful(), "Mint failed.");
-            await Task.Delay(1000);
+            Assert.IsTrue(mintRet.Successful(), $"Mint failed: {mintRet.ResultCode} {mintRet.ResultMessage}");
+            await Task.Delay(3000);
 
             var brk1lstret = await client.GetLastBlockAsync(dexbrk1.AccountID);
             Assert.IsTrue(brk1lstret.Successful());
-            var brk1mint = brk1lstret.GetBlock() as TokenMintBlock;
+            var brk1mintblk = brk1lstret.GetBlock();
+            var brk1mint = brk1mintblk as TokenMintBlock;
             Assert.IsNotNull(brk1mint);
 
             if (networkId == "xunit")
@@ -119,15 +119,15 @@ namespace UnitTests
             }
 
             // get minted token to owner wallet
-            await dexWallet.SyncAsync(null);
-            var getokret = await dexWallet.DexGetTokenAsync(dexbrk1.AccountID, 500m);
+            await dexUserWallet.SyncAsync(null);
+            var getokret = await dexUserWallet.DexGetTokenAsync(dexbrk1.AccountID, 500m);
             Assert.IsTrue(getokret.Successful(), "error get ext token to own wallet");
-            await Task.Delay(1500);
-            await dexWallet.SyncAsync(null);
-            Assert.AreEqual(500m, dexWallet.GetLastSyncBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
+            await Task.Delay(3500);
+            await dexUserWallet.SyncAsync(null);
+            Assert.AreEqual(500m, dexUserWallet.GetLastSyncBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
 
             // put external token to dex wallet
-            var putokret = await dexWallet.DexPutTokenAsync(dexbrk1.AccountID, "tether/TRX", 500m);
+            var putokret = await dexUserWallet.DexPutTokenAsync(dexbrk1.AccountID, "tether/TRX", 500m);
             Assert.IsTrue(putokret.Successful(), "Put token error");
             await Task.Delay(1500);
             var brk1lstret2 = await client.GetLastBlockAsync(dexbrk1.AccountID);
@@ -139,7 +139,7 @@ namespace UnitTests
             }
 
             // withdraw token to external blockchain
-            var wdwret = await dexWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, "Txxxxxxxxx", 1000m);
+            var wdwret = await dexUserWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, "Txxxxxxxxx", 1000m);
             Assert.IsTrue(wdwret.Successful(), "Error withdraw");
             await Task.Delay(1500);
             var brk1lstret3 = await client.GetLastBlockAsync(dexbrk1.AccountID);
@@ -148,7 +148,6 @@ namespace UnitTests
             if (networkId == "xunit")
                 Assert.AreEqual(0m, brk1lastblk3.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok burn error");
 
-            */
 
         }
     }
