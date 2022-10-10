@@ -932,7 +932,7 @@ namespace Lyra.Core.Decentralize
             return Settings.Default.LyraNode.Lyra.NetworkId switch
             {
                 "mainnet" => 19,
-                "testnet" => 13,
+                "testnet" => 19,
                 "devnet" => 4,
                 _ => int.MaxValue,
             };
@@ -1016,7 +1016,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task CheckCreateNewViewAsync()
         {
-            _log.LogInformation($"Checking new player(s)...");
+            //_log.LogInformation($"Checking new player(s)...");
             if (CurrentState != BlockChainState.Almighty)
             {
                 return;
@@ -1046,7 +1046,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                _log.LogInformation($"no reason to change view");
+                //_log.LogInformation($"no reason to change view");
             }
 
             //_log.LogInformation($"We have new player(s). Change view...");
