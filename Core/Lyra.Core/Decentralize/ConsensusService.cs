@@ -428,7 +428,9 @@ namespace Lyra.Core.Decentralize
         private async Task<ILyraAPI> CreateAggregatedClientAsync()
         {
             var useSeedOnly = false;
-            if ("mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
+
+            // temp speedup all network. will test sync by all nodes later.
+            if (true)//"mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
             {
                 useSeedOnly = true;
                 //var client1 = new LyraRestClient("", "", "", $"https://seed2.mainnet.lyra.live:5504/api/Node/");
@@ -1541,7 +1543,7 @@ namespace Lyra.Core.Decentralize
                 // if 1 it must be previous consolidation block.
                 if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && timeStamp - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
-                    _log.LogInformation("ConsolidateBlocksAsync: time to create new one...");
+                    //_log.LogInformation("ConsolidateBlocksAsync: time to create new one...");
                     try
                     {
                         var InCons = _activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.InAuthorizing
@@ -1555,7 +1557,7 @@ namespace Lyra.Core.Decentralize
                             }
                             else
                             {
-                                _log.LogInformation("ConsolidateBlocksAsync: Not the leader.");
+                                //_log.LogInformation("ConsolidateBlocksAsync: Not the leader.");
                                 //// leader may be faulty
                                 //var lsp = await _sys.Storage.GetLastServiceBlockAsync();
                                 //// give new leader enough time to consolidate blocks
