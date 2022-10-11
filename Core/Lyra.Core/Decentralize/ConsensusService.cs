@@ -470,7 +470,7 @@ namespace Lyra.Core.Decentralize
                 var addr = ep.Contains(':') ? ep : $"{ep}:{port}";
 
                 _log.LogInformation($"CreateFastClient uses {addr}");
-                var client1 = new LyraRestClient("", "", "", $"https://{ep}/api/Node/");
+                var client1 = new LyraRestClient("", "", "", $"https://{addr}/api/Node/");
                 return client1;
             }
 
