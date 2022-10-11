@@ -433,7 +433,7 @@ namespace Lyra.Core.Decentralize
             //// temp speedup all network. will test sync by all nodes later.
             //if ("testnet" == Settings.Default.LyraNode.Lyra.NetworkId)
             //{
-            //    var client1 = new LyraRestClient("", "", "", $"https://seed4.testnet.lyra.live:4504/api/Node/");
+            //    var client1 = new LyraRestClient("", "", "", $"https:///api/Node/");
             //    return client1;
             //}
 

@@ -54,6 +54,22 @@ namespace Lyra.Data.API
             return hoststr;
         }
 
+        public void Init(BillBoard bb)
+        {
+            ServicePointManager.DefaultConnectionLimit = 30;
+            var platform = Environment.OSVersion.Platform.ToString();
+            var appName = "LyraAggregatedClient";
+            var appVer = "1.0";
+
+            // create clients for primary nodes
+            _primaryClients = bb.NodeAddresses
+                .Where(a => bb.PrimaryAuthorizers.Contains(a.Key))
+                .Where(a => a.Key != _poswallet)
+                .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c.Value)}/api/Node/"))
+                //.Take(7)    // don't spam the whole network
+                .ToList();
+        }
+
         public async Task InitAsync()
         {
             ServicePointManager.DefaultConnectionLimit = 30;
