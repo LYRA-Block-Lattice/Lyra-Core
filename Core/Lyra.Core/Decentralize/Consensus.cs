@@ -57,7 +57,7 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<bool> SyncDatabaseAsync(ILyraAPI client)
+        private async Task<bool> SyncDatabaseAsync(ILyraAPI client, int rollBackCount)
         {
             _log.LogInformation("In SyncDatabaseAsync");
             var consensusClient = client;
@@ -105,7 +105,7 @@ namespace Lyra.Core.Decentralize
                 localState.svcGenHash = seedSvcGen.GetBlock().Hash;
                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
             }
-            localState.lastVerifiedConsHeight -= 3; // always do it to make sure db is good.
+            localState.lastVerifiedConsHeight -= rollBackCount; // always do it to make sure db is good.
 
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
@@ -195,7 +195,7 @@ namespace Lyra.Core.Decentralize
             var unConsHashResult = await client.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp.Ticks, endTime.Ticks);
             if (unConsHashResult.ResultCode == APIResultCodes.Success)
             {
-                _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
+                _log.LogInformation($"Total unconsolidated blocks: {unConsHashResult.Entities.Count}");
                 var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
 
                 // first hash is previous consblock
@@ -248,7 +248,7 @@ namespace Lyra.Core.Decentralize
             var client = await CreateSafeClientAsync();
 
             // first make sure db is synced, especially when trans from almighty
-            await SyncDatabaseAsync(client);
+            await SyncDatabaseAsync(client, 1);
 
             for (int ii = 0; ii < 15; ii++)
             {
@@ -267,7 +267,7 @@ namespace Lyra.Core.Decentralize
                         if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                         {
                             _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
-                            if (!await SyncDatabaseAsync(client))
+                            if (!await SyncDatabaseAsync(client, 0))
                             {
                                 _log.LogError($"Error sync database. wait 5 minutes and retry...");
                                 await Task.Delay(5 * 60 * 1000);

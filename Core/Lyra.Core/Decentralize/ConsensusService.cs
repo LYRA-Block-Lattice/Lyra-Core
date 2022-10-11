@@ -782,7 +782,7 @@ namespace Lyra.Core.Decentralize
                                 {
                                     _log.LogInformation($"local height {myStatus.totalBlockCount} not equal to majority {majorHeight}, do database sync.");
                                     // verify local database
-                                    while (!await SyncDatabaseAsync(client))
+                                    while (!await SyncDatabaseAsync(client, 3))
                                     {
                                         //fatal error. should not run program
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
