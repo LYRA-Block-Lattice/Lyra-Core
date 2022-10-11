@@ -399,7 +399,17 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
-            return await GetBlockByUrlAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
+            var ret = await GetBlockByUrlAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
+            // add verify
+            if(ret.Successful())
+            {
+                var blk = ret.GetBlock();
+                if(blk != null && blk.Hash != Hash)
+                {
+                    throw new Exception($"Malfunction Node API of {_url} req {Hash} got {blk.Hash}");
+                }
+            }
+            return ret;
         }
 
         public async Task<BlockAPIResult> GetBlockAsync(string Hash)
