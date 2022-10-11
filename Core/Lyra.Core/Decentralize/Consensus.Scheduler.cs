@@ -238,6 +238,9 @@ namespace Lyra.Core.Decentralize
             {
                 var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
 
+                if (!cs.CanDoConsense)
+                    return;
+
                 try
                 {
                     await cs.DeclareConsensusNodeAsync();
