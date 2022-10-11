@@ -61,6 +61,7 @@ namespace Lyra.Core.Decentralize
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStart;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
         public BlockChainState CurrentState => _stateMachine.State;
+        public bool CanDoConsense => CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging;
 
         readonly ILogger _log;
         IHostEnv _hostEnv;
@@ -298,7 +299,9 @@ namespace Lyra.Core.Decentralize
                                 await CriticalRelayAsync(signedMsg, null);
                             }                            
 
-                            await OnNextConsensusMessageAsync(signedMsg);
+                            if(CanDoConsense)   // only do consensus when can
+                                await OnNextConsensusMessageAsync(signedMsg);
+
                             //await CriticalRelayAsync(signedMsg, async (msg) =>
                             //{
                             //    await OnNextConsensusMessageAsync(msg);
@@ -427,16 +430,14 @@ namespace Lyra.Core.Decentralize
 
         private async Task<ILyraAPI> CreateAggregatedClientAsync()
         {
+            //// temp speedup all network. will test sync by all nodes later.
+            //if ("testnet" == Settings.Default.LyraNode.Lyra.NetworkId)
+            //{
+            //    var client1 = new LyraRestClient("", "", "", $"https://seed4.testnet.lyra.live:4504/api/Node/");
+            //    return client1;
+            //}
+
             var useSeedOnly = false;
-
-            // temp speedup all network. will test sync by all nodes later.
-            if (true)//"mainnet" == Settings.Default.LyraNode.Lyra.NetworkId)
-            {
-                useSeedOnly = true;
-                //var client1 = new LyraRestClient("", "", "", $"https://seed2.mainnet.lyra.live:5504/api/Node/");
-                //return client1;
-            }
-
             var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
             await client.InitAsync();
             return client;
@@ -621,6 +622,9 @@ namespace Lyra.Core.Decentralize
                                     var client = await CreateAggregatedClientAsync();
 
                                     var result = await client.GetLastServiceBlockAsync();
+                                    if (!result.Successful())
+                                        _log.LogWarning($"Can't get service block for dbcc: {result.ResultCode}");
+
                                     if (result.ResultCode == APIResultCodes.Success)
                                     {
                                         lsb = result.GetBlock() as ServiceBlock;

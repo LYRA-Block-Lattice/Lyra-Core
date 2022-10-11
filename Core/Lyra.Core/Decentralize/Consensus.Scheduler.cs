@@ -297,7 +297,7 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    if(cs.IsThisNodePrimary)
+                    if(cs.IsThisNodePrimary && cs.CanDoConsense)
                     {
                         await cs._sys.PosWallet.SyncAsync(null);
                         // open when all upgraded.
