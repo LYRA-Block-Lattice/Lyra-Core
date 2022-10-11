@@ -63,20 +63,20 @@ namespace Lyra.Core.Decentralize
             var consensusClient = client;
             var fastClient = await CreateFastClientAsync();
 
-            BlockAPIResult seedSvcGen = null;
-            for (int i = 0; i < 10; i++)
-            {
-                seedSvcGen = await consensusClient.GetServiceGenesisBlockAsync();
-                if (seedSvcGen.ResultCode == APIResultCodes.Success)
-                    break;
+            //BlockAPIResult seedSvcGen = null;
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    seedSvcGen = await consensusClient.GetServiceGenesisBlockAsync();
+            //    if (seedSvcGen.ResultCode == APIResultCodes.Success)
+            //        break;
 
-                await Task.Delay(10 * 1000);
+            //    await Task.Delay(10 * 1000);
 
-                _log.LogInformation("Recreate aggregated client...");
-                //await client.InitAsync();
-            }
+            //    _log.LogInformation("Recreate aggregated client...");
+            //    //await client.InitAsync();
+            //}
 
-            _log.LogInformation("In SyncDatabaseAsync, await GetNodeStatusAsync");
+            //_log.LogInformation("In SyncDatabaseAsync, await GetNodeStatusAsync");
 
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
@@ -86,6 +86,10 @@ namespace Lyra.Core.Decentralize
             else
             {
                 var oldState = LocalDbSyncState.Load();
+
+                var seedSvcGen = await consensusClient.GetServiceGenesisBlockAsync();
+                if (seedSvcGen.ResultCode != APIResultCodes.Success)
+                    return false;
 
                 if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
                     LocalDbSyncState.Remove();
@@ -100,12 +104,15 @@ namespace Lyra.Core.Decentralize
             }
 
             var localState = LocalDbSyncState.Load();
-            if(localState.svcGenHash == null)
-            {
-                localState.svcGenHash = seedSvcGen.GetBlock().Hash;
-                localState.databaseVersion = LyraGlobal.DatabaseVersion;
-            }
-            localState.lastVerifiedConsHeight -= rollBackCount; // always do it to make sure db is good.
+            //if(localState.svcGenHash == null)
+            //{
+            //    localState.svcGenHash = seedSvcGen.GetBlock().Hash;
+            //    localState.databaseVersion = LyraGlobal.DatabaseVersion;
+            //}
+            if (localState.lastVerifiedConsHeight > rollBackCount)
+                localState.lastVerifiedConsHeight -= rollBackCount; // always do it to make sure db is good.
+            else
+                localState.lastVerifiedConsHeight = 0;
 
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
@@ -379,7 +386,7 @@ namespace Lyra.Core.Decentralize
             if (consBlock.Height > 1)
             {
                 var prevConsHash = consBlock.blockHashes.First();
-                var prevConsResult = await safeClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
+                var prevConsResult = await fastClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
                 if (prevConsResult.ResultCode != APIResultCodes.Success)
                 {
                     _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
