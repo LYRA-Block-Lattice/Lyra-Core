@@ -256,7 +256,7 @@ namespace Lyra.Data.API
         {
             var (x, msg) = await CheckResultGenericAsync<T>(name, taskss, tag);
 
-            if(x == null || msg != "")
+            if(x == null)
             {
                 return new T
                 {
@@ -266,6 +266,7 @@ namespace Lyra.Data.API
             }
             else
             {
+                x.ResultMessage = msg;
                 return x;
             }
         }
@@ -284,6 +285,8 @@ namespace Lyra.Data.API
             var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
 
+            T? finalResult = null;
+            bool dbConsist = true;
             if (compeletedCount >= expectedCount)
             {
                 var coll = results.Where(a => a.IsSuccess)
@@ -301,13 +304,16 @@ namespace Lyra.Data.API
                 if (best.Count >= expectedCount)
                 {
                     var x = results.First(a => a.IsSuccess && a.Result == best.Data);
-                    return (x.Result, "");
+
+                    finalResult = x.Result;
+                    //return (x.Result, "");
                 }
                 else
                 {
                     Console.WriteLine($"Aggregator Result count: {best.Count} / {expectedCount} / {taskss.Count}");
                     // print the unconsist ones
                 }
+                dbConsist = best.Count == results.Count();
             }
 
             var failedResult = results.Where(a => !a.IsSuccess);
@@ -317,16 +323,18 @@ namespace Lyra.Data.API
                 var failed = failedResult
                     .Select(a => a.Exception.Message)
                     .Aggregate((a, b) => a + "," + b);
-                msg += $"Failed: {failed}";
+                msg += $"Failed: {failed}.";
             }
             else
             {
-                msg += $"Failed: None. Db inconsist for {tag}.";
-                await InitAsync();
+                msg += $"Failed: None.";
+                //await InitAsync();
             }
-            Console.WriteLine(msg);
 
-            return (null, msg);
+            msg += dbConsist ? $" Db consist for {tag}." : $" Db inconsist for {tag}.";
+            //Console.WriteLine(msg);
+
+            return (finalResult, msg);
         }
 
         public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
