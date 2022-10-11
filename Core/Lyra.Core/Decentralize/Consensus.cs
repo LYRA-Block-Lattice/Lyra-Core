@@ -61,6 +61,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation("In SyncDatabaseAsync");
             var consensusClient = client;
+            var fastClient = await CreateFastClientAsync();
 
             BlockAPIResult seedSvcGen = null;
             for (int i = 0; i < 10; i++)
@@ -126,7 +127,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 var consTarget = block as ConsolidationBlock;
                                 _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
-                                if (await SyncAndVerifyConsolidationBlockAsync(consensusClient, consTarget))
+                                if (await SyncAndVerifyConsolidationBlockAsync(consensusClient, fastClient, consTarget))
                                 {
                                     _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
 
@@ -244,7 +245,7 @@ namespace Lyra.Core.Decentralize
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            var client = await CreateAggregatedClientAsync();
+            var client = await CreateSafeClientAsync();
 
             // first make sure db is synced, especially when trans from almighty
             await SyncDatabaseAsync(client);
@@ -351,13 +352,13 @@ namespace Lyra.Core.Decentralize
         /// <param name="client"></param>
         /// <param name="consBlock"></param>
         /// <returns></returns>
-        private async Task<bool> SyncAndVerifyConsolidationBlockAsync(ILyraAPI client, ConsolidationBlock consBlock)
+        private async Task<bool> SyncAndVerifyConsolidationBlockAsync(ILyraAPI safeClient, ILyraAPI fastClient, ConsolidationBlock consBlock)
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
             foreach(var hash in consBlock.blockHashes)
             {
-                if (!await SyncOneBlockAsync(client, hash))
+                if (!await SyncOneBlockAsync(fastClient, hash))
                     return false;
             }
 
@@ -378,7 +379,7 @@ namespace Lyra.Core.Decentralize
             if (consBlock.Height > 1)
             {
                 var prevConsHash = consBlock.blockHashes.First();
-                var prevConsResult = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
+                var prevConsResult = await safeClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
                 if (prevConsResult.ResultCode != APIResultCodes.Success)
                 {
                     _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
@@ -528,7 +529,7 @@ namespace Lyra.Core.Decentralize
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = await CreateAggregatedClientAsync();
+                var client = await CreateSafeClientAsync();
                 await gensWallet.SyncAsync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.SendAsync(amount, accId);
