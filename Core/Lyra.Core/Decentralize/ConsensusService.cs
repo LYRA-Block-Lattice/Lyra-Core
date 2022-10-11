@@ -299,8 +299,8 @@ namespace Lyra.Core.Decentralize
                                 await CriticalRelayAsync(signedMsg, null);
                             }                            
 
-                            if(CanDoConsense)   // only do consensus when can
-                                await OnNextConsensusMessageAsync(signedMsg);
+                            
+                            await OnNextConsensusMessageAsync(signedMsg);
 
                             //await CriticalRelayAsync(signedMsg, async (msg) =>
                             //{
@@ -1992,6 +1992,11 @@ namespace Lyra.Core.Decentralize
             if (item is ChatMsg chatMsg)
             {
                 await OnRecvChatMsgAsync(chatMsg);
+                return;
+            }
+
+            if (!CanDoConsense)   // only do consensus when can
+            {
                 return;
             }
 
