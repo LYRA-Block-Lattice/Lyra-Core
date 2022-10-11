@@ -274,12 +274,12 @@ namespace Lyra.Data.API
         {
             var results = await WhenAllOrExceptionAsync(taskss);
 
-            var expectedCount = LyraGlobal.GetMajority(taskss.Count) - 1; // exclude self
+            var expectedCount = LyraGlobal.GetMajority(taskss.Count);
             //if (_seedsOnly)    // seed stage
             //    expectedCount = 2;
 
-            if (_networkId == "testnet" && !_seedsOnly)
-                expectedCount = 7;
+            //if (_networkId == "testnet" && !_seedsOnly)
+            //    expectedCount = 7;
 
             var compeletedCount = results.Count(a => a.IsSuccess);
             //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
