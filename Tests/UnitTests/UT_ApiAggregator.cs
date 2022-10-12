@@ -24,7 +24,7 @@ namespace UnitTests
             var svcBlock1 = await client.GetLastServiceBlockAsync();
             var svcBlock2 = await aggClient.GetLastServiceBlockAsync();
 
-            Assert.AreEqual(svcBlock1, svcBlock2);
+            Assert.IsTrue(svcBlock1.BlockData == svcBlock2.BlockData && svcBlock1.ResultCode == svcBlock2.ResultCode);
         }
 
         //[TestMethod]

@@ -59,7 +59,7 @@ namespace Lyra.Data.API
             return hoststr;
         }
 
-        public void ReBase(bool toSeedOnly)
+        private void ReBase(bool toSeedOnly)
         {
             Console.WriteLine($"LyraAggregatedClient ReBase to seed only? {toSeedOnly}");
             _seedsOnly = toSeedOnly;

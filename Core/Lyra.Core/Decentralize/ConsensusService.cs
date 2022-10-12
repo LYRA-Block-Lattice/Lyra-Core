@@ -752,11 +752,11 @@ namespace Lyra.Core.Decentralize
                             if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
                                 _log.LogInformation("Invalid Sync State.");
-                                if(client is LyraAggregatedClient agg)
-                                {
-                                    agg.ReBase(true);   // look for seeds
-                                    networkStatus = await client.GetSyncStateAsync();
-                                }
+                                //if(client is LyraAggregatedClient agg)
+                                //{
+                                //    agg.ReBase(true);   // look for seeds
+                                //    networkStatus = await client.GetSyncStateAsync();
+                                //}
                             }
 
                             if (networkStatus.ResultCode != APIResultCodes.Success)
