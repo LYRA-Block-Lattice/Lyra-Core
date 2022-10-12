@@ -224,16 +224,23 @@ namespace Lyra.Core.API
                           sb => sb.ToString());
 
             using var client = CreateClient();
-            HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsAsync<T>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<T>();
+                    return result;
+                }
+                else
+                {
+                    var resp = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Web Api Failed for {action}: {resp}");
+                }
             }
-            else
+            catch(Exception ex)
             {
-                var resp = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Web Api Failed for {action}: {resp}");
+                throw new Exception($"Network error for {_url}: {ex.Message}");
             }
         }
 
@@ -296,14 +303,21 @@ namespace Lyra.Core.API
         public async Task<GetSyncStateAPIResult> GetSyncStateAsync()
         {
             using var client = CreateClient();
-            HttpResponseMessage response = await client.GetAsync("GetSyncState", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync("GetSyncState", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
+            catch (Exception ex)
+            {
+                throw new Exception($"Network error for {_url}: {ex.Message}");
+            }
         }
 
         public async Task<GetVersionAPIResult> GetVersionAsync(int apiVersion, string appName, string appVersion)
@@ -529,14 +543,21 @@ namespace Lyra.Core.API
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync()
         {
             using var client = CreateClient();
-            HttpResponseMessage response = await client.GetAsync("GetSyncHeight", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync("GetSyncHeight", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
+            catch (Exception ex)
+            {
+                throw new Exception($"Network error for {_url}: {ex.Message}");
+            }
         }
 
         public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
