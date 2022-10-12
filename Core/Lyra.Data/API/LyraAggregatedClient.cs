@@ -19,16 +19,21 @@ namespace Lyra.Data.API
         private readonly string _networkId;
         private bool _seedsOnly;
         private string _poswallet;
+        private BillBoard _billboard;
 
         private List<LyraRestClient> _primaryClients;
 
         public LyraRestClient SeedClient => LyraRestClient.Create(_networkId, Environment.OSVersion.Platform.ToString(), "LyraAggregatedClient", "1.0");
 
-        public LyraAggregatedClient(string networkId, bool seedsOnly, string poswallet)
+        public LyraAggregatedClient(string networkId, bool seedsOnly, string poswallet, BillBoard billBoard)
         {
             _networkId = networkId;
             _seedsOnly = seedsOnly;
             _poswallet = poswallet;
+            _billboard = billBoard;
+
+            ServicePointManager.DefaultConnectionLimit = 30;
+            ReBase(_seedsOnly);
         }
 
         // update it from node's json
@@ -54,164 +59,31 @@ namespace Lyra.Data.API
             return hoststr;
         }
 
-        public void InitOn(BillBoard bb)
-        {
-            ServicePointManager.DefaultConnectionLimit = 30;
-            var platform = Environment.OSVersion.Platform.ToString();
-            var appName = "LyraAggregatedClient";
-            var appVer = "1.0";
-
-            // create clients for primary nodes
-            _primaryClients = bb.NodeAddresses
-                .Where(a => bb.PrimaryAuthorizers.Contains(a.Key))
-                .Where(a => a.Key != _poswallet)
-                .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c.Value)}/api/Node/"))
-                //.Take(7)    // don't spam the whole network
-                .ToList();
-        }
-
-        public async Task InitAsync()
-        {
-            ServicePointManager.DefaultConnectionLimit = 30;
-            var platform = Environment.OSVersion.Platform.ToString();
-            var appName = "LyraAggregatedClient";
-            var appVer = "1.0";
-
-            // get nodes list (from billboard)
-            var seedNodes = GetSeedNodes();
-
-            var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(a)}/api/Node/")).ToList();
-
-            BillBoard currentBillBoard = null;
-            do
-            {
-                try
-                {
-                    Console.WriteLine($"LyraAggregatedClient.InitAsync Seed Only: {_seedsOnly}");
-                    var rand = new Random();
-                    foreach (var sd in seedNodes.OrderBy(a => rand.Next()))
-                    {
-                        try
-                        {
-                            var apiClient = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(sd)}/api/Node/");
-                            currentBillBoard = await apiClient.GetBillBoardAsync();
-                            Console.WriteLine($"LyraAggregatedClient.InitAsync Got billboard from {sd}");
-                            break;
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine("LyraAggregatedClient.InitAsync: " + e.Message);
-                        }
-                    }
-
-                    //var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
-                    //try
-                    //{
-                    //    await Task.WhenAll(bbtasks);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine($"In LyraAggregatedClient.InitAsync: " + ex.Message);
-                    //}
-                    //var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
-
-                    //if (goodbb.Count == 0)
-                    //    continue;
-
-                    //// pickup best result
-                    //var best = goodbb
-                    //        .GroupBy(b => b.CurrentLeader)
-                    //        .Select(g => new
-                    //        {
-                    //            Data = g.Key,
-                    //            Count = g.Count()
-                    //        })
-                    //        .OrderByDescending(x => x.Count)
-                    //        .First();
-
-                    //if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
-                    //{
-                    //    var r = new Random();
-                    //    currentBillBoard = goodbb.ElementAt(r.Next(0, goodbb.Count()));
-                    //    //currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
-                    //}
-                    //else
-                    //{
-                    //    await Task.Delay(2000);
-                    //    continue;
-                    //}
-
-                    if (_seedsOnly)
-                    {
-                        // create clients for primary nodes
-                        _primaryClients = seedNodes
-                            .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c)}/api/Node/"))
-                            .ToList();
-                    }
-                    else if (currentBillBoard == null)
-                    {
-                        Console.WriteLine("Error init LyraAggregatedClient. Billboard is null.");
-                        await Task.Delay(1000);
-                        continue;
-                    }
-                    else
-                    {
-                        // create clients for primary nodes
-                        _primaryClients = currentBillBoard.NodeAddresses
-                            .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
-                            .Where(a => a.Key != _poswallet)
-                            .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c.Value)}/api/Node/"))
-                            //.Take(7)    // don't spam the whole network
-                            .ToList();
-                    }
-
-                    if (_primaryClients.Count < 2)      // billboard not harvest address enough
-                        await Task.Delay(2000);
-
-                    //foreach (var primaryClient in _primaryClients)
-                    //    primaryClient.SetTimeout(TimeSpan.FromSeconds(5));
-                }
-                catch (Exception exx)
-                {
-                    Console.WriteLine("Error init LyraAggregatedClient. Error: " + exx.ToString());
-                    await Task.Delay(1000);
-                    continue;
-                }
-            } while (currentBillBoard == null || _primaryClients.Count < 2);
-        }
-
         public void ReBase(bool toSeedOnly)
         {
             Console.WriteLine($"LyraAggregatedClient ReBase to seed only? {toSeedOnly}");
             _seedsOnly = toSeedOnly;
-            //if (toSeedOnly)
-            //    _baseIndex = _baseIndex++ % 4;
-            //else
-            //    throw new InvalidOperationException("Only rebase to seed supported.");
 
-            //// find the highest chain from seeds
-            //var tasks = _primaryClients.ToDictionary(client => client.Key, client => client.GetSyncState());
-            //try
-            //{
-            //    await Task.WhenAll(tasks.Values);
-            //}
-            //catch { }
+            var platform = Environment.OSVersion.Platform.ToString();
+            var appName = "LyraAggregatedClient";
+            var appVer = "1.0";
 
-            //var highest = tasks.Where(a => !(a.Value.IsFaulted || a.Value.IsCanceled) && a.Value.IsCompleted)
-            //    .Select(x => x.Value.Result)
-            //    .OrderByDescending(o => o.Status.totalBlockCount)
-            //    .First();
-
-            //for(int i = 0; i < tasks.Count; i++)
-            //{
-            //    if(tasks[i].IsCompleted && tasks[i].Result.Status.totalBlockCount == highest.Status.totalBlockCount)
-            //    {
-            //        _baseIndex = i;
-            //        _baseClient = _primaryClients.ToArray()[i].Value;
-            //        break;
-            //    }
-            //}
-            ////
+            if (_seedsOnly)
+            {
+                _primaryClients = GetSeedNodes()
+                    .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c)}/api/Node/"))
+                    .ToList();
+            }
+            else
+            {
+                // create clients for primary nodes
+                _primaryClients = _billboard.NodeAddresses
+                    .Where(a => _billboard.PrimaryAuthorizers.Contains(a.Key))
+                    .Where(a => a.Key != _poswallet)
+                    .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{SafeHostStr(c.Value)}/api/Node/"))
+                    //.Take(7)    // don't spam the whole network
+                    .ToList();
+            }
         }
 
         public Task<ResultOrException<T>[]> WhenAllOrExceptionAsync<T>(IEnumerable<Task<T>> tasks)

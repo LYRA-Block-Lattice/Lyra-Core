@@ -428,7 +428,7 @@ namespace Lyra.Core.Decentralize
             await BeginChangeViewAsync("consensus network", ViewChangeReason.TooManyViewChangeRquests);
         }
 
-        private async Task<ILyraAPI> CreateSafeClientAsync()
+        private ILyraAPI CreateSafeClient()
         {
             //// temp speedup all network. will test sync by all nodes later.
             //if ("testnet" == Settings.Default.LyraNode.Lyra.NetworkId)
@@ -438,8 +438,7 @@ namespace Lyra.Core.Decentralize
             //}
 
             var useSeedOnly = false;
-            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId);
-            await client.InitAsync();
+            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId, Board);
             return client;
         }
 
@@ -495,7 +494,7 @@ namespace Lyra.Core.Decentralize
 
                 _log.LogInformation($"Database consistent check... It may take a while.");
 
-                var client = await CreateSafeClientAsync();
+                var client = CreateSafeClient();
                 var fastClient = await CreateFastClientAsync();
 
                 var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
@@ -653,7 +652,7 @@ namespace Lyra.Core.Decentralize
                                 _log.LogInformation("while true after dbcc");
                                 try
                                 {
-                                    var client = await CreateSafeClientAsync();
+                                    var client = CreateSafeClient();
 
                                     var result = await client.GetLastServiceBlockAsync();
                                     if (!result.Successful())
@@ -742,7 +741,7 @@ namespace Lyra.Core.Decentralize
                             }
 
                             //var client = new LyraRestClient("", "", "", $"https://{seedhost}/api/Node/");
-                            var client = await CreateSafeClientAsync();
+                            var client = CreateSafeClient();
 
                             // when static sync, only query the seed nodes.
                             // three seeds are enough for database sync.
@@ -879,7 +878,7 @@ namespace Lyra.Core.Decentralize
 
                                     // check block count
                                     // if total block count is not consistant according to majority of nodes, there must be a damage.
-                                    var client = await CreateSafeClientAsync();
+                                    var client = CreateSafeClient();
 
                                     var syncstate = await client.GetSyncStateAsync();
                                     var mysyncstate = await GetNodeStatusAsync();

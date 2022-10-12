@@ -18,8 +18,8 @@ namespace UnitTests
         {
             var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient(networkId, false, null);
-            await aggClient.InitAsync();
+            var bb = await client.GetBillBoardAsync();
+            var aggClient = new LyraAggregatedClient(networkId, false, null, bb);
 
             var svcBlock1 = await client.GetLastServiceBlockAsync();
             var svcBlock2 = await aggClient.GetLastServiceBlockAsync();

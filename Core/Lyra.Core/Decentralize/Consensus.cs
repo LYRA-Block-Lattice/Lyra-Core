@@ -252,7 +252,7 @@ namespace Lyra.Core.Decentralize
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            var client = await CreateSafeClientAsync();
+            var client = CreateSafeClient();
 
             // first make sure db is synced, especially when trans from almighty
             await SyncDatabaseAsync(client, 1);
@@ -294,8 +294,6 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation("Recreate aggregated client...");
                             if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
                                 agg.ReBase(false);
-
-                            await agg.InitAsync();
                         }
                         
                         continue;
@@ -536,7 +534,7 @@ namespace Lyra.Core.Decentralize
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = await CreateSafeClientAsync();
+                var client = CreateSafeClient();
                 await gensWallet.SyncAsync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.SendAsync(amount, accId);
