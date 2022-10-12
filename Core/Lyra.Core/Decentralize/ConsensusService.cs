@@ -1113,6 +1113,7 @@ namespace Lyra.Core.Decentralize
 
         internal void LocalConsolidationFailed(string hash)
         {
+            _log.LogInformation($"LocalConsolidationFailed: failed hash {hash} Current: {CurrentState}");
             if (CurrentState == BlockChainState.Almighty)
                 _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
         }

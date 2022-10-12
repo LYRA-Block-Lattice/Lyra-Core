@@ -54,7 +54,7 @@ namespace Lyra.Data.API
             return hoststr;
         }
 
-        public void Init(BillBoard bb)
+        public void InitOn(BillBoard bb)
         {
             ServicePointManager.DefaultConnectionLimit = 30;
             var platform = Environment.OSVersion.Platform.ToString();

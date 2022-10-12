@@ -19,13 +19,13 @@ namespace LyraLexWeb2
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NodesController : ControllerBase
+    public class ConsensusController : ControllerBase
     {
         private readonly DateTime _dtStarted;
         readonly ILogger _log;
-        LyraAggregatedClient _aggClient;
-        public NodesController(
-            ILogger<NodesController> logger
+        LyraAggregatedClient? _aggClient;
+        public ConsensusController(
+            ILogger<ConsensusController> logger
             )
         {
             _log = logger;
@@ -36,7 +36,7 @@ namespace LyraLexWeb2
         {
             // create an aggregated client
             _aggClient = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId, false, NodeService.Dag.PosWallet.AccountId);
-            _aggClient.Init(await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard()));
+            _aggClient.InitOn(await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard()));
 
             return true;
         }
