@@ -186,9 +186,6 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-
-
-
             return IsSuccess;
         }
 
@@ -293,7 +290,7 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation("Recreate aggregated client...");
                             if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
-                                agg.ReBase(false);
+                                agg.ReBase(true);
                         }
                         
                         continue;
