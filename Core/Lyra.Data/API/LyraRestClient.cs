@@ -256,7 +256,7 @@ namespace Lyra.Core.API
             else
             {
                 var resp = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Web Api Failed for {url}: {resp}");
+                throw new Exception($"Web Api Failed for {_url} -> {url}: {resp}");
             }
         }
 

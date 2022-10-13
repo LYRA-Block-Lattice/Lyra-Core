@@ -287,8 +287,8 @@ namespace Lyra.Core.Decentralize
                 {
                     var signedMsg = relayMsg.signedMessage;
 
-                    //_log.LogInformation($"SignedMessageRelay {signedMsg.MsgType} from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
-
+                    //_log.LogInformation($"SignedMessageRelay {signedMsg.Signature.Shorten()} {signedMsg.MsgType} from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
+                    
                     if(signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(3) &&
                         signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-30))
                     {
@@ -298,7 +298,6 @@ namespace Lyra.Core.Decentralize
                             {
                                 await CriticalRelayAsync(signedMsg, null);
                             }                            
-
                             
                             await OnNextConsensusMessageAsync(signedMsg);
 
@@ -350,7 +349,7 @@ namespace Lyra.Core.Decentralize
                             //}
                         }
                     }
-
+                    //_log.LogInformation($"SignedMessageRelay {signedMsg.Signature.Shorten()} exited.");
                 }
                 catch (Exception ex)
                 {
@@ -2032,10 +2031,10 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            //if (!CanDoConsense)   // only do consensus when can
-            //{
-            //    return;
-            //}
+            if (!CanDoConsense)   // only do consensus when can
+            {
+                return;
+            }
 
             if (item is ViewChangeMessage vcm)
             {
