@@ -2032,10 +2032,10 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if (!CanDoConsense)   // only do consensus when can
-            {
-                return;
-            }
+            //if (!CanDoConsense)   // only do consensus when can
+            //{
+            //    return;
+            //}
 
             if (item is ViewChangeMessage vcm)
             {

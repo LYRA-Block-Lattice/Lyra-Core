@@ -34,6 +34,9 @@ namespace LyraLexWeb2
 
         private async Task<bool> CheckServiceStatusAsync()
         {
+            if (NodeService.Dag.Consensus == null)
+                return false;
+
             // create an aggregated client
             var bb = await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
             _aggClient = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId, false, NodeService.Dag.PosWallet.AccountId, bb);
