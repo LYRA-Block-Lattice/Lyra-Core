@@ -66,7 +66,7 @@ namespace Neo
 
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
             this.MaxConnections = section.GetValue("MaxConnections", Peer.DefaultMaxConnections);
-            this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 16);   // allow more node behind one ip
+            this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 100);   // allow more node behind one ip
         }
     }
 }
