@@ -273,8 +273,8 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
                             if (!await SyncDatabaseAsync(client, 0))
                             {
-                                _log.LogError($"Error sync database. wait 5 minutes and retry...");
-                                await Task.Delay(5 * 60 * 1000);
+                                _log.LogError($"Error sync database. retry...");
+                                await Task.Delay(5 * 1000);
                             }
                             someBlockSynced = true;
                             continue;

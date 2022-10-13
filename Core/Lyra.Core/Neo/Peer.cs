@@ -56,7 +56,7 @@ namespace Neo.Network.P2P
 
         public int ListenerTcpPort { get; private set; }
         //public int ListenerWsPort { get; private set; }
-        public int MaxConnectionsPerAddress { get; private set; } = 3;
+        public int MaxConnectionsPerAddress { get; private set; } = 100;
         public int MinDesiredConnections { get; private set; } = DefaultMinDesiredConnections;
         public int MaxConnections { get; private set; } = DefaultMaxConnections;
         protected int UnconnectedMax { get; } = 1000;

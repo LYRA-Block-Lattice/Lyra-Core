@@ -27,6 +27,6 @@ namespace Neo.Network.P2P
         /// <summary>
         /// Max allowed connections per address
         /// </summary>
-        public int MaxConnectionsPerAddress { get; set; } = 3;
+        public int MaxConnectionsPerAddress { get; set; } = 100;
     }
 }
