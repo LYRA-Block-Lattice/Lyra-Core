@@ -286,12 +286,12 @@ namespace Lyra.Core.Decentralize
 
                         await Task.Delay(10 * 1000);
 
-                        if(client is LyraAggregatedClient agg)
-                        {
-                            _log.LogInformation("Recreate aggregated client...");
-                            if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
-                                agg.ReBase(true);
-                        }
+                        //if(client is LyraAggregatedClient agg)
+                        //{
+                        //    _log.LogInformation("Recreate aggregated client...");
+                        //    if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
+                        //        agg.ReBase(true);
+                        //}
                         
                         continue;
                     }
