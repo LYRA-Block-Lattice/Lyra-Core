@@ -27,7 +27,7 @@ namespace Neo.Network.P2P
         private class WsConnected { public WebSocket Socket; public IPEndPoint Remote; public IPEndPoint Local; }
 
         // big. we need a full connected network (at least for now.)
-        public const int DefaultMinDesiredConnections = 40;
+        public const int DefaultMinDesiredConnections = 15;
         public const int DefaultMaxConnections = DefaultMinDesiredConnections * 4;
 
         private static readonly IActorRef tcp_manager = Context.System.Tcp();
@@ -86,9 +86,28 @@ namespace Neo.Network.P2P
             {
                 // Do not select peers to be added that are already on the ConnectedPeers
                 // If the address is the same, the ListenerTcpPort should be different
-                peers = peers.Where(p => (p.Port != ListenerTcpPort || !localAddresses.Contains(p.Address)) && !ConnectedPeers.Values.Contains(p));
+                peers = peers
+                    .Where(a => !IsIPPrivate(a.Address.ToString()))
+                    .Where(p => (p.Port != ListenerTcpPort || !localAddresses.Contains(p.Address)) && !ConnectedPeers.Values.Contains(p));
                 ImmutableInterlocked.Update(ref UnconnectedPeers, p => p.Union(peers));
             }
+        }
+
+        private bool IsIPPrivate(string ipAddress)
+        {
+            int[] ipParts = ipAddress.Split(new String[] { "." }, StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(s => int.Parse(s)).ToArray();
+            // in private ip range
+            if (ipParts[0] == 10 ||
+                (ipParts[0] == 192 && ipParts[1] == 168) ||
+                (ipParts[0] == 172 && (ipParts[1] >= 16 && ipParts[1] <= 31)))
+            {
+                return true;
+            }
+
+            // IP Address is probably public.
+            // This doesn't catch some VPN ranges like OpenVPN and Hamachi.
+            return false;
         }
 
         protected void ConnectToPeer(IPEndPoint endPoint, bool isTrusted = false)
@@ -134,6 +153,7 @@ namespace Neo.Network.P2P
                     OnTimer();
                     break;
                 case Peers peers:
+                    Console.WriteLine("Adding peers.");
                     AddPeers(peers.EndPoints);
                     break;
                 case Connect connect:
