@@ -125,7 +125,6 @@ namespace Neo.Network.P2P
 
         private void OnAddrMessageReceived(AddrPayload payload)
         {
-            Console.WriteLine($"OnAddrMessageReceived got {payload.AddressList.Length} addresses from payload.");
             system.LocalNode.Tell(new Peer.Peers
             {
                 EndPoints = payload.AddressList.Select(p => p.EndPoint).Where(p => p.Port > 0)
@@ -167,9 +166,6 @@ namespace Neo.Network.P2P
                 .OrderBy(p => rand.Next())
                 .Take(AddrPayload.MaxCountToSend);
             NetworkAddressWithTime[] networkAddresses = peers.Select(p => NetworkAddressWithTime.Create(p.Listener.Address, p.Version.Timestamp, p.Version.Capabilities)).ToArray();
-
-            Console.WriteLine($"OnGetAddrMessageReceived will send {networkAddresses.Length} addresses.");
-            
             if (networkAddresses.Length == 0) return;
             EnqueueMessage(Message.Create(MessageCommand.Addr, AddrPayload.Create(networkAddresses)));
         }
