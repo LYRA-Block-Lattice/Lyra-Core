@@ -147,7 +147,7 @@ namespace Lyra.Data.API
         {
             var results = await WhenAllOrExceptionAsync(taskss);
 
-            var expectedCount = LyraGlobal.GetMajority(taskss.Count);
+            int expectedCount = (int)Math.Round((decimal)taskss.Count / 2);// LyraGlobal.GetMajority(taskss.Count);
             //if (_seedsOnly)    // seed stage
             //    expectedCount = 2;
 
