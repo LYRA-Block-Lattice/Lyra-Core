@@ -1,6 +1,8 @@
-﻿using Lyra.Core.Utils;
+﻿using Akka.Actor;
+using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
+using Neo.Network.P2P;
 using Quartz;
 using Quartz.Impl;
 using System;
@@ -8,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IScheduler = Quartz.IScheduler;
 
 namespace Lyra.Core.Decentralize
 {
@@ -243,6 +246,8 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
+                    cs.GetDagSystem().LocalNode.Tell(new LocalNode.NeedSeeds());
+
                     await cs.DeclareConsensusNodeAsync();
 
                     // update profiting account

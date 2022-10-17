@@ -22,6 +22,7 @@ namespace Neo.Network.P2P
 {
     public class LocalNode : Peer
     {
+        public class NeedSeeds { }
         public class SignedMessageRelay { public SourceSignedMessage signedMessage; }
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory = null; }
@@ -185,6 +186,13 @@ namespace Neo.Network.P2P
             }
         }
 
+        protected void KeepSeedsActive()
+        {
+            Random rand = new Random();
+            AddPeers(SeedList.Where(u => u != null).OrderBy(p => rand.Next()).Take(2));
+            Console.WriteLine("Connect to seeds.");
+        }
+
         protected override void OnReceive(object message)
         {
             //_log.LogInformation($"LocalNode OnReceive {message.GetType().Name}");
@@ -215,6 +223,9 @@ namespace Neo.Network.P2P
                     break;
                 case DagSystem sys:
                     Sys = sys;
+                    break;
+                case NeedSeeds:
+                    KeepSeedsActive();
                     break;
                 //case RelayResultReason _:
                 //    break;
