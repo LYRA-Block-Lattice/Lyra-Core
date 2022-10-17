@@ -23,6 +23,16 @@ namespace Lyra.Data.API
                 UrlBase = "https://dex.lyra.live/api/Dex/";
         }
 
+        public async Task<DexStatus> GetDexStatusAsync(string accountId, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "signature", signature },
+            };
+            return await GetAsync<DexStatus>("GetDexStatus", args);
+        }
+
         public async Task<DexAddress> CreateWalletAsync(string owner, string symbol, string provider,
             string reqhash,
             string authid, string signature)

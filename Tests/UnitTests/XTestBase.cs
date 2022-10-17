@@ -438,18 +438,20 @@ namespace UnitTests
 
         private async Task CreateDevnet()
         {
-            networkId = "devnet";
-            client = new LyraRestClient("win", "xunit", "1.0", "https://192.168.3.77:4504/api/Node/");
+            networkId = TestConfig.networkId;
+            client = networkId == "devnet" ?
+                new LyraRestClient("win", "xunit", "1.0", "https://192.168.3.77:4504/api/Node/") :
+                LyraRestClient.Create(networkId, "win", "xunit", "1.0");
 
             var walletStor = new AccountInMemoryStorage();
             Wallet.Create(walletStor, "gensisi", "1234", networkId, "sVfBfv913fdXQ5pKiGU3KxV8Ee2vmQL7iHWDT1t4NzTqvTzj2");
 
             genesisWallet = Wallet.Open(walletStor, "gensisi", "1234", client);
             var ret = await genesisWallet.SyncAsync(client);
-            Assert.IsTrue(ret == APIResultCodes.Success);
+            Assert.IsTrue(ret == APIResultCodes.Success, $"gensisis can't sync: {ret}");
 
             // make sure test and test2 has been registed to dealer
-            var url = "https://dealer.devnet.lyra.live:7070";
+            var url = networkId == "devnet" ? "https://dealer.devnet.lyra.live:7070" : "https://dealertestnet.lyra.live/";
             dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
 
             var lsb = await client.GetLastServiceBlockAsync();
@@ -565,7 +567,8 @@ namespace UnitTests
 
         protected async Task SetupEventsListener()
         {
-            var url = $"https://devnet.lyra.live:4504/events";
+            var port = TestConfig.networkId == "mainnet" ? 5504 : 4504;
+            var url = $"https://{TestConfig.networkId}.lyra.live:{port}/events";
             _eventClient = new LyraEventClient(LyraEventHelper.CreateConnection(new Uri(url)));
 
             _eventClient.RegisterOnEvent(async evt => await ProcessEventAsync(evt));

@@ -25,7 +25,7 @@ namespace UnitTests.OTC
     {
         public async Task Setup()
         {
-            await SetupWallets("devnet");
+            await SetupWallets(TestConfig.networkId);
 
             await SetupEventsListener();
         }

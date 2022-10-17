@@ -9,6 +9,12 @@ namespace DexServer.Ext
         public string? Message { get; set; }
     }
 
+    public class DexStatus
+    {
+        public bool Online { get; set; }
+        public string? Notice { get; set; }
+    }
+
     public class SupportedTokens : DexResult
     {
         public List<ExtAssert> Asserts { get; set; } = null!;

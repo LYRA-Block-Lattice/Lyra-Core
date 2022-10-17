@@ -12,7 +12,7 @@ namespace UnitTests
     [TestClass]
     public class TestConfig
     {
-        public static string networkId = "testnet";
+        public static string networkId = "devnet";
 
         [AssemblyInitialize()]
         public static void MyTestInitialize(TestContext testContext)

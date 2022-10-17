@@ -40,6 +40,21 @@ namespace UnitTests
 
             await TestDepositWithdraw(dexUserWallet);
         }
+
+        [TestMethod]
+        public async Task TestGetStatus()
+        {
+            var wallet = await GetGenesisWalletAsync();
+
+            client = LyraRestClient.Create(networkId, "windows", "unit test", "1.0");
+            var lsb = await client.GetLastServiceBlockAsync();
+            Assert.IsTrue(lsb.Successful());
+
+            var dexc = new DexClient(networkId);
+            var signatures = Signatures.GetSignature(wallet.PrivateKey, lsb.GetBlock().Hash, wallet.AccountId);
+            var ret = await dexc.GetDexStatusAsync(wallet.AccountId, signatures);
+            Assert.IsTrue(ret.Online);
+        }
         
         private async Task<Wallet> GetGenesisWalletAsync()
         {
@@ -50,7 +65,7 @@ namespace UnitTests
             client = LyraRestClient.Create(networkId, "windows", "unit test", "1.0");
             await wallet.SyncAsync(client);
 
-            Assert.IsTrue(wallet.BaseBalance > 1000000m);
+            Assert.IsTrue(wallet.BaseBalance > 100000m);
             return wallet;
         }
 
