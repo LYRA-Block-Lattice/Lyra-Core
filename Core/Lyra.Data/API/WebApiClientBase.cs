@@ -89,7 +89,7 @@ namespace Lyra.Data.API
             }                
         }
 
-        protected async Task<T> GetAsync<T>(string action, Dictionary<string, string>? args = null)
+        public async Task<T> GetAsync<T>(string action, Dictionary<string, string>? args = null)
         {
             var url = $"{action}/?" + args?.Aggregate(new StringBuilder(),
                           (sb, kvp) => sb.AppendFormat("{0}{1}={2}",

@@ -294,10 +294,11 @@ namespace Lyra.Core.Decentralize
                     {
                         if (signedMsg.VerifySignature(signedMsg.From))
                         {
-                            if(IsThisNodeSeed)
-                            {
-                                await CriticalRelayAsync(signedMsg, null);
-                            }                            
+                            // test if this is really needed.
+                            //if(IsThisNodeSeed)
+                            //{
+                            //    await CriticalRelayAsync(signedMsg, null);
+                            //}                            
                             
                             await OnNextConsensusMessageAsync(signedMsg);
 
@@ -319,14 +320,14 @@ namespace Lyra.Core.Decentralize
                                     if (bx.State != null && bx.State.InputMsg != null)
                                         bt = bx.State.InputMsg.Block.BlockType;
                                 }
-                            }
+                            }*/
 
                             // not needed anymore
                             // seeds take resp to forward heatbeat, once
                             if ((IsThisNodeSeed && (
                                 signedMsg.MsgType == ChatMessageType.HeartBeat
-                                || bt == BlockTypes.Consolidation
-                                || bt == BlockTypes.Service
+                                //|| bt == BlockTypes.Consolidation
+                                //|| bt == BlockTypes.Service
                                 //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
                                 //|| (signedMsg is AuthorizingMsg au && (au.Block is ConsolidationBlock || au.Block is ServiceBlock))
                                 //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
@@ -335,7 +336,7 @@ namespace Lyra.Core.Decentralize
                                 )) || CurrentState == BlockChainState.Genesis)
                             {
                                 await CriticalRelayAsync(signedMsg, null);
-                            }*/
+                            }
                         }
                         else
                         {
