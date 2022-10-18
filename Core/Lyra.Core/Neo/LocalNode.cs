@@ -190,7 +190,7 @@ namespace Neo.Network.P2P
         {
             Random rand = new Random();
             AddPeers(SeedList.Where(u => u != null).OrderBy(p => rand.Next()).Take(2));
-            Console.WriteLine("Connect to seeds.");
+            //Console.WriteLine("Connect to seeds.");
         }
 
         protected override void OnReceive(object message)

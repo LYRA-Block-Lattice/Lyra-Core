@@ -445,14 +445,14 @@ namespace UnitTests
 
         private async Task TestOTCTradeAsync(TradeDirection direction)
         {
-            var crypto = "unittest/ETH";
+            var crypto = "tether/ETH";
             bool firstTime = false;
 
             await testWallet.SyncAsync(null);
             if(!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
             {
                 // init. create token to sell
-                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
+                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
                         "", "", ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
 
@@ -751,7 +751,7 @@ namespace UnitTests
                 orderId = otcg.AccountID,
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = direction,
-                crypto = "unittest/ETH",
+                crypto = "tether/ETH",
                 fiat = fiat,
                 price = 2000,
                 
@@ -814,7 +814,7 @@ namespace UnitTests
 
         private async Task<string> TestOTCTradeDispute()
         {
-            var crypto = "unittest/ETH";
+            var crypto = "tether/ETH";
             // init. create token to sell
             //var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
             //        "", "", ContractTypes.Cryptocurrency, null);
@@ -907,7 +907,7 @@ namespace UnitTests
                 orderId = otcg.AccountID,
                 orderOwnerId = otcg.OwnerAccountId,
                 dir = TradeDirection.Buy,
-                crypto = "unittest/ETH",
+                crypto = "tether/ETH",
                 fiat = fiat,
                 price = 2000,
                 amount = 0.1m,

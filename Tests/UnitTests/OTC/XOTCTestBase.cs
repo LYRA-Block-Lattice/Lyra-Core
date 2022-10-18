@@ -67,7 +67,7 @@ namespace UnitTests.OTC
                 orderId = order.AccountID,
                 orderOwnerId = order.OwnerAccountId,
                 dir = order.Order.dir == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell,
-                crypto = "unittest/ETH",
+                crypto = "tether/ETH",
                 fiat = fiat,
                 price = order.Order.price,
 
@@ -112,13 +112,13 @@ namespace UnitTests.OTC
 
         protected async Task<IOtcOrder> HostCreateOrder()
         {
-            var crypto = "unittest/ETH";
+            var crypto = "tether/ETH";
 
             await testWallet.SyncAsync(null);
             if (!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
             {
                 // init. create token to sell
-                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "unittest", "", 8, 100000, false, testWallet.AccountId,
+                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
                         "", "", ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
 

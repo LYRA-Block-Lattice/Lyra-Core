@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Lyra.Core.Utils;
+using Lyra.Data.API;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo.Network.P2P;
@@ -8,6 +9,7 @@ using Quartz.Impl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using IScheduler = Quartz.IScheduler;
@@ -121,8 +123,11 @@ namespace Lyra.Core.Decentralize
                 {
                     // routine maintains
                     var outDated = cs._failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddMinutes(-5)).ToList();
-                    foreach (var od in outDated)
-                        cs._failedLeaders.TryRemove(od.Key, out _);
+                    if(outDated.Any())
+                    {
+                        foreach (var od in outDated)
+                            cs._failedLeaders.TryRemove(od.Key, out _);
+                    }
 
                     // end routine maintains
                     // app mode view change handler is null
@@ -180,7 +185,16 @@ namespace Lyra.Core.Decentralize
 
                             if (worker.IsTimeout)
                             {
-                                if(worker.State.IsCommited || worker.State.InputMsg?.TimeStamp < DateTime.UtcNow.AddSeconds(-60))
+                                if(worker.State.InputMsg?.TimeStamp < DateTime.UtcNow.AddSeconds(-60))
+                                {
+                                    // should not happen on normal status. so try to resync.
+                                    if (cs.CurrentState == BlockChainState.Almighty)
+                                        cs._stateMachine.Fire(cs._engageTriggerConsolidateFailed, worker.Hash);
+
+                                    cs._activeConsensus.TryRemove(worker.Hash, out _);
+                                    worker.Dispose();
+                                }
+                                else if (worker.State.IsCommited)
                                 {
                                     // no close. use dotnet's dispose.
                                     cs._activeConsensus.TryRemove(worker.Hash, out _);
