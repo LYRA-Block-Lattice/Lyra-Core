@@ -66,6 +66,9 @@ namespace Lyra.Core.WorkFlow
 
             // check every field of Order
             // crypto
+            if (!order.crypto.StartsWith("tether/"))    // don't allow non-tether token, maybe reopen later.
+                return APIResultCodes.InvalidToken;
+
             var tokenGenesis = await sys.Storage.FindTokenGenesisBlockAsync(null, order.crypto);
             if (tokenGenesis == null)
                 return APIResultCodes.TokenNotFound;
