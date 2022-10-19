@@ -445,26 +445,26 @@ namespace UnitTests
 
         private async Task TestOTCTradeAsync(TradeDirection direction)
         {
-            var crypto = "tether/ETH";
+            var crypto = "tether/BTC";
             bool firstTime = false;
 
             await testWallet.SyncAsync(null);
-            if(!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
-            {
-                // init. create token to sell
-                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
-                        "", "", ContractTypes.Cryptocurrency, null);
-                Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
+            //if(!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
+            //{
+            //    // init. create token to sell
+            //    var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
+            //            "", "", ContractTypes.Cryptocurrency, null);
+            //    Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
 
-                await WaitBlock("CreateTokenAsync");
+            //    await WaitBlock("CreateTokenAsync");
 
-                await testWallet.SyncAsync(null);
+            //    await testWallet.SyncAsync(null);
 
-                await testWallet.SendAsync(100, test2PublicKey, crypto);
-                await test2Wallet.SyncAsync(null);
+            //    await testWallet.SendAsync(100, test2PublicKey, crypto);
+            //    await test2Wallet.SyncAsync(null);
 
-                firstTime = true;
-            }
+            //    firstTime = true;
+            //}
 
             var testbalance = testWallet.BaseBalance;
 

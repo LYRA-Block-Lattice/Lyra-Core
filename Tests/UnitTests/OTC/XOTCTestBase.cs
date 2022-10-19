@@ -59,7 +59,7 @@ namespace UnitTests.OTC
         protected async Task<IOtcTrade> GuestCreateTrade(IOtcOrder order)
         {
             var prices = await dealer.GetPricesAsync();
-            var collt = Math.Round((prices["ETH"] * 0.01m / prices["LYR"]) * 150 / 100 + 10000, 0);
+            var collt = Math.Round((prices["BTC"] * 0.01m / prices["LYR"]) * 150 / 100 + 10000, 0);
             var trade = new OTCTrade
             {
                 daoId = order.Order.daoId,
@@ -67,7 +67,7 @@ namespace UnitTests.OTC
                 orderId = order.AccountID,
                 orderOwnerId = order.OwnerAccountId,
                 dir = order.Order.dir == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell,
-                crypto = "tether/ETH",
+                crypto = "tether/BTC",
                 fiat = fiat,
                 price = order.Order.price,
 
@@ -112,13 +112,13 @@ namespace UnitTests.OTC
 
         protected async Task<IOtcOrder> HostCreateOrder()
         {
-            var crypto = "tether/ETH";
+            var crypto = "tether/BTC";
 
             await testWallet.SyncAsync(null);
             if (!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
             {
                 // init. create token to sell
-                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
+                var tokenGenesisResult = await testWallet.CreateTokenAsync("BTC", "tether", "", 8, 100000, false, testWallet.AccountId,
                         "", "", ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
 
@@ -152,7 +152,7 @@ namespace UnitTests.OTC
 
             var prices = await dealer.GetPricesAsync();
 
-            var collt = Math.Round((prices["ETH"] * 0.02m / prices["LYR"]) * dao.SellerPar / 100 + 10000, 0);
+            var collt = Math.Round((prices["BTC"] * 0.02m / prices["LYR"]) * dao.SellerPar / 100 + 10000, 0);
             var order = new OTCOrder
             {
                 daoId = dao.AccountID,
