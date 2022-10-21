@@ -58,6 +58,7 @@ namespace Lyra.Data.API
 
     public class DealerBrief
     {
+        public string Version { get; set; } = null!;
         public string AccountId { get; set; } = null!;
         public string TelegramBotUsername { get; set; } = null!;
     }
