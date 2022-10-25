@@ -100,8 +100,13 @@ namespace Lyra.Data.API
             HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<T>();
-                return result;
+                if (typeof(T) == typeof(string))
+                    return (T)(object) await response.Content.ReadAsStringAsync();
+                else
+                {
+                    var result = await response.Content.ReadAsAsync<T>();
+                    return result;
+                }
             }
             else
             {

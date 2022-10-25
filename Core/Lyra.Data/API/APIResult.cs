@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Humanizer;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
@@ -18,12 +19,24 @@ namespace Lyra.Core.API
     public class APIResult : IEquatable<APIResult>
     {
         public APIResultCodes ResultCode { get; set; }
-        public string ResultMessage { get; set; }
+
+        string _errmsg;
+        public string ResultMessage 
+        {
+            get
+            {
+                return string.IsNullOrEmpty(_errmsg) ? ResultCode.Humanize() : _errmsg;
+            }
+            set
+            {
+                _errmsg = value;
+            }
+        }
 
         public APIResult()
         {
-            ResultCode = APIResultCodes.UnknownError;
-            ResultMessage = string.Empty;
+            ResultCode = APIResultCodes.UndefinedError;
+            _errmsg = string.Empty;
         }
 
         public static APIResult Success => new APIResult { ResultCode = APIResultCodes.Success };

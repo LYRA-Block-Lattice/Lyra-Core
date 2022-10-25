@@ -85,5 +85,7 @@ namespace Lyra.Data.API
         public string UserName { get; set; } = null!;
         public int Total { get; set; }
         public decimal Ratio { get; set; }
+        public bool TelegramVerified { get; set; } = false;
+        public bool EmailVerified { get; set; } = false;
     }
 }

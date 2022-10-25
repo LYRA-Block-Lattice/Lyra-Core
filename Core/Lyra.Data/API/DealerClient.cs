@@ -209,6 +209,17 @@ namespace Lyra.Data.API
                 return null;
         }
 
+        public async Task<APIResult> VerifyEmailAsync(string accountId, string email, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "email", email },
+                { "signature", signature },
+            };
+            return await GetAsync<APIResult>("VerifyEmail", args);
+        }
+
         public async Task<APIResult> RegisterAsync(string accountId,
             string userName, string firstName, string middleName, string lastName,
             string email, string mibilePhone, string avatarId, string telegramID, string signature
