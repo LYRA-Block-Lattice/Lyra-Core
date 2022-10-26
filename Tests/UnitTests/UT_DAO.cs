@@ -1245,7 +1245,8 @@ namespace UnitTests
             var lsb = await devnetLyra.GetLastServiceBlockAsync();
             var regret = await dealer.RegisterAsync(testWallet.AccountId,
                     "test", "Unit", "", "Test", "t@", "1111", "1111", "",
-                    Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId));
+                    Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
+                    "111111", "222222");
             Assert.IsTrue(regret.Successful());
 
             ResetAuthFail();

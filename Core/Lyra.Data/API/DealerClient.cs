@@ -1,4 +1,5 @@
-﻿using DexServer.Ext;
+﻿using Converto;
+using DexServer.Ext;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API.Identity;
@@ -220,9 +221,19 @@ namespace Lyra.Data.API
             return await GetAsync<APIResult>("VerifyEmail", args);
         }
 
+        public async Task<SimpleJsonAPIResult> GetTrustedUserAsync(string accountId)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+            };
+            return await GetAsync<SimpleJsonAPIResult>("GetTrustedUser", args);
+        }
+
         public async Task<APIResult> RegisterAsync(string accountId,
             string userName, string firstName, string middleName, string lastName,
-            string email, string mibilePhone, string avatarId, string telegramID, string signature
+            string email, string mibilePhone, string avatarId, string telegramID, string signature,
+            string ec, string tc
             )
         {
             var args = new Dictionary<string, string>
@@ -233,9 +244,11 @@ namespace Lyra.Data.API
                 { "middleName", middleName },
                 { "lastName", lastName },
                 { "email", email },
+                { "ec", ec },
                 { "mibilePhone", mibilePhone },
                 { "avatarId", avatarId },
                 { "telegramId", telegramID },
+                { "tc", tc },
                 { "signature", signature },
             };
             return await GetAsync<APIResult>("Register", args);

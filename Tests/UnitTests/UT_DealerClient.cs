@@ -2,6 +2,7 @@
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +75,22 @@ namespace UnitTests
             //var cmnts = await dealer.GetCommentsForTradeAsync(tradid);
             //Assert.IsTrue(cmnts.Count == 1, $"no comment found.");
             //Assert.IsTrue(cmnts.First().Content == cfg.Content);
+        }
+
+        [TestMethod]
+        public async Task TestUserTrustedAsync()
+        {
+            var url = "https://dealer.devnet.lyra.live:7070";
+            var dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
+
+            var accountId = "LUTPLGNAP4vTzXh5tWVCmxUBh8zjGTR8PKsfA8E67QohNsd1U6nXPk4Q9jpFKsKfULaaT3hs6YK7WKm57QL5oarx8mZdbM";
+
+            var jsonret = await dealer.GetTrustedUserAsync(accountId);
+            Assert.IsTrue(jsonret.Successful(), $"Can't GetTrustedUserAsync: {jsonret.ResultMessage}");
+
+            dynamic ut = JObject.Parse(jsonret.JsonString);
+            Assert.IsTrue(ut.EmailVerified == "false");
+            Assert.IsTrue(ut.TelegramVerified == "false");
         }
     }
 }
