@@ -24,7 +24,7 @@ namespace Lyra.Data.API
                 UrlBase = "https://start.lyra.live/svc/";
         }
 
-        public async Task<APIResult> VerifyEmailAsync(string accountId, string email, string signature)
+        public async Task<string> VerifyEmailAsync(string accountId, string email, string signature)
         {
             var args = new Dictionary<string, string>
             {
@@ -32,7 +32,7 @@ namespace Lyra.Data.API
                 { "email", email },
                 { "signature", signature },
             };
-            return await GetAsync<APIResult>("VerifyEmail", args);
+            return await GetAsync<string>("VerifyEmail", args);
         }
 
         public async Task<string> GetCodeForEmailAsync(string accountId, string email, string signature)
