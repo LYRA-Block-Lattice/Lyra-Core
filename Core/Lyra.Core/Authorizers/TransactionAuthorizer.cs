@@ -308,6 +308,11 @@ namespace Lyra.Core.Authorizers
                 var tokenCode = chg.Key;
                 var tokenAmount = chg.Value;
 
+                if(tokenCode.Contains("#"))
+                {
+                    tokenCode = tokenCode.Split('#')[0];
+                }
+
                 var token_block = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenCode);
                 if (token_block == null)
                     return APIResultCodes.TokenGenesisBlockNotFound;

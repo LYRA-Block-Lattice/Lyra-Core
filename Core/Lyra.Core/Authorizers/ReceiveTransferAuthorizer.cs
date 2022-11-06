@@ -188,7 +188,7 @@ namespace Lyra.Core.Authorizers
                 else
                 {
                     // NFT has different validation: append #serial to the ticker.
-                    if(sourceBlock.NonFungibleToken != null)
+                    if(sourceBlock.NonFungibleToken != null && sourceBlock.NonFungibleToken.SerialNumber != null)
                     {
                         var keyr = $"{sourceBlock.NonFungibleToken.TokenCode}#{sourceBlock.NonFungibleToken.SerialNumber}";
                         TransactionBlock prevToSendBlock = await sys.Storage.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
