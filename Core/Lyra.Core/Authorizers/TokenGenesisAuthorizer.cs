@@ -51,6 +51,9 @@ namespace Lyra.Core.Authorizers
                 if (!block.Ticker.Contains(block.DomainName + "/") || r.IsMatch(block.DomainName))
                     return APIResultCodes.InvalidDomainName;
 
+                if(block.DomainName.ToLower() != block.DomainName)
+                    return APIResultCodes.InvalidDomainName;        // make sure domain name is lower case.
+
                 if (r.IsMatch(block.Ticker.Replace(block.DomainName + "/", "")))
                     return APIResultCodes.InvalidTickerName;
 
@@ -63,7 +66,7 @@ namespace Lyra.Core.Authorizers
                 bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
                 if (!tokenIssuerIsSeed0 && block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
                 {
-                    if (block.DomainName.Length < 6)
+                    if (block.DomainName != "nft" && block.DomainName.Length < 6)
                         return APIResultCodes.DomainNameTooShort;
                     if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
                         return APIResultCodes.DomainNameReserved;

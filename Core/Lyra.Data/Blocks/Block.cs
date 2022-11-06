@@ -422,6 +422,9 @@ namespace Lyra.Core.Blocks
         DealerRecv = 105,
         DealerSend = 106,
         DealerGenesis = 107,
+
+        // NFT
+        NFTGenesis = 110,
     }
 
     public enum APIResultCodes

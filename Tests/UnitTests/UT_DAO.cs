@@ -22,7 +22,7 @@ namespace UnitTests
     {
         IDealer dlr;
 
-        [TestMethod]
+        //[TestMethod]
         public async Task TestDAO()
         {
             await SetupWallets("xtest");
@@ -446,7 +446,7 @@ namespace UnitTests
         private async Task TestOTCTradeAsync(TradeDirection direction)
         {
             var crypto = "tether/BTC";
-            bool firstTime = false;
+            bool firstTime = true;
 
             await testWallet.SyncAsync(null);
             //if(!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
@@ -1240,14 +1240,15 @@ namespace UnitTests
             dlr = gdret.As<IDealer>();
             Assert.IsNotNull(dlr, "unable to get dealder genesis block");
 
+            // already tested other place
             // register user to dealer
-            var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
-            var lsb = await devnetLyra.GetLastServiceBlockAsync();
-            var regret = await dealer.RegisterAsync(testWallet.AccountId,
-                    "test", "Unit", "", "Test", "t@", "1111", "1111", "",
-                    Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
-                    "111111", "222222");
-            Assert.IsTrue(regret.Successful());
+            //var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
+            //var lsb = await devnetLyra.GetLastServiceBlockAsync();
+            //var regret = await dealer.RegisterAsync(testWallet.AccountId,
+            //        "test", "Unit", "", "Test", "t@", "1111", "1111", "",
+            //        Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
+            //        "", "");
+            //Assert.IsTrue(regret.Successful());
 
             ResetAuthFail();
         }

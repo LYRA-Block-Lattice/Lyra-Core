@@ -89,8 +89,8 @@ namespace UnitTests
             Assert.IsTrue(jsonret.Successful(), $"Can't GetTrustedUserAsync: {jsonret.ResultMessage}");
 
             dynamic ut = JObject.Parse(jsonret.JsonString);
-            Assert.IsTrue(ut.EmailVerified == "false");
-            Assert.IsTrue(ut.TelegramVerified == "false");
+            Assert.IsTrue(ut.EmailVerified == "true");
+            Assert.IsTrue(ut.TelegramVerified == "true");
         }
     }
 }

@@ -24,6 +24,20 @@ namespace Lyra.Data.API
                 UrlBase = "https://start.lyra.live/svc/";
         }
 
+        public async Task<string> CreateMetaAsync(string accountId, string signature,
+            string name, string description, string ipfscid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "signature", signature },
+                { "name", name },
+                { "description", description },
+                { "ipfscid", ipfscid}
+            };
+            return await GetAsync<string>("CreateMeta", args);
+        }
+
         public async Task<string> VerifyEmailAsync(string accountId, string email, string signature)
         {
             var args = new Dictionary<string, string>
