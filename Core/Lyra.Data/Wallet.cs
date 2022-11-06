@@ -700,7 +700,10 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> SendExAsync(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
+        public async Task<AuthorizationAPIResult> SendExAsync(string DestinationAccountId, 
+            Dictionary<string, decimal> Amounts, 
+            Dictionary<string, string> tags, 
+            NonFungibleToken? nft = null)
         {
             var previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
@@ -752,7 +755,8 @@ namespace Lyra.Core.Accounts
                 Tags = tags,
                 Fee = fee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
+                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular,
+                NonFungibleToken = nft,
             };
 
             // transfer unchanged token balances from the previous block
@@ -795,7 +799,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> SendOnceAsync(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags, NonFungibleToken? nft = null)
+        private async Task<AuthorizationAPIResult> SendOnceAsync(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
@@ -858,7 +862,6 @@ namespace Lyra.Core.Accounts
                 Fee = fee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular,
-                NonFungibleToken = nft,
             };
 
             sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());

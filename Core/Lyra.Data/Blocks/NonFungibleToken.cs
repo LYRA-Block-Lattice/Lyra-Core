@@ -70,7 +70,7 @@ namespace Lyra.Core.Blocks
         /// This is encrypted redemption code.
         /// It is encrypted by Diffie Helman using sender's private key and recipient's public key
         /// </summary>
-        public string RedemptionCode { get; set; }
+        public string? RedemptionCode { get; set; }
 
         // This is the actual date which is set at time of token generation by the sender
         // according to the value in the genesis block

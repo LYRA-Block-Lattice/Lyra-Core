@@ -34,7 +34,11 @@ namespace UnitTests
             Assert.AreEqual(APIResultCodes.BlockNotFound, findSendRet.ResultCode);
 
             var nft = testWallet.IssueNFT(nftgen.Ticker, "0");
-            var sendRet = await testWallet.SendAsync(1m, test2PublicKey, nftgen.Ticker, nft);
+            var amounts = new Dictionary<string, decimal>
+            {
+                { nftgen.Ticker, 1m }
+            };
+            var sendRet = await testWallet.SendExAsync(test2PublicKey, amounts, null, nft);
             Assert.IsTrue(sendRet.Successful(), $"Faid to send NFT: {sendRet.ResultCode}");
         }
     }
