@@ -321,19 +321,22 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.Success;
 
                 //INonFungibleToken non_fungible_token = send_block.GetNonFungibleTransaction(previousBlock);
-
                 if (send_or_receice_block.NonFungibleToken == null)
-                    return APIResultCodes.MissingNonFungibleToken;
+                {
 
-                if (send_or_receice_block.NonFungibleToken.Denomination != tokenAmount)
-                    return APIResultCodes.InvalidNonFungibleAmount;
+                }
+                else
+                {
+                    if (send_or_receice_block.NonFungibleToken.Denomination != tokenAmount)
+                        return APIResultCodes.InvalidNonFungibleAmount;
 
-                if (send_or_receice_block.NonFungibleToken.TokenCode != tokenCode)
-                    return APIResultCodes.InvalidNonFungibleTokenCode;
+                    if (send_or_receice_block.NonFungibleToken.TokenCode != tokenCode)
+                        return APIResultCodes.InvalidNonFungibleTokenCode;
 
-                var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey ?? token_block.AccountID);
-                if (!vr)
-                    return APIResultCodes.NonFungibleSignatureVerificationFailed;
+                    var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey ?? token_block.AccountID);
+                    if (!vr)
+                        return APIResultCodes.NonFungibleSignatureVerificationFailed;
+                }
 
                 if (token_block.ContractType == ContractTypes.Collectible)
                 {

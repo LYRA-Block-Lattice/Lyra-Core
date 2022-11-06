@@ -52,6 +52,17 @@ namespace UnitTests
             Assert.IsTrue(recvBlock.Balances.ContainsKey(tickrToSend));
             Assert.IsTrue(recvBlock.Balances[tickrToSend] == 1m.ToBalanceLong());
 
+            // then test2 will send to test3
+            var send2ret = await test2Wallet.SendAsync(1m, test3PublicKey, nftgen.Ticker);
+            Assert.IsTrue(send2ret.Successful(), $"Faid to send NFT to test3: {send2ret.ResultCode}");
+
+            await test3Wallet.SyncAsync();
+            var recvBlockx2 = test3Wallet.GetLastSyncBlock();
+            Assert.IsTrue(recvBlockx2 is ReceiveTransferBlock, "not a receive block");
+            var recvBlock2 = recvBlockx2 as ReceiveTransferBlock;
+            Assert.IsTrue(recvBlock2.SourceHash == sendBlock.Hash, "not receive properly");
+            Assert.IsTrue(recvBlock2.Balances.ContainsKey(tickrToSend));
+            Assert.IsTrue(recvBlock2.Balances[tickrToSend] == 1m.ToBalanceLong());
         }
     }
 }
