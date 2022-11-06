@@ -51,6 +51,7 @@ namespace Lyra.Core.Blocks
     public class NonFungibleToken: SignableObject
     {
         // Token ticker - link to the token's genesis block
+        // normaly nft full ticker, "nft/0000-000..."
         public string TokenCode { get; set; }
 
         ///// <summary>

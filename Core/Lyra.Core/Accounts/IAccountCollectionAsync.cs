@@ -73,7 +73,7 @@ namespace Lyra.Core.Accounts
         Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(string belongToSvcHash);
 
         // NFT related
-        Task<SendTransferBlock> FindNFTGenesisSendAsync(string accountId, string key);
+        Task<SendTransferBlock> FindNFTGenesisSendAsync(string accountId, string ticker, string serial);
         long GetCurrentView();
         /*
         /// <summary>

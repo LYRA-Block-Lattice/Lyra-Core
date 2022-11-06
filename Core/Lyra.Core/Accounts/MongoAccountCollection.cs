@@ -2358,14 +2358,16 @@ namespace Lyra.Core.Accounts
             return await q.FirstOrDefaultAsync();
         }
 
-        public async Task<SendTransferBlock> FindNFTGenesisSendAsync(string accountId, string key)
+        // genesis account -> send: balance[nft/0000-00..] -= 1
+        // receive -> balance[nft/0000-00..#serial] += 1
+        // only this pair of block has .NonFungibleToken property. this property is not inheritable. 
+        public async Task<SendTransferBlock> FindNFTGenesisSendAsync(string accountId, string ticker, string serial)
         {
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("Balances.Key", key);
-
             var q = _blocks.OfType<SendTransferBlock>()
                 .AsQueryable()
-                .Where(a => a.AccountID == accountId && a.Balances.ContainsKey(key));
+                .Where(a => a.AccountID == accountId && a.NonFungibleToken != null
+                        && a.NonFungibleToken.TokenCode == ticker && a.NonFungibleToken.SerialNumber == serial
+                    );
 
             return await q.FirstOrDefaultAsync();
         }

@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.Blocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -28,8 +29,13 @@ namespace UnitTests
             Assert.IsNotNull(nftgen);
             Assert.AreEqual(name, nftgen.Custom1);
 
-            var sendRet = await testWallet.RPC.FindNFTGenesisSendAsync(testPublicKey, nftgen.Ticker + "#0");
-            Assert.AreEqual(APIResultCodes.NotFound, sendRet.ResultCode);
+            var tickrToSend = nftgen.Ticker + "#0";
+            var findSendRet = await testWallet.RPC.FindNFTGenesisSendAsync(testPublicKey, nftgen.Ticker, "0");
+            Assert.AreEqual(APIResultCodes.BlockNotFound, findSendRet.ResultCode);
+
+            var nft = testWallet.IssueNFT(nftgen.Ticker, "0");
+            var sendRet = await testWallet.SendAsync(1m, test2PublicKey, nftgen.Ticker, nft);
+            Assert.IsTrue(sendRet.Successful(), $"Faid to send NFT: {sendRet.ResultCode}");
         }
     }
 }

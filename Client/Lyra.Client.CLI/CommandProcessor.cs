@@ -96,7 +96,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Show Account Private Key", COMMAND_PRIVATE_KEY));
                         Console.WriteLine(string.Format(@"{0,10}: DPoS: Set Vote for Account Id", COMMAND_VOTEFOR));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer funds to another account", COMMAND_SEND));
-                        Console.WriteLine(string.Format(@"{0,10}: Transfer collectible NFT to another account", COMMAND_SEND_NFT));
+                        //Console.WriteLine(string.Format(@"{0,10}: Transfer collectible NFT to another account", COMMAND_SEND_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Pool operations", COMMAND_CREATE_POOL));
                         Console.WriteLine(string.Format(@"{0,10}: Profiting accounts", COMMAND_PROFITING));
                         Console.WriteLine(string.Format(@"{0,10}: Staking and UnStaking", COMMAND_STAKING));
@@ -110,8 +110,8 @@ namespace Lyra.Client.CLI
                         //Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
                         //Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_CREATE_NFT));
-                        Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
-                        Console.WriteLine(string.Format(@"{0,10}: Show all NFT instances owned by the account", COMMAND_SHOW_NFT));
+                        //Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
+                        //Console.WriteLine(string.Format(@"{0,10}: Show all NFT instances owned by the account", COMMAND_SHOW_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Show last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Show transaction block with specified index", COMMAND_PRINT_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Show the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
@@ -172,12 +172,12 @@ namespace Lyra.Client.CLI
                     //case COMMAND_CREATE_NFT:
                     //    await ProcessNewNFTAsync();
                     //    break;
-                    case COMMAND_ISSUE_NFT:
-                        await ProcessSendNFTAsync(true);
-                        break;
-                    case COMMAND_SEND_NFT:
-                        await ProcessSendNFTAsync(false);
-                        break;
+                    //case COMMAND_ISSUE_NFT:
+                    //    await ProcessSendNFTAsync(true);
+                    //    break;
+                    //case COMMAND_SEND_NFT:
+                    //    await ProcessSendNFTAsync(false);
+                    //    break;
                     case COMMAND_SHOW_NFT:
                         Console.WriteLine(await GetDisplayNFTAsync());
                         break;
@@ -880,7 +880,7 @@ Amount: {amountx}
 
         // If NFT with SerialNumber already exists and belongs to the account, it will send this NFT to DestinationAccount;
         // If NFT with SerialNumber does not exists, it will attempt to issue a new instance of NFT and send it to DestinationAccount
-        async Task ProcessSendNFTAsync(bool IssueNewNFTInstance)
+/*        async Task ProcessSendNFTAsync(bool IssueNewNFTInstance)
         {
             if (_wallet.GetNumberOfNonZeroBalances() < 2)
             {
@@ -911,7 +911,7 @@ Amount: {amountx}
                 Console.WriteLine($"NFT instance has been sent successfully");
                 //Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
-        }
+        }*/
 
         async Task ProcessNewTokenAsync()
         {

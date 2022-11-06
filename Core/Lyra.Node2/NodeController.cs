@@ -752,10 +752,10 @@ namespace LyraLexWeb2
 
         [Route("FindNFTGenesisSend")]
         [HttpGet]
-        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key)
+        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string ticker, string serial)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.FindNFTGenesisSendAsync(accountId, key);
+            return await _node.FindNFTGenesisSendAsync(accountId, ticker, serial);
         }
 
         //[HttpPost]

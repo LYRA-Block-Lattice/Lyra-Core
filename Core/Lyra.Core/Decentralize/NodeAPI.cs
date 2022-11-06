@@ -1506,13 +1506,13 @@ namespace Lyra.Core.Decentralize
             return Task.FromResult(result);
         }
 
-        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key)
+        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string ticker, string serial)
         {
             var result = new BlockAPIResult();
 
             try
             {
-                var block = await NodeService.Dag?.Storage.FindNFTGenesisSendAsync(accountId, key);
+                var block = await NodeService.Dag?.Storage.FindNFTGenesisSendAsync(accountId, ticker, serial);
                 if (block != null)
                 {
                     result.BlockData = Json(block);

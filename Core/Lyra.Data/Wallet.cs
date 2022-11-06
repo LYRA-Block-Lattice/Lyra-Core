@@ -795,7 +795,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> SendOnceAsync(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags)
+        private async Task<AuthorizationAPIResult> SendOnceAsync(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags, NonFungibleToken? nft = null)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
@@ -857,7 +857,8 @@ namespace Lyra.Core.Accounts
                 Tags = tags,
                 Fee = fee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
+                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular,
+                NonFungibleToken = nft,
             };
 
             sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());
@@ -894,7 +895,7 @@ namespace Lyra.Core.Accounts
         }
 
         // issues a new instance of collectible NFT
-        public async Task<AuthorizationAPIResult> IssueNFTAsync(string DestinationAccountId, string ticker, string SerialNumber)
+        public NonFungibleToken IssueNFT(string ticker, string SerialNumber)
         {
             //var nft_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, ticker, SignAPICallAsync());
             //if (nft_genesis == null || nft_genesis.GetBlock() == null)
@@ -907,45 +908,45 @@ namespace Lyra.Core.Accounts
             };
             nft.Sign(PrivateKey, AccountId);
 
-            return await SendNFTInternalAsync(DestinationAccountId, ticker, nft);
+            return nft;
         }
 
         // Transfers and existing instance of collectible NFT to another account
-        public async Task<AuthorizationAPIResult> SendNFTAsync(string DestinationAccountId, string ticker, string SerialNumber)
+        private async Task<AuthorizationAPIResult> SendNFTAsync(string DestinationAccountId, NonFungibleToken nft)
         {
             // ticker must be in format of nft/000333-3...
-            var key = $"{ticker}#{SerialNumber}";
+            //var key = $"{ticker}#{SerialNumber}";
             // then search nft send with the key to make sure no dup send
 
-            var height = GetLocalAccountHeight();
-            ReceiveTransferBlock receive_token_block = null;
+            //var height = GetLocalAccountHeight();
+            //ReceiveTransferBlock receive_token_block = null;
 
-            // Scan the current account and find the receive block that continas the token that we want to send
-            for (var index = height; index >= 0; index--)
-            {
+            //// Scan the current account and find the receive block that continas the token that we want to send
+            //for (var index = height; index >= 0; index--)
+            //{
 
-                var block = await GetBlockByIndexAsync(index);
-                if (!(block is ReceiveTransferBlock))
-                    continue;
-                if (!block.ContainsNonFungibleToken())
-                    continue;
+            //    var block = await GetBlockByIndexAsync(index);
+            //    if (!(block is ReceiveTransferBlock))
+            //        continue;
+            //    if (!block.ContainsNonFungibleToken())
+            //        continue;
 
-                if (block.NonFungibleToken.TokenCode == ticker && block.NonFungibleToken.SerialNumber == SerialNumber)
-                {
-                    receive_token_block = block as ReceiveTransferBlock;
-                    break;
-                }
-            }
+            //    if (block.NonFungibleToken.TokenCode == ticker && block.NonFungibleToken.SerialNumber == SerialNumber)
+            //    {
+            //        receive_token_block = block as ReceiveTransferBlock;
+            //        break;
+            //    }
+            //}
 
-            if (receive_token_block == null)
-                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.NFTInstanceNotFound };
+            //if (receive_token_block == null)
+            //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.NFTInstanceNotFound };
 
-            return await SendNFTInternalAsync(DestinationAccountId, ticker, receive_token_block.NonFungibleToken);
-        }
+            //return await SendNFTInternalAsync(DestinationAccountId, key);
+        //}
 
-        // Transfers and existing instance or issues a new instance of collectible NFT - this method can be used by either IssueNFT and SendNFT
-        private async Task<AuthorizationAPIResult> SendNFTInternalAsync(string DestinationAccountId, string ticker, NonFungibleToken nft)
-        {
+        //// Transfers and existing instance or issues a new instance of collectible NFT - this method can be used by either IssueNFT and SendNFT
+        //private async Task<AuthorizationAPIResult> SendNFTInternalAsync(string DestinationAccountId, string key)
+        //{
             TransactionBlock previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
@@ -955,7 +956,7 @@ namespace Lyra.Core.Accounts
             var fee = TransferFee;
 
             // see if we have enough tokens
-            if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
+            if (previousBlock.Balances[nft.TokenCode] < balance_change.ToBalanceLong())
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
 
             // see if we have enough LYR to pay the transfer fee
@@ -977,7 +978,7 @@ namespace Lyra.Core.Accounts
                 NonFungibleToken = nft
             };
 
-            sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());
+            sendBlock.Balances.Add(nft.TokenCode, previousBlock.Balances[nft.TokenCode] - balance_change.ToBalanceLong());
 
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
             sendBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - fee.ToBalanceLong());

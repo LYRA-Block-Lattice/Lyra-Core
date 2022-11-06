@@ -119,7 +119,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId);
 
         // NFT related
-        Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key);
+        Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string ticker, string serial);
     }
 
     public interface INodeTransactionAPI
