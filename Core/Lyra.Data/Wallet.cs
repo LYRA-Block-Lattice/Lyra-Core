@@ -1522,8 +1522,10 @@ namespace Lyra.Core.Accounts
                     recvBalances[chg.Key] += chg.Value;
                     //Console.WriteLine($"Receiving {chg.Key}: {chg.Value}");
                 }                    
-                else
-                    recvBalances.Add(chg.Key, chg.Value);
+                else if(chg.Value > 0)
+                {
+                    recvBalances.Add(chg.Key, chg.Value);       // clean zero balance.
+                }                    
             }
 
             receiveBlock.Balances = recvBalances.ToLongDict();

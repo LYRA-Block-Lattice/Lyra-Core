@@ -19,17 +19,8 @@ namespace UnitTests
             // xtest for a dynamic chain
             await SetupWallets("devnet");
 
-            // burn all NFT.
-            //var lastblk = testWallet.GetLastSyncBlock();
-            //foreach(var kvp in lastblk.Balances)
-            //{
-            //    if(kvp.Key.StartsWith("nft/"))
-            //    {
-            //        var burnret = await testWallet.SendAsync(kvp.Value.ToBalanceDecimal(), LyraGlobal.BURNINGACCOUNTID, kvp.Key);
-            //        Assert.IsTrue(burnret.Successful());
-            //    }
-            //}
-            //return;
+            await BurnAllNFT();
+            return;
 
             var metauri = "https://lyra.live/meta/some";
             var rand = new Random();
