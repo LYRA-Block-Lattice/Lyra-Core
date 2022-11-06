@@ -313,11 +313,11 @@ namespace Lyra.Core.Authorizers
                     tokenCode = tokenCode.Split('#')[0];
                 }
 
-                var token_block = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenCode);
-                if (token_block == null)
+                var nftgen = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenCode);
+                if (nftgen == null)
                     return APIResultCodes.TokenGenesisBlockNotFound;
 
-                if (!token_block.IsNonFungible)
+                if (!nftgen.IsNonFungible)
                     return APIResultCodes.Success;
 
                 //INonFungibleToken non_fungible_token = send_block.GetNonFungibleTransaction(previousBlock);
@@ -333,16 +333,16 @@ namespace Lyra.Core.Authorizers
                     if (send_or_receice_block.NonFungibleToken.TokenCode != tokenCode)
                         return APIResultCodes.InvalidNonFungibleTokenCode;
 
-                    var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey ?? token_block.AccountID);
+                    var vr = send_or_receice_block.NonFungibleToken.VerifySignature(nftgen.NonFungibleKey ?? nftgen.AccountID);
                     if (!vr)
                         return APIResultCodes.NonFungibleSignatureVerificationFailed;
-                }
 
-                if (token_block.ContractType == ContractTypes.Collectible)
-                {
-                    var res = await ValidateCollectibleNFTAsync(sys, send_or_receice_block, token_block);
-                    if (res != APIResultCodes.Success)
-                        return res;
+                    if (nftgen.ContractType == ContractTypes.Collectible)
+                    {
+                        var res = await ValidateCollectibleNFTAsync(sys, send_or_receice_block, nftgen);
+                        if (res != APIResultCodes.Success)
+                            return res;
+                    }
                 }
             }
 

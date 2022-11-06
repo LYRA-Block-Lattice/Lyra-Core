@@ -16,7 +16,7 @@ namespace UnitTests
         [TestMethod]
         public async Task NFT_Tests()
         {
-            await SetupWallets(TestConfig.networkId);
+            await SetupWallets("xtest");
 
             var metauri = "https://lyra.live/meta/some";
             var rand = new Random();
@@ -60,7 +60,7 @@ namespace UnitTests
             var recvBlockx2 = test3Wallet.GetLastSyncBlock();
             Assert.IsTrue(recvBlockx2 is ReceiveTransferBlock, "not a receive block");
             var recvBlock2 = recvBlockx2 as ReceiveTransferBlock;
-            Assert.IsTrue(recvBlock2.SourceHash == sendBlock.Hash, "not receive properly");
+            Assert.IsTrue(recvBlock2.SourceHash == send2ret.TxHash, "not receive properly");
             Assert.IsTrue(recvBlock2.Balances.ContainsKey(tickrToSend));
             Assert.IsTrue(recvBlock2.Balances[tickrToSend] == 1m.ToBalanceLong());
         }

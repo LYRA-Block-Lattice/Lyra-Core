@@ -417,6 +417,10 @@ namespace UnitTests
             mock.Setup(x => x.CreateTokenAsync(It.IsAny<TokenGenesisBlock>()))
                 .Returns<TokenGenesisBlock>((a) => Task.FromResult(AuthAsync(a).GetAwaiter().GetResult()));
 
+            // NFT
+            mock.Setup(x => x.FindNFTGenesisSendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string, string>((accountId, ticker, serial) => Task.FromResult(api.FindNFTGenesisSendAsync(accountId, ticker, serial)).Result);
+
             var walletStor = new AccountInMemoryStorage();
             Wallet.Create(walletStor, "gensisi", "1234", networkId, sys.PosWallet.PrivateKey);
 
