@@ -30,11 +30,11 @@ namespace UnitTests
             Assert.IsNotNull(nftgen);
             Assert.AreEqual(name, nftgen.Custom1);
 
-            var tickrToSend = nftgen.Ticker + "#0";
+            var tickrToSend = nftgen.Ticker;
             var findSendRet = await testWallet.RPC.FindNFTGenesisSendAsync(testPublicKey, nftgen.Ticker, "0");
             Assert.AreEqual(APIResultCodes.BlockNotFound, findSendRet.ResultCode);
 
-            var nft = testWallet.IssueNFT(nftgen.Ticker, "0");
+            var nft = testWallet.IssueNFT(nftgen.Ticker, null);
             var amounts = new Dictionary<string, decimal>
             {
                 { nftgen.Ticker, 1m }

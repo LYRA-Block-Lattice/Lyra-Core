@@ -59,7 +59,7 @@ namespace Lyra.Core.Blocks
         ///  Must be set by the token originator.
         //// It should never be changed by future token recipients or senders.
         ///// </summary>
-        public string SerialNumber { get; set; }
+        public string? SerialNumber { get; set; }
 
         // The token's currency amount.
         // It can't be changed after the token is generated.

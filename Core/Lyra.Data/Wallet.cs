@@ -1508,7 +1508,10 @@ namespace Lyra.Core.Accounts
             var recvBalances = latestBlock.Balances.ToDecimalDict();
             foreach (var chg in new_transfer_info.Transfer.Changes)
             {
-                if(new_transfer_info.NonFungibleToken != null && chg.Key == new_transfer_info.NonFungibleToken.TokenCode)
+                if(new_transfer_info.NonFungibleToken != null && 
+                    chg.Key == new_transfer_info.NonFungibleToken.TokenCode &&
+                    new_transfer_info.NonFungibleToken.SerialNumber != null
+                    )
                 {
                     // receive a NFT. so we change the ticker to a more specific one.
                     var keyr = $"{chg.Key}#{new_transfer_info.NonFungibleToken.SerialNumber}";
