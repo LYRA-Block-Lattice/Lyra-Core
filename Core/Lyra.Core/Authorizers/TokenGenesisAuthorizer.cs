@@ -57,7 +57,8 @@ namespace Lyra.Core.Authorizers
                 if (r.IsMatch(block.Ticker.Replace(block.DomainName + "/", "")))
                     return APIResultCodes.InvalidTickerName;
 
-                if (block.RenewalDate > DateTime.UtcNow.Add(TimeSpan.FromDays(3660)) || block.RenewalDate < DateTime.UtcNow)
+                // one thounds years should be enough.
+                if (block.RenewalDate > DateTime.UtcNow.Add(TimeSpan.FromDays(366000)) || block.RenewalDate < DateTime.UtcNow)
                     return APIResultCodes.InvalidTokenRenewalDate;
 
                 if (string.IsNullOrWhiteSpace(block.DomainName))
