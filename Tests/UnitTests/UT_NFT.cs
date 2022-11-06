@@ -16,7 +16,20 @@ namespace UnitTests
         [TestMethod]
         public async Task NFT_Tests()
         {
+            // xtest for a dynamic chain
             await SetupWallets("devnet");
+
+            // burn all NFT.
+            //var lastblk = testWallet.GetLastSyncBlock();
+            //foreach(var kvp in lastblk.Balances)
+            //{
+            //    if(kvp.Key.StartsWith("nft/"))
+            //    {
+            //        var burnret = await testWallet.SendAsync(kvp.Value.ToBalanceDecimal(), LyraGlobal.BURNINGACCOUNTID, kvp.Key);
+            //        Assert.IsTrue(burnret.Successful());
+            //    }
+            //}
+            //return;
 
             var metauri = "https://lyra.live/meta/some";
             var rand = new Random();
@@ -63,6 +76,25 @@ namespace UnitTests
             Assert.IsTrue(recvBlock2.SourceHash == send2ret.TxHash, "not receive properly");
             Assert.IsTrue(recvBlock2.Balances.ContainsKey(tickrToSend));
             Assert.IsTrue(recvBlock2.Balances[tickrToSend] == 1m.ToBalanceLong());
+
+            //await BurnAllNFT();
+            //name = $"a great nft ({rand.NextInt64()})";
+            //ret = await testWallet.CreateNFTAsync(name, "a nft for unit test", 10, metauri);
+            //Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
+        }
+
+        private async Task BurnAllNFT()
+        {
+            // burn all NFT.
+            var lastblk = testWallet.GetLastSyncBlock();
+            foreach (var kvp in lastblk.Balances)
+            {
+                if (kvp.Key.StartsWith("nft/"))
+                {
+                    var burnret = await testWallet.SendAsync(kvp.Value.ToBalanceDecimal(), LyraGlobal.BURNINGACCOUNTID, kvp.Key);
+                    Assert.IsTrue(burnret.Successful());
+                }
+            }
         }
     }
 }

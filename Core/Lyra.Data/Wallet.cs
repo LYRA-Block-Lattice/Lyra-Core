@@ -766,7 +766,7 @@ namespace Lyra.Core.Accounts
                 {
                     sendBlock.Balances.Add(balance.Key, (balance.Value.ToBalanceDecimal() - Amounts[balance.Key]).ToBalanceLong());
                 }
-                else
+                else if(balance.Value > 0)
                 {
                     sendBlock.Balances.Add(balance.Key, balance.Value);
                 }

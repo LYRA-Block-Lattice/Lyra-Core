@@ -264,13 +264,15 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // verify the spending
-                TransactionBlock previousTransaction = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
-                foreach (var prevbalance in previousTransaction.Balances)
-                {
-                    // make sure all balances from the previous block are present in a new block even if they are unchanged
-                    if (!block.Balances.ContainsKey(prevbalance.Key))
-                        return APIResultCodes.AccountChainBalanceValidationFailed;
-                }
+                //TransactionBlock previousTransaction = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+                //foreach (var prevbalance in previousTransaction.Balances)
+                //{
+                //    // make sure all balances from the previous block are present in a new block even if they are unchanged
+                //    if (!block.Balances.ContainsKey(prevbalance.Key))
+                //        return APIResultCodes.AccountChainBalanceValidationFailed;
+                //}
+
+                // no, don't do it. zero/zoombie balance should go.
             }
 
             return APIResultCodes.Success;
