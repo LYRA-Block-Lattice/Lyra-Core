@@ -146,7 +146,7 @@ namespace Lyra.Core.Accounts
             return wallet;
         }
         // one-time "manual" sync up with the node 
-        public async Task<APIResultCodes> SyncAsync(ILyraAPI RPCClient)
+        public async Task<APIResultCodes> SyncAsync(ILyraAPI? RPCClient = null)
         {
             return await SyncAsync(RPCClient, CancellationToken.None);
         }
@@ -1508,7 +1508,13 @@ namespace Lyra.Core.Accounts
             var recvBalances = latestBlock.Balances.ToDecimalDict();
             foreach (var chg in new_transfer_info.Transfer.Changes)
             {
-                if (recvBalances.ContainsKey(chg.Key))
+                if(new_transfer_info.NonFungibleToken != null && chg.Key == new_transfer_info.NonFungibleToken.TokenCode)
+                {
+                    // receive a NFT. so we change the ticker to a more specific one.
+                    var keyr = $"{chg.Key}#{new_transfer_info.NonFungibleToken.SerialNumber}";
+                    recvBalances[keyr] = chg.Value;
+                }
+                else if (recvBalances.ContainsKey(chg.Key))
                 {
                     recvBalances[chg.Key] += chg.Value;
                     //Console.WriteLine($"Receiving {chg.Key}: {chg.Value}");

@@ -9,6 +9,7 @@ using Lyra.Core.Accounts;
 using System.Linq;
 using Lyra.Data.Blocks;
 using System.Diagnostics;
+using Loyc.Collections;
 
 namespace Lyra.Core.Authorizers
 {
@@ -186,9 +187,27 @@ namespace Lyra.Core.Authorizers
                 }
                 else
                 {
-                    if (!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
+                    // NFT has different validation: append #serial to the ticker.
+                    if(sourceBlock.NonFungibleToken != null)
+                    {
+                        var keyr = $"{sourceBlock.NonFungibleToken.TokenCode}#{sourceBlock.NonFungibleToken.SerialNumber}";
+                        TransactionBlock prevToSendBlock = await sys.Storage.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
+                        var sendTransx = sourceBlock.GetBalanceChanges(prevToSendBlock);
+                        
+                        // A Hack
+                        sendTransx.Changes.Add(keyr, sendTransx.Changes[sourceBlock.NonFungibleToken.TokenCode]);
+                        sendTransx.Changes.Remove(sourceBlock.NonFungibleToken.TokenCode);
+
+                        if (!sendTransx.Changes.OrderBy(kvp => kvp.Key)
                             .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
-                        return APIResultCodes.TransactionAmountDoesNotMatch;
+                                                return APIResultCodes.TransactionAmountDoesNotMatch;
+                    }
+                    else
+                    {
+                        if (!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
+                                .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
+                            return APIResultCodes.TransactionAmountDoesNotMatch;
+                    }
                 }
 
                 //if (sendTransaction.Amount != receiveTransaction.Amount)

@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -40,6 +41,17 @@ namespace UnitTests
             };
             var sendRet = await testWallet.SendExAsync(test2PublicKey, amounts, null, nft);
             Assert.IsTrue(sendRet.Successful(), $"Faid to send NFT: {sendRet.ResultCode}");
+            var sendBlock = testWallet.GetLastSyncBlock();
+
+            // then test2 will receive it.
+            await test2Wallet.SyncAsync();
+            var recvBlockx = test2Wallet.GetLastSyncBlock();
+            Assert.IsTrue(recvBlockx is ReceiveTransferBlock, "not a receive block");
+            var recvBlock = recvBlockx as ReceiveTransferBlock;
+            Assert.IsTrue(recvBlock.SourceHash == sendBlock.Hash, "not receive properly");
+            Assert.IsTrue(recvBlock.Balances.ContainsKey(tickrToSend));
+            Assert.IsTrue(recvBlock.Balances[tickrToSend] == 1m.ToBalanceLong());
+
         }
     }
 }
