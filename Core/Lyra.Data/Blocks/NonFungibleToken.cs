@@ -43,8 +43,8 @@ namespace Lyra.Core.Blocks
         // Lyra or Custom Collectible NFT
         Collectible = 2,
 
-        // 
-
+        // external NFT
+        //ERC1155 = 3,  
     }
 
 

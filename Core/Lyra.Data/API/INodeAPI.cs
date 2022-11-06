@@ -117,6 +117,9 @@ namespace Lyra.Core.API
         Task<SimpleJsonAPIResult> GetVoteSummaryAsync(string voteid);
         Task<BlockAPIResult> FindExecForVoteAsync(string voteid);
         Task<BlockAPIResult> GetDealerByAccountIdAsync(string accountId);
+
+        // NFT related
+        Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key);
     }
 
     public interface INodeTransactionAPI

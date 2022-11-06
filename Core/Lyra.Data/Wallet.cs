@@ -913,6 +913,10 @@ namespace Lyra.Core.Accounts
         // Transfers and existing instance of collectible NFT to another account
         public async Task<AuthorizationAPIResult> SendNFTAsync(string DestinationAccountId, string ticker, string SerialNumber)
         {
+            // ticker must be in format of nft/000333-3...
+            var key = $"{ticker}#{SerialNumber}";
+            // then search nft send with the key to make sure no dup send
+
             var height = GetLocalAccountHeight();
             ReceiveTransferBlock receive_token_block = null;
 
@@ -1366,6 +1370,11 @@ namespace Lyra.Core.Accounts
 
         private async Task ProcessResultAsync(AuthorizationAPIResult result, string OperationName, TransactionBlock block)
         {
+            if(result.Successful())
+            {
+                _lastSyncBlock = block;
+            }
+
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
                 PrintConLine($"BlockSignatureValidationFailed");
@@ -1698,6 +1707,8 @@ namespace Lyra.Core.Accounts
         }
 
         // Creates Custom User-defined Collectible NFT
+        // metadata hosting should support numbering.
+        // e.g. https://metadataUri/123  should generate the json for the nft of number 123.
         public async Task<AuthorizationAPIResult> CreateNFTAsync(
             string name,
             string description,

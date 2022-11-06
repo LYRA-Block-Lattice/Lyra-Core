@@ -25,6 +25,7 @@ using Lyra.Shared;
 using Neo;
 using Newtonsoft.Json;
 using Lyra.Data.API.ODR;
+using MongoDB.Driver.Linq;
 
 namespace Lyra.Core.Accounts
 {
@@ -2353,6 +2354,18 @@ namespace Lyra.Core.Accounts
 
             var q = await _blocks.OfType<TransactionBlock>()
                 .FindAsync(filterDefination);
+
+            return await q.FirstOrDefaultAsync();
+        }
+
+        public async Task<SendTransferBlock> FindNFTGenesisSendAsync(string accountId, string key)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("Balances.Key", key);
+
+            var q = _blocks.OfType<SendTransferBlock>()
+                .AsQueryable()
+                .Where(a => a.AccountID == accountId && a.Balances.ContainsKey(key));
 
             return await q.FirstOrDefaultAsync();
         }

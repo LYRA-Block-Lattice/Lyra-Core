@@ -621,5 +621,12 @@ namespace Lyra.Data.API
         {
             return SeedClient.GetDealerByAccountIdAsync(accountId);
         }
+
+        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key)
+        {
+            var tasks = _primaryClients.Select(client => client.FindNFTGenesisSendAsync(accountId, key)).ToList();
+
+            return await CheckResultAsync("", tasks);
+        }
     }
 }

@@ -1505,5 +1505,31 @@ namespace Lyra.Core.Decentralize
 
             return Task.FromResult(result);
         }
+
+        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag?.Storage.FindNFTGenesisSendAsync(accountId, key);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindNFTGenesisSendAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
     }
 }

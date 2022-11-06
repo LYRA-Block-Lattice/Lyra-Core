@@ -964,5 +964,16 @@ namespace Lyra.Core.API
 
             return await GetAsync<BlockAPIResult>("GetDealerByAccountId", args);
         }
+
+        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "key", key },
+            };
+
+            return await GetAsync<BlockAPIResult>("FindNFTGenesisSend", args);
+        }
     }
 }

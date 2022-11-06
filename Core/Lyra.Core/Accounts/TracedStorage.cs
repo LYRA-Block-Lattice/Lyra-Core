@@ -372,5 +372,10 @@ namespace Lyra.Core.Accounts
         {
             return StopWatcher.Track(() => _store.GetOtcTradeStatsForUsersAsync(accountIds), "GetOtcTradeStatsForUsers");
         }
+
+        public Task<SendTransferBlock> FindNFTGenesisSendAsync(string accountId, string key)
+        {
+            return StopWatcher.Track(() => _store.FindNFTGenesisSendAsync(accountId, key), "FindNFTGenesisSendAsync");
+        }
     }
 }
