@@ -873,7 +873,7 @@ namespace Lyra.Core.Accounts
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in previousBlock.Balances)
-                if (!(sendBlock.Balances.ContainsKey(balance.Key)))
+                if (!(sendBlock.Balances.ContainsKey(balance.Key)) && balance.Value > 0)
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
             sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);

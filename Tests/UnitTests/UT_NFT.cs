@@ -19,8 +19,8 @@ namespace UnitTests
             // xtest for a dynamic chain
             await SetupWallets("devnet");
 
-            await BurnAllNFT();
-            return;
+            //await BurnAllNFT();
+            //return;
 
             var metauri = "https://lyra.live/meta/some";
             var rand = new Random();
