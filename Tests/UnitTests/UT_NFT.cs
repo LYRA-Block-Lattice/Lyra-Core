@@ -16,7 +16,7 @@ namespace UnitTests
         [TestMethod]
         public async Task NFT_Tests()
         {
-            await SetupWallets("xtest");
+            await SetupWallets("devnet");
 
             var metauri = "https://lyra.live/meta/some";
             var rand = new Random();
