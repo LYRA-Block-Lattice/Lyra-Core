@@ -54,6 +54,9 @@ namespace Lyra.Core.Authorizers
                 if(block.DomainName.ToLower() != block.DomainName)
                     return APIResultCodes.InvalidDomainName;        // make sure domain name is lower case.
 
+                if (block.DomainName == "nft" && block.Ticker.ToLower() != block.Ticker)
+                    return APIResultCodes.InvalidTickerName;        // make sure guid is lower case.
+
                 if (r.IsMatch(block.Ticker.Replace(block.DomainName + "/", "")))
                     return APIResultCodes.InvalidTickerName;
 

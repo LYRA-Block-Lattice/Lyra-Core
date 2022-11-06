@@ -19,6 +19,10 @@ namespace UnitTests
             // xtest for a dynamic chain
             await SetupWallets("devnet");
 
+            //var ticker = "nft/a346b16b-ca6c-4c86-9519-1e72fd517e9B";
+            //var retg = await testWallet.RPC.GetTokenGenesisBlockAsync(testPublicKey, ticker, "aaa");
+            //Assert.IsTrue(retg.Successful());
+            //return;
             //await BurnAllNFT();
             //return;
 
