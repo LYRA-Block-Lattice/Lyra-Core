@@ -326,7 +326,7 @@ namespace Lyra.Core.Authorizers
                 if (send_or_receice_block.NonFungibleToken.TokenCode != tokenCode)
                     return APIResultCodes.InvalidNonFungibleTokenCode;
 
-                var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey);
+                var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey ?? token_block.AccountID);
                 if (!vr)
                     return APIResultCodes.NonFungibleSignatureVerificationFailed;
 
