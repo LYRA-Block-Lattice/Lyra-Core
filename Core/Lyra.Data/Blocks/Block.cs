@@ -424,7 +424,7 @@ namespace Lyra.Core.Blocks
         DealerGenesis = 107,
 
         // NFT
-        NFTGenesis = 110,
+        //NFTGenesis = 110,     // not needed. a normal genesis block can handle it.
     }
 
     public enum APIResultCodes

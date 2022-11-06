@@ -1739,14 +1739,14 @@ namespace Lyra.Core.Accounts
                 Owner = owner,
                 Address = address,
                 Tags = tags,
-                RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(3650)),
+                RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(36500)),
                 ContractType = ContractTypes.Collectible,
                 Icon = icon,
                 Image = image,
                 VoteFor = VoteFor,
                 IsNonFungible = true,
                 NonFungibleType = NonFungibleTokenTypes.Collectible,
-                NonFungibleKey = AccountId
+                //NonFungibleKey = AccountId
             };
 
             var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };

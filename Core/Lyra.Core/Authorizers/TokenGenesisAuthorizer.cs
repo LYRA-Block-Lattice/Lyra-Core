@@ -99,10 +99,16 @@ namespace Lyra.Core.Authorizers
             if (block.NonFungibleType == NonFungibleTokenTypes.Collectible && !block.IsNonFungible)
                 return APIResultCodes.InvalidNFT;
 
+            if(block.DomainName == "nft" && !block.IsNonFungible)
+                return APIResultCodes.InvalidNFT;
+
             if (block.IsNonFungible)
             {
-                if (!Signatures.ValidateAccountId(block.NonFungibleKey))
+                if (block.NonFungibleKey != null && !Signatures.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
+
+                if(block.DomainName != "nft")
+                    return APIResultCodes.InvalidNFT;
 
                 // Validate Collectible NFT
                 if (block.ContractType == ContractTypes.Collectible)
@@ -112,6 +118,15 @@ namespace Lyra.Core.Authorizers
 
                     if (block.NonFungibleType != NonFungibleTokenTypes.Collectible)
                         return APIResultCodes.InvalidNFT;
+                }
+
+                try
+                {
+                    var g = new Guid(block.Ticker.Replace(block.DomainName + "/", ""));
+                }
+                catch(Exception ex)
+                {
+                    return APIResultCodes.InvalidTickerName;
                 }
             }
 

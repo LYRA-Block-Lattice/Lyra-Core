@@ -41,7 +41,10 @@ namespace Lyra.Core.Blocks
         LoyaltyDiscount = 1,
 
         // Lyra or Custom Collectible NFT
-        Collectible = 2
+        Collectible = 2,
+
+        // 
+
     }
 
 

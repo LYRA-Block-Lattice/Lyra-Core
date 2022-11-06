@@ -15,8 +15,8 @@ namespace UnitTests
         {
             await SetupWallets(TestConfig.networkId);
 
-            var id = new Guid();
-            var ret = await testWallet.CreateNFTAsync(id.ToString(), "NFT", "a great nft", 10, true, "", "", "", "", null);
+            var id = Guid.NewGuid().ToString();
+            var ret = await testWallet.CreateNFTAsync(id, "nft", "a great nft", 10, true, "", "", "", "", null);
             Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
         }
     }
