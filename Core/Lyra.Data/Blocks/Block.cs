@@ -686,5 +686,6 @@ namespace Lyra.Core.Blocks
         PermissionDenied,
         DisputeCaseWasNotIncluded,
         InvalidVerificationCode,
+        InvalidMetadataUri,
     }
 }

@@ -1699,21 +1699,13 @@ namespace Lyra.Core.Accounts
 
         // Creates Custom User-defined Collectible NFT
         public async Task<AuthorizationAPIResult> CreateNFTAsync(
-            string tokenName,
-            string domainName,
+            string name,
             string description,
-            decimal supply,
-            bool isFinalSupply,
-            string owner, // shop name
-            string address, // shop URL
-            string icon, // icon URL
-            string image, // image URL
-            Dictionary<string, string> tags)
+            int supply,
+            string metadataUri
+            )
         {
-            if (string.IsNullOrWhiteSpace(domainName))
-                domainName = "Custom";
-
-            string ticker = domainName + "/" + tokenName;
+            string ticker = "nft/" + Guid.NewGuid().ToString();
 
             TransactionBlock latestBlock = await GetLatestBlockAsync();
             if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
@@ -1726,26 +1718,23 @@ namespace Lyra.Core.Accounts
             TokenGenesisBlock tokenBlock = new TokenGenesisBlock
             {
                 Ticker = ticker,
-                DomainName = domainName,
+                DomainName = "nft",
                 Description = description,
                 Precision = 0,
-                IsFinalSupply = isFinalSupply,
+                IsFinalSupply = true,
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.Regular,
-                Owner = owner,
-                Address = address,
-                Tags = tags,
                 RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(36500)),
                 ContractType = ContractTypes.Collectible,
-                Icon = icon,
-                Image = image,
                 VoteFor = VoteFor,
                 IsNonFungible = true,
                 NonFungibleType = NonFungibleTokenTypes.Collectible,
+                Custom1 = name,
+                Custom2 = metadataUri,
                 //NonFungibleKey = AccountId
             };
 

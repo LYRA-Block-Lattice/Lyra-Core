@@ -109,7 +109,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
                         //Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
-                        Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_CREATE_NFT));
+                        //Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_CREATE_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Show all NFT instances owned by the account", COMMAND_SHOW_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Show last transaction block", COMMAND_PRINT_LAST_BLOCK));
@@ -169,9 +169,9 @@ namespace Lyra.Client.CLI
                     case COMMAND_TOKEN:
                         await ProcessNewTokenAsync();
                         break;
-                    case COMMAND_CREATE_NFT:
-                        await ProcessNewNFTAsync();
-                        break;
+                    //case COMMAND_CREATE_NFT:
+                    //    await ProcessNewNFTAsync();
+                    //    break;
                     case COMMAND_ISSUE_NFT:
                         await ProcessSendNFTAsync(true);
                         break;
@@ -983,7 +983,7 @@ Amount: {amountx}
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 
         }
-
+        /*
         async Task ProcessNewNFTAsync()
         {
             Console.WriteLine("Please enter token name ( minimum 3 characters ): ");
@@ -1042,7 +1042,7 @@ Amount: {amountx}
                 Console.WriteLine($"NFT generation has been authorized successfully");
                 Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
             }
-        }
+        }*/
 
         async Task ProcessHistoryAsync()
         {

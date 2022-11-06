@@ -103,6 +103,9 @@ namespace Lyra.Core.Authorizers
             if(block.DomainName == "nft" && !block.IsNonFungible)
                 return APIResultCodes.InvalidNFT;
 
+            if (block.Custom1?.Length > 512 || block.Custom2?.Length > 512 || block.Custom3?.Length > 512)
+                return APIResultCodes.InputTooLong;
+
             if (block.IsNonFungible)
             {
                 if (block.NonFungibleKey != null && !Signatures.ValidateAccountId(block.NonFungibleKey))
@@ -121,6 +124,7 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.InvalidNFT;
                 }
 
+                // ticker should be a standard guid.
                 try
                 {
                     var g = new Guid(block.Ticker.Replace(block.DomainName + "/", ""));
@@ -128,6 +132,21 @@ namespace Lyra.Core.Authorizers
                 catch(Exception ex)
                 {
                     return APIResultCodes.InvalidTickerName;
+                }
+
+                // 
+                // Custom1: the name of the NFT
+                // Custom2: the metadata url
+                // Custom3: about the NFT url (optional)
+                if (string.IsNullOrWhiteSpace(block.Custom1))
+                    return APIResultCodes.InvalidTickerName;
+
+                Uri uriResult;
+                bool validMetaUri = Uri.TryCreate(block.Custom2, UriKind.Absolute, out uriResult)
+                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                if(!validMetaUri)
+                {
+                    return APIResultCodes.InvalidMetadataUri;
                 }
             }
 

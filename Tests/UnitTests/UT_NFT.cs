@@ -15,8 +15,8 @@ namespace UnitTests
         {
             await SetupWallets(TestConfig.networkId);
 
-            var id = Guid.NewGuid().ToString();
-            var ret = await testWallet.CreateNFTAsync(id, "nft", "a great nft", 10, true, "", "", "", "", null);
+            var metauri = "https://lyra.live/meta/some";
+            var ret = await testWallet.CreateNFTAsync("a great nft", "a nft for unit test", 10, metauri);
             Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
         }
     }
