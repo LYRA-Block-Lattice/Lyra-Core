@@ -750,6 +750,14 @@ namespace LyraLexWeb2
             return await _node.GetDealerByAccountIdAsync(accountId);
         }
 
+        [Route("FindNFTGenesisSend")]
+        [HttpGet]
+        public async Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string key)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindNFTGenesisSendAsync(accountId, key);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 
