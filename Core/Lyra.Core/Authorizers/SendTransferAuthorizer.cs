@@ -164,8 +164,9 @@ namespace Lyra.Core.Authorizers
             if (send_or_receice_block.NonFungibleToken.Denomination != 1)
                 return APIResultCodes.InvalidCollectibleNFTDenomination;
 
-            if (string.IsNullOrEmpty(send_or_receice_block.NonFungibleToken.SerialNumber))
-                return APIResultCodes.InvalidCollectibleNFTSerialNumber;
+            // allow serial to be null. so the NFT is really unique.
+            //if (string.IsNullOrEmpty(send_or_receice_block.NonFungibleToken.SerialNumber))
+            //    return APIResultCodes.InvalidCollectibleNFTSerialNumber;
 
             bool nft_instance_exists = await WasNFTInstanceIssuedAsync(sys, token_block, send_or_receice_block.NonFungibleToken.SerialNumber);
             bool is_there_a_token = await sys.Storage.DoesAccountHaveCollectibleNFTInstanceAsync(send_or_receice_block.AccountID, token_block, send_or_receice_block.NonFungibleToken.SerialNumber);
