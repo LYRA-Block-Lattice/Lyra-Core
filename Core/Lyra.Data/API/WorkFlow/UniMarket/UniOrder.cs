@@ -23,13 +23,13 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public string dealerId { get; set; } = null!;
         public TradeDirection dir { get; set; }
 
-        public HoldTypes propType { get; set; }
+        public HoldTypes offby { get; set; }
         /// <summary>
         /// ticker to give
         /// </summary>
         public string offering { get; set; } = null!;
 
-        public HoldTypes moneyType { get; set; }
+        public HoldTypes bidby { get; set; }
         /// <summary>
         /// ticker to get
         /// </summary>        
@@ -81,9 +81,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return daoId == ob.daoId &&
                 dealerId == ob.dealerId &&
                 dir == ob.dir &&
-                propType == ob.propType &&
+                offby == ob.offby &&
                 offering == ob.offering &&
-                moneyType == ob.moneyType &&
+                bidby == ob.bidby &&
                 biding == ob.biding &&
                 amount == ob.amount &&
                 cltamt == ob.cltamt &&
@@ -95,7 +95,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, propType, offering, moneyType, biding),
+            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, offby, offering, bidby, biding),
                 HashCode.Combine(price, amount, cltamt, limitMin, limitMax, payBy));
         }
 
@@ -105,9 +105,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += daoId + "|";
             extraData += $"{dealerId}|";
             extraData += $"{dir}|";
-            extraData += $"{propType}|";
+            extraData += $"{offby}|";
             extraData += $"{offering}|";
-            extraData += $"{moneyType}|";
+            extraData += $"{bidby}|";
             extraData += $"{biding}|";
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
@@ -125,9 +125,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"DAO ID: {daoId}\n";
             result += $"Dealer ID: {dealerId}\n";
             result += $"Direction: {dir}\n";
-            result += $"Property Type: {propType}\n";
+            result += $"Property Type: {offby}\n";
             result += $"Property Ticker: {offering}\n";
-            result += $"Money Type: {moneyType}\n";
+            result += $"Money Type: {bidby}\n";
             result += $"Money Ticker: {biding}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";

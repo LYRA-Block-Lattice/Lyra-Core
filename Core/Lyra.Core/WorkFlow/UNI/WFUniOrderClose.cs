@@ -111,9 +111,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 {
                     daoId = ((IUniOrder)lastblock).Order.daoId,
                     dir = ((IUniOrder)lastblock).Order.dir,
-                    propType= ((IUniOrder)lastblock).Order.propType,
+                    offby= ((IUniOrder)lastblock).Order.offby,
                     offering = ((IUniOrder)lastblock).Order.offering,
-                    moneyType = ((IUniOrder)lastblock).Order.moneyType,
+                    bidby = ((IUniOrder)lastblock).Order.bidby,
                     biding = ((IUniOrder)lastblock).Order.biding,
                     price = ((IUniOrder)lastblock).Order.price,
                     limitMax = ((IUniOrder)lastblock).Order.limitMax,

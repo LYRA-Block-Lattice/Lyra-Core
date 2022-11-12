@@ -108,7 +108,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return BlockTypes.UniOrderGenesis;
         }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as UniOrderGenesisBlock;
             if (ob == null) return false;
