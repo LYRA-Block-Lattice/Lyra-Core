@@ -65,7 +65,6 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
             var order = (lastblock as IUniOrder).Order;
-            var propg = await sys.Storage.FindBlockByHashAsync(order.propHash) as TokenGenesisBlock;
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),
@@ -79,7 +78,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     if (order.dir == TradeDirection.Sell)
                     {
                         // send the amount of crypto to order owner
-                        dict[propg.Ticker] = 0;
+                        dict[order.offering] = 0;
                     }
                     else
                     {

@@ -2378,13 +2378,7 @@ namespace Lyra.Core.Accounts
 
             if (order.dir == TradeDirection.Sell)
             {
-                var propGenRet = await RPC.GetBlockByHashAsync("", order.propHash, "");
-                if(propGenRet.Successful())
-                {
-                    var propGen = propGenRet.GetBlock() as TokenGenesisBlock;
-                    if(propGen != null)
-                        amounts.Add(propGen.Ticker, order.amount);
-                }
+                 amounts.Add(order.offering, order.amount);
 
                 // is this really good? leave all verification to authorizer?
                 //return new AuthorizationAPIResult
@@ -2412,12 +2406,7 @@ namespace Lyra.Core.Accounts
 
             if (trade.dir == TradeDirection.Sell)
             {
-                var propGenRet = await RPC.GetBlockByHashAsync("", trade.propHash, "");
-                if(propGenRet.Successful())
-                {
-                    var propGen = propGenRet.As<TokenGenesisBlock>();
-                    amounts.Add(propGen.Ticker, trade.amount);
-                }                
+                amounts.Add(trade.biding, trade.amount);      
             }                
 
             var result = await SendExAsync(trade.daoId, amounts, tags);

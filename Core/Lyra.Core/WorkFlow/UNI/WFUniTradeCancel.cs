@@ -263,7 +263,6 @@ namespace Lyra.Core.WorkFlow.Uni
         {
             var tradeid = send.Tags["tradeid"];
             var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IUniTrade;
-            var propg = sys.Storage.FindBlockByHash(trade.Trade.propHash) as TokenGenesisBlock;
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
 
@@ -282,7 +281,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     // balance
                     var oldbalance = b.Balances.ToDecimalDict();
-                    oldbalance[propg.Ticker] = 0;
+                    oldbalance[trade.Trade.biding] = 0;
                     b.Balances = oldbalance.ToLongDict();
                 });
         }

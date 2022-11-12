@@ -84,7 +84,6 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
             var order = (lastblock as IUniOrder).Order;
-            var propg = await sys.Storage.FindBlockByHashAsync(order.propHash) as TokenGenesisBlock;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendToTradeBlock = new UniOrderSendBlock
@@ -113,9 +112,9 @@ namespace Lyra.Core.WorkFlow.Uni
                     daoId = ((IUniOrder)lastblock).Order.daoId,
                     dir = ((IUniOrder)lastblock).Order.dir,
                     propType= ((IUniOrder)lastblock).Order.propType,
-                    propHash = ((IUniOrder)lastblock).Order.propHash,
+                    offering = ((IUniOrder)lastblock).Order.offering,
                     moneyType = ((IUniOrder)lastblock).Order.moneyType,
-                    moneyHash = ((IUniOrder)lastblock).Order.moneyHash,
+                    biding = ((IUniOrder)lastblock).Order.biding,
                     price = ((IUniOrder)lastblock).Order.price,
                     limitMax = ((IUniOrder)lastblock).Order.limitMax,
                     limitMin = ((IUniOrder)lastblock).Order.limitMin,
@@ -131,8 +130,8 @@ namespace Lyra.Core.WorkFlow.Uni
                 // when delist, the crypto balance is already zero. 
                 // no balance change will vialate the rule of send
                 // so we reduce the balance of LYR, or the collateral, of 0.00000001
-                if (sendToTradeBlock.Balances[propg.Ticker] != 0)
-                    sendToTradeBlock.Balances[propg.Ticker] = 0;
+                if (sendToTradeBlock.Balances[order.offering] != 0)
+                    sendToTradeBlock.Balances[order.offering] = 0;
             }
             else
             {

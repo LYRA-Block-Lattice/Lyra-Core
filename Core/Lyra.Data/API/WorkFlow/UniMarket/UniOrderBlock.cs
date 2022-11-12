@@ -32,9 +32,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return BlockTypes.UniOrderRecv;
         }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as UniOrderRecvBlock;
+            if (ob == null) return false;
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order) &&
@@ -61,7 +62,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     [BsonIgnoreExtraElements]
     public class UniOrderSendBlock : BrokerAccountSend, IUniOrder
     {
-        public UniOrder Order { get; set; }
+        public UniOrder Order { get; set; } = null!;
         public UniOrderStatus UOStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
@@ -69,9 +70,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return BlockTypes.UniOrderSend;
         }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as UniOrderSendBlock;
+            if(ob == null) return false;
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order) &&
@@ -109,6 +111,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public override bool AuthCompare(Block other)
         {
             var ob = other as UniOrderGenesisBlock;
+            if (ob == null) return false;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

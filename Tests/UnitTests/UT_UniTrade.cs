@@ -48,8 +48,9 @@ namespace UnitTests
             Console.WriteLine("Test Sell a NFT");
             await TestUniTradeAsync(testWallet, UniOrderType.NFT, nftg, fiatg, dao, TradeDirection.Sell);
 
+            // after test, dump the database statistics
+            Console.WriteLine(cs.PrintProfileInfo());
             return;
-            await TestDealerAsync();
 
             Console.WriteLine("Test Sell Order");
             //await TestUniTradeAsync(TradeDirection.Sell);
@@ -531,9 +532,9 @@ namespace UnitTests
                 dealerId = dlr.AccountID,
                 dir = direction,
                 propType = LyraGlobal.GetHoldTypeFromTicker(propGen.Ticker),
-                propHash = propGen.Hash,
+                offering = propGen.Ticker,
                 moneyType = LyraGlobal.GetHoldTypeFromTicker(buyingGen.Ticker),
-                moneyHash = buyingGen.Hash,
+                biding = buyingGen.Ticker,
                 price = 2000,
                 cltamt = 75_000_000,
                 payBy = new string[] { "Paypal" },
@@ -732,10 +733,6 @@ namespace UnitTests
             Assert.AreEqual(1, ords.Count(), "Order count not right");
             //Assert.IsTrue((ords.First() as IUniOrder).Order.Equals(order), "Uni order not equal.");
 
-            var propgret = await testWallet.RPC.GetBlockByHashAsync(Unig.Order.propHash);
-            Assert.IsTrue(propgret.Successful());
-            var propg = propgret.As<TokenGenesisBlock>();
-
             var fiatName = "USD";
             var fiatTicker = $"fiat/{fiatName}";
             var fiatg = (await testWallet.RPC.GetTokenGenesisBlockAsync("", fiatTicker, "")).As<TokenGenesisBlock>();
@@ -747,10 +744,10 @@ namespace UnitTests
                 orderId = Unig.AccountID,
                 orderOwnerId = Unig.OwnerAccountId,
                 dir = direction,
-                propType = LyraGlobal.GetHoldTypeFromTicker(propg.Ticker),
-                propHash = propg.Hash,
+                propType = LyraGlobal.GetHoldTypeFromTicker(Unig.Order.offering),
+                offering = Unig.Order.offering,
                 moneyType = LyraGlobal.GetHoldTypeFromTicker(fiatg.Ticker),
-                moneyHash = fiatg.Hash,
+                biding = fiatg.Ticker,
                 price = 2000,
                 
                 cltamt = 150000000,

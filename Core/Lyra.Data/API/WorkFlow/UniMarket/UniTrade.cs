@@ -22,15 +22,15 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public HoldTypes propType { get; set; }
         /// <summary>
-        /// property token genesis to sell
+        /// ticker to give
         /// </summary>
-        public string propHash { get; set; }
+        public string offering { get; set; } = null!;
 
         public HoldTypes moneyType { get; set; }
         /// <summary>
-        /// moeny token genesis to buy
-        /// </summary>
-        public string moneyHash { get; set; }
+        /// ticker to get
+        /// </summary>        
+        public string biding { get; set; } = null!;
 
         /// <summary>
         /// price in specified money type, fiat or token
@@ -47,9 +47,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         /// always fiat
         /// </summary>
         public decimal pay { get; set; }
-        public string payVia { get; set; }
+        public string payVia { get; set; } = null!;
 
-        public override bool Equals(object obOther)
+        public override bool Equals(object? obOther)
         {
             if (null == obOther)
                 return false;
@@ -67,9 +67,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
                 orderOwnerId == ob.orderOwnerId &&
                 dir == ob.dir &&
                 propType == ob.propType &&
-                propHash == ob.propHash &&
+                offering == ob.offering &&
                 moneyType == ob.moneyType &&
-                moneyHash == ob.moneyHash &&
+                biding == ob.biding &&
                 price == ob.price &&
                 amount== ob.amount &&
                 cltamt== ob.cltamt &&
@@ -79,8 +79,8 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(HashCode.Combine(daoId, dealerId, orderId, orderOwnerId, dir, propType, propHash),
-                HashCode.Combine(moneyType, moneyHash, price, amount, cltamt, payVia, dealerId));
+            return HashCode.Combine(HashCode.Combine(daoId, dealerId, orderId, orderOwnerId, dir, propType, offering),
+                HashCode.Combine(moneyType, biding, price, amount, cltamt, payVia, dealerId));
         }
 
         public string GetExtraData(Block block)
@@ -92,9 +92,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += $"{orderOwnerId}|";
             extraData += $"{dir}|";
             extraData += $"{propType}|";
-            extraData += $"{propHash}|";
+            extraData += $"{offering}|";
             extraData += $"{moneyType}|";
-            extraData += $"{moneyHash}|";
+            extraData += $"{biding}|";
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
             extraData += $"{cltamt.ToBalanceLong()}|";
@@ -112,9 +112,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"Order Owner ID: {orderOwnerId}\n";
             result += $"Direction: {dir}\n";
             result += $"Property Type: {propType}\n";
-            result += $"Property Hash: {propHash}\n";
+            result += $"Property Ticker: {offering}\n";
             result += $"Money Type: {moneyType}\n";
-            result += $"Money Hash: {moneyHash}\n";
+            result += $"Money Ticker: {biding}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
             result += $"Buyer Collateral: {cltamt} {LyraGlobal.OFFICIALTICKERCODE}\n";

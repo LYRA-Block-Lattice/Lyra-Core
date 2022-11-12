@@ -90,8 +90,10 @@ namespace Lyra.Core.WorkFlow
 
             if (order.daoId != trade.daoId ||
                 order.dealerId != trade.dealerId ||
-                order.propHash != trade.propHash ||
-                order.moneyHash != trade.moneyHash ||
+                order.propType != trade.propType ||
+                order.offering != trade.offering ||
+                order.moneyType != trade.moneyType ||
+                order.biding != trade.biding ||
                 order.price != trade.price ||
                 order.amount < trade.amount ||
                 order.dir == trade.dir ||
@@ -116,7 +118,7 @@ namespace Lyra.Core.WorkFlow
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.cltamt)
                 return APIResultCodes.InvalidCollateral;
 
-            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
+            var propg = await sys.Storage.FindTokenGenesisBlockAsync("", trade.offering);
             if(trade.dir == TradeDirection.Sell)
             {
                 if(!chgs.Changes.ContainsKey(propg.Ticker) ||
@@ -163,9 +165,8 @@ namespace Lyra.Core.WorkFlow
 
             // send token from order to trade
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
-            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
 
-            var keyStr = $"{send.Hash.Substring(0, 16)},{propg.Ticker},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{trade.offering},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
@@ -187,7 +188,7 @@ namespace Lyra.Core.WorkFlow
 
                     // calculate balance
                     var dict = lastblock.Balances.ToDecimalDict();
-                    dict[propg.Ticker] -= trade.amount;
+                    dict[trade.offering] -= trade.amount;
                     b.Balances = dict.ToLongDict();
                 });
 
@@ -227,7 +228,6 @@ namespace Lyra.Core.WorkFlow
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
-            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<DaoSendBlock>(),
@@ -239,7 +239,7 @@ namespace Lyra.Core.WorkFlow
 
                     // send the amount of crypto from dao to order
                     var dict = lastblock.Balances.ToDecimalDict();
-                    dict[propg.Ticker] -= trade.amount;
+                    dict[trade.offering] -= trade.amount;
                     b.Balances = dict.ToLongDict();
                 });
         }
@@ -247,7 +247,6 @@ namespace Lyra.Core.WorkFlow
         async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, SendTransferBlock send)
         {
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
@@ -261,10 +260,10 @@ namespace Lyra.Core.WorkFlow
 
                     // send the amount of crypto from dao to order
                     var dict = lastblock.Balances.ToDecimalDict();
-                    if (dict.ContainsKey(propg.Ticker))
-                        dict[propg.Ticker] += trade.amount;
+                    if (dict.ContainsKey(trade.offering))
+                        dict[trade.offering] += trade.amount;
                     else
-                        dict.Add(propg.Ticker, trade.amount);
+                        dict.Add(trade.offering, trade.amount);
                     b.Balances = dict.ToLongDict();
                 });
         }
@@ -274,8 +273,7 @@ namespace Lyra.Core.WorkFlow
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
-            var keyStr = $"{send.Hash.Substring(0, 16)},{propg.Ticker},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{trade.offering},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -287,7 +285,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = LyraGlobal.GetAccountTypeFromTicker(propg.Ticker, trade.dir),
+                AccountType = LyraGlobal.GetAccountTypeFromTicker(trade.offering, trade.dir),
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 
@@ -303,7 +301,7 @@ namespace Lyra.Core.WorkFlow
                 Trade = trade,
             };
 
-            Uniblock.Balances.Add(propg.Ticker, trade.amount.ToBalanceLong());
+            Uniblock.Balances.Add(trade.offering, trade.amount.ToBalanceLong());
             Uniblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             // pool blocks are service block so all service block signed by leader node

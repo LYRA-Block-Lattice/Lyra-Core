@@ -149,9 +149,8 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as UniTradeGenesisBlock;
-            var propGen = await sys.Storage.FindBlockByHashAsync(block.Trade.propHash) as TokenGenesisBlock;
 
-            if (block.AccountType != LyraGlobal.GetAccountTypeFromTicker(propGen.Ticker, block.Trade.dir))
+            if (block.AccountType != LyraGlobal.GetAccountTypeFromTicker(block.Trade.offering, block.Trade.dir))
             {
                 return APIResultCodes.InvalidAccountType;
             }

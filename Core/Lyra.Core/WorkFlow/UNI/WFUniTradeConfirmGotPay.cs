@@ -85,7 +85,6 @@ namespace Lyra.Core.WorkFlow.Uni
                 (b) =>
                 {
                     var trade = b as IUniTrade;
-                    var propg = sys.Storage.FindBlockByHash(trade.Trade.propHash) as TokenGenesisBlock;
 
                     trade.UTStatus = UniTradeStatus.PropReceived;
 
@@ -94,7 +93,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     else
                         (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
 
-                    b.Balances[propg.Ticker] = 0;
+                    b.Balances[trade.Trade.offering] = 0;
                 });
         }
 

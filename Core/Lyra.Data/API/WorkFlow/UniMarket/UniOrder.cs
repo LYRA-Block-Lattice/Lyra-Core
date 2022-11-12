@@ -25,15 +25,15 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public HoldTypes propType { get; set; }
         /// <summary>
-        /// property token genesis to sell
+        /// ticker to give
         /// </summary>
-        public string propHash { get; set; } = null!;
+        public string offering { get; set; } = null!;
 
         public HoldTypes moneyType { get; set; }
         /// <summary>
-        /// moeny token genesis to buy
+        /// ticker to get
         /// </summary>        
-        public string moneyHash { get; set; } = null!;
+        public string biding { get; set; } = null!;
 
         /// <summary>
         /// price in specified money type, fiat or token
@@ -82,9 +82,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
                 dealerId == ob.dealerId &&
                 dir == ob.dir &&
                 propType == ob.propType &&
-                propHash == ob.propHash &&
+                offering == ob.offering &&
                 moneyType == ob.moneyType &&
-                moneyHash == ob.moneyHash &&
+                biding == ob.biding &&
                 amount == ob.amount &&
                 cltamt == ob.cltamt &&
                 price == ob.price &&
@@ -95,7 +95,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, propType, propHash, moneyType, moneyHash),
+            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, propType, offering, moneyType, biding),
                 HashCode.Combine(price, amount, cltamt, limitMin, limitMax, payBy));
         }
 
@@ -106,9 +106,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += $"{dealerId}|";
             extraData += $"{dir}|";
             extraData += $"{propType}|";
-            extraData += $"{propHash}|";
+            extraData += $"{offering}|";
             extraData += $"{moneyType}|";
-            extraData += $"{moneyHash}|";
+            extraData += $"{biding}|";
             extraData += $"{price.ToBalanceLong()}|";
             extraData += $"{amount.ToBalanceLong()}|";
             extraData += $"{cltamt.ToBalanceLong()}|";
@@ -126,9 +126,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"Dealer ID: {dealerId}\n";
             result += $"Direction: {dir}\n";
             result += $"Property Type: {propType}\n";
-            result += $"Property Hash: {propHash}\n";
+            result += $"Property Ticker: {offering}\n";
             result += $"Money Type: {moneyType}\n";
-            result += $"Money Hash: {moneyHash}\n";
+            result += $"Money Ticker: {biding}\n";
             result += $"Price: {price}\n";
             result += $"Amount: {amount}\n";
             result += $"Seller Collateral: {cltamt}\n";

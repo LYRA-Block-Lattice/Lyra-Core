@@ -1132,7 +1132,7 @@ namespace Lyra.Core.Decentralize
         //        _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
         //}
 
-        private string PrintProfileInfo()
+        public string PrintProfileInfo()
         {
             // debug: measure time
             // debug only

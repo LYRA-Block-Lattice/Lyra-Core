@@ -34,7 +34,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     [BsonIgnoreExtraElements]
     public class UniTradeRecvBlock : BrokerAccountRecv, IUniTrade
     {
-        public UniTrade Trade { get; set; }
+        public UniTrade Trade { get; set; } = null!;
         public UniTradeStatus UTStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
@@ -42,9 +42,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return BlockTypes.UniTradeRecv;
         }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as UniTradeRecvBlock;
+            if (ob == null) return false;
 
             return base.AuthCompare(ob) &&
                 UTStatus == ob.UTStatus &&
@@ -71,7 +72,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     [BsonIgnoreExtraElements]
     public class UniTradeSendBlock : BrokerAccountSend, IUniTrade
     {
-        public UniTrade Trade { get; set; }
+        public UniTrade Trade { get; set; } = null!;
         public UniTradeStatus UTStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
@@ -79,9 +80,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return BlockTypes.UniTradeSend;
         }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as UniTradeSendBlock;
+            if (ob == null) return false;
 
             return base.AuthCompare(ob) &&
                 UTStatus == ob.UTStatus &&
@@ -116,9 +118,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return BlockTypes.UniTradeGenesis;
         }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as UniTradeGenesisBlock;
+            if (ob == null) return false;
 
             return base.AuthCompare(ob) &&
                 AccountType == ob.AccountType

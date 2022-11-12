@@ -68,8 +68,8 @@ namespace Lyra.Core.WorkFlow
             //if (order.ownerId != send.AccountID)
             //    return APIResultCodes.InvalidAccountId;
 
-            var propGen = await sys.Storage.FindBlockByHashAsync(order.propHash) as TokenGenesisBlock;
-            var moneyGen = await sys.Storage.FindBlockByHashAsync(order.moneyHash) as TokenGenesisBlock;
+            var propGen = await sys.Storage.FindTokenGenesisBlockAsync("", order.offering);
+            var moneyGen = await sys.Storage.FindTokenGenesisBlockAsync("", order.biding);
 
             // check every field of Order
             // crypto
@@ -161,9 +161,8 @@ namespace Lyra.Core.WorkFlow
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoId) as TransactionBlock;
 
-            var propGen = await sys.Storage.FindBlockByHashAsync(order.propHash) as TokenGenesisBlock;
             // TODO: add some randomness, like leaders's some property.
-            var keyStr = $"{send.Hash.Substring(0, 16)},{order.propHash},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{order.offering},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -204,7 +203,7 @@ namespace Lyra.Core.WorkFlow
             var dict = lastblock.Balances.ToDecimalDict();
 
             if(order.dir == TradeDirection.Sell)
-                dict[propGen.Ticker] -= order.amount;
+                dict[order.offering] -= order.amount;
 
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
@@ -220,9 +219,8 @@ namespace Lyra.Core.WorkFlow
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var order = JsonConvert.DeserializeObject<UniOrder>(send.Tags["data"]);
-            var propGen = await sys.Storage.FindBlockByHashAsync(order.propHash) as TokenGenesisBlock;
 
-            var keyStr = $"{send.Hash.Substring(0, 16)},{propGen.Ticker},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{order.offering},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -234,7 +232,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = LyraGlobal.GetAccountTypeFromTicker(propGen.Ticker, order.dir),
+                AccountType = LyraGlobal.GetAccountTypeFromTicker(order.offering, order.dir),
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 
@@ -252,7 +250,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             if(order.dir == TradeDirection.Sell)
-                Uniblock.Balances.Add(propGen.Ticker, order.amount.ToBalanceLong());
+                Uniblock.Balances.Add(order.offering, order.amount.ToBalanceLong());
 
             Uniblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 
