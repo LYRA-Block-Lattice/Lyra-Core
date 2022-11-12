@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
             return status;
         }
 
-        public string GetUnConsolidatedHash(List<string> unCons)
+        public string GetUnConsolidatedHash(List<string>? unCons)
         {
             if (unCons == null)
                 return "";
@@ -91,7 +91,7 @@ namespace Lyra.Core.Decentralize
                 if (seedSvcGen.ResultCode != APIResultCodes.Success)
                     return false;
 
-                if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
+                if (oldState.svcGenHash != seedSvcGen.GetBlock()?.Hash)
                     LocalDbSyncState.Remove();
 
                 //if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
@@ -133,7 +133,7 @@ namespace Lyra.Core.Decentralize
                             foreach (var block in remoteConsBlocks)
                             {
                                 var consTarget = block as ConsolidationBlock;
-                                _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
+                                _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget?.Height} of total {lastCons.Height}.");
                                 if (await SyncAndVerifyConsolidationBlockAsync(consensusClient, fastClient, consTarget))
                                 {
                                     _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
@@ -770,7 +770,7 @@ namespace Lyra.Core.Decentralize
                 {
                     From = _sys.PosWallet.AccountId,
                     Block = block,
-                    BlockHash = block.Hash,
+                    BlockHash = block.Hash!,
                     MsgType = ChatMessageType.AuthorizerPrePrepare
                 };
 
@@ -780,7 +780,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
+        private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string>? voters = null)        // default is genesus, 4 default
         {
             if (block == null)
                 throw new ArgumentNullException();
@@ -789,7 +789,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId,
                 Block = block,
-                BlockHash = block.Hash,
+                BlockHash = block.Hash!,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
@@ -836,7 +836,7 @@ namespace Lyra.Core.Decentralize
         private class LocalDbSyncState
         {
             public int databaseVersion { get; set; }
-            public string svcGenHash { get; set; }      // make sure not mix with other dbs
+            public string? svcGenHash { get; set; }      // make sure not mix with other dbs
             public long lastVerifiedConsHeight { get; set; }
 
             public static LocalDbSyncState Load()
@@ -845,7 +845,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var fn = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}syncState.json";
                     if (File.Exists(fn))
-                        return JsonConvert.DeserializeObject<LocalDbSyncState>(File.ReadAllText(fn));
+                        return JsonConvert.DeserializeObject<LocalDbSyncState>(File.ReadAllText(fn)) ?? new LocalDbSyncState();
                 }
                 catch (Exception)
                 {

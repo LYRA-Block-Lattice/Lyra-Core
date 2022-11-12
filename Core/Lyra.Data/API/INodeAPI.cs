@@ -32,7 +32,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature);
 
         Task<BlockAPIResult> GetLastConsolidationBlockAsync();
-        Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count);
+        Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string? Signature, long startHeight, int count);
         Task<MultiBlockAPIResult> GetBlocksByConsolidationAsync(string AccountId, string Signature, string consolidationHash);
         //Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
         // add new api, all upgraded, delete old api, done.
