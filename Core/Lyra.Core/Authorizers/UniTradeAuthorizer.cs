@@ -82,7 +82,7 @@ namespace Lyra.Core.Authorizers
             //if (block.AccountID != AccountId)
             //    return APIResultCodes.InvalidAccountId;
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoAuthorizer->BrokerAccountRecvAuthorizer");
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "UniTradeRecvAuthorizer->BrokerAccountRecvAuthorizer");
         }
     }
 
@@ -132,7 +132,7 @@ namespace Lyra.Core.Authorizers
             //if (block.AccountID != AccountId)
             //    return APIResultCodes.InvalidAccountId;
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoAuthorizer->BrokerAccountRecvAuthorizer");
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "UniTradeSendAuthorizer->BrokerAccountRecvAuthorizer");
         }
     }
 
@@ -155,7 +155,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidAccountType;
             }
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoGenesisAuthorizer->DaoAuthorizer");
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "UniTradeGenesisAuthorizer->UniTradeRecvAuthorizer");
         }
     }
 }

@@ -1149,7 +1149,7 @@ namespace Lyra.Core.Decentralize
                 maxTime = g.Value.MaxBy(t => t.MS).MS,
                 minTime = g.Value.MinBy(t => t.MS).MS
             })
-             .OrderByDescending(b => b.times);
+             .OrderByDescending(b => b.totalTime);
             foreach (var d in q)
             {
                 sbLog.AppendLine($"Total time: {d.totalTime} times: {d.times} avg: {d.avgTime:N2} ms max: {d.maxTime} ms min: {d.minTime} ms. Method Name: {d.name}  ");
