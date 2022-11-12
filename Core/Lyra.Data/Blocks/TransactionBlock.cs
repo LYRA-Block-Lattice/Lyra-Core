@@ -115,19 +115,19 @@ namespace Lyra.Core.Blocks
             var ob = other as TransactionBlock;
 
             return base.AuthCompare(ob) &&
-                CompareBalances(ob.Balances) &&
-                AccountID == ob.AccountID &&
-                Fee == ob.Fee &&
-                FeeCode == ob.FeeCode &&
-                FeeType == ob.FeeType &&
-                NonFungibleToken == ob.NonFungibleToken &&
-                VoteFor == ob.VoteFor
+                CompareBalances(ob?.Balances) &&
+                AccountID == ob?.AccountID &&
+                Fee == ob?.Fee &&
+                FeeCode == ob?.FeeCode &&
+                FeeType == ob?.FeeType &&
+                NonFungibleToken == ob?.NonFungibleToken &&
+                VoteFor == ob?.VoteFor
                 ;
         }
 
-        private bool CompareBalances(Dictionary<string, long> otherBalance)
+        private bool CompareBalances(Dictionary<string, long>? otherBalance)
         {
-            if (Balances.Count != otherBalance.Count)
+            if (Balances.Count != otherBalance?.Count)
                 return false;
 
             foreach (var kvp in Balances)
@@ -206,7 +206,7 @@ namespace Lyra.Core.Blocks
         // This method compares this and previous blocks and returns the delta, which is the actual transaction represented by the block.
         // the trans amount is always positive, and it counts for the fee if transacting main currency, 
         // so the actual implementation will be different for send and receive blocks
-        public virtual TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        public virtual TransactionInfoEx? GetTransaction(TransactionBlock previousBlock)
         {
             throw new NotImplementedException();
         }

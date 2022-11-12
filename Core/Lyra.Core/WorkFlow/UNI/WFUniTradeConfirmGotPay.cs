@@ -60,7 +60,7 @@ namespace Lyra.Core.WorkFlow.Uni
             if (order == null)
                 return APIResultCodes.InvalidParameterFormat;
 
-            if (trade.OTStatus != UniTradeStatus.MoneySent)
+            if (trade.UTStatus != UniTradeStatus.MoneySent)
                 return APIResultCodes.InvalidTradeStatus;
 
             if(trade.Trade.dir == TradeDirection.Buy && order.OwnerAccountId != send.AccountID)
@@ -87,7 +87,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     var trade = b as IUniTrade;
                     var propg = sys.Storage.FindBlockByHash(trade.Trade.propHash) as TokenGenesisBlock;
 
-                    trade.OTStatus = UniTradeStatus.PropReleased;
+                    trade.UTStatus = UniTradeStatus.PropReceived;
 
                     if(trade.Trade.dir == TradeDirection.Buy)
                         (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
@@ -172,7 +172,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     }
                     b.Balances = recvBalances.ToLongDict();
 
-                    (b as IUniTrade).OTStatus = UniTradeStatus.MoneyReceived;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.MoneyReceived;
                 });
         }
 

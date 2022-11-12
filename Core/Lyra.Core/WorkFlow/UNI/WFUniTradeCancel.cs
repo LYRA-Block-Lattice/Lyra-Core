@@ -84,7 +84,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 && send.AccountID != dlr.OwnerAccountId)    // dealer owner can cancel the trade
                 return APIResultCodes.InvalidTrade;
 
-            if (tradeblk.OTStatus != UniTradeStatus.Open)
+            if (tradeblk.UTStatus != UniTradeStatus.Open)
                 return APIResultCodes.InvalidOperation;
 
             var orderblk = await sys.Storage.FindLatestBlockAsync(orderid) as IUniOrder;
@@ -167,7 +167,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     b.Balances = oldbalance.ToLongDict();
 
                     // Trade status
-                    (b as IUniTrade).OTStatus = UniTradeStatus.Canceled;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.Canceled;
                 });
         }
 

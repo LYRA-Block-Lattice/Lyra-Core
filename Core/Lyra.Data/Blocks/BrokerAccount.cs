@@ -22,9 +22,9 @@ namespace Lyra.Data.Blocks
     public abstract class BrokerAccountRecv : ReceiveTransferBlock, IBrokerAccount
     {
         // user specified string, less thant 32 char
-        public string Name { get; set; }
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
+        public string Name { get; set; } = null!;
+        public string OwnerAccountId { get; set; } = null!;
+        public string RelatedTx { get; set; } = null!;
 
         public override bool AuthCompare(Block? other)
         {
@@ -60,11 +60,11 @@ namespace Lyra.Data.Blocks
     [BsonIgnoreExtraElements]
     public abstract class BrokerAccountSend : SendTransferBlock, IBrokerAccount
     {
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
+        public string OwnerAccountId { get; set; } = null!;
+        public string RelatedTx { get; set; } = null!;
 
         // user specified string, less thant 32 char
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         public override bool AuthCompare(Block? other)
         {

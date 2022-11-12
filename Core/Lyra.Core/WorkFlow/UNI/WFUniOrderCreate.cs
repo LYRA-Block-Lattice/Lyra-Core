@@ -248,7 +248,7 @@ namespace Lyra.Core.WorkFlow
 
                 // Uni
                 Order = order,
-                OOStatus = UniOrderStatus.Open,
+                UOStatus = UniOrderStatus.Open,
             };
 
             if(order.dir == TradeDirection.Sell)

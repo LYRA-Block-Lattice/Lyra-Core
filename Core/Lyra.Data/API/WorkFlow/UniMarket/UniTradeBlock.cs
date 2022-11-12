@@ -9,20 +9,33 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow.UniMarket
 {
+    public enum UniTradeStatus
+    {
+        Open,
+        MoneySent,
+        MoneyReceived,
+        PropSent,
+        PropReceived,
+        Closed,
+        Dispute,
+        DisputeClosed,
+        Canceled
+    };
+
     /// <summary>
     /// 
     /// </summary>
     public interface IUniTrade : IBrokerAccount
     {
         UniTrade Trade { get; set; }
-        UniTradeStatus OTStatus { get; set; }
+        UniTradeStatus UTStatus { get; set; }
     }
 
     [BsonIgnoreExtraElements]
     public class UniTradeRecvBlock : BrokerAccountRecv, IUniTrade
     {
         public UniTrade Trade { get; set; }
-        public UniTradeStatus OTStatus { get; set; }
+        public UniTradeStatus UTStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
         {
@@ -34,7 +47,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             var ob = other as UniTradeRecvBlock;
 
             return base.AuthCompare(ob) &&
-                OTStatus == ob.OTStatus &&
+                UTStatus == ob.UTStatus &&
                     Trade.Equals(ob.Trade);
         }
 
@@ -42,7 +55,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         {
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData(this) + "|";
-            extraData += $"{OTStatus}|";
+            extraData += $"{UTStatus}|";
             return extraData;
         }
 
@@ -50,7 +63,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         {
             string result = base.Print();
             result += $"{Trade}\n";
-            result += $"Status: {OTStatus}\n";
+            result += $"Status: {UTStatus}\n";
             return result;
         }
     }
@@ -59,7 +72,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     public class UniTradeSendBlock : BrokerAccountSend, IUniTrade
     {
         public UniTrade Trade { get; set; }
-        public UniTradeStatus OTStatus { get; set; }
+        public UniTradeStatus UTStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
         {
@@ -71,7 +84,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             var ob = other as UniTradeSendBlock;
 
             return base.AuthCompare(ob) &&
-                OTStatus == ob.OTStatus &&
+                UTStatus == ob.UTStatus &&
                     Trade.Equals(ob.Trade);
         }
 
@@ -79,7 +92,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         {
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData(this) + "|";
-            extraData += $"{OTStatus}|";
+            extraData += $"{UTStatus}|";
             return extraData;
         }
 
@@ -87,7 +100,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         {
             string result = base.Print();
             result += $"{Trade}\n";
-            result += $"Status: {OTStatus}\n";
+            result += $"Status: {UTStatus}\n";
             return result;
         }
     }

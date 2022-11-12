@@ -47,7 +47,7 @@ namespace Lyra.Core.WorkFlow.Uni
             if (trade.Trade.dir == TradeDirection.Sell && trade.Trade.orderOwnerId != send.AccountID)
                 return APIResultCodes.NotOwnerOfOrder;
 
-            if ((tradeblk as IUniTrade).OTStatus != UniTradeStatus.Open)
+            if ((tradeblk as IUniTrade).UTStatus != UniTradeStatus.Open)
                 return APIResultCodes.InvalidTradeStatus;
 
             return APIResultCodes.Success;
@@ -69,7 +69,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 (b) =>
                 {
                     (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
-                    (b as IUniTrade).OTStatus = UniTradeStatus.MoneySent;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.MoneySent;
 
                     // calculate balance
                     var latestBalances = lastblock.Balances.ToDecimalDict();

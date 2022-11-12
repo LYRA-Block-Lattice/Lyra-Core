@@ -8,18 +8,6 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow.UniMarket
 {
-    public enum UniTradeStatus
-    {
-        Open,
-        MoneySent,
-        MoneyReceived,
-        PropReleased,
-        Closed,
-        Dispute,
-        DisputeClosed,
-        Canceled
-    };
-
     /// <summary>
     /// 
     /// </summary>

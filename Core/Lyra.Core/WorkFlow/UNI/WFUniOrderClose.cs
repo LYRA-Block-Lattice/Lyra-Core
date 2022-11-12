@@ -55,19 +55,19 @@ namespace Lyra.Core.WorkFlow.Uni
             if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotSellerOfTrade;
 
-            if ((orderblk as IUniOrder).OOStatus != UniOrderStatus.Open &&
-                (orderblk as IUniOrder).OOStatus != UniOrderStatus.Partial &&
-                (orderblk as IUniOrder).OOStatus != UniOrderStatus.Delist)
+            if ((orderblk as IUniOrder).UOStatus != UniOrderStatus.Open &&
+                (orderblk as IUniOrder).UOStatus != UniOrderStatus.Partial &&
+                (orderblk as IUniOrder).UOStatus != UniOrderStatus.Delist)
                 return APIResultCodes.InvalidOrderStatus;
 
             var trades = await sys.Storage.FindUniTradeForOrderAsync(orderid);
             if(trades.Any())
             {
                 var opened = trades.Cast<IUniTrade>()
-                    .Where(a => a.OTStatus != UniTradeStatus.Canceled
-                        && a.OTStatus != UniTradeStatus.Closed
-                        && a.OTStatus != UniTradeStatus.DisputeClosed
-                        && a.OTStatus != UniTradeStatus.PropReleased
+                    .Where(a => a.UTStatus != UniTradeStatus.Canceled
+                        && a.UTStatus != UniTradeStatus.Closed
+                        && a.UTStatus != UniTradeStatus.DisputeClosed
+                        && a.UTStatus != UniTradeStatus.PropReceived
                     );
                 if(opened.Any())
                 {
@@ -123,7 +123,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     amount = 0,
                     cltamt = 0,
                 },
-                OOStatus = UniOrderStatus.Closed,
+                UOStatus = UniOrderStatus.Closed,
             };
 
             if(order.dir == TradeDirection.Sell)
@@ -168,7 +168,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var allTrades = await sys.Storage.FindUniTradeForOrderAsync(orderid);
             var totalAmount = allTrades.Cast<IUniTrade>()
-                .Where(a => a.OTStatus == UniTradeStatus.PropReleased)
+                .Where(a => a.UTStatus == UniTradeStatus.PropReceived)
                 .Sum(a => a.Trade.amount);
 
             //if(order.collateralPrice > 0)       // the price should not be zero. for compatibile only.

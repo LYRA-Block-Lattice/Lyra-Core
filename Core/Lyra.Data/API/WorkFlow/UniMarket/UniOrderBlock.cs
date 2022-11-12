@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 namespace Lyra.Data.API.WorkFlow.UniMarket
 {
     public enum UniOrderStatus { 
-        Open, 
-        Partial, 
-        Closed, 
-        Delist 
+        Open,       // just add, trade begin
+        Partial,    // partial traded, total count reduced
+        Closed,     // close order and all pending trading, get back collateral
+        Delist      // prevent order from trading, but wait for all trading finished. after which order can be closed.
     };
     public interface IUniOrder : IBrokerAccount
     {
         UniOrder Order { get; set; }
-        UniOrderStatus OOStatus { get; set; }
+        UniOrderStatus UOStatus { get; set; }
     }
 
     [BsonIgnoreExtraElements]
     public class UniOrderRecvBlock : BrokerAccountRecv, IUniOrder
     {
-        public UniOrder Order { get; set; }
-        public UniOrderStatus OOStatus { get; set; }
+        public UniOrder Order { get; set; } = null!;
+        public UniOrderStatus UOStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
         {
@@ -38,14 +38,14 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order) &&
-                    OOStatus.Equals(ob.OOStatus);
+                    UOStatus.Equals(ob.UOStatus);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Order.GetExtraData(this) + "|";
-            extraData += $"{OOStatus}|";
+            extraData += $"{UOStatus}|";
             return extraData;
         }
 
@@ -53,7 +53,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         {
             string result = base.Print();
             result += $"{Order}\n";
-            result += $"Status: {OOStatus}\n";
+            result += $"Status: {UOStatus}\n";
             return result;
         }
     }
@@ -62,7 +62,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     public class UniOrderSendBlock : BrokerAccountSend, IUniOrder
     {
         public UniOrder Order { get; set; }
-        public UniOrderStatus OOStatus { get; set; }
+        public UniOrderStatus UOStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
         {
@@ -75,14 +75,14 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
             return base.AuthCompare(ob) &&
                     Order.Equals(ob.Order) &&
-                    OOStatus.Equals(ob.OOStatus);
+                    UOStatus.Equals(ob.UOStatus);
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Order.GetExtraData(this) + "|";
-            extraData += $"{OOStatus}|";
+            extraData += $"{UOStatus}|";
             return extraData;
         }
 
@@ -90,7 +90,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         {
             string result = base.Print();
             result += $"{Order}\n";
-            result += $"Status: {OOStatus}\n";
+            result += $"Status: {UOStatus}\n";
             return result;
         }
     }

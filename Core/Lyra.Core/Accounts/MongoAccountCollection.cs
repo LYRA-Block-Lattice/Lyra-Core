@@ -2281,8 +2281,8 @@ namespace Lyra.Core.Accounts
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.Or(
-                filter.Eq("OOStatus", UniOrderStatus.Open),
-                filter.Eq("OOStatus", UniOrderStatus.Partial)
+                filter.Eq("UOStatus", UniOrderStatus.Open),
+                filter.Eq("UOStatus", UniOrderStatus.Partial)
                 );
 
             var q = await _snapshots
@@ -2315,7 +2315,7 @@ namespace Lyra.Core.Accounts
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.And(
-                filter.Exists("OTStatus"),
+                filter.Exists("UTStatus"),
                 filter.Or(
                     filter.Eq("OwnerAccountId", accountId),
                     filter.Eq("Trade.orderOwnerId", accountId)
@@ -2333,7 +2333,7 @@ namespace Lyra.Core.Accounts
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.And(
                     filter.Eq("Trade.daoId", daoid),
-                    filter.Eq("OTStatus", status)
+                    filter.Eq("UTStatus", status)
                 );
 
             var q = await _snapshots
@@ -2364,7 +2364,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountId = accountId,
                     TotalTrades = trades.Count,
-                    FinishedCount = trades.Where(a => (a as IUniTrade).OTStatus == UniTradeStatus.PropReleased).Count(),
+                    FinishedCount = trades.Where(a => (a as IUniTrade).UTStatus == UniTradeStatus.PropReceived).Count(),
                 });
             }
             return stats;

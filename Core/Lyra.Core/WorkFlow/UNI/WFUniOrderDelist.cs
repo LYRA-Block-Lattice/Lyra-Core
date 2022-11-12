@@ -52,7 +52,7 @@ namespace Lyra.Core.WorkFlow.Uni
             if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotSellerOfTrade;
 
-            if ((orderblk as IUniOrder).OOStatus != UniOrderStatus.Partial)
+            if ((orderblk as IUniOrder).UOStatus != UniOrderStatus.Partial)
                 return APIResultCodes.InvalidOrderStatus;
 
             return APIResultCodes.Success;
@@ -88,7 +88,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     b.Balances = dict.ToLongDict();
 
-                    (b as IUniOrder).OOStatus = UniOrderStatus.Delist;
+                    (b as IUniOrder).UOStatus = UniOrderStatus.Delist;
                 });
         }
     }

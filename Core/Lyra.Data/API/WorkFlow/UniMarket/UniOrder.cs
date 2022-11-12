@@ -63,7 +63,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         /// </summary>
         public decimal cltamt { get; set; }
 
-        public override bool Equals(object obOther)
+        public override bool Equals(object? obOther)
         {
             if (null == obOther)
                 return false;
@@ -75,6 +75,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
                 return false;
 
             var ob = obOther as UniOrder;
+            if(ob == null)
+                return false;
+
             return daoId == ob.daoId &&
                 dealerId == ob.dealerId &&
                 dir == ob.dir &&
@@ -116,9 +119,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return extraData;
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
-            string result = base.ToString();
+            string? result = base.ToString();
             result += $"DAO ID: {daoId}\n";
             result += $"Dealer ID: {dealerId}\n";
             result += $"Direction: {dir}\n";
