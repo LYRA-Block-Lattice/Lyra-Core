@@ -10,12 +10,12 @@ namespace Lyra.Core.Blocks
         // Hash of the send block
         public string? SourceHash { get; set; }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as ReceiveTransferBlock;
 
             return base.AuthCompare(ob) &&
-                SourceHash == ob.SourceHash
+                SourceHash == ob?.SourceHash
                 ;
         }
 
@@ -35,7 +35,7 @@ namespace Lyra.Core.Blocks
         {
             var chgs = GetBalanceChanges(previousBlock);
             if (chgs.Changes.Count > 1)
-                throw new System.Exception("Obslete: Multiple token send not supported. use GetBalanceChanges instead.");
+                throw new System.Exception("Obsolete: Multiple token send not supported. use GetBalanceChanges instead.");
 
             var transaction = new TransactionInfoEx() { TokenCode = LyraGlobal.OFFICIALTICKERCODE, Amount = 0, FeeAmount = 0, FeeCode = null };
 

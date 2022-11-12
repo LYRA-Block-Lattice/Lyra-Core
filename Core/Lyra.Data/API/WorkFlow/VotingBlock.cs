@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow
 {
-    public enum SubjectType { None, OTCDispute, DAOModify }
+    public enum SubjectType { None, OTCDispute, DAOModify, UniDispute }
     public class VotingSubject {
         public SubjectType Type { get; set; }
 

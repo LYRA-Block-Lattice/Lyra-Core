@@ -13,6 +13,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Node2;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -758,6 +759,47 @@ namespace LyraLexWeb2
             return await _node.FindNFTGenesisSendAsync(accountId, ticker, serial);
         }
 
+        #region Universal Trade
+        [Route("GetUniOrdersByOwner")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetUniOrdersByOwnerAsync(accountId);
+        }
+
+        [Route("FindTradableUni")]
+        [HttpGet]
+        public async Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindTradableUniAsync();
+        }
+
+        [Route("FindUniTrade")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+        }
+
+        [Route("FindUniTradeByStatus")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindUniTradeByStatusAsync(daoid, status, page, pageSize);
+        }
+
+        [Route("GetUniTradeStatsForUsers")]
+        [HttpPost]
+        public async Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetUniTradeStatsForUsersAsync(req);
+        }
+        #endregion
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

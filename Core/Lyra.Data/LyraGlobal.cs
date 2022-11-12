@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Lyra.Core.Blocks;
+using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -68,6 +71,46 @@ namespace Lyra.Core.API
         }
 
         #endregion
+
+        public static AccountTypes GetAccountTypeFromTicker(string ticker, TradeDirection dir)
+        {
+            var secs = ticker.Split('/');
+            if(dir == TradeDirection.Sell)
+            {
+                return secs[0] switch
+                {
+                    "nft" => AccountTypes.NFTSell,
+                    "svc" => AccountTypes.SVCSell,
+                    "sku" => AccountTypes.SKUSell,
+                    _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
+                };
+            }
+
+            if (dir == TradeDirection.Buy)
+            {
+                return secs[0] switch
+                {
+                    "nft" => AccountTypes.NFTBuy,
+                    "svc" => AccountTypes.SVCBuy,
+                    "sku" => AccountTypes.SKUBuy,
+                    _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
+                };
+            }
+
+            throw new NotSupportedException($"ticker {ticker} is not supported yet.");
+        }
+        public static HoldTypes GetHoldTypeFromTicker(string ticker)
+        {
+            var secs = ticker.Split('/');
+            return secs[0] switch
+            {
+                "nft" => HoldTypes.NFT,
+                "svc" => HoldTypes.SVC,
+                "sku" => HoldTypes.SKU,
+                "fiat" => HoldTypes.Fiat,
+                _ => throw new NotSupportedException($"holdtype for {ticker} is not supported yet.")
+            };
+        }
 
         #region Key calculation
         public static int GetMajority(int totalCount)

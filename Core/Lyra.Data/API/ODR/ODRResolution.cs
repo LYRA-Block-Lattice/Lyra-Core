@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Lyra.Data.API.ODR
 {
-    public enum ResolutionType { OTCTrade };
+    public enum ResolutionType { OTCTrade, UniTrade };
     public enum ResolutionStatus { Pending, Success, Failed };
 
     public class ResolutionContainer

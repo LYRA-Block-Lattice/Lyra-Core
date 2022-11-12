@@ -7,7 +7,7 @@
         /// <summary>
         /// generic service type
         /// </summary>
-        Service = 3,
+        Service = 3,    // PBFT view
         PoolFactory = 5,
         Pool = 6,
         Staking = 7,
@@ -20,5 +20,15 @@
         /// bound to a physical server
         /// </summary>
         Server = 13,
+
+        // Universal Trades
+        OTCSell = 20,
+        OTCBuy,
+        NFTSell,
+        NFTBuy,
+        SKUSell,    // goods
+        SKUBuy,
+        SVCSell,   // human labour, service product, like Fiver.com
+        SVCBuy,
     }
 }

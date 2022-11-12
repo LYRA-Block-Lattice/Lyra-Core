@@ -10,6 +10,7 @@ using Lyra.Core.Utils;
 using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -366,6 +367,10 @@ namespace UnitTests
 
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
+            mock.Setup(x => x.GetBlockByHashAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string, string>((acct, hash, sign) => Task.FromResult(api.GetBlockByHashAsync(acct, hash, sign)).Result);
+            mock.Setup(x => x.GetBlockByHashAsync(It.IsAny<string>()))
+                .Returns<string>((hash) => Task.FromResult(api.GetBlockByHashAsync(hash)).Result);
             mock.Setup(x => x.GetBlockBySourceHashAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetBlockBySourceHashAsync(acct)).Result);
             mock.Setup(x => x.GetBlocksByRelatedTxAsync(It.IsAny<string>()))
@@ -391,8 +396,21 @@ namespace UnitTests
                     Task.FromResult(api.FindOtcTradeAsync(accountId, isOpen, page, pagesize)).Result);
             mock.Setup(x => x.FindOtcTradeByStatusAsync(It.IsAny<string>(), It.IsAny<OTCTradeStatus>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns<string, OTCTradeStatus, int, int>((daoid, status, page, pagesize) =>
-                    Task.FromResult(api.FindOtcTradeByStatusAsync(daoid, status, page, pagesize)).Result); 
-            
+                    Task.FromResult(api.FindOtcTradeByStatusAsync(daoid, status, page, pagesize)).Result);
+
+            #region Universal Trade
+            mock.Setup(x => x.GetUniOrdersByOwnerAsync(It.IsAny<string>()))
+                .Returns<string>(accountId => Task.FromResult(api.GetUniOrdersByOwnerAsync(accountId)).Result);
+            mock.Setup(x => x.FindTradableUniAsync())
+                .Returns(() => Task.FromResult(api.FindTradableUniAsync()).Result);
+            mock.Setup(x => x.FindUniTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) =>
+                    Task.FromResult(api.FindUniTradeAsync(accountId, isOpen, page, pagesize)).Result);
+            mock.Setup(x => x.FindUniTradeByStatusAsync(It.IsAny<string>(), It.IsAny<UniTradeStatus>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<string, UniTradeStatus, int, int>((daoid, status, page, pagesize) =>
+                    Task.FromResult(api.FindUniTradeByStatusAsync(daoid, status, page, pagesize)).Result);
+            #endregion
+
             mock.Setup(x => x.FindAllVotesByDaoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<string, bool>((daoid, openOnly) =>
                     Task.FromResult(api.FindAllVotesByDaoAsync(daoid, openOnly)).Result);
@@ -472,7 +490,11 @@ namespace UnitTests
         protected async Task WaitBlock(string target)
         {
             Console.WriteLine($"Waiting for block: {target}");
+#if DEBUG
+            var ret = _newAuth.WaitOne(500000);
+#else
             var ret = _newAuth.WaitOne(10000);
+#endif
             Assert.IsTrue(ret, "block not authorized properly.");
         }
 

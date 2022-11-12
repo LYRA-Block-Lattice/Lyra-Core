@@ -14,10 +14,10 @@ namespace UnitTests
     public class UT_NFT : XTestBase
     {
         [TestMethod]
-        public async Task NFT_Tests()
+        public async Task NFT_TestsAsync()
         {
             // xtest for a dynamic chain
-            await SetupWallets("devnet");
+            await SetupWallets("xtest");
 
             //var ticker = "nft/a346b16b-ca6c-4c86-9519-1e72fd517e9B";
             //var retg = await testWallet.RPC.GetTokenGenesisBlockAsync(testPublicKey, ticker, "aaa");
@@ -72,13 +72,19 @@ namespace UnitTests
             Assert.IsTrue(recvBlock2.Balances.ContainsKey(tickrToSend));
             Assert.IsTrue(recvBlock2.Balances[tickrToSend] == 1m.ToBalanceLong());
 
+            await ListForSellAsync(nftgen);
             //await BurnAllNFT();
             //name = $"a great nft ({rand.NextInt64()})";
             //ret = await testWallet.CreateNFTAsync(name, "a nft for unit test", 10, metauri);
             //Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
         }
 
-        private async Task BurnAllNFT()
+        private async Task ListForSellAsync(TokenGenesisBlock nftgen)
+        {
+
+        }
+
+        private async Task BurnAllNFTAsync()
         {
             // burn all NFT.
             var lastblk = testWallet.GetLastSyncBlock();

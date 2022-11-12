@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
@@ -55,6 +56,7 @@ namespace Lyra.Core.API
 
         // Retrives a block by its hash
         Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature);
+        Task<BlockAPIResult> GetBlockByHashAsync(string Hash);
         Task<BlockAPIResult> GetBlockAsync(string Hash);
         Task<BlockAPIResult> GetBlockBySourceHashAsync(string sourceHash);
         Task<MultiBlockAPIResult> GetBlocksByRelatedTxAsync(string hash);
@@ -120,6 +122,13 @@ namespace Lyra.Core.API
 
         // NFT related
         Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string ticker, string serial);
+
+        // Universal Trade
+        Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId);
+        Task<ContainerAPIResult> FindTradableUniAsync();
+        Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
+        Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);
+        Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req);
     }
 
     public interface INodeTransactionAPI

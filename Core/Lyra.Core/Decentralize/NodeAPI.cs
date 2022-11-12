@@ -19,6 +19,7 @@ using Lyra.Data.Utils;
 using Lyra.Data.Crypto;
 using Lyra.Data.Blocks;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 
 namespace Lyra.Core.Decentralize
 {
@@ -359,6 +360,10 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public Task<BlockAPIResult> GetBlockByHashAsync(string Hash)
+        {
+            return GetBlockByHashAsync("", Hash, "");
+        }
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string? Signature)
         {
             var result = new BlockAPIResult();
@@ -1531,5 +1536,131 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        #region Universal Trade
+        public async Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetUniOrdersByOwnerAsync(accountId);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetDaoByNameAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            var result = new ContainerAPIResult();
+
+            try
+            {
+                var dict = await NodeService.Dag.Storage.FindTradableUniAsync();
+                foreach (var kvp in dict)
+                    result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToArray());
+
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindTradableUniAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindUniTradeAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindUniTradeByStatusAsync(daoid, status, page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindUniTradeByStatusAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var stats = await NodeService.Dag.Storage.GetUniTradeStatsForUsersAsync(req.AccountIDs);
+
+                result.JsonString = Json(stats);
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetUniTradeStatsForUsersAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+        #endregion
     }
 }

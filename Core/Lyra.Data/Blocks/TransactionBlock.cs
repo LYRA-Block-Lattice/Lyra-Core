@@ -110,7 +110,7 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string? VoteFor { get; set; }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as TransactionBlock;
 

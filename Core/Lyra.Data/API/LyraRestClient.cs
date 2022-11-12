@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Newtonsoft.Json;
 using System;
@@ -11,6 +12,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -410,6 +412,11 @@ namespace Lyra.Core.API
         }
 
         #endregion
+
+        public Task<BlockAPIResult> GetBlockByHashAsync(string Hash)
+        {
+            return GetBlockByHashAsync("", Hash, "");
+        }
 
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
@@ -976,5 +983,59 @@ namespace Lyra.Core.API
 
             return await GetAsync<BlockAPIResult>("FindNFTGenesisSend", args);
         }
+
+        #region Universal Trade
+        public async Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetUniOrdersByOwner", args);
+        }
+
+        public async Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            var args = new Dictionary<string, string>
+            {
+
+            };
+
+            return await GetAsync<ContainerAPIResult>("FindTradableUni", args);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "onlyOpenTrade", onlyOpenTrade.ToString() },
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindUniTrade", args);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "daoid", daoid },
+                { "status", status.ToString() },
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindUniTradeByStatus", args);
+        }
+
+
+        public Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            return PostAsync<SimpleJsonAPIResult>("GetUniTradeStatsForUsers", req);
+        }
+        #endregion
     }
 }

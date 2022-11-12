@@ -72,8 +72,11 @@ namespace Lyra.Core.Authorizers
                 {
                     if (block.DomainName != "nft" && block.DomainName.Length < 6)
                         return APIResultCodes.DomainNameTooShort;
-                    if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
-                        return APIResultCodes.DomainNameReserved;
+                    if(LyraNodeConfig.GetNetworkId() != "xtest")    // for unit test
+                    {
+                        if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
+                            return APIResultCodes.DomainNameReserved;
+                    }
                 }
             }
 

@@ -125,7 +125,7 @@ namespace Lyra.Core.Blocks
             //File.AppendAllText(@"c:\tmp\hash.txt", $"Sign Block {Hash} New txt: {GetHashInput()}\n");
         }
 
-        public virtual bool AuthCompare(Block other)
+        public virtual bool AuthCompare(Block? other)
         {
             if (other == null)
                 return false;
@@ -422,6 +422,15 @@ namespace Lyra.Core.Blocks
         DealerRecv = 105,
         DealerSend = 106,
         DealerGenesis = 107,
+
+        // Universal Order
+        UniOrderRecv = 110,
+        UniOrderGenesis = 111,
+        UniOrderSend = 112,
+        UniTradeRecv = 113,
+        UniTradeGenesis = 114,
+        UniTradeSend = 115,
+        UniTradeResolutionRecv = 116,
 
         // NFT
         //NFTGenesis = 110,     // not needed. a normal genesis block can handle it.

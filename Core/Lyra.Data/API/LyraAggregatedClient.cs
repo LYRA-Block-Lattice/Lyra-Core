@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
@@ -246,6 +247,13 @@ namespace Lyra.Data.API
             var tasks = _primaryClients.Select(client => client.GetBlockAsync(Hash)).ToList();
 
             return await CheckResultAsync("GetBlock", tasks);
+        }
+
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string Hash)
+        {
+            var tasks = _primaryClients.Select(client => client.GetBlockByHashAsync("", Hash, "")).ToList();
+
+            return await CheckResultAsync("GetBlockByHash", tasks, Hash);
         }
 
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
@@ -628,5 +636,32 @@ namespace Lyra.Data.API
 
             return await CheckResultAsync("", tasks);
         }
+
+        #region Uni Trade
+        public Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            return SeedClient.GetUniOrdersByOwnerAsync(accountId);
+        }
+
+        public Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            return SeedClient.FindTradableUniAsync();
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            return SeedClient.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            return SeedClient.FindUniTradeByStatusAsync(daoid, status, page, pageSize);
+        }
+
+        public Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            return SeedClient.GetUniTradeStatsForUsersAsync(req);
+        }
+        #endregion
     }
 }

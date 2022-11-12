@@ -6,6 +6,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Accounts
@@ -42,6 +43,14 @@ namespace Lyra.Core.Accounts
         Task<List<TransactionBlock>> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize);
         Task<List<TransactionBlock>> FindOtcTradeForOrderAsync(string orderid);
         Task<List<TradeStats>> GetOtcTradeStatsForUsersAsync(List<string> accountIds);
+
+        // Universal Order and trade
+        Task<List<Block>> GetUniOrdersByOwnerAsync(string accountId);
+        Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync();
+        Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
+        Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);
+        Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid);
+        Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds);
 
         Block GetDealerByName(string name);
         Block GetDealerByAccountId(string accountId);

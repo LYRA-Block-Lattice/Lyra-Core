@@ -19,13 +19,13 @@ using System.Threading.Tasks;
 namespace Lyra.Core.WorkFlow
 {
     [LyraWorkFlow]//v
-    public class WFOtcTradeCreate : WorkFlowBase
+    public class WFUniTradeCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
         {
             return new WorkFlowDescription
             {
-                Action = BrokerActions.BRK_OTC_CRTRD,
+                Action = BrokerActions.BRK_UNI_CRTRD,
                 RecvVia = BrokerRecvType.DaoRecv,
             };
         }
@@ -35,7 +35,7 @@ namespace Lyra.Core.WorkFlow
             if (send.Tags == null)
                 throw new ArgumentNullException();
 
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
             if(trade == null)
                 throw new ArgumentNullException();
 
@@ -64,10 +64,10 @@ namespace Lyra.Core.WorkFlow
                 )
                 return APIResultCodes.InvalidBlockTags;
 
-            OTCTrade trade;
+            UniTrade trade;
             try
             {
-                trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+                trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
             }
             catch (Exception ex)
             {
@@ -80,7 +80,7 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidOrgnization;
 
             // orderId
-            var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderId) as IOtcOrder;
+            var orderblk = await sys.Storage.FindLatestBlockAsync(trade.orderId) as IUniOrder;
             if (orderblk == null)
                 return APIResultCodes.InvalidOrder;
 
@@ -90,8 +90,8 @@ namespace Lyra.Core.WorkFlow
 
             if (order.daoId != trade.daoId ||
                 order.dealerId != trade.dealerId ||
-                order.crypto != trade.crypto ||
-                order.fiat != trade.fiat ||
+                order.propHash != trade.propHash ||
+                order.moneyHash != trade.moneyHash ||
                 order.price != trade.price ||
                 order.amount < trade.amount ||
                 order.dir == trade.dir ||
@@ -113,13 +113,14 @@ namespace Lyra.Core.WorkFlow
             // verify collateral
             var chgs = send.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
-                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.collateral)
+                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.cltamt)
                 return APIResultCodes.InvalidCollateral;
 
+            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
             if(trade.dir == TradeDirection.Sell)
             {
-                if(!chgs.Changes.ContainsKey(trade.crypto) ||
-                    chgs.Changes[trade.crypto] != trade.amount ||
+                if(!chgs.Changes.ContainsKey(propg.Ticker) ||
+                    chgs.Changes[propg.Ticker] != trade.amount ||
                         chgs.Changes.Count != 2)
                 {
                     return APIResultCodes.InvalidAmountToSend;
@@ -136,17 +137,21 @@ namespace Lyra.Core.WorkFlow
             var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
             var dealer = new DealerClient(uri);
             var prices = await dealer.GetPricesAsync();
-            var tokenSymbol = order.crypto.Split('/')[1];
+            var tokenSymbol = propg.Ticker.Split('/')[1];
 
-            if(trade.dir == TradeDirection.Buy)
+            if(prices.ContainsKey(tokenSymbol))
             {
-                if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
-                    return APIResultCodes.CollateralNotEnough;
-            }
-            else
-            {
-                if (trade.collateral * prices["LYR"] < prices[tokenSymbol] * trade.amount  * ((dao as IDao).SellerPar / 100))
-                    return APIResultCodes.CollateralNotEnough;
+                // only calculate the worth of collateral when we have a standard price for the property.
+                if (trade.dir == TradeDirection.Buy)
+                {
+                    if (trade.cltamt * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
+                        return APIResultCodes.CollateralNotEnough;
+                }
+                else
+                {
+                    if (trade.cltamt * prices["LYR"] < prices[tokenSymbol] * trade.amount  * ((dao as IDao).SellerPar / 100))
+                        return APIResultCodes.CollateralNotEnough;
+                }
             }
 
             return APIResultCodes.Success;
@@ -154,44 +159,45 @@ namespace Lyra.Core.WorkFlow
 
         async Task<TransactionBlock> SendTokenFromOrderToTradeAsync(DagSystem sys, SendTransferBlock send)
         {
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
 
             // send token from order to trade
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
+            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
 
-            var keyStr = $"{send.Hash.Substring(0, 16)},{trade.crypto},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{propg.Ticker},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
-                () => lastblock.GenInc<OtcOrderSendBlock>(),
+                () => lastblock.GenInc<UniOrderSendBlock>(),
                 () => WFState.Running,
                 (b) =>
                 {
                     // send
                     (b as SendTransferBlock).DestinationAccountId = AccountId;
 
-                    // IOTCTrade
-                    var nextOdr = b as IOtcOrder;
+                    // IUniTrade
+                    var nextOdr = b as IUniOrder;
                     nextOdr.Order = nextOdr.Order.With(new
                     {
-                        amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
+                        amount = ((IUniOrder)lastblock).Order.amount - trade.amount,
                     });
-                    nextOdr.OOStatus = ((IOtcOrder)lastblock).Order.amount - trade.amount == 0 ?
-                        OTCOrderStatus.Closed : OTCOrderStatus.Partial;
+                    nextOdr.OOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
+                        UniOrderStatus.Closed : UniOrderStatus.Partial;
 
                     // calculate balance
                     var dict = lastblock.Balances.ToDecimalDict();
-                    dict[trade.crypto] -= trade.amount;
+                    dict[propg.Ticker] -= trade.amount;
                     b.Balances = dict.ToLongDict();
                 });
 
-            //var nextblock = lastblock.GenInc<OtcOrderSendBlock>();  //gender change
+            //var nextblock = lastblock.GenInc<UniOrderSendBlock>();  //gender change
             //var sendtotrade = nextblock
             //    .With(new
             //    {
             //            // generic
             //        ServiceHash = sb.Hash,
-            //        BlockType = BlockTypes.OTCOrderSend,
+            //        BlockType = BlockTypes.UniOrderSend,
 
             //            // send & recv
             //        DestinationAccountId = AccountId,
@@ -202,10 +208,10 @@ namespace Lyra.Core.WorkFlow
             //            // business object
             //        Order = nextblock.Order.With(new
             //        {
-            //            amount = ((IOtcOrder)lastblock).Order.amount - trade.amount,
+            //            amount = ((IUniOrder)lastblock).Order.amount - trade.amount,
             //        }),
-            //        OOStatus = ((IOtcOrder)lastblock).Order.amount - trade.amount == 0 ?
-            //            OTCOrderStatus.Closed : OTCOrderStatus.Partial,
+            //        OOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
+            //            UniOrderStatus.Closed : UniOrderStatus.Partial,
             //    });
 
             //// calculate balance
@@ -218,9 +224,10 @@ namespace Lyra.Core.WorkFlow
 
         async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
         {
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
+            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<DaoSendBlock>(),
@@ -232,20 +239,20 @@ namespace Lyra.Core.WorkFlow
 
                     // send the amount of crypto from dao to order
                     var dict = lastblock.Balances.ToDecimalDict();
-                    dict[trade.crypto] -= trade.amount;
+                    dict[propg.Ticker] -= trade.amount;
                     b.Balances = dict.ToLongDict();
                 });
         }
 
         async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, SendTransferBlock send)
         {
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
-
+            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
-                () => lastblock.GenInc<OtcOrderRecvBlock>(),
+                () => lastblock.GenInc<UniOrderRecvBlock>(),
                 () => WFState.Running,
                 (b) =>
                 {
@@ -254,10 +261,10 @@ namespace Lyra.Core.WorkFlow
 
                     // send the amount of crypto from dao to order
                     var dict = lastblock.Balances.ToDecimalDict();
-                    if (dict.ContainsKey(trade.crypto))
-                        dict[trade.crypto] += trade.amount;
+                    if (dict.ContainsKey(propg.Ticker))
+                        dict[propg.Ticker] += trade.amount;
                     else
-                        dict.Add(trade.crypto, trade.amount);
+                        dict.Add(propg.Ticker, trade.amount);
                     b.Balances = dict.ToLongDict();
                 });
         }
@@ -266,13 +273,13 @@ namespace Lyra.Core.WorkFlow
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
-
-            var keyStr = $"{send.Hash.Substring(0, 16)},{trade.crypto},{send.AccountID}";
+            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+            var propg = sys.Storage.FindBlockByHash(trade.propHash) as TokenGenesisBlock;
+            var keyStr = $"{send.Hash.Substring(0, 16)},{propg.Ticker},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var otcblock = new OtcTradeGenesisBlock
+            var Uniblock = new UniTradeGenesisBlock
             {
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -280,7 +287,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = AccountTypes.OTC,
+                AccountType = LyraGlobal.GetAccountTypeFromTicker(propg.Ticker, trade.dir),
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 
@@ -292,16 +299,16 @@ namespace Lyra.Core.WorkFlow
                 OwnerAccountId = send.AccountID,
                 RelatedTx = send.Hash,
 
-                // otc
+                // Uni
                 Trade = trade,
             };
 
-            otcblock.Balances.Add(trade.crypto, trade.amount.ToBalanceLong());
-            otcblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            Uniblock.Balances.Add(propg.Ticker, trade.amount.ToBalanceLong());
+            Uniblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
 
             // pool blocks are service block so all service block signed by leader node
-            otcblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return otcblock;
+            Uniblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return Uniblock;
         }
 
         //async Task<TransactionBlock> SendUtilityTokenToUserAsync(DagSystem sys, SendTransferBlock send)

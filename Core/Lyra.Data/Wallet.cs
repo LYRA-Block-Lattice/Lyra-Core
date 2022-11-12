@@ -17,6 +17,8 @@ using Lyra.Data.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.ODR;
 using System.Globalization;
+using Lyra.Data.API.WorkFlow.UniMarket;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace Lyra.Core.Accounts
 {
@@ -2348,6 +2350,174 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRDPT },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
+        #endregion
+
+        #region Universal Market
+        public async Task<AuthorizationAPIResult> CreateUniOrderAsync(UniOrder order)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_CRODR },
+                { "data", JsonConvert.SerializeObject(order) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.cltamt },
+            };
+
+            if (order.dir == TradeDirection.Sell)
+            {
+                var propGenRet = await RPC.GetBlockByHashAsync("", order.propHash, "");
+                if(propGenRet.Successful())
+                {
+                    var propGen = propGenRet.GetBlock() as TokenGenesisBlock;
+                    if(propGen != null)
+                        amounts.Add(propGen.Ticker, order.amount);
+                }
+
+                // is this really good? leave all verification to authorizer?
+                //return new AuthorizationAPIResult
+                //{
+                //    ResultCode = APIResultCodes.TokenGenesisBlockNotFound
+                //};
+            }                
+
+            var result = await SendExAsync(order.daoId, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> CreateUniTradeAsync(UniTrade trade)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_CRTRD },
+                { "data", JsonConvert.SerializeObject(trade) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.cltamt },
+            };
+
+            if (trade.dir == TradeDirection.Sell)
+            {
+                var propGenRet = await RPC.GetBlockByHashAsync("", trade.propHash, "");
+                if(propGenRet.Successful())
+                {
+                    var propGen = propGenRet.As<TokenGenesisBlock>();
+                    amounts.Add(propGen.Ticker, trade.amount);
+                }                
+            }                
+
+            var result = await SendExAsync(trade.daoId, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentSentAsync(string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDPAYSENT },
+                { "tradeid", tradeid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentConfirmAsync(string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDPAYGOT },
+                { "tradeid", tradeid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> DelistUniOrderAsync(string daoid, string orderid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_ORDDELST },
+                { "daoid", daoid },
+                { "orderid", orderid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> CloseUniOrderAsync(string daoid, string orderid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_ORDCLOSE },
+                { "daoid", daoid },
+                { "orderid", orderid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(daoid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> CancelUniTradeAsync(string daoid, string orderid, string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDCANCEL },
+                { "tradeid", tradeid },
+                { "orderid", orderid },
+                { "daoid", daoid },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 },
+            };
+
+            var result = await SendExAsync(tradeid, amounts, tags);
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> UniTradeRaiseDisputeAsync(string tradeid)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_CRDPT },
             };
 
             var amounts = new Dictionary<string, decimal>

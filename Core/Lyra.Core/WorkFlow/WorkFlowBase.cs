@@ -3,6 +3,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
@@ -198,7 +199,45 @@ namespace Lyra.Core.WorkFlow
                 case BrokerActions.BRK_DLR_CREATE:
                     brkaccount = null;
                     break;
-                // 
+
+                #region universal trade
+                case BrokerActions.BRK_UNI_CRODR:
+                    var uorder = JsonConvert.DeserializeObject<UniOrder>(send.Tags["data"]);
+                    brkaccount = uorder.daoId;
+                    break;
+
+                case BrokerActions.BRK_UNI_CRTRD:
+                    var utrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+                    brkaccount = utrade.daoId;
+                    brkaccount2 = utrade.orderId;
+                    break;
+
+                case BrokerActions.BRK_UNI_TRDPAYSENT:
+                case BrokerActions.BRK_UNI_TRDPAYGOT:
+                    brkaccount = send.Tags["tradeid"];
+                    break;
+
+                case BrokerActions.BRK_UNI_TRDCANCEL:
+                    brkaccount = send.Tags["tradeid"];
+                    brkaccount2 = send.Tags["orderid"];
+                    brkaccount3 = send.Tags["daoid"];
+                    break;
+
+                case BrokerActions.BRK_UNI_ORDDELST:
+                case BrokerActions.BRK_UNI_ORDCLOSE:
+                    brkaccount = send.Tags["orderid"];
+                    brkaccount2 = send.Tags["daoid"];
+                    break;
+
+                // Uni Dispute
+                case BrokerActions.BRK_UNI_CRDPT:
+                case BrokerActions.BRK_UNI_RSLDPT:
+                    brkaccount = send.DestinationAccountId; // trade id
+                    var utradeDspt = (await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId)) as IUniTrade;
+                    brkaccount2 = utradeDspt.Trade.daoId;
+                    break;
+                #endregion
+
                 default:
                     Console.WriteLine($"Unknown REQ Action: {action}");
                     brkaccount = null;

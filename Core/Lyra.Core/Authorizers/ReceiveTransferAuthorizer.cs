@@ -32,6 +32,8 @@ namespace Lyra.Core.Authorizers
             BlockTypes.OTCTradeGenesis,
             BlockTypes.VoteGenesis,
             BlockTypes.DealerGenesis,
+            BlockTypes.UniOrderGenesis,
+            BlockTypes.UniTradeGenesis,
         };
 
         
@@ -147,6 +149,8 @@ namespace Lyra.Core.Authorizers
                     || block.BlockType == BlockTypes.OTCTradeRecv
                     || block.BlockType == BlockTypes.OTCTradeResolutionRecv
                     || block.BlockType == BlockTypes.Voting
+                    || block.BlockType == BlockTypes.UniOrderRecv
+                    || block.BlockType == BlockTypes.UniTradeRecv
                     )  // temp code. should use getbalancechanges
                 {
                     if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)

@@ -3,6 +3,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Shared;
 using System;
@@ -377,5 +378,38 @@ namespace Lyra.Core.Accounts
         {
             return StopWatcher.Track(() => _store.FindNFTGenesisSendAsync(accountId, ticker, serial), "FindNFTGenesisSendAsync");
         }
+
+        #region Universal trade
+        public Task<List<Block>> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            return StopWatcher.Track(() => _store.GetUniOrdersByOwnerAsync(accountId), "GetUniOrdersByOwner");
+        }
+
+        public Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync()
+        {
+            return StopWatcher.Track(() => _store.FindTradableUniAsync(), "FindTradableUniAsync");
+        }
+
+        public Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            return StopWatcher.Track(() => _store.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize), "FindUniTradeAsync");
+        }
+
+        public Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            return StopWatcher.Track(() => _store.FindUniTradeByStatusAsync(daoid, status, page, pageSize), "FindUniTradeByStatus");
+        }
+
+        public Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid)
+        {
+            return StopWatcher.Track(() => _store.FindUniTradeForOrderAsync(orderid), "FindUniTradeForOrder");
+        }
+
+        public Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds)
+        {
+            return StopWatcher.Track(() => _store.GetUniTradeStatsForUsersAsync(accountIds), "GetUniTradeStatsForUsers");
+        }
+
+        #endregion
     }
 }

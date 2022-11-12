@@ -26,6 +26,7 @@ using Neo;
 using Newtonsoft.Json;
 using Lyra.Data.API.ODR;
 using MongoDB.Driver.Linq;
+using Lyra.Data.API.WorkFlow.UniMarket;
 
 namespace Lyra.Core.Accounts
 {
@@ -2259,6 +2260,116 @@ namespace Lyra.Core.Accounts
             }
             return stats;
         }
+
+        #region Universal order/trade
+        public async Task<List<Block>> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            var q = _blocks.OfType<UniOrderGenesisBlock>()
+                .Find(a => a.OwnerAccountId == accountId)
+                .ToList();
+
+            var blks = new List<Block>();
+            foreach (var x in q)
+            {
+                var b = await FindLatestBlockAsync(x.AccountID);
+                blks.Add(b);
+            }
+            return blks;
+        }
+
+        private async Task<List<TransactionBlock>> FindTradableUniOrdersAsync()
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Or(
+                filter.Eq("OOStatus", UniOrderStatus.Open),
+                filter.Eq("OOStatus", UniOrderStatus.Partial)
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync()
+        {
+            var ords = await FindTradableUniOrdersAsync();
+            var daoIds = ords.Cast<IUniOrder>()
+                .Select(a => a.Order.daoId)
+                .Distinct()
+                .ToList();
+
+            var daos = _snapshots
+                .AsQueryable()
+                .Where(a => daoIds.Contains(a.AccountID))
+                .ToList();
+
+            return new Dictionary<string, List<TransactionBlock>>
+            {
+                { "orders", ords },
+                { "daos", daos },
+            };
+        }
+
+        public async Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.And(
+                filter.Exists("OTStatus"),
+                filter.Or(
+                    filter.Eq("OwnerAccountId", accountId),
+                    filter.Eq("Trade.orderOwnerId", accountId)
+                    )
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.And(
+                    filter.Eq("Trade.daoId", daoid),
+                    filter.Eq("OTStatus", status)
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Eq("Trade.orderId", orderid);
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds)
+        {
+            var stats = new List<TradeStats>();
+            // 1, as trade owner; 2, as order owner; 
+            foreach (var accountId in accountIds)
+            {
+                var trades = await FindUniTradeAsync(accountId, false, -1, -1); // so if the api changes, modify here
+                stats.Add(new TradeStats
+                {
+                    AccountId = accountId,
+                    TotalTrades = trades.Count,
+                    FinishedCount = trades.Where(a => (a as IUniTrade).OTStatus == UniTradeStatus.PropReleased).Count(),
+                });
+            }
+            return stats;
+        }
+        #endregion
 
         public async Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {

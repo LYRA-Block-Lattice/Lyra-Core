@@ -26,11 +26,11 @@ namespace Lyra.Data.Blocks
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as BrokerAccountRecv;
             return base.AuthCompare(ob) &&
-                Name == ob.Name &&
+                Name == ob?.Name &&
                 OwnerAccountId == ob.OwnerAccountId &&
                 RelatedTx == ob.RelatedTx;
         }
@@ -66,7 +66,7 @@ namespace Lyra.Data.Blocks
         // user specified string, less thant 32 char
         public string Name { get; set; }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as BrokerAccountSend;
             return base.AuthCompare(ob) &&
