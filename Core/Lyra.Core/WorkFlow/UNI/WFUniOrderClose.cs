@@ -81,69 +81,38 @@ namespace Lyra.Core.WorkFlow.Uni
         {
             var daoid = send.Tags["daoid"];
             var orderid = send.Tags["orderid"];
-
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
-            var order = (lastblock as IUniOrder).Order;
 
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToTradeBlock = new UniOrderSendBlock
-            {
-                // block
-                ServiceHash = sb.Hash,
+            var blockNext = await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<UniOrderSendBlock>(),
+                () => WFState.Running,
+                (b) =>
+                {                    
+                    var orderb = b as IUniOrder;
 
-                // trans
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                AccountID = lastblock.AccountID,
-                Balances = lastblock.Balances.ToDecimalDict().ToLongDict(),
+                    orderb.UOStatus = UniOrderStatus.Closed;
 
-                // send
-                DestinationAccountId = (lastblock as IBrokerAccount).OwnerAccountId,
+                    orderb.Order.amount = 0;
+                    orderb.Order.cltamt = 0;
 
-                // broker
-                Name = ((IBrokerAccount)lastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
-                RelatedTx = send.Hash,
+                    (b as SendTransferBlock).DestinationAccountId = orderb.OwnerAccountId;
+                    if (orderb.Order.dir == TradeDirection.Sell)
+                    {
+                        // when delist, the crypto balance is already zero. 
+                        // no balance change will vialate the rule of send
+                        // so we reduce the balance of LYR, or the collateral, of 0.00000001
+                        if (b.Balances[orderb.Order.offering] != 0)
+                            b.Balances[orderb.Order.offering] = 0;
+                    }
+                    else
+                    {
+                        // the buy order has no crypto at all.
+                    }
 
-                // Uni
-                Order = new UniOrder
-                {
-                    daoId = ((IUniOrder)lastblock).Order.daoId,
-                    dir = ((IUniOrder)lastblock).Order.dir,
-                    offby= ((IUniOrder)lastblock).Order.offby,
-                    offering = ((IUniOrder)lastblock).Order.offering,
-                    bidby = ((IUniOrder)lastblock).Order.bidby,
-                    biding = ((IUniOrder)lastblock).Order.biding,
-                    price = ((IUniOrder)lastblock).Order.price,
-                    limitMax = ((IUniOrder)lastblock).Order.limitMax,
-                    limitMin = ((IUniOrder)lastblock).Order.limitMin,
-                    payBy = ((IUniOrder)lastblock).Order.payBy,
-                    amount = 0,
-                    cltamt = 0,
-                },
-                UOStatus = UniOrderStatus.Closed,
-            };
+                    b.Balances["LYR"] = 0;          // all remaining LYR
+                });
 
-            if(order.dir == TradeDirection.Sell)
-            {
-                // when delist, the crypto balance is already zero. 
-                // no balance change will vialate the rule of send
-                // so we reduce the balance of LYR, or the collateral, of 0.00000001
-                if (sendToTradeBlock.Balances[order.offering] != 0)
-                    sendToTradeBlock.Balances[order.offering] = 0;
-            }
-            else
-            {
-                // the buy order has no crypto at all.
-            }
-            
-            sendToTradeBlock.Balances["LYR"] = 0;          // all remaining LYR
-
-            sendToTradeBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
-
-            sendToTradeBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendToTradeBlock;
+            return blockNext;
         }
 
         protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, SendTransferBlock send)

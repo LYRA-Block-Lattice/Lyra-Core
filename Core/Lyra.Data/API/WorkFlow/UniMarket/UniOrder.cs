@@ -23,7 +23,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public string dealerId { get; set; } = null!;
         public TradeDirection dir { get; set; }
 
-        public HoldTypes offby { get; set; }
+        public HoldTypes offerby { get; set; }
         /// <summary>
         /// ticker to give
         /// </summary>
@@ -81,7 +81,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             return daoId == ob.daoId &&
                 dealerId == ob.dealerId &&
                 dir == ob.dir &&
-                offby == ob.offby &&
+                offerby == ob.offerby &&
                 offering == ob.offering &&
                 bidby == ob.bidby &&
                 biding == ob.biding &&
@@ -95,7 +95,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, offby, offering, bidby, biding),
+            return HashCode.Combine(HashCode.Combine(daoId, dealerId, dir, offerby, offering, bidby, biding),
                 HashCode.Combine(price, amount, cltamt, limitMin, limitMax, payBy));
         }
 
@@ -105,7 +105,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += daoId + "|";
             extraData += $"{dealerId}|";
             extraData += $"{dir}|";
-            extraData += $"{offby}|";
+            extraData += $"{offerby}|";
             extraData += $"{offering}|";
             extraData += $"{bidby}|";
             extraData += $"{biding}|";
@@ -125,7 +125,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"DAO ID: {daoId}\n";
             result += $"Dealer ID: {dealerId}\n";
             result += $"Direction: {dir}\n";
-            result += $"Property Type: {offby}\n";
+            result += $"Property Type: {offerby}\n";
             result += $"Property Ticker: {offering}\n";
             result += $"Money Type: {bidby}\n";
             result += $"Money Ticker: {biding}\n";

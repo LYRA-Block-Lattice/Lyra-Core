@@ -90,7 +90,7 @@ namespace Lyra.Core.WorkFlow
 
             if (order.daoId != trade.daoId ||
                 order.dealerId != trade.dealerId ||
-                order.offby != trade.offby ||
+                order.offerby != trade.offby ||
                 order.offering != trade.offering ||
                 order.bidby != trade.bidby ||
                 order.biding != trade.biding ||

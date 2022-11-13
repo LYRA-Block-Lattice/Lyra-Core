@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Converto;
 using Lyra.Core.API;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
@@ -58,11 +59,11 @@ namespace Lyra.Core.Blocks
         public virtual T GenInc<T>() where T : Block
         {
             var x = Activator.CreateInstance<T>();
-            return this.ConvertTo<T>()  //gender change
+            var next = this.ConvertTo<T>()  //gender change
                 .With(new
                 {
                     // most necessary!
-                    BlockType = x.BlockType,
+                    x.BlockType,
                     Hash = "",
                     Signature = "",
                     Height = 0,
@@ -71,6 +72,18 @@ namespace Lyra.Core.Blocks
                     FeeType = AuthorizationFeeTypes.NoFee,
                     FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 });
+
+            // make sure the object is duplicated.
+            if(next is IUniOrder o && this is IUniOrder oo)
+            {
+                o.Order = oo.Order.Copy();
+            }
+            else if(next is IUniTrade t && this is IUniTrade tt)
+            {
+                t.Trade = tt.Trade.Copy();
+            }
+
+            return next;
         }
 
         public void InitializeBlock(Block? prevBlock, string PrivateKey, string AccountId)

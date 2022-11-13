@@ -36,6 +36,10 @@ namespace Lyra.Core.Authorizers
                 )
                 return APIResultCodes.InvalidDecimalDigitalCount;
 
+            if (
+                string.IsNullOrWhiteSpace(block.Order.dealerId))
+                return APIResultCodes.InvalidOrder;
+
             // related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             //if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
@@ -87,6 +91,10 @@ namespace Lyra.Core.Authorizers
                 block.Order.cltamt.CountDecimalDigits() > 8
                 )
                 return APIResultCodes.InvalidDecimalDigitalCount;
+
+            if (
+                string.IsNullOrWhiteSpace(block.Order.dealerId))
+                return APIResultCodes.InvalidOrder;
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

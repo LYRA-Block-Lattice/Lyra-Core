@@ -531,7 +531,7 @@ namespace UnitTests
                 daoId = dao.AccountID,
                 dealerId = dlr.AccountID,
                 dir = direction,
-                offby = LyraGlobal.GetHoldTypeFromTicker(propGen.Ticker),
+                offerby = LyraGlobal.GetHoldTypeFromTicker(propGen.Ticker),
                 offering = propGen.Ticker,
                 bidby = LyraGlobal.GetHoldTypeFromTicker(buyingGen.Ticker),
                 biding = buyingGen.Ticker,
