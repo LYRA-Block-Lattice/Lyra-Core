@@ -11,9 +11,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 {
     public enum UniOrderStatus { 
         Open,       // just add, trade begin
-        Partial,    // partial traded, total count reduced
-        Closed,     // close order and all pending trading, get back collateral
-        Delist      // prevent order from trading, but wait for all trading finished. after which order can be closed.
+        Partial = 10,    // partial traded, total count reduced
+        Closed = 30,     // close order and all pending trading, get back collateral
+        Delist = 50,      // prevent order from trading, but wait for all trading finished. after which order can be closed.
     };
     public interface IUniOrder : IBrokerAccount
     {

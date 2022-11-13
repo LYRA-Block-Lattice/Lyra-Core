@@ -24,7 +24,6 @@ namespace Lyra.Core.Accounts
         Task<bool> AccountExistsAsync(string AccountId);
         Task<Block> FindLatestBlockAsync();
         Task<Block> FindLatestBlockAsync(string AccountId);
-        Task<Block> FindBlockByHeightAsync(string AccountId, long height);
         Task<Block> FindFirstBlockAsync(string AccountId);
         TransactionBlock FindFirstBlock(string AccountId);
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
@@ -64,7 +63,7 @@ namespace Lyra.Core.Accounts
         Task<List<NonFungibleToken>> GetIssuedNFTInstancesAsync(bool GetOnlySendBlocks, string AccountId, string TokenCode);
         Task<bool> DoesAccountHaveCollectibleNFTInstanceAsync(string owner_account_id, TokenGenesisBlock token_block, string serial_number);
         Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash);
-        Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index);
+        Task<TransactionBlock?> FindBlockByIndexAsync(string AccountId, long index);
         Task<List<TransactionDescription>> SearchTransactionsAsync(string accountId, DateTime startTime, DateTime endTime, int count);
         Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index);
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);

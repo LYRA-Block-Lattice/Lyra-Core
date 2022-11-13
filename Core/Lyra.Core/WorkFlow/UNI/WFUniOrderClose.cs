@@ -67,7 +67,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     .Where(a => a.UTStatus != UniTradeStatus.Canceled
                         && a.UTStatus != UniTradeStatus.Closed
                         && a.UTStatus != UniTradeStatus.DisputeClosed
-                        && a.UTStatus != UniTradeStatus.PropReceived
+                        && a.UTStatus != UniTradeStatus.OfferReceived
                     );
                 if(opened.Any())
                 {
@@ -136,7 +136,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var allTrades = await sys.Storage.FindUniTradeForOrderAsync(orderid);
             var totalAmount = allTrades.Cast<IUniTrade>()
-                .Where(a => a.UTStatus == UniTradeStatus.PropReceived)
+                .Where(a => a.UTStatus == UniTradeStatus.OfferReceived)
                 .Sum(a => a.Trade.amount);
 
             //if(order.collateralPrice > 0)       // the price should not be zero. for compatibile only.

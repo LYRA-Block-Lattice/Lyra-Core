@@ -27,6 +27,7 @@ using Newtonsoft.Json;
 using Lyra.Data.API.ODR;
 using MongoDB.Driver.Linq;
 using Lyra.Data.API.WorkFlow.UniMarket;
+using System.Collections;
 
 namespace Lyra.Core.Accounts
 {
@@ -223,6 +224,11 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_snapshots, "OOStatus", false);
                     await CreateIndexes(_snapshots, "OTStatus", false);
                     await CreateIndexes(_snapshots, "Treasure", false);
+                    await CreateIndexes(_snapshots, "UOStatus", false);
+                    await CreateIndexes(_snapshots, "UTStatus", false);
+
+                    // Uni Order/Trade
+
 
                     await SnapshotAllAsync();
                 }
@@ -453,6 +459,8 @@ namespace Lyra.Core.Accounts
             //var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
             //var result = await _blocks.FindAsync(filter, options);
             //return await result.AnyAsync();
+
+            // max 18ms avg 0.68
             var q = _blocks.OfType<TransactionBlock>()
                 .AsQueryable()
                 .Where(a => a.AccountID == AccountId)
@@ -593,14 +601,14 @@ namespace Lyra.Core.Accounts
             return Task.FromResult(blk);
         }
 
-        public async Task<Block> FindBlockByHeightAsync(string AccountId, long height)
-        {
-            var ftr = Builders<Block>.Filter;
-            var def = ftr.And(ftr.Eq("AccountID", AccountId), ftr.Eq("Height", height));
-            var blk = await _blocks.Find(def)
-                .FirstOrDefaultAsync();
-            return blk;
-        }
+        //public async Task<Block> FindBlockByHeightAsync(string AccountId, long height)
+        //{
+        //    var ftr = Builders<Block>.Filter;
+        //    var def = ftr.And(ftr.Eq("AccountID", AccountId), ftr.Eq("Height", height));
+        //    var blk = await _blocks.Find(def)
+        //        .FirstOrDefaultAsync();
+        //    return blk;
+        //}
 
         public Task<Block> FindLatestBlockAsync(string AccountId)
         {
@@ -953,7 +961,7 @@ namespace Lyra.Core.Accounts
             return Task.FromResult(result);
         }
 
-        public Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
+        public Task<TransactionBlock?> FindBlockByIndexAsync(string AccountId, long index)
         {
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
@@ -961,6 +969,15 @@ namespace Lyra.Core.Accounts
 
             var block = _blocks.Find(filterDefinition).FirstOrDefault();
             return Task.FromResult(block as TransactionBlock);
+        }
+
+        public TransactionBlock? FindBlockByIndex(string AccountId, long index)
+        {
+            var q = _blocks.OfType<TransactionBlock>()
+                .Find(a => a.AccountID == AccountId && a.Height == index)
+                .FirstOrDefault();
+
+            return q;
         }
 
         public async Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index)
@@ -1450,9 +1467,9 @@ namespace Lyra.Core.Accounts
 
         */
 
-        private Task UpdateSnapshotAsync(TransactionBlock tx)
+        private async Task UpdateSnapshotAsync(TransactionBlock tx)
         {
-            return _snapshots.ReplaceOneAsync(p => p.AccountID == tx.AccountID,
+            await _snapshots.ReplaceOneAsync(p => p.AccountID == tx.AccountID,
                 tx,
                 new ReplaceOptions { IsUpsert = true });
         }
@@ -1462,7 +1479,7 @@ namespace Lyra.Core.Accounts
             // in unit test maybe null
             _log?.LogInformation($"AddBlockAsync: {block.BlockType} {block.Height} {block.Hash}");
 
-            if (await FindBlockByHashAsync(block.Hash) != null)
+            if (FindBlockByHash(block.Hash) != null)
             {
                 _log.LogWarning($"AccountCollection=>AddBlock: Block with such Hash already exists! {block.BlockType}, {block.Hash}");
                 return false;
@@ -1471,7 +1488,7 @@ namespace Lyra.Core.Accounts
             var tx = block as TransactionBlock;
             if (tx != null)
             {
-                var curNdx = await FindBlockByIndexAsync(tx.AccountID, tx.Height);
+                var curNdx = FindBlockByIndex(tx.AccountID, tx.Height);
                 if (curNdx != null)
                 {
                     _log.LogWarning($"AccountCollection=>AddBlock: Block with such Index already exists! {block.BlockType}, {block.Hash} {tx.AccountID} {tx.Height} existing: {curNdx.Hash}");
@@ -1481,7 +1498,7 @@ namespace Lyra.Core.Accounts
 
             try
             {
-                await _blocks.InsertOneAsync(block);
+                _blocks.InsertOne(block);
 
                 if(tx != null)
                     await UpdateSnapshotAsync(tx);
@@ -2364,7 +2381,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountId = accountId,
                     TotalTrades = trades.Count,
-                    FinishedCount = trades.Where(a => (a as IUniTrade).UTStatus == UniTradeStatus.PropReceived).Count(),
+                    FinishedCount = trades.Where(a => (a as IUniTrade).UTStatus == UniTradeStatus.OfferReceived).Count(),
                 });
             }
             return stats;

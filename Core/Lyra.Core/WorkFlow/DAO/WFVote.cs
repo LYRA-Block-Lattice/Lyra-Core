@@ -73,7 +73,7 @@ namespace Lyra.Core.WorkFlow.DAO
             // voter shouldn't multiple vote
             for(var a = votel.Height; a > 1; a--)
             {
-                var vx = await sys.Storage.FindBlockByHeightAsync(voteid, a);
+                var vx = await sys.Storage.FindBlockByIndexAsync(voteid, a);
                 if ((vx as VotingBlock).VoterId == send.AccountID)
                     return APIResultCodes.InvalidVote;
             }

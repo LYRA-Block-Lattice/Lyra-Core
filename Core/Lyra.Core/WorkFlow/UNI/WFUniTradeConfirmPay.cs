@@ -69,7 +69,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 (b) =>
                 {
                     (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
-                    (b as IUniTrade).UTStatus = UniTradeStatus.MoneySent;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.BidSent;
 
                     // calculate balance
                     var latestBalances = lastblock.Balances.ToDecimalDict();

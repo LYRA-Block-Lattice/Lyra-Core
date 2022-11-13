@@ -11,15 +11,26 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 {
     public enum UniTradeStatus
     {
+        // start 
         Open,
-        MoneySent,
-        MoneyReceived,
-        PropSent,
-        PropReceived,
-        Closed,
-        Dispute,
+
+        // trade begins
+        BidSent = 10,
+        BidReceived,
+        OfferSent,
+        OfferReceived,
+
+        // special trade has special state, add bellow.
+
+        // trade ends successfull
+        Closed = 30,
+
+        // trade in abnormal states
+        Dispute = 40,
         DisputeClosed,
-        Canceled
+
+        // canceled trade. not count.
+        Canceled = 50,
     };
 
     /// <summary>

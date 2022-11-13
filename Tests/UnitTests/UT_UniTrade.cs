@@ -593,7 +593,7 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-            Assert.AreEqual(UniTradeStatus.MoneySent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
+            Assert.AreEqual(UniTradeStatus.BidSent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
                 $"Trade statust not changed to BuyerPaid");
 
             // seller got the payment
@@ -606,7 +606,7 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-            Assert.AreEqual(UniTradeStatus.PropReceived, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
+            Assert.AreEqual(UniTradeStatus.OfferReceived, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
                 $"Trade status not changed to ProductReleased");
 
             await test2Wallet.SyncAsync(null);
@@ -955,7 +955,7 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-            Assert.AreEqual(UniTradeStatus.MoneySent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
+            Assert.AreEqual(UniTradeStatus.BidSent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
                 $"Trade status not changed to BuyerPaid");
 
             // seller not got the payment. seller raise a dispute
