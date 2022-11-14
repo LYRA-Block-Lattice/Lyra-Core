@@ -269,7 +269,12 @@ namespace Lyra.Core.WorkFlow
             var cnt = desc.RecvVia == BrokerRecvType.None || desc.RecvVia == BrokerRecvType.PFRecv;
             var index = blocks.Count - (cnt ? 0 : 1);
             if (index >= operations.Length)
+            {
+                Console.WriteLine($"{desc.Action} step: {index}/{operations.Length}");
                 return null;
+            }                
+
+            Console.WriteLine($"{desc.Action} step: {index}/{operations.Length}");
 
             return await operations[index](sys, send);
         }

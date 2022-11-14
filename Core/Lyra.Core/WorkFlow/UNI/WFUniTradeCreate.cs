@@ -3,10 +3,10 @@ using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Core.WorkFlow.Uni;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
-using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
 using System;
@@ -39,10 +39,39 @@ namespace Lyra.Core.WorkFlow
             if(trade == null)
                 throw new ArgumentNullException();
 
-            return Task.FromResult(new[] {
+            // the matrix
+            // seller fiat, buyer fiat: seller manual send, buyer manual confirm, manual send, seller manual confirm
+            // holding type: NFT, Token: auto transfer. others: manual deliver and need peer to confirm.
+
+            bool IsBidToken = LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.Token
+                || LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.NFT;
+            bool IsOfferToken = LyraGlobal.GetHoldTypeFromTicker(trade.offering) == HoldTypes.Token
+                || LyraGlobal.GetHoldTypeFromTicker(trade.offering) == HoldTypes.NFT;
+
+            if (IsBidToken && IsOfferToken)
+            {
+                Console.WriteLine("Auto trade for both token is enabled.");
+                // when both binding and offering are token/nft, the trade will be finish automatically.
+                return Task.FromResult(new[] {
                     SendTokenFromOrderToTradeAsync,
-                    TradeGenesisReceiveAsync });
+                    TradeGenesisReceiveAsync,
+                                        
+                    // bellow auto trade
+                    SendCryptoProductFromTradeToBuyerAsync,
+                    SendCollateralFromDAOToTradeOwnerAsync
+                });
+            }
+            else
+            {
+                // all need OTC
+                return Task.FromResult(new[] {
+                    SendTokenFromOrderToTradeAsync,
+                    TradeGenesisReceiveAsync,
+                });
+            }
+
             
+            // bellow for buying order. temp archive
             //else
             //{
             //    return Task.FromResult(new[] {
@@ -208,7 +237,7 @@ namespace Lyra.Core.WorkFlow
             //return sendtotrade;
         }
 
-        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
+/*        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
         {
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
 
@@ -251,7 +280,7 @@ namespace Lyra.Core.WorkFlow
                         dict.Add(trade.offering, trade.amount);
                     b.Balances = dict.ToLongDict();
                 });
-        }
+        }*/
 
         async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, SendTransferBlock send)
         {
@@ -286,17 +315,95 @@ namespace Lyra.Core.WorkFlow
                 Trade = trade,
             };
 
+            var wfstr = WFState.Finished.ToString();
+            if (LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.Token
+                || LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.NFT)
+
+            {
+                // non OTC, set status directly to biding sent.
+                Uniblock.UTStatus = UniTradeStatus.BidReceived;
+                wfstr = WFState.Running.ToString();
+            }
+            else
+            {
+                Uniblock.UTStatus = UniTradeStatus.Open;
+            }
+
             Uniblock.Balances.Add(trade.offering, trade.amount.ToBalanceLong());
-            Uniblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            Uniblock.AddTag(Block.MANAGEDTAG, wfstr);
 
             // pool blocks are service block so all service block signed by leader node
             Uniblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return Uniblock;
         }
 
-        //async Task<TransactionBlock> SendUtilityTokenToUserAsync(DagSystem sys, SendTransferBlock send)
-        //{
-        //    throw new NotImplementedException();
-        //}
+        protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var lastblock = blocks.LastOrDefault() as TransactionBlock;
+
+            Console.WriteLine("Call SendCryptoProductFromTradeToBuyerAsync");
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                () => lastblock.GenInc<UniTradeSendBlock>(),
+                () => WFState.Running,
+                (b) =>
+                {
+                    var trade = b as IUniTrade;
+
+                    trade.UTStatus = UniTradeStatus.OfferReceived;
+
+                    (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
+
+                    b.Balances[trade.Trade.offering] = 0;
+                });
+        }
+
+        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        {
+            Console.WriteLine("Call SendCollateralFromDAOToTradeOwnerAsync");
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var lastblock = blocks.LastOrDefault() as TransactionBlock;
+            var tradelatest = lastblock;
+
+            var trade = (tradelatest as IUniTrade).Trade;
+            var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
+
+            // get dao for order genesis
+            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as ReceiveTransferBlock;
+            var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
+
+            // buyer fee calculated as LYR
+            var totalAmount = trade.amount;
+            decimal totalFee = 0;
+            decimal networkFee = 0;
+            var order = (odrgen as IUniOrder).Order;
+            // transaction fee
+
+            totalFee += Math.Round(trade.cltamt * daoforodr.BuyerFeeRatio, 8);
+            networkFee = Math.Round(trade.cltamt * LyraGlobal.BidingNetworkFeeRatio, 8);
+
+            Console.WriteLine($"buyer pay svc fee {totalFee} and net fee {networkFee}");
+
+            var amountToSeller = trade.cltamt - totalFee;
+            //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");
+
+            return await TransactionOperateAsync(sys, send.Hash, daolastblock,
+                () => daolastblock.GenInc<DaoSendBlock>(),
+                () => WFState.Finished,
+                (b) =>
+                {
+                    // block
+                    b.Fee = networkFee;
+                    b.FeeType = AuthorizationFeeTypes.Dynamic;
+
+                    // recv
+                    (b as SendTransferBlock).DestinationAccountId = (tradelatest as IUniTrade).OwnerAccountId;
+
+                    // balance
+                    var oldbalance = b.Balances.ToDecimalDict();
+                    oldbalance[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
+                    b.Balances = oldbalance.ToLongDict();
+                });
+        }
     }
 }

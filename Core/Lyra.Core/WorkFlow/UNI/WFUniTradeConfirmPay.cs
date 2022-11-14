@@ -41,10 +41,14 @@ namespace Lyra.Core.WorkFlow.Uni
                 return APIResultCodes.InvalidTrade;
 
             var trade = tradeblk as IUniTrade;
+            // only fiat trade is OTC.
+            if (trade == null || !trade.Trade.biding.ToLower().StartsWith("fiat/"))
+                return APIResultCodes.InvalidTradeStatus;
+
             if (trade.OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotOwnerOfTrade;
 
-            if ((tradeblk as IUniTrade).UTStatus != UniTradeStatus.Open)
+            if (trade.UTStatus != UniTradeStatus.Open)
                 return APIResultCodes.InvalidTradeStatus;
 
             return APIResultCodes.Success;

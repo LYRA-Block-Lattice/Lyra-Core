@@ -537,11 +537,11 @@ namespace UnitTests
             // after trading, the balance should be
             var collateralCount = 100_000;
             var offeringBalanceShouldBe = offeringBalanceInput 
-                - 4        // sending fee
+                - (bidingGen.DomainName == "fiat" ? 4 : 3)        // sending fee
                 - LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
                 - collateralCount * (LyraGlobal.OfferingNetworkFeeRatio + dao.SellerFeeRatio);
             var bidingBalanceShouldBe = bidingBalanceInput
-                - 6         // sending fee
+                - (bidingGen.DomainName == "fiat" ? 6 : 1)         // sending fee
                 - collateralCount * (LyraGlobal.BidingNetworkFeeRatio + dao.BuyerFeeRatio);
 
             var daolatest = (await offeringWallet.RPC.GetLastBlockAsync(dao.AccountID)).As<TransactionBlock>();
@@ -619,40 +619,43 @@ namespace UnitTests
 
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
-
             var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
-            await CancelUniTrade(test2Wallet, tradgen);
-            await test2Wallet.SyncAsync(null);
-            var test2balanceA = test2Wallet.BaseBalance;
-            Assert.AreEqual(test2balance - 3m, test2balanceA, "Balance not ok after cancel trade.");
 
-            tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
-            // cancel one
+            if (bidingGen.Ticker.StartsWith("fiat/"))
+            {
+                await CancelUniTrade(test2Wallet, tradgen);
+                await test2Wallet.SyncAsync(null);
+                var test2balanceA = test2Wallet.BaseBalance;
+                Assert.AreEqual(test2balance - 3m, test2balanceA, "Balance not ok after cancel trade.");
 
-            // buyer send payment indicator
-            var wlt = test2Wallet;
-            AuthorizationAPIResult payindret = await wlt.UniTradeFiatPaymentSentAsync(tradgen.AccountID);
-            Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
+                tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
+                // cancel one
 
-            await WaitWorkflow($"UniTradeBuyerPaymentSentAsync");
-            // status changed to BuyerPaid
-            var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
-            Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-            Assert.AreEqual(UniTradeStatus.BidSent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
-                $"Trade statust not changed to BuyerPaid");
+                // buyer send payment indicator
+                var wlt = test2Wallet;
+                AuthorizationAPIResult payindret = await wlt.UniTradeFiatPaymentSentAsync(tradgen.AccountID);
+                Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
-            // seller got the payment
-            var wlt2 = offeringWallet;
-            var gotpayret = await wlt2.UniTradeFiatPaymentConfirmAsync(tradgen.AccountID);
-            Assert.IsTrue(gotpayret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
+                await WaitWorkflow($"UniTradeBuyerPaymentSentAsync");
+                // status changed to BuyerPaid
+                var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+                Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
+                Assert.AreEqual(UniTradeStatus.BidSent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
+                    $"Trade statust not changed to BuyerPaid");
 
-            await WaitWorkflow($"UniTradeSellerGotPaymentAsync");
+                // seller got the payment
+                var wlt2 = offeringWallet;
+                var gotpayret = await wlt2.UniTradeFiatPaymentConfirmAsync(tradgen.AccountID);
+                Assert.IsTrue(gotpayret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            // status changed to BuyerPaid
-            var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
-            Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-            Assert.AreEqual(UniTradeStatus.OfferReceived, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
-                $"Trade status not changed to ProductReleased");
+                await WaitWorkflow($"UniTradeSellerGotPaymentAsync");
+
+                // status changed to BuyerPaid
+                var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+                Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
+                Assert.AreEqual(UniTradeStatus.OfferReceived, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
+                    $"Trade status not changed to ProductReleased");
+            }
 
             await test2Wallet.SyncAsync(null);
 
@@ -756,13 +759,18 @@ namespace UnitTests
 
         private async Task CancelUniTrade(Wallet ownerWallet, UniTradeGenesisBlock tradgen)
         {
-            // make sure the status of trade is Open
-            Assert.AreEqual(UniTradeStatus.Open, tradgen.UTStatus, "Wrong trade status");
+            var tradeStatusShouldBe = UniTradeStatus.Open;
+            if (tradgen.Trade.bidby == HoldTypes.Token || tradgen.Trade.bidby == HoldTypes.NFT)
+            {
+                tradeStatusShouldBe = UniTradeStatus.BidReceived;
+            }
+            // make sure the status of trade is Open or BidRecived
+            Assert.AreEqual(tradeStatusShouldBe, tradgen.UTStatus, "Wrong trade status");
             
             var cloret = await ownerWallet.CancelUniTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
             // check locked IDs
             await WaitBlock("CancelUniTradeAsync");
-            Assert.IsTrue(cloret.Successful());
+            Assert.IsTrue(cloret.Successful(), $"cancel failed: {cloret.ResultCode}");
 
             Assert.AreEqual(3, _lastAuthResult.LockedIDs.Count, "ID not locked properly");
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.daoId));
@@ -791,6 +799,7 @@ namespace UnitTests
         private async Task<UniTradeGenesisBlock> CreateUniTradeAsync(IDao dao, Wallet offeringWallet, Wallet bidingWallet, UniOrderGenesisBlock Unig, 
             int callateralCount)
         {
+            Console.WriteLine("Calling CreateUniTradeAsync");
             var dao1 = dao as TransactionBlock;
             // here comes a buyer, he who want to buy 1 BTC.
             var tradableret = await bidingWallet.RPC.FindTradableUniAsync();
@@ -824,6 +833,12 @@ namespace UnitTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
             await WaitWorkflow($"CreateUniTradeAsync for sell");
+            //if(trade.biding.StartsWith("tether"))
+            //{
+            //    await Task.Delay(10000000);
+            //    Assert.Fail();
+            //}
+
             // the Uni order should now be amount 9
             var Uniret2 = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret2.Successful(), $"Can't get Uni block. {Uniret2.ResultCode}");
@@ -842,7 +857,16 @@ namespace UnitTests
             var tradgen = blks.LastOrDefault(a => a is UniTradeGenesisBlock) as UniTradeGenesisBlock;
             Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
             Assert.AreEqual(trade, tradgen.Trade);
-            Assert.AreEqual(UniTradeStatus.Open, tradgen.UTStatus);
+
+            var tradeStatusShouldBe = UniTradeStatus.Open;
+            if (trade.bidby == HoldTypes.Token || trade.bidby == HoldTypes.NFT)
+            {
+                tradeStatusShouldBe = UniTradeStatus.OfferReceived;
+            }
+            else
+            {
+                Assert.AreEqual(UniTradeStatus.Open, tradgen.UTStatus);
+            }                
 
             // verify by api
             var tradeQueryRet = await bidingWallet.RPC.FindUniTradeAsync(bidingWallet.AccountId, false, 0, 10);
@@ -861,7 +885,7 @@ namespace UnitTests
                 .OrderBy(a => a.TimeStamp)
                 .Last() as TransactionBlock).AccountID);
 
-            var tradeQueryRet3 = await offeringWallet.RPC.FindUniTradeByStatusAsync(dao1.AccountID, UniTradeStatus.Open, 0, 10);
+            var tradeQueryRet3 = await offeringWallet.RPC.FindUniTradeByStatusAsync(dao1.AccountID, tradeStatusShouldBe, 0, 10);
             Assert.IsTrue(tradeQueryRet3.Successful(), $"Can't query trade via FindUniTradeByStatusAsync: {tradeQueryRet3.ResultCode}");
             var tradeQueryResultBlocks3 = tradeQueryRet3.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks3.Count());

@@ -518,6 +518,8 @@ namespace UnitTests
             Assert.IsTrue(ret, "workflow not finished properly.");
             if(checklock)
                 Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
+
+            Console.WriteLine($"\nWait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done.");
         }
 
         private async Task CreateConsolidation()

@@ -24,7 +24,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 Action = BrokerActions.BRK_UNI_TRDPAYGOT,
                 RecvVia = BrokerRecvType.None,
                 Steps = new[] { 
-                    ChangeStateAsync, 
+                    ChangeStateToBidReceivedAsync, 
                     SendCryptoProductFromTradeToBuyerAsync, 
                     SendCollateralFromDAOToTradeOwnerAsync
                 }
@@ -49,6 +49,10 @@ namespace Lyra.Core.WorkFlow.Uni
             var trade = tradeblk as IUniTrade;
             if (trade == null)
                 return APIResultCodes.InvalidParameterFormat;
+
+            // only fiat trade is OTC.
+            if (trade == null || !trade.Trade.biding.ToLower().StartsWith("fiat/"))
+                return APIResultCodes.InvalidTradeStatus;
 
             // check if seller is the order's owner
             var orderid = trade.Trade.orderId;
@@ -135,8 +139,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> ChangeStateToBidReceivedAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
+            Console.WriteLine("Exec: ChangeStateToBidReceivedAsync");
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
@@ -162,50 +167,5 @@ namespace Lyra.Core.WorkFlow.Uni
                     (b as IUniTrade).UTStatus = UniTradeStatus.BidReceived;
                 });
         }
-
-        //protected async Task<TransactionBlock> TradeBlockOperateAsyncx(
-        //    DagSystem sys, 
-        //    SendTransferBlock sendBlock,
-        //    Func<TransactionBlock> GenBlock,
-        //    Action<TransactionBlock> ChangeBlock
-        //    )
-        //{
-        //    var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
-
-        //    var lsb = await sys.Storage.GetLastServiceBlockAsync();
-
-        //    var nextblock = GenBlock();
-
-        //    // block
-        //    nextblock.ServiceHash = lsb.Hash;
-
-        //    // transaction
-        //    nextblock.AccountID = sendBlock.DestinationAccountId;
-        //    nextblock.Balances = new Dictionary<string, long>();
-        //    nextblock.Fee = 0;
-        //    nextblock.FeeCode = LyraGlobal.OFFICIALTICKERCODE;
-        //    nextblock.FeeType = AuthorizationFeeTypes.NoFee;
-
-        //    // broker
-        //    (nextblock as IBrokerAccount).Name = ((IBrokerAccount)lastblock).Name;
-        //    (nextblock as IBrokerAccount).OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId;
-        //    (nextblock as IBrokerAccount).RelatedTx = sendBlock.Hash;
-
-        //    // trade     
-        //    (nextblock as IUniTrade).Trade = ((IUniTrade)lastblock).Trade;
-        //    (nextblock as IUniTrade).OTStatus = ((IUniTrade)lastblock).OTStatus;
-
-        //    nextblock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-        //    var latestBalances = lastblock.Balances.ToDecimalDict();
-        //    var recvBalances = lastblock.Balances.ToDecimalDict();
-        //    nextblock.Balances = recvBalances.ToLongDict();
-
-        //    ChangeBlock(nextblock);
-
-        //    await nextblock.InitializeBlockAsync(lastblock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
-
-        //    return nextblock;
-        //}
     }
 }
