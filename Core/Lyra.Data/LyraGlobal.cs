@@ -102,7 +102,7 @@ namespace Lyra.Core.API
                 "svc" => HoldTypes.SVC,
                 "sku" => HoldTypes.SKU,
                 "fiat" => HoldTypes.Fiat,
-                _ => throw new NotSupportedException($"holdtype for {ticker} is not supported yet.")
+                _ => HoldTypes.Token,
             };
         }
 

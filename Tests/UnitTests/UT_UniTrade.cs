@@ -40,8 +40,9 @@ namespace UnitTests
 
             var dao = await CreateDaoAsync(genesisWallet, daoName, daoDesc);
 
-            string fiat = "USD";
-            var fiatg = await CreateFiatUSDAsync(genesisWallet, fiat, "US Dollar");
+            var fiatg = await CreateTokenAsync(genesisWallet, "fiat", "USD", "US Dollar", 0);
+            var tetherg = await CreateTokenAsync(genesisWallet, "tether", "USDT", "USDT", 10000000);
+            Assert.IsTrue((await genesisWallet.SendAsync(10000m, test2PublicKey, tetherg.Ticker)).Successful());
 
             // create and sell NFT
             var nftg1 = await CreateTestNFTAsync(testWallet);
@@ -52,46 +53,39 @@ namespace UnitTests
             #endregion
 
 
-            Console.WriteLine("Test Sell a NFT");
-            // test1 sell nft to test2
+            Console.WriteLine("Test sell nft OTC to test2");
             await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);
 
-            // test1 want to buy nft2 from test2
-            // no buy currently
-            //await TestUniTradeAsync(dao, testWallet, nftg2, TradeDirection.Buy, test2Wallet, fiatg);
+            Console.WriteLine("Test sell nft to test2");
+            await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, tetherg);
 
             // after test, dump the database statistics
-            Console.WriteLine(cs.PrintProfileInfo());
-            return;
 
-            Console.WriteLine("Test Sell Order");
-            //await TestUniTradeAsync(TradeDirection.Sell);
-
-            Console.WriteLine("Test Buy Order");
-            //await TestUniTradeAsync(TradeDirection.Buy);
 
             await TestChangeDAO();
 
-            var tradeid = await TestUniTradeDispute();   // test for dispute
-            //await TestVoting(tradeid); // related to dealer. bypass. real test in Uni unit test
+            //var tradeid = await TestUniTradeDispute();   // test for dispute
+            ////await TestVoting(tradeid); // related to dealer. bypass. real test in Uni unit test
 
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
-            await TestNodeFee();
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            //await TestNodeFee();
 
-            // let workflow to finish
-            await Task.Delay(1000);            
+            //// let workflow to finish
+            //await Task.Delay(1000);
+            Console.WriteLine(cs.PrintProfileInfo());
         }
 
-        private async Task<TokenGenesisBlock> CreateFiatUSDAsync(Wallet ownerWallet, string fiatName, string fiatDesc)
+        private async Task<TokenGenesisBlock> CreateTokenAsync(Wallet ownerWallet, string domain, string token, 
+            string tokenDesc, decimal supply)
         {
             // fiat never means to be hold in wallet.
-            var ret = await ownerWallet.CreateTokenAsync(fiatName, "fiat", fiatDesc, 2, 0, false, 
+            var ret = await ownerWallet.CreateTokenAsync(token, domain, tokenDesc, 2, supply, false, 
                 null, null, fiat, ContractTypes.FiatCurrency, null);
 
-            Assert.IsTrue(ret.Successful(), $"Fiat {fiatName} not created properly: {ret.ResultMessage}");
+            Assert.IsTrue(ret.Successful(), $"Token {token} not created properly: {ret.ResultMessage}");
 
-            var find = await ownerWallet.GetTokenGenesisBlockAsync("fiat/" + fiatName);
+            var find = await ownerWallet.GetTokenGenesisBlockAsync(domain + "/" + token);
             Assert.IsNotNull(find, $"can't find token after fiat genesis");
 
             return find;
@@ -589,7 +583,7 @@ namespace UnitTests
 
             await WaitWorkflow($"CreateUniOrderAsync");
 
-            await DaoTraeasureShouldBe(dao, collateralCount + 98);
+            await DaoTraeasureShouldBe(dao, daoBalanceInput + collateralCount + 98);
 
             var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret.Successful(), $"Can't get Uni gensis block. {Uniret.ResultCode}");
@@ -805,9 +799,7 @@ namespace UnitTests
             Assert.AreEqual(1, ords.Count(), "Order count not right");
             //Assert.IsTrue((ords.First() as IUniOrder).Order.Equals(order), "Uni order not equal.");
 
-            var fiatName = "USD";
-            var fiatTicker = $"fiat/{fiatName}";
-            var fiatg = (await bidingWallet.RPC.GetTokenGenesisBlockAsync("", fiatTicker, "")).As<TokenGenesisBlock>();
+            var fiatg = (await bidingWallet.RPC.GetTokenGenesisBlockAsync("", Unig.Order.biding, "")).As<TokenGenesisBlock>();
 
             var trade = new UniTrade
             {
