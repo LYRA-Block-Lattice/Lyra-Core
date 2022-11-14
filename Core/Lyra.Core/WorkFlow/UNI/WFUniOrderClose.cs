@@ -138,7 +138,7 @@ namespace Lyra.Core.WorkFlow.Uni
             totalFee += Math.Round(order.cltamt * daoforodr.SellerFeeRatio, 8);
             networkFee = order.cltamt * LyraGlobal.OfferingNetworkFeeRatio;
 
-            Console.WriteLine($"Seller collateral {order.cltamt} paid {totalFee} LYR.");
+            Console.WriteLine($"Seller collateral {order.cltamt} paid svc {totalFee} LYR net fee {networkFee} LYR.");
             var amountToSeller = order.cltamt - totalFee;
 
             //Console.WriteLine($"collateral: {order.collateral} txfee: {totalFee} netfee: {networkFee} remains: {order.collateral - totalFee - networkFee} cost: {totalFee + networkFee}");

@@ -550,6 +550,12 @@ namespace UnitTests
                 - 6         // sending fee
                 - collateralCount * (LyraGlobal.BidingNetworkFeeRatio + dao.BuyerFeeRatio);
 
+            var daolatest = (await offeringWallet.RPC.GetLastBlockAsync(dao.AccountID)).As<TransactionBlock>();
+            var daoBalanceInput = daolatest.Balances.ContainsKey("LYR") ? daolatest.Balances["LYR"].ToBalanceDecimal() : 0;
+            var daoBalanceShouldBe = daoBalanceInput
+                + LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
+                + collateralCount * dao.SellerFeeRatio
+                + collateralCount * dao.BuyerFeeRatio;
 
             Assert.IsTrue(offeringWallet.GetLastSyncBlock().Balances[offeringGen.Ticker] > 0);
             if (bidingGen.DomainName != "fiat")
@@ -582,6 +588,8 @@ namespace UnitTests
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
             await WaitWorkflow($"CreateUniOrderAsync");
+
+            await DaoTraeasureShouldBe(dao, collateralCount + 98);
 
             var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret.Successful(), $"Can't get Uni gensis block. {Uniret.ResultCode}");
@@ -739,6 +747,17 @@ namespace UnitTests
             await bidingWallet.SyncAsync();
             var bidingBalanceOut = bidingWallet.BaseBalance;
             Assert.AreEqual(bidingBalanceShouldBe, bidingBalanceOut, $"Biding wallet balance is not right, diff: {bidingBalanceOut - bidingBalanceShouldBe}");
+
+            var daolatest2 = (await offeringWallet.RPC.GetLastBlockAsync(dao.AccountID)).As<TransactionBlock>();
+            var daoBalanceOutput = daolatest2.Balances["LYR"].ToBalanceDecimal();
+            Assert.AreEqual(daoBalanceShouldBe, daoBalanceOutput, $"Dao treasure balance is not right, diff: {daoBalanceOutput - daoBalanceShouldBe} dao addr: {daolatest2.AccountID}");
+        }
+
+        private async Task DaoTraeasureShouldBe(IDao dao, decimal amount)
+        {
+            var daolatest = (await genesisWallet.RPC.GetLastBlockAsync(dao.AccountID)).As<TransactionBlock>();
+            var daoBalanceOutput = daolatest.Balances["LYR"].ToBalanceDecimal();
+            Assert.AreEqual(amount, daoBalanceOutput, $"Dao balance not OK! {amount - daoBalanceOutput}");
         }
 
         private async Task CancelUniTrade(Wallet ownerWallet, UniTradeGenesisBlock tradgen)
