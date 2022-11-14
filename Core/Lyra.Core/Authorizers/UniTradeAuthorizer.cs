@@ -150,7 +150,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as UniTradeGenesisBlock;
 
-            if (block.AccountType != LyraGlobal.GetAccountTypeFromTicker(block.Trade.offering, block.Trade.dir))
+            if (block.AccountType != LyraGlobal.GetAccountTypeFromTicker(block.Trade.offering))
             {
                 return APIResultCodes.InvalidAccountType;
             }

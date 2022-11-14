@@ -52,7 +52,11 @@ namespace Lyra.Core.Authorizers
             //{
             //    return APIResultCodes.Success;
             //}
-            
+
+            // fiat token never be in wallet.
+            if (block is not TokenGenesisBlock && block.Balances.Any(a => a.Key.ToLower().StartsWith("fiat/")))
+                return APIResultCodes.InvalidBalance;
+
             if (block is IOpeningBlock)
             {
                 if (block.Height != 1)

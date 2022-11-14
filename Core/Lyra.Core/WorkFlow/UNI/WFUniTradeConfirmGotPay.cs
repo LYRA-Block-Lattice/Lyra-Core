@@ -63,13 +63,9 @@ namespace Lyra.Core.WorkFlow.Uni
             if (trade.UTStatus != UniTradeStatus.BidSent)
                 return APIResultCodes.InvalidTradeStatus;
 
-            if(trade.Trade.dir == TradeDirection.Buy && order.OwnerAccountId != send.AccountID)
+            if(order.OwnerAccountId != send.AccountID)
             {
                 return APIResultCodes.NotSellerOfTrade;
-            }
-            if(trade.Trade.dir == TradeDirection.Sell && trade.OwnerAccountId != send.AccountID)
-            {
-                return APIResultCodes.NotOwnerOfTrade;
             }
 
             return APIResultCodes.Success;
@@ -88,10 +84,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     trade.UTStatus = UniTradeStatus.OfferReceived;
 
-                    if(trade.Trade.dir == TradeDirection.Buy)
-                        (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
-                    else
-                        (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
+                    (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
 
                     b.Balances[trade.Trade.offering] = 0;
                 });
@@ -114,16 +107,11 @@ namespace Lyra.Core.WorkFlow.Uni
             decimal networkFee = 0;
             var order = (odrgen as IUniOrder).Order;
             // transaction fee
-            if (trade.dir == TradeDirection.Sell)
-            {
-                totalFee += Math.Round(trade.cltamt * daoforodr.SellerFeeRatio, 8);
-                networkFee = Math.Round(trade.cltamt * LyraGlobal.OfferingNetworkFeeRatio, 8);
-            }
-            else
-            {
-                totalFee += Math.Round(trade.cltamt * daoforodr.BuyerFeeRatio, 8);
-                networkFee = Math.Round(trade.cltamt * LyraGlobal.BidingNetworkFeeRatio, 8);
-            }
+
+            totalFee += Math.Round(trade.cltamt * daoforodr.BuyerFeeRatio, 8);
+            networkFee = Math.Round(trade.cltamt * LyraGlobal.BidingNetworkFeeRatio, 8);
+
+            Console.WriteLine($"buyer pay svc fee {totalFee} and net fee {networkFee}");
 
             var amountToSeller = trade.cltamt - totalFee;
             //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");

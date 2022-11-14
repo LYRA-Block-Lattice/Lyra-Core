@@ -80,6 +80,9 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
+            if (block.DomainName == "fiat" && block.Balances[block.Ticker] != 0)
+                return APIResultCodes.InvalidBalance;
+
             if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
                 return APIResultCodes.CannotModifyImportedAccount;
 

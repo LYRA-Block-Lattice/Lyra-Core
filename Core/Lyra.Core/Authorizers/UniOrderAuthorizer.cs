@@ -139,7 +139,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as UniOrderGenesisBlock;
 
-            if(block.AccountType != LyraGlobal.GetAccountTypeFromTicker(block.Order.offering, block.Order.dir))
+            if(block.AccountType != LyraGlobal.GetAccountTypeFromTicker(block.Order.offering))
             {
                 return APIResultCodes.InvalidAccountType;
             }

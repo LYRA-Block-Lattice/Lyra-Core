@@ -34,23 +34,21 @@ namespace Lyra.Core.WorkFlow.Uni
             var tradeid = send.Tags["tradeid"];
             var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IUniTrade;
 
-            if (trade.Trade.dir == TradeDirection.Buy)
-            {
-                return new[] {
+            return new[] {
                     SealTradeAsync,
                     SendTokenFromTradeToOrderAsync,
                     OrderReceiveTokenFromTradeAsync,
                     SendCollateralToBuyerAsync };
-            }
-            else
-            {
-                //todo: sell trade should send token to trade owner.
-                return new[] {
-                    SealTradeAsync,
-                    SendTokenFromTradeToTradeOwnerAsync,
-                    SendCollateralToBuyerAsync
-                };
-            }
+            //}
+            //else
+            //{
+            //    //todo: sell trade should send token to trade owner.
+            //    return new[] {
+            //        SealTradeAsync,
+            //        SendTokenFromTradeToTradeOwnerAsync,
+            //        SendCollateralToBuyerAsync
+            //    };
+            //}
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)

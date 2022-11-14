@@ -18,7 +18,6 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public string dealerId { get; set; } = null!;
         public string orderId { get; set; } = null!;   // Order account ID
         public string orderOwnerId { get; set; } = null!;// order's owner account ID
-        public TradeDirection dir { get; set; }
 
         public HoldTypes offby { get; set; }
         /// <summary>
@@ -65,7 +64,6 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
                 dealerId == ob.dealerId &&
                 orderId == ob.orderId &&
                 orderOwnerId == ob.orderOwnerId &&
-                dir == ob.dir &&
                 offby == ob.offby &&
                 offering == ob.offering &&
                 bidby == ob.bidby &&
@@ -79,7 +77,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(HashCode.Combine(daoId, dealerId, orderId, orderOwnerId, dir, offby, offering),
+            return HashCode.Combine(HashCode.Combine(daoId, dealerId, orderId, orderOwnerId, offby, offering),
                 HashCode.Combine(bidby, biding, price, amount, cltamt, payVia, dealerId));
         }
 
@@ -90,7 +88,6 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += $"{dealerId}|";
             extraData += $"{orderId}|";
             extraData += $"{orderOwnerId}|";
-            extraData += $"{dir}|";
             extraData += $"{offby}|";
             extraData += $"{offering}|";
             extraData += $"{bidby}|";
@@ -110,7 +107,6 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"Dealer ID: {dealerId}\n";
             result += $"Order ID: {orderId}\n";
             result += $"Order Owner ID: {orderOwnerId}\n";
-            result += $"Direction: {dir}\n";
             result += $"Property Type: {offby}\n";
             result += $"Property Ticker: {offering}\n";
             result += $"Money Type: {bidby}\n";

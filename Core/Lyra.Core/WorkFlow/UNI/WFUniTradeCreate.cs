@@ -39,21 +39,19 @@ namespace Lyra.Core.WorkFlow
             if(trade == null)
                 throw new ArgumentNullException();
 
-            if (trade.dir == TradeDirection.Buy)
-            {
-                return Task.FromResult(new[] {
+            return Task.FromResult(new[] {
                     SendTokenFromOrderToTradeAsync,
                     TradeGenesisReceiveAsync });
-            }
-            else
-            {
-                return Task.FromResult(new[] {
-                    SendTokenFromDaoToOrderAsync,
-                    OrderReceiveCryptoAsync,
-                    SendTokenFromOrderToTradeAsync,
-                    TradeGenesisReceiveAsync
-                });
-            }
+            
+            //else
+            //{
+            //    return Task.FromResult(new[] {
+            //        SendTokenFromDaoToOrderAsync,
+            //        OrderReceiveCryptoAsync,
+            //        SendTokenFromOrderToTradeAsync,
+            //        TradeGenesisReceiveAsync
+            //    });
+            //}
         }
 
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
@@ -96,7 +94,6 @@ namespace Lyra.Core.WorkFlow
                 order.biding != trade.biding ||
                 order.price != trade.price ||
                 order.amount < trade.amount ||
-                order.dir == trade.dir ||
                 orderblk.OwnerAccountId != trade.orderOwnerId ||
                 trade.pay > order.limitMax ||
                 trade.pay < order.limitMin ||
@@ -118,43 +115,31 @@ namespace Lyra.Core.WorkFlow
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.cltamt)
                 return APIResultCodes.InvalidCollateral;
 
-            var propg = await sys.Storage.FindTokenGenesisBlockAsync("", trade.offering);
-            if(trade.dir == TradeDirection.Sell)
+            var bidg = await sys.Storage.FindTokenGenesisBlockAsync("", trade.biding);
+
+            if (bidg.DomainName != "fiat")
             {
-                if(!chgs.Changes.ContainsKey(propg.Ticker) ||
-                    chgs.Changes[propg.Ticker] != trade.amount ||
+                if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
+                    chgs.Changes[bidg.Ticker] != trade.amount ||
                         chgs.Changes.Count != 2)
                 {
                     return APIResultCodes.InvalidAmountToSend;
                 }
             }
-            else
-            {
-                if (chgs.Changes.Count != 1)
-                    return APIResultCodes.InvalidAmountToSend;
-            }
 
-            // check the price of order and collateral.
-            var dlrblk = await sys.Storage.FindLatestBlockAsync(trade.dealerId);
-            var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
-            var dealer = new DealerClient(uri);
-            var prices = await dealer.GetPricesAsync();
-            var tokenSymbol = propg.Ticker.Split('/')[1];
+            // check the price of order and collateral. !not needed.
+            //var dlrblk = await sys.Storage.FindLatestBlockAsync(trade.dealerId);
+            //var uri = new Uri(new Uri((dlrblk as IDealer).Endpoint), "/api/dealer/");
+            //var dealer = new DealerClient(uri);
+            //var prices = await dealer.GetPricesAsync();
+            //var tokenSymbol = propg.Ticker.Split('/')[1];
 
-            if(prices.ContainsKey(tokenSymbol))
-            {
-                // only calculate the worth of collateral when we have a standard price for the property.
-                if (trade.dir == TradeDirection.Buy)
-                {
-                    if (trade.cltamt * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
-                        return APIResultCodes.CollateralNotEnough;
-                }
-                else
-                {
-                    if (trade.cltamt * prices["LYR"] < prices[tokenSymbol] * trade.amount  * ((dao as IDao).SellerPar / 100))
-                        return APIResultCodes.CollateralNotEnough;
-                }
-            }
+            //if(prices.ContainsKey(tokenSymbol))
+            //{
+            //    // only calculate the worth of collateral when we have a standard price for the property.
+            //    if (trade.cltamt * prices["LYR"] < prices[tokenSymbol] * trade.amount * ((dao as IDao).BuyerPar / 100))
+            //            return APIResultCodes.CollateralNotEnough;
+            //}
 
             return APIResultCodes.Success;
         }
@@ -285,7 +270,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = LyraGlobal.GetAccountTypeFromTicker(trade.offering, trade.dir),
+                AccountType = LyraGlobal.GetAccountTypeFromTicker(trade.offering),
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 

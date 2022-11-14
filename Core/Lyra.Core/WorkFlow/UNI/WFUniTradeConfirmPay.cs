@@ -41,11 +41,8 @@ namespace Lyra.Core.WorkFlow.Uni
                 return APIResultCodes.InvalidTrade;
 
             var trade = tradeblk as IUniTrade;
-            if (trade.Trade.dir == TradeDirection.Buy && trade.OwnerAccountId != send.AccountID)
+            if (trade.OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotOwnerOfTrade;
-
-            if (trade.Trade.dir == TradeDirection.Sell && trade.Trade.orderOwnerId != send.AccountID)
-                return APIResultCodes.NotOwnerOfOrder;
 
             if ((tradeblk as IUniTrade).UTStatus != UniTradeStatus.Open)
                 return APIResultCodes.InvalidTradeStatus;

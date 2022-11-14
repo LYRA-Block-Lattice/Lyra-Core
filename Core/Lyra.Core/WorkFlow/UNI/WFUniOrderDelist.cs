@@ -75,15 +75,9 @@ namespace Lyra.Core.WorkFlow.Uni
                     (b as SendTransferBlock).DestinationAccountId = (lastblock as IBrokerAccount).OwnerAccountId;
 
                     var dict = lastblock.Balances.ToDecimalDict();
-                    if (order.dir == TradeDirection.Sell)
-                    {
-                        // send the amount of crypto to order owner
-                        dict[order.offering] = 0;
-                    }
-                    else
-                    {
-                        dict[LyraGlobal.OFFICIALTICKERCODE] -= 1;   // must send something
-                    }
+
+                    // send the amount of crypto to order owner
+                    dict[order.offering] = 0;
 
                     b.Balances = dict.ToLongDict();
 

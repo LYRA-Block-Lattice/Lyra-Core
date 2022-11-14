@@ -2374,18 +2374,8 @@ namespace Lyra.Core.Accounts
             var amounts = new Dictionary<string, decimal>
             {
                 { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor(order.offerby) + order.cltamt },
+                { order.offering, order.amount }
             };
-
-            if (order.dir == TradeDirection.Sell)
-            {
-                 amounts.Add(order.offering, order.amount);
-
-                // is this really good? leave all verification to authorizer?
-                //return new AuthorizationAPIResult
-                //{
-                //    ResultCode = APIResultCodes.TokenGenesisBlockNotFound
-                //};
-            }                
 
             var result = await SendExAsync(order.daoId, amounts, tags);
             return result;
@@ -2404,10 +2394,8 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, trade.cltamt },
             };
 
-            if (trade.dir == TradeDirection.Sell)
-            {
-                amounts.Add(trade.biding, trade.amount);      
-            }                
+            if (trade.bidby != HoldTypes.Fiat)      // Fiat will goes offline/OTC
+                amounts.Add(trade.biding, trade.amount);
 
             var result = await SendExAsync(trade.daoId, amounts, tags);
             return result;

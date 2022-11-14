@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using System;
@@ -81,11 +82,9 @@ namespace Lyra.Core.API
             };
         }
 
-        public static AccountTypes GetAccountTypeFromTicker(string ticker, TradeDirection dir)
+        public static AccountTypes GetAccountTypeFromTicker(string ticker)
         {
             var secs = ticker.Split('/');
-            if(dir == TradeDirection.Sell)
-            {
                 return secs[0] switch
                 {
                     "nft" => AccountTypes.NFTSell,
@@ -93,20 +92,6 @@ namespace Lyra.Core.API
                     "sku" => AccountTypes.SKUSell,
                     _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
                 };
-            }
-
-            if (dir == TradeDirection.Buy)
-            {
-                return secs[0] switch
-                {
-                    "nft" => AccountTypes.NFTBuy,
-                    "svc" => AccountTypes.SVCBuy,
-                    "sku" => AccountTypes.SKUBuy,
-                    _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
-                };
-            }
-
-            throw new NotSupportedException($"ticker {ticker} is not supported yet.");
         }
         public static HoldTypes GetHoldTypeFromTicker(string ticker)
         {

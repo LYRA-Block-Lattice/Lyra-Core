@@ -91,19 +91,10 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidCollateral;
 
             // verify crypto
-            if(order.dir == TradeDirection.Sell)
-            {
-                if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
-                    chgs.Changes[propGen.Ticker] != order.amount ||
-                    chgs.Changes.Count != 2)
-                    return APIResultCodes.InvalidAmountToSend;
-            }
-            else
-            {
-                // buy order
-                if (chgs.Changes.Count != 1)
-                    return APIResultCodes.InvalidAmountToSend;
-            }
+            if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
+                chgs.Changes[propGen.Ticker] != order.amount ||
+                chgs.Changes.Count != 2)
+                return APIResultCodes.InvalidAmountToSend;
 
             // check the price of order and collateral.
             var uri = new Uri(new Uri((dlr as IDealer).Endpoint), "/api/dealer/");
@@ -202,8 +193,7 @@ namespace Lyra.Core.WorkFlow
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
 
-            if(order.dir == TradeDirection.Sell)
-                dict[order.offering] -= order.amount;
+            dict[order.offering] -= order.amount;
 
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
@@ -232,7 +222,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = LyraGlobal.GetAccountTypeFromTicker(order.offering, order.dir),
+                AccountType = LyraGlobal.GetAccountTypeFromTicker(order.offering),
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 
@@ -249,8 +239,7 @@ namespace Lyra.Core.WorkFlow
                 UOStatus = UniOrderStatus.Open,
             };
 
-            if(order.dir == TradeDirection.Sell)
-                Uniblock.Balances.Add(order.offering, order.amount.ToBalanceLong());
+            Uniblock.Balances.Add(order.offering, order.amount.ToBalanceLong());
 
             Uniblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 

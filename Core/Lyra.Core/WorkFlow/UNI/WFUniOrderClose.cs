@@ -96,18 +96,12 @@ namespace Lyra.Core.WorkFlow.Uni
                     orderb.Order.cltamt = 0;
 
                     (b as SendTransferBlock).DestinationAccountId = orderb.OwnerAccountId;
-                    if (orderb.Order.dir == TradeDirection.Sell)
-                    {
-                        // when delist, the crypto balance is already zero. 
-                        // no balance change will vialate the rule of send
-                        // so we reduce the balance of LYR, or the collateral, of 0.00000001
-                        if (b.Balances[orderb.Order.offering] != 0)
-                            b.Balances[orderb.Order.offering] = 0;
-                    }
-                    else
-                    {
-                        // the buy order has no crypto at all.
-                    }
+
+                    // when delist, the crypto balance is already zero. 
+                    // no balance change will vialate the rule of send
+                    // so we reduce the balance of LYR, or the collateral, of 0.00000001
+                    if (b.Balances[orderb.Order.offering] != 0)
+                        b.Balances[orderb.Order.offering] = 0;
 
                     b.Balances["LYR"] = 0;          // all remaining LYR
                 });
@@ -141,16 +135,8 @@ namespace Lyra.Core.WorkFlow.Uni
 
 
             // transaction fee
-            if (order.dir == TradeDirection.Sell)
-            {
-                totalFee += Math.Round(order.cltamt * daoforodr.SellerFeeRatio, 8);
-                networkFee = order.cltamt * LyraGlobal.OfferingNetworkFeeRatio;
-            }
-            else
-            {
-                totalFee += Math.Round(order.cltamt * daoforodr.BuyerFeeRatio, 8);
-                networkFee = order.cltamt * LyraGlobal.BidingNetworkFeeRatio;
-            }
+            totalFee += Math.Round(order.cltamt * daoforodr.SellerFeeRatio, 8);
+            networkFee = order.cltamt * LyraGlobal.OfferingNetworkFeeRatio;
 
             Console.WriteLine($"Seller collateral {order.cltamt} paid {totalFee} LYR.");
             var amountToSeller = order.cltamt - totalFee;
