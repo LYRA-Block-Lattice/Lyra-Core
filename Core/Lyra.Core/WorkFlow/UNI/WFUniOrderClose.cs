@@ -139,22 +139,20 @@ namespace Lyra.Core.WorkFlow.Uni
                 .Where(a => a.UTStatus == UniTradeStatus.OfferReceived)
                 .Sum(a => a.Trade.amount);
 
-            //if(order.collateralPrice > 0)       // the price should not be zero. for compatibile only.
-            //{
-            //    // transaction fee
-            //    if (order.dir == TradeDirection.Sell)
-            //    {
-            //        totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
-            //    }
-            //    else
-            //    {
-            //        totalFee += Math.Round((((totalAmount * order.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
-            //    }
 
-            //    // network fee
-            //    networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
-            //}
-            
+            // transaction fee
+            if (order.dir == TradeDirection.Sell)
+            {
+                totalFee += Math.Round(order.cltamt * daoforodr.SellerFeeRatio, 8);
+                networkFee = order.cltamt * LyraGlobal.OfferingNetworkFeeRatio;
+            }
+            else
+            {
+                totalFee += Math.Round(order.cltamt * daoforodr.BuyerFeeRatio, 8);
+                networkFee = order.cltamt * LyraGlobal.BidingNetworkFeeRatio;
+            }
+
+            Console.WriteLine($"Seller collateral {order.cltamt} paid {totalFee} LYR.");
             var amountToSeller = order.cltamt - totalFee;
 
             //Console.WriteLine($"collateral: {order.collateral} txfee: {totalFee} netfee: {networkFee} remains: {order.collateral - totalFee - networkFee} cost: {totalFee + networkFee}");

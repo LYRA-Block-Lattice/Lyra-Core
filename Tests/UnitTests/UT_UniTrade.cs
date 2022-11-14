@@ -29,6 +29,7 @@ namespace UnitTests
         {
             await SetupWallets("xtest");
 
+            #region prepare for trade, generate items
             // dealer is necessary.
             await TestDealerAsync();
 
@@ -42,11 +43,17 @@ namespace UnitTests
             var fiatg = await CreateFiatUSDAsync(genesisWallet, fiat, "US Dollar");
 
             // create and sell NFT
-            var nftg = await CreateTestNFTAsync();
-            Assert.IsNotNull(nftg);
+            var nftg1 = await CreateTestNFTAsync(testWallet);
+            Assert.IsNotNull(nftg1);
+
+            var nftg2 = await CreateTestNFTAsync(testWallet);
+            Assert.IsNotNull(nftg2);
+            #endregion
+
 
             Console.WriteLine("Test Sell a NFT");
-            await TestUniTradeAsync(testWallet, UniOrderType.NFT, nftg, fiatg, dao, TradeDirection.Sell);
+            await TestUniTradeAsync(dao, testWallet, nftg1, TradeDirection.Sell, test2Wallet, fiatg);
+            //await TestUniTradeAsync(testWallet, dao, nftg2, fiatg, TradeDirection.Sell);
 
             // after test, dump the database statistics
             Console.WriteLine(cs.PrintProfileInfo());
@@ -514,16 +521,34 @@ namespace UnitTests
             }            
         }
 
-        private async Task TestUniTradeAsync(Wallet ownerWallet, UniOrderType uniType, TokenGenesisBlock propGen, TokenGenesisBlock buyingGen, IDao dao, TradeDirection direction)
+        private async Task TestUniTradeAsync(IDao dao, 
+            Wallet offeringWallet, TokenGenesisBlock offeringGen, TradeDirection direction, 
+            Wallet bidingWallet, TokenGenesisBlock bidingGen)
         {
-            Assert.IsNotNull(propGen, "propGen should not be null");
+            Assert.IsNotNull(offeringGen, "propGen should not be null");
             Assert.IsNotNull(dao, "dao should not be null");
             Assert.IsNotNull(dealer, "dealer should not be null");
 
-            var crypto = propGen.Ticker;
+            // calculate fees
+            await offeringWallet.SyncAsync();            
+            var offeringBalanceInput = offeringWallet.BaseBalance;
+            await bidingWallet.SyncAsync();
+            var bidingBalanceInput = bidingWallet.BaseBalance;
+            // after trading, the balance should be
+            var collateralCount = 100_000;
+            var offeringBalanceShouldBe = offeringBalanceInput 
+                - 4        // sending fee
+                - LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
+                - collateralCount * (LyraGlobal.OfferingNetworkFeeRatio + dao.SellerFeeRatio);
+            var bidingBalanceShouldBe = bidingBalanceInput
+                - 6         // sending fee
+                - collateralCount * (LyraGlobal.BidingNetworkFeeRatio + dao.BuyerFeeRatio);
 
-            await ownerWallet.SyncAsync(null);
-            var testbalance = ownerWallet.BaseBalance;
+
+            var crypto = offeringGen.Ticker;
+
+            await offeringWallet.SyncAsync(null);
+            var testbalance = offeringWallet.BaseBalance;
 
             var prices = await dealer.GetPricesAsync();
             var order = new UniOrder
@@ -531,12 +556,12 @@ namespace UnitTests
                 daoId = dao.AccountID,
                 dealerId = dlr.AccountID,
                 dir = direction,
-                offerby = LyraGlobal.GetHoldTypeFromTicker(propGen.Ticker),
-                offering = propGen.Ticker,
-                bidby = LyraGlobal.GetHoldTypeFromTicker(buyingGen.Ticker),
-                biding = buyingGen.Ticker,
+                offerby = LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker),
+                offering = offeringGen.Ticker,
+                bidby = LyraGlobal.GetHoldTypeFromTicker(bidingGen.Ticker),
+                biding = bidingGen.Ticker,
                 price = 2000,
-                cltamt = 75_000_000,
+                cltamt = collateralCount,
                 payBy = new string[] { "Paypal" },
 
                 amount = 1,
@@ -544,18 +569,18 @@ namespace UnitTests
                 limitMax = 2000,
             };
 
-            var ret = await ownerWallet.CreateUniOrderAsync(order);
+            var ret = await offeringWallet.CreateUniOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
 
             await WaitWorkflow($"CreateUniOrderAsync {direction}");
 
-            var Uniret = await ownerWallet.RPC.GetUniOrdersByOwnerAsync(ownerWallet.AccountId);
+            var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret.Successful(), $"Can't get Uni gensis block. {Uniret.ResultCode}");
             var Unis = Uniret.GetBlocks();
             Assert.IsTrue(Unis.First() is IUniOrder, $"Uni order gensis block not found.");
 
             // test find tradable orders
-            var tradableret = await ownerWallet.RPC.FindTradableUniAsync();
+            var tradableret = await offeringWallet.RPC.FindTradableUniAsync();
             Assert.IsTrue(tradableret.Successful(), "Unable to find tradable.");
             var tradableblks = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, tradableblks.Count(), $"Trade {direction} tradable block count is {tradableblks.Count()}");
@@ -563,7 +588,7 @@ namespace UnitTests
             Assert.IsTrue(firsttradable is IUniOrder fodr && fodr.Name == "no name");
 
             // then DAO treasure should not have the crypto
-            var daoret3 = await ownerWallet.RPC.GetDaoByNameAsync(dao.Name);
+            var daoret3 = await offeringWallet.RPC.GetDaoByNameAsync(dao.Name);
             Assert.IsTrue(daoret3.Successful(), $"Can't get DAO: {daoret3.ResultCode}");
             var daot = daoret3.GetBlock() as TransactionBlock;
             Assert.IsTrue(daot.Balances.ContainsKey(crypto), "No collateral token in DAO treasure.");
@@ -575,17 +600,17 @@ namespace UnitTests
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
 
-            var tradgen = await CreateUniTradeAsync(dao as TransactionBlock, Unig, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell);
-            await CancelUniTrade(dao as TransactionBlock, tradgen);
+            var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell, collateralCount);
+            await CancelUniTrade(test2Wallet, tradgen);
             await test2Wallet.SyncAsync(null);
             var test2balanceA = test2Wallet.BaseBalance;
-            Assert.AreEqual(test2balance - 13m, test2balanceA, "Balance not ok after cancel trade.");
+            Assert.AreEqual(test2balance - 3m, test2balanceA, "Balance not ok after cancel trade.");
 
-            tradgen = await CreateUniTradeAsync(dao as TransactionBlock, Unig, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell);
+            tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, direction == TradeDirection.Sell ? TradeDirection.Buy : TradeDirection.Sell, collateralCount);
             // cancel one
 
             // buyer send payment indicator
-            var wlt = direction == TradeDirection.Sell ? test2Wallet : ownerWallet;
+            var wlt = direction == TradeDirection.Sell ? test2Wallet : offeringWallet;
             AuthorizationAPIResult payindret = await wlt.UniTradeFiatPaymentSentAsync(tradgen.AccountID);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
@@ -597,7 +622,7 @@ namespace UnitTests
                 $"Trade statust not changed to BuyerPaid");
 
             // seller got the payment
-            var wlt2 = direction == TradeDirection.Sell ? ownerWallet : test2Wallet;
+            var wlt2 = direction == TradeDirection.Sell ? offeringWallet : test2Wallet;
             var gotpayret = await wlt2.UniTradeFiatPaymentConfirmAsync(tradgen.AccountID);
             Assert.IsTrue(gotpayret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
@@ -629,35 +654,35 @@ namespace UnitTests
             //// network fee
             //var networkFee = Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
 
-            var buyerfee = 0;// totalFee + networkFee;
-            //Console.WriteLine($"Cost calculated txfee: {totalFee} netfee: {networkFee} Real: {test2balance - test2Wallet.BaseBalance} should be: {totalFee + networkFee + 26}");
-            var buyershouldget = test2balance - 13 - buyerfee - 13;
-            // create trade 10 lyr, send confirm 1, fee 2, cancel 13
-            Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
+            //var buyerfee = 0;// totalFee + networkFee;
+            ////Console.WriteLine($"Cost calculated txfee: {totalFee} netfee: {networkFee} Real: {test2balance - test2Wallet.BaseBalance} should be: {totalFee + networkFee + 26}");
+            //var buyershouldget = test2balance - 13 - buyerfee - 13;
+            //// create trade 10 lyr, send confirm 1, fee 2, cancel 13
+            //Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
 
             // delist the order
             Console.WriteLine($"Delisting order: {Unig.AccountID}");
-            var dlret = await ownerWallet.DelistUniOrderAsync(dao.AccountID, Unig.AccountID);
+            var dlret = await offeringWallet.DelistUniOrderAsync(dao.AccountID, Unig.AccountID);
             Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
             await WaitWorkflow($"DelistUniOrderAsync {direction}");
 
-            var orddlret = await ownerWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+            var orddlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
             Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
             Assert.AreEqual(UniOrderStatus.Delist, (orddlret.GetBlock() as IUniOrder).UOStatus,
                 $"Order status not changed to Delisted");
 
             // trade is ok. now its time to close the order
-            var closeret = await ownerWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
+            var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
             Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
             await WaitWorkflow($"CloseUniOrderAsync {direction}");
-            var ordfnlret = await ownerWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+            var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
             Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret.GetBlock() as IUniOrder).UOStatus,
                 $"Order status not changed to Closed: {(ordfnlret.GetBlock() as IUniOrder).UOStatus}");
             Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
 
-            await ownerWallet.SyncAsync(null);
+            await offeringWallet.SyncAsync(null);
 
             //if (order.dir == TradeDirection.Sell)
             //{
@@ -672,14 +697,14 @@ namespace UnitTests
             var lyrshouldbe = testbalance - 10000 - 10 - 4 - totalFee;// - networkfeeToPay;
             // mint, create order, 4 send, 1 LYR for close order
 
-            var firstTime = false;
-            if (!firstTime)
-                lyrshouldbe += 10000;
+            //var firstTime = false;
+            //if (!firstTime)
+            //    lyrshouldbe += 10000;
 
-            Assert.AreEqual(lyrshouldbe, ownerWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {ownerWallet.BaseBalance} diff {lyrshouldbe - ownerWallet.BaseBalance}");
-            var bal2 = ownerWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
+            //Assert.AreEqual(lyrshouldbe, offeringWallet.BaseBalance, $"Test got collateral wrong. should be {lyrshouldbe} but {offeringWallet.BaseBalance} diff {lyrshouldbe - offeringWallet.BaseBalance}");
+            //var bal2 = offeringWallet.GetLastSyncBlock().Balances[crypto].ToBalanceDecimal();
 
-            decimal x = firstTime ? 0.1m : 0;
+            //decimal x = firstTime ? 0.1m : 0;
             //Assert.AreEqual(100000m - x - 100, bal2,
             //    $"Trade after {direction} ownerWallet balance of crypto should be {100010m - x - 100} but {bal2}");
 
@@ -688,14 +713,22 @@ namespace UnitTests
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
             ResetAuthFail();
+
+            await offeringWallet.SyncAsync();
+            var offeringBalanceOut = offeringWallet.BaseBalance;
+            Assert.AreEqual(offeringBalanceShouldBe, offeringBalanceOut, $"Offering wallet balance is not right, diff: {offeringBalanceOut - offeringBalanceShouldBe}");
+            
+            await bidingWallet.SyncAsync();
+            var bidingBalanceOut = bidingWallet.BaseBalance;
+            Assert.AreEqual(bidingBalanceShouldBe, bidingBalanceOut, $"Biding wallet balance is not right, diff: {bidingBalanceOut - bidingBalanceShouldBe}");
         }
 
-        private async Task CancelUniTrade(TransactionBlock dao, UniTradeGenesisBlock tradgen)
+        private async Task CancelUniTrade(Wallet ownerWallet, UniTradeGenesisBlock tradgen)
         {
             // make sure the status of trade is Open
             Assert.AreEqual(UniTradeStatus.Open, tradgen.UTStatus, "Wrong trade status");
             
-            var cloret = await test2Wallet.CancelUniTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
+            var cloret = await ownerWallet.CancelUniTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
             // check locked IDs
             await WaitBlock("CancelUniTradeAsync");
             Assert.IsTrue(cloret.Successful());
@@ -706,7 +739,7 @@ namespace UnitTests
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.AccountID));
 
             // try lock it
-            var cloret2 = await test2Wallet.CancelUniTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
+            var cloret2 = await ownerWallet.CancelUniTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
             await WaitBlock("CancelUniTradeAsync 2");
             Assert.AreEqual(APIResultCodes.ResourceIsBusy, cloret2.ResultCode, $"Not locked properly: {cloret2.ResultCode}");
 
@@ -718,16 +751,17 @@ namespace UnitTests
             Assert.IsTrue(cloret.Successful(), $"Unable to cancel trade: {cloret.ResultCode}");
 
             // make sure the status of trade is Closed
-            var latestret = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            var latestret = await ownerWallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(latestret.Successful());
             var tradelst = latestret.GetBlock() as IUniTrade;
             Assert.AreEqual(UniTradeStatus.Canceled, tradelst.UTStatus, "not close trade properly");
         }
 
-        private async Task<UniTradeGenesisBlock> CreateUniTradeAsync(TransactionBlock dao1, UniOrderGenesisBlock Unig, TradeDirection direction)
+        private async Task<UniTradeGenesisBlock> CreateUniTradeAsync(IDao dao, Wallet offeringWallet, Wallet bidingWallet, UniOrderGenesisBlock Unig, TradeDirection direction, int callateralCount)
         {
+            var dao1 = dao as TransactionBlock;
             // here comes a buyer, he who want to buy 1 BTC.
-            var tradableret = await testWallet.RPC.FindTradableUniAsync();
+            var tradableret = await bidingWallet.RPC.FindTradableUniAsync();
             Assert.IsTrue(tradableret.Successful(), $"Can't find tradableorders: {tradableret.ResultCode}: {tradableret.ResultMessage}");
             var ords = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, ords.Count(), "Order count not right");
@@ -735,7 +769,7 @@ namespace UnitTests
 
             var fiatName = "USD";
             var fiatTicker = $"fiat/{fiatName}";
-            var fiatg = (await testWallet.RPC.GetTokenGenesisBlockAsync("", fiatTicker, "")).As<TokenGenesisBlock>();
+            var fiatg = (await bidingWallet.RPC.GetTokenGenesisBlockAsync("", fiatTicker, "")).As<TokenGenesisBlock>();
 
             var trade = new UniTrade
             {
@@ -750,19 +784,19 @@ namespace UnitTests
                 biding = fiatg.Ticker,
                 price = 2000,
                 
-                cltamt = 150000000,
+                cltamt = callateralCount,
                 payVia = "Paypal",
                 amount = 0.1m,
                 pay = 200,
             };
 
-            var traderet = await test2Wallet.CreateUniTradeAsync(trade);
+            var traderet = await bidingWallet.CreateUniTradeAsync(trade);
             Assert.IsTrue(traderet.Successful(), $"Uni Trade error: {traderet.ResultCode}");
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
             await WaitWorkflow($"CreateUniTradeAsync for {direction}");
             // the Uni order should now be amount 9
-            var Uniret2 = await testWallet.RPC.GetUniOrdersByOwnerAsync(testWallet.AccountId);
+            var Uniret2 = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret2.Successful(), $"Can't get Uni block. {Uniret2.ResultCode}");
             var Unis2 = Uniret2.GetBlocks();
             Assert.IsTrue(Unis2.Last() is IUniOrder, $"Uni block count not = 1.");
@@ -773,7 +807,7 @@ namespace UnitTests
             //Assert.AreEqual(0.9m, Uniorderx.Order.amount, "order not processed");
 
             // get trade
-            var related = await test2Wallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
+            var related = await bidingWallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
             Assert.IsTrue(related.Successful(), $"Can't get rleated tx for trade genesis: {related.ResultCode}");
             var blks = related.GetBlocks();
             var tradgen = blks.LastOrDefault(a => a is UniTradeGenesisBlock) as UniTradeGenesisBlock;
@@ -782,7 +816,7 @@ namespace UnitTests
             Assert.AreEqual(UniTradeStatus.Open, tradgen.UTStatus);
 
             // verify by api
-            var tradeQueryRet = await test2Wallet.RPC.FindUniTradeAsync(test2Wallet.AccountId, false, 0, 10);
+            var tradeQueryRet = await bidingWallet.RPC.FindUniTradeAsync(bidingWallet.AccountId, false, 0, 10);
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindUniTradeAsync: {tradeQueryRet.ResultCode}");
             var tradeQueryResultBlocks = tradeQueryRet.GetBlocks();
             Assert.IsTrue(tradeQueryResultBlocks.Count() >= 1);
@@ -790,7 +824,7 @@ namespace UnitTests
                 .OrderBy(a => a.TimeStamp)
                 .Last() as TransactionBlock).AccountID);
 
-            var tradeQueryRet2 = await testWallet.RPC.FindUniTradeAsync(testWallet.AccountId, false, 0, 10);
+            var tradeQueryRet2 = await offeringWallet.RPC.FindUniTradeAsync(offeringWallet.AccountId, false, 0, 10);
             Assert.IsTrue(tradeQueryRet2.Successful(), $"Can't query trade via FindUniTradeAsync: {tradeQueryRet2.ResultCode}");
             var tradeQueryResultBlocks2 = tradeQueryRet2.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks2.Count());
@@ -798,7 +832,7 @@ namespace UnitTests
                 .OrderBy(a => a.TimeStamp)
                 .Last() as TransactionBlock).AccountID);
 
-            var tradeQueryRet3 = await testWallet.RPC.FindUniTradeByStatusAsync(dao1.AccountID, UniTradeStatus.Open, 0, 10);
+            var tradeQueryRet3 = await offeringWallet.RPC.FindUniTradeByStatusAsync(dao1.AccountID, UniTradeStatus.Open, 0, 10);
             Assert.IsTrue(tradeQueryRet3.Successful(), $"Can't query trade via FindUniTradeByStatusAsync: {tradeQueryRet3.ResultCode}");
             var tradeQueryResultBlocks3 = tradeQueryRet3.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks3.Count());
@@ -1248,10 +1282,10 @@ namespace UnitTests
             ResetAuthFail();
         }
 
-        public async Task<TokenGenesisBlock> CreateTestNFTAsync()
+        public async Task<TokenGenesisBlock> CreateTestNFTAsync(Wallet ownerWallet)
         {
             //var ticker = "nft/a346b16b-ca6c-4c86-9519-1e72fd517e9B";
-            //var retg = await testWallet.RPC.GetTokenGenesisBlockAsync(testPublicKey, ticker, "aaa");
+            //var retg = await ownerWallet.RPC.GetTokenGenesisBlockAsync(testPublicKey, ticker, "aaa");
             //Assert.IsTrue(retg.Successful());
             //return;
             //await BurnAllNFT();
@@ -1261,26 +1295,26 @@ namespace UnitTests
             var rand = new Random();
 
             var name = $"a great nft ({rand.NextInt64()})";
-            var ret = await testWallet.CreateNFTAsync(name, "a nft for unit test", 10, metauri);
+            var ret = await ownerWallet.CreateNFTAsync(name, "a nft for unit test", 10, metauri);
             Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
 
             // send
-            var nftgen = testWallet.GetLastSyncBlock() as TokenGenesisBlock;
+            var nftgen = ownerWallet.GetLastSyncBlock() as TokenGenesisBlock;
             Assert.IsNotNull(nftgen);
             Assert.AreEqual(name, nftgen.Custom1);
 
             var tickrToSend = nftgen.Ticker;
-            var findSendRet = await testWallet.RPC.FindNFTGenesisSendAsync(testPublicKey, nftgen.Ticker, "0");
+            var findSendRet = await ownerWallet.RPC.FindNFTGenesisSendAsync(testPublicKey, nftgen.Ticker, "0");
             Assert.AreEqual(APIResultCodes.BlockNotFound, findSendRet.ResultCode);
 
-            var nft = testWallet.IssueNFT(nftgen.Ticker, null);
+            var nft = ownerWallet.IssueNFT(nftgen.Ticker, null);
             var amounts = new Dictionary<string, decimal>
             {
                 { nftgen.Ticker, 1m }
             };
-            var sendRet = await testWallet.SendExAsync(test2PublicKey, amounts, null, nft);
+            var sendRet = await ownerWallet.SendExAsync(test2PublicKey, amounts, null, nft);
             Assert.IsTrue(sendRet.Successful(), $"Faid to send NFT: {sendRet.ResultCode}");
-            var sendBlock = testWallet.GetLastSyncBlock();
+            var sendBlock = ownerWallet.GetLastSyncBlock();
 
             // then test2 will receive it.
             await test2Wallet.SyncAsync();
@@ -1306,7 +1340,7 @@ namespace UnitTests
             return nftgen;
             //await BurnAllNFT();
             //name = $"a great nft ({rand.NextInt64()})";
-            //ret = await testWallet.CreateNFTAsync(name, "a nft for unit test", 10, metauri);
+            //ret = await ownerWallet.CreateNFTAsync(name, "a nft for unit test", 10, metauri);
             //Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
         }
     }

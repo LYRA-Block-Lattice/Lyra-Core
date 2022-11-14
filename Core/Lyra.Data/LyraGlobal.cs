@@ -44,8 +44,8 @@ namespace Lyra.Core.API
         /// <summary>
         /// fee ratio for OTC selling order
         /// </summary>
-        public const decimal OTCSellerNetworkFeeRatio = 0.002m;
-        public const decimal OTCBuyerNetworkFeeRatio = 0m;
+        public const decimal OfferingNetworkFeeRatio = 0.002m;
+        public const decimal BidingNetworkFeeRatio = 0m;
         #endregion
 
         #region accounts for business
@@ -71,6 +71,15 @@ namespace Lyra.Core.API
         }
 
         #endregion
+
+        public static decimal GetListingFeeFor(HoldTypes hodes)
+        {
+            return hodes switch
+            {
+                HoldTypes.NFT => 100,
+                _ => 10,
+            };
+        }
 
         public static AccountTypes GetAccountTypeFromTicker(string ticker, TradeDirection dir)
         {

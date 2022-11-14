@@ -111,19 +111,19 @@ namespace Lyra.Core.WorkFlow.Uni
             // buyer fee calculated as LYR
             var totalAmount = trade.amount;
             decimal totalFee = 0;
+            decimal networkFee = 0;
             var order = (odrgen as IUniOrder).Order;
             // transaction fee
-            //if (trade.dir == TradeDirection.Sell)
-            //{
-            //    totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoforodr.SellerFeeRatio) / order.collateralPrice, 8);
-            //}
-            //else
-            //{
-            //    totalFee += Math.Round((((totalAmount * trade.price) * order.fiatPrice) * daoforodr.BuyerFeeRatio) / order.collateralPrice, 8);
-            //}
-
-            // network fee
-            var networkFee = 0;// Math.Round((((totalAmount * order.price) * order.fiatPrice) * 0.002m) / order.collateralPrice, 8);
+            if (trade.dir == TradeDirection.Sell)
+            {
+                totalFee += Math.Round(trade.cltamt * daoforodr.SellerFeeRatio, 8);
+                networkFee = Math.Round(trade.cltamt * LyraGlobal.OfferingNetworkFeeRatio, 8);
+            }
+            else
+            {
+                totalFee += Math.Round(trade.cltamt * daoforodr.BuyerFeeRatio, 8);
+                networkFee = Math.Round(trade.cltamt * LyraGlobal.BidingNetworkFeeRatio, 8);
+            }
 
             var amountToSeller = trade.cltamt - totalFee;
             //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");

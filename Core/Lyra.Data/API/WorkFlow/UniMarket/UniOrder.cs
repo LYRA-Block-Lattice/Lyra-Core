@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Data.API.WorkFlow.UniMarket
 {
+    // about the fee
+    // because anyone can sell anything to anyone to get any anything, we can't calculate fee pe 'market price'.
+    // what we need to calculate a ratio from collateral LYR.
+    // the collateral is like buying a assurance. user pay for it to guard the trade.
+    // buying the confidence.
     public enum HoldTypes
     {
         Token,
@@ -36,7 +41,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public string biding { get; set; } = null!;
 
         /// <summary>
-        /// price in specified money type, fiat or token
+        /// price in specified biding type, fiat or token
         /// </summary>
         public decimal price { get; set; }
 

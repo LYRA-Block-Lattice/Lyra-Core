@@ -2373,7 +2373,7 @@ namespace Lyra.Core.Accounts
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + order.cltamt },
+                { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor(order.offerby) + order.cltamt },
             };
 
             if (order.dir == TradeDirection.Sell)
@@ -2401,7 +2401,7 @@ namespace Lyra.Core.Accounts
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee + trade.cltamt },
+                { LyraGlobal.OFFICIALTICKERCODE, trade.cltamt },
             };
 
             if (trade.dir == TradeDirection.Sell)

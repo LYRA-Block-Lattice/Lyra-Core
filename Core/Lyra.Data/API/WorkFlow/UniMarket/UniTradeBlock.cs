@@ -27,7 +27,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         // trade in abnormal states
         Dispute = 40,
-        DisputeClosed,
+        DisputeClosed = 45,
 
         // canceled trade. not count.
         Canceled = 50,
