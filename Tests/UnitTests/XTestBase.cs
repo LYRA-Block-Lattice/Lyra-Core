@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Neo;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -82,6 +83,7 @@ namespace UnitTests
         {
             var serilogLogger = new LoggerConfiguration()
                 //.MinimumLevel.Verbose()
+                .WriteTo.Console()
                 .WriteTo.File("c:\\tmp\\unittestlog.txt")
                 .CreateLogger();
 
@@ -297,13 +299,13 @@ namespace UnitTests
 
             cs.OnBlockFinished += (b, ok) =>
             {
-                Console.WriteLine($"On block {b} result {ok}");
+                //Console.WriteLine($"On block {b} result {ok}");
                 _newAuth.Set();
             };
 
             cs.OnWorkflowFinished += (wf, ok) =>
             {
-                Console.WriteLine($"On workflow {wf} result {ok}");
+                //Console.WriteLine($"On workflow {wf} result {ok}");
                 _workflowEnds.Set();
             };
 

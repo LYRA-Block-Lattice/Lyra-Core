@@ -852,7 +852,7 @@ namespace Lyra.Core.Decentralize
                         }
                     }
 
-                    Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
+                    //Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
                     _lockers.TryAdd(lockdto.reqhash, lockdto);
                 }
             }

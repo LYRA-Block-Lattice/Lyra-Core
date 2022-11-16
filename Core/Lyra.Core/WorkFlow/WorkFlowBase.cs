@@ -247,7 +247,8 @@ namespace Lyra.Core.WorkFlow
                         break;
 
                     default:
-                        Console.WriteLine($"Unknown REQ Action: {action}");
+                        if(action != null)
+                            Console.WriteLine($"Unknown REQ Action: {action}");
                         brkaccount = null;
                         break;
                 };

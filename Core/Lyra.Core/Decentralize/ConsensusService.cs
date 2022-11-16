@@ -1931,7 +1931,7 @@ namespace Lyra.Core.Decentralize
             // should be better solution for high tps to avoid queue increase too big.
             // tps 100 * timeout 20s = 2k buffer, sounds we can handle it.
             //_activeConsensus.TryRemove(block.Hash, out _);
-            _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
+            _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count} Locked: {LockedCount}");
 
             if (result == ConsensusResult.Yea)
                 _sys.NewBlockGenerated(block);
