@@ -272,8 +272,8 @@ namespace Lyra.Core.WorkFlow
                     .Input(step => step.Message, data => $"Workflow is done.")
                 .Then(a =>
                 {
-                    //Console.WriteLine("Ends.");
-                    a.Workflow.Reference = "end";
+                    Console.WriteLine("WF Ends.");
+                    a.Workflow.Reference = "Exited";
                     //ConsensusService.Singleton.UnLockIds(LockingIds);
                 })
                 ;
@@ -354,6 +354,7 @@ namespace Lyra.Core.WorkFlow
             var ctx = context.Workflow.Data as LyraContext;
             var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.SendHash}, {ctx.Count}/{ctx.State}, {Message}";
             _logger.LogInformation(log);
+            Console.WriteLine(log);
 
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
             {

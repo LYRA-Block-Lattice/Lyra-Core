@@ -92,66 +92,65 @@ namespace UnitTests
             var ta = new TestAuthorizer(probe);
             sys = ta.TheDagSystem;
             sys.StartConsensus();
-            store = ta.TheDagSystem.Storage;
+            store = ta.TheDagSystem.Storage;          
+            
+            //IServiceProvider serviceProvider = ConfigureServices();
 
-            // workflow init
-            IServiceProvider serviceProvider = ConfigureServices();
+            ////start the workflow host
+            //var host = serviceProvider.GetService<IWorkflowHost>();
 
-            //start the workflow host
-            var host = serviceProvider.GetService<IWorkflowHost>();
+            ////var alltypes = typeof(DebiWorkflow)
+            ////    .Assembly.GetTypes()
+            ////    .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
 
-            //var alltypes = typeof(DebiWorkflow)
-            //    .Assembly.GetTypes()
-            //    .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
+            //foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            //{
+            //    var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            //        .Where(a => a.Name == "RegisterWorkflow")
+            //        .Last();
 
-            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
-            {
-                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(a => a.Name == "RegisterWorkflow")
-                    .Last();
+            //    var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
 
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
-
-                genericMethodInfo.Invoke(host, new object[] { });
-            }
+            //    genericMethodInfo.Invoke(host, new object[] { });
+            //}
            
-            host.OnStepError += Host_OnStepError;
-            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
-            host.Start();
+            //host.OnStepError += cs.Host_OnStepError;
+            //host.OnLifeCycleEvent += cs.Host_OnLifeCycleEvent;
+            //host.Start();
 
-            _env = serviceProvider.GetService<IHostEnv>();
-            _env.SetWorkflowHost(host);
+            //_env = serviceProvider.GetService<IHostEnv>();
+            //_env.SetWorkflowHost(host);
 
             //host.StartWorkflow("HelloWorld", 1, null, null);
         }
 
-        object lifeo = new object();
-        private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
-        {
-            lock(lifeo)
-            {
-                //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
-                if (evt.Reference == "end")
-                {
-                    if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
-                    {
-                        _endedWorkflows.Add(evt.WorkflowInstanceId);
-                        var hash = cs.GetHashForWorkflow(evt.WorkflowInstanceId);
-                        //Console.WriteLine($"Unlock {hash}");
-                        _lockedIdDict.Remove(hash);
-                        //Console.WriteLine($"Key is {hash} terminated. Set it. {_lockedIdDict.Count} locked.");
-                        //Console.WriteLine($"WF ended. {_lockedIdDict.Count} locked.");
-                        _workflowEnds.Set();
-                    }
-                }
-            }             
-        }
+        //object lifeo = new object();
+        //private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
+        //{
+        //    lock (lifeo)
+        //    {
+        //        //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+        //        if (evt.Reference == "end")
+        //        {
+        //            if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
+        //            {
+        //                _endedWorkflows.Add(evt.WorkflowInstanceId);
+        //                var hash = evt.WorkflowDefinitionId;//cs.GetHashForWorkflow(evt.WorkflowInstanceId);
+        //                //Console.WriteLine($"Unlock {hash}");
+        //                //_lockedIdDict.Remove(hash);
+        //                //Console.WriteLine($"Key is {hash} terminated. Set it. {_lockedIdDict.Count} locked.");
+        //                //Console.WriteLine($"WF ended. {_lockedIdDict.Count} locked.");
+        //                _workflowEnds.Set();
+        //            }
+        //        }
+        //    }             
+        //}
 
-        private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
-        {
-            Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
-            _workflowEnds.Set();
-        }
+        //private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
+        //{
+        //    Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
+        //    _workflowEnds.Set();
+        //}
 
         private static IServiceProvider ConfigureServices()
         {
@@ -201,44 +200,25 @@ namespace UnitTests
             Shutdown();
         }
 
-        protected Dictionary<string, List<string>> _lockedIdDict = new Dictionary<string, List<string>>();
+        //protected Dictionary<string, List<string>> _lockedIdDict = new Dictionary<string, List<string>>();
         private async Task<AuthResult> LockAuth(DagSystem sys, Block block)
         {
+            AuthorizingMsg msg = new AuthorizingMsg
+            {
+                From = cs.GetDagSystem().PosWallet.AccountId,
+                Block = block,
+                BlockHash = block.Hash!,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var statex = await cs.CreateAuthringStateAsync(msg, true);
+            if (statex.result != APIResultCodes.Success)
+                return new AuthResult { Result = statex.result };
+
             AuthResult LocalAuthResult = null;
             var auth = cs.AF.Create(block);
             var tmpResult = await auth.AuthorizeAsync(sys, block);
-            if (tmpResult.Result == APIResultCodes.Success)
-            {
-                // try lock
-                bool busy = false;
-                foreach (var id in tmpResult.LockedIDs)
-                    if (_lockedIdDict.Values.Any(a => a.Contains(id)))
-                    {
-                        busy = true;
-                        break;
-                    }
-                if (busy)
-                {
-                    LocalAuthResult = new AuthResult
-                    {
-                        Result = APIResultCodes.ResourceIsBusy,
-                        LockedIDs = new List<string>()
-                    };
-                }
-                else
-                {
-                    LocalAuthResult = tmpResult;
-                    if(tmpResult.LockedIDs.Count > 0)
-                    {
-                        //Console.WriteLine($"Lock {block.Hash}");
-                        _lockedIdDict.Add(block.Hash, tmpResult.LockedIDs);
-                    }                        
-                }
-            }
-            else
-            {
-                LocalAuthResult = tmpResult;
-            }
+            LocalAuthResult = tmpResult;
             return LocalAuthResult;
         }
 
@@ -314,6 +294,41 @@ namespace UnitTests
                 cs = ConsensusService.Singleton;
                 cs.SetHostEnv(_env);
             }
+
+            cs.OnBlockFinished += (b, ok) =>
+            {
+                Console.WriteLine($"On block {b} result {ok}");
+                _newAuth.Set();
+            };
+
+            cs.OnWorkflowFinished += (wf, ok) =>
+            {
+                Console.WriteLine($"On workflow {wf} result {ok}");
+                _workflowEnds.Set();
+            };
+
+            // workflow init
+            IServiceProvider serviceProvider = ConfigureServices();
+            var host = serviceProvider.GetService<IWorkflowHost>();
+
+            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            {
+                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(a => a.Name == "RegisterWorkflow")
+                    .Last();
+
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+
+                genericMethodInfo.Invoke(host, new object[] { });
+            }
+
+            _env = serviceProvider.GetService<IHostEnv>();
+            cs.SetHostEnv(_env);
+            _env.SetWorkflowHost(host);
+            cs.StartWorkflowEngine();
+
+            await Task.Delay(100);
+
             cs.OnNewBlock += async (b) => (ConsensusResult.Yea, (await AuthAsync(b)).ResultCode);
             //{
             //    var result = ;
@@ -509,17 +524,25 @@ namespace UnitTests
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 #if DEBUG
-            var ret = _workflowEnds.WaitOne(1000000);
+            var ret = _workflowEnds.WaitOne(3000);
 #else
             var ret = _workflowEnds.WaitOne(3000);
 #endif
             _workflowEnds.Reset();
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");
-            if(checklock)
-                Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
+            //if(checklock)
+            //    Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
 
-            Console.WriteLine($"\nWait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done.");
+            Console.WriteLine($"Wait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done. {cs.LockedCount} locked.");
+            if(cs.LockedCount > 0)
+            {
+                foreach(var l in cs.Lockedups)
+                {
+                    Console.WriteLine($"In Locking: {l}");
+                }
+            }
+            Console.WriteLine();
         }
 
         private async Task CreateConsolidation()

@@ -36,14 +36,21 @@ using WorkflowCore.Services;
 using Microsoft.AspNetCore.SignalR;
 using Lyra.Core.Accounts;
 using System.Security.Policy;
+using Lyra.Core.WorkFlow.Shared;
+using Humanizer;
+using Lyra.Core.Authorizers;
 
 namespace Lyra.Core.Decentralize
 {
+    public delegate void AuthorizeCompleteEventHandler(string reqHash, bool success);
     /// <summary>
     /// pBFT Consensus
     /// </summary>
     public partial class ConsensusService : ReceiveActor
     {
+        public event AuthorizeCompleteEventHandler OnBlockFinished;
+        public event AuthorizeCompleteEventHandler OnWorkflowFinished;
+
         public class Startup { }
         public class AskForBillboard { }
         public class AskForServiceBlock { }
@@ -67,7 +74,11 @@ namespace Lyra.Core.Decentralize
         IHostEnv _hostEnv;
         readonly ConcurrentDictionary<string, DateTime> _criticalMsgCache;
         readonly ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
-        List<Vote> _lastVotes;
+        readonly ConcurrentDictionary<string, LockerDTO> _lockers;
+        public int LockedCount => _lockers.Count;
+        public IEnumerable<string> Lockedups => _lockers.Keys;
+
+        private List<Vote> _lastVotes;
         private readonly BillBoard _board;
         private readonly List<TransStats> _stats;
         private string _myIpAddress;
@@ -101,7 +112,7 @@ namespace Lyra.Core.Decentralize
         private DateTime _lastConsolidateTry;
 
         public void SetHostEnv(IHostEnv env) { _hostEnv = env; }
-        ConcurrentDictionary<string, string> _workFlows;
+        //ConcurrentDictionary<string, string> _workFlows;
 
         private readonly IHubContext<LyraEventHub, ILyraEvent> _hubContext;
 
@@ -123,11 +134,12 @@ namespace Lyra.Core.Decentralize
 
             _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
+            _lockers = new ConcurrentDictionary<string, LockerDTO>();
             _stats = new List<TransStats>();
 
             _board = new BillBoard();
 
-            _workFlows = new ConcurrentDictionary<string, string>();
+            //_workFlows = new ConcurrentDictionary<string, string>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
             _af = new AuthorizersFactory();
@@ -247,7 +259,7 @@ namespace Lyra.Core.Decentralize
             {
                 await SubmitToConsensusAsync(state);
             });
-            Receive<AskForConsensusState>((askReq) =>
+            ReceiveAsync<AskForConsensusState>(async (askReq) =>
             {
                 try
                 {
@@ -259,8 +271,8 @@ namespace Lyra.Core.Decentralize
                         MsgType = ChatMessageType.AuthorizerPrePrepare
                     };
 
-                    var state = CreateAuthringState(msg, true);
-                    Sender.Tell(state);
+                    var statex = await CreateAuthringStateAsync(msg, true);
+                    Sender.Tell(statex);
                 }
                 catch (Exception ex)
                 {
@@ -850,19 +862,8 @@ namespace Lyra.Core.Decentralize
 
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntry(() =>
-                    {                       
-                        var host = _hostEnv.GetWorkflowHost();
-
-                        BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
-                        FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
-                        bool shutdown = (bool)finfo.GetValue(host);
-                        if (shutdown)
-                        {
-                            _log.LogInformation("Start workflow host.Start()");
-                            host.OnStepError += Host_OnStepError;
-                            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
-                            host.Start();
-                        }
+                    {
+                        StartWorkflowEngine();
 
                         _ = Task.Run(async () =>
                         {
@@ -943,10 +944,41 @@ namespace Lyra.Core.Decentralize
             _viewChangeHandler.ShiftView(lsb.Height + 1);
         }
 
-        object lifeo = new object();
-        List<string> _endedWorkflows = new List<string>();
-        private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
+        public IWorkflowHost StartWorkflowEngine()
         {
+            var host = _hostEnv.GetWorkflowHost();
+
+            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+            FieldInfo finfo = typeof(WorkflowHost).GetField("_shutdown", bindingFlags);
+            bool shutdown = (bool)finfo.GetValue(host);
+            if (shutdown)
+            {
+                _log.LogInformation("Start workflow host.Start()");
+                host.OnStepError += Host_OnStepError;
+                host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
+                host.Start();
+            }
+
+            return host;
+        }
+
+        
+        // set to public is for unit test. better solution later.
+        public void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
+        {
+            // evt: instant id is guid, defination id is req tag
+            var lkdto = _lockers.Values.FirstOrDefault(a => a.workflowid == evt.WorkflowInstanceId);
+            if(lkdto != null )
+            {
+                if (evt.Reference == "Exited")
+                {
+                    _log.LogInformation($"Workflow of {lkdto.reqhash} is terminated. ");
+                    _lockers.TryRemove(lkdto.reqhash, out _);
+
+                    OnWorkflowFinished?.Invoke(lkdto.reqhash, true);
+                }
+            }
+
             //lock (lifeo)
             //{
             //    //_log.LogInformation($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
@@ -962,9 +994,16 @@ namespace Lyra.Core.Decentralize
             //}
         }
 
-        private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
+        public void Host_OnStepError(WorkflowInstance workflow, WorkflowStep step, Exception exception)
         {
             _log.LogError($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
+
+            var lkdto = _lockers.Values.FirstOrDefault(a => a.workflowid == workflow.Id);
+            if (lkdto != null)
+            {
+                _lockers.TryRemove(lkdto.reqhash, out _);
+                OnWorkflowFinished?.Invoke(lkdto.reqhash, false);                
+            }
         }
 
         public static int GetQualifiedNodeCount()
@@ -1710,9 +1749,9 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = CreateAuthringState(msg, true);
+            var state = await CreateAuthringStateAsync(msg, true);
 
-            await SubmitToConsensusAsync(state);
+            await SubmitToConsensusAsync(state.state);
 
             _log.LogInformation($"ConsolidationBlock was submited. ");
         }
@@ -1772,8 +1811,10 @@ namespace Lyra.Core.Decentralize
             return false;
         }
 
-        private async Task<bool> SubmitToConsensusAsync(AuthState state)
+        private async Task<bool> SubmitToConsensusAsync(AuthState? state)
         {
+            if(state == null) return false;
+
             // unit test support
             if(Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
             {
@@ -1831,9 +1872,47 @@ namespace Lyra.Core.Decentralize
             if(_hubContext != null)
                 await _hubContext.Clients.All.OnEvent(new EventContainer(wfevent));
         }
+
+        public void OnWorkflowTerminated(string keyHash)
+        {
+            if (_lockers.ContainsKey(keyHash))
+            {
+                _lockers.TryRemove(keyHash, out _);
+            }
+            else
+            {
+                _log.LogWarning($"Unlock a non-exists locker DTO by key: {keyHash}");
+            }
+        }
+
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {
-            if(_hubContext != null)     // for unit test
+            // first unlock 
+            if (_lockers.ContainsKey(block.Hash))
+            {
+                var dto = _lockers[block.Hash];
+
+                if (!dto.haswf && dto.workflowid != null)
+                    _log.LogCritical($"Fatal!!! locker dto workflow wrong logic 1 for {block.Hash}");
+
+                if (!dto.haswf)
+                {
+                    // no workflow related. just release the lock.
+                    _lockers.TryRemove(block.Hash, out _);
+
+                    OnBlockFinished?.Invoke(block.Hash, result == ConsensusResult.Yea);
+                }
+                else if(dto.haswf && dto.workflowid == null && result != ConsensusResult.Yea)
+                {
+                    // block auth failed. no workflow
+                    _lockers.TryRemove(block.Hash, out _);
+
+                    OnBlockFinished?.Invoke(block.Hash, result == ConsensusResult.Nay);
+                }
+            }
+
+            // consequence procedures
+            if (_hubContext != null)     // for unit test
             {
                 await _hubContext.Clients.All.OnEvent(new EventContainer(
                     new ConsensusEvent
@@ -1908,40 +1987,54 @@ namespace Lyra.Core.Decentralize
                 await ProcessManagedBlockAsync(block as TransactionBlock, result);
         }
 
-        public async Task<TransactionBlock> GetBlockForRelatedTxAsync(string reltx)
+        private async Task<LyraContext?> GetWfContextByReqHashAsync(string reltx)
         {
             var wfhost = _hostEnv.GetWorkflowHost();
 
-            if (_workFlows.ContainsKey(reltx))
+            if (_lockers.ContainsKey(reltx))
             {
-                var Id = _workFlows[reltx];
-                var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
+                var dto = _lockers[reltx];
+                var wf = await wfhost.PersistenceStore.GetWorkflowInstance(dto.workflowid);
                 var ctx = wf.Data as LyraContext;
-                return ctx.GetLastBlock();
-
-                //var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
-
-                //var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
-                //    as SendTransferBlock;
-                //var block =
-                //    await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
-                //        ??
-                //    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
-                //        ??
-                //    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
-                //_log.LogInformation($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
-
-                //ctx.SetLastBlock(block);
-                //return block;
+                return ctx;
             }
             else
                 return null;
         }
 
-        public string GetHashForWorkflow(string id)
+        public async Task<TransactionBlock?> GetBlockByRelatedTxForCompareAuthAsync(string reltx)
         {
-            return _workFlows.FirstOrDefault(a => a.Value == id).Key;
+            var ctx = await GetWfContextByReqHashAsync(reltx);
+            return ctx?.GetLastBlock();
+
+            //if (_workFlows.ContainsKey(reltx))
+            //{
+            //    var Id = _workFlows[reltx];
+            //    var wf = await wfhost.PersistenceStore.GetWorkflowInstance(Id);
+            //    var ctx = wf.Data as LyraContext;
+            //    return ctx.GetLastBlock();
+
+            //    //var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
+
+            //    //var sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
+            //    //    as SendTransferBlock;
+            //    //var block =
+            //    //    await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
+            //    //        ??
+            //    //    await SubWorkflow.BrokerOpsAsync(DagSystem.Singleton, sendBlock)
+            //    //        ??
+            //    //    await SubWorkflow.ExtraOpsAsync(DagSystem.Singleton, ctx.SendHash);
+            //    //_log.LogInformation($"BrokerOpsAsync for {ctx.SendHash} called and generated {block}");
+
+            //    //ctx.SetLastBlock(block);
+            //    //return block;
+            //}
         }
+
+        //public string GetHashForWorkflow(string id)
+        //{
+        //    return _workFlows.FirstOrDefault(a => a.Value == id).Key;
+        //}
 
         public async Task ProcessServerReqBlockAsync(SendTransferBlock send, ConsensusResult? result)
         {
@@ -1962,8 +2055,18 @@ namespace Lyra.Core.Decentralize
                     SvcRequest = svcreqtag,
                     State = WFState.Init,
                 };
+
+                // id: a guid; 1st argument -> defination id: svcreq
                 var id = await wfhost.StartWorkflow(svcreqtag, ctx);
-                _workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
+
+                //var wf = await wfhost.PersistenceStore.GetWorkflowInstance(id);
+                var lockdto = _lockers[send.Hash];
+                lockdto.workflowid = id;
+
+                if (!lockdto.haswf)
+                    _log.LogCritical($"Fatal!!! locker dto workflow wrong logic for {send.Hash} req: {svcreqtag}");
+
+                //_workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
             }
         }
 
@@ -2093,12 +2196,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private readonly Mutex _locker = new Mutex(false);
+        private readonly Mutex _refreshNodesLocker = new Mutex(false);
         public void RefreshAllNodesVotes()
         {
             try
             {
-                _locker.WaitOne();
+                if (!_refreshNodesLocker.WaitOne(1))
+                    return;
+
                 // remove stalled nodes
                 // debug only
                 foreach (var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)))
@@ -2135,7 +2240,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                _locker.ReleaseMutex();
+                _refreshNodesLocker.ReleaseMutex();
             }
         }
     }

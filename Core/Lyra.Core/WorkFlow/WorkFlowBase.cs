@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Core.WorkFlow.Shared;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
@@ -58,7 +59,7 @@ namespace Lyra.Core.WorkFlow
             List<string> lockedIDs = null;
             try
             {
-                lockedIDs = await GetLockedAccountIds(sys, send, last);
+                lockedIDs = await GetLockedAccountIdsAsync(sys, send);
             }
             catch (Exception ex)
             {
@@ -93,170 +94,192 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        private static async Task<List<string>> GetBrokerAccountIDAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<LockerDTO> GetLocketDTOAsync(DagSystem sys, TransactionBlock trans)
         {
-            string action = null;
-            if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
-                action = send.Tags[Block.REQSERVICETAG];
-
-            string brkaccount, brkaccount2 = null, brkaccount3 = null;
-            switch (action)
-            {
-                // profiting, create dividends
-                case BrokerActions.BRK_PFT_GETPFT:
-                    brkaccount = send.Tags["pftid"];
-                    break;
-
-                // pool
-                case BrokerActions.BRK_POOL_ADDLQ:
-                case BrokerActions.BRK_POOL_SWAP:
-                case BrokerActions.BRK_POOL_RMLQ:
-                    brkaccount = send.Tags["poolid"];
-                    break;
-
-                // staking
-                case BrokerActions.BRK_STK_ADDSTK:
-                    brkaccount = send.DestinationAccountId;
-                    break;
-                case BrokerActions.BRK_STK_UNSTK:
-                    brkaccount = send.Tags["stkid"];
-                    break;
-
-                // DEX
-                //case BrokerActions.BRK_DEX_DPOREQ:
-                case BrokerActions.BRK_DEX_MINT:
-                case BrokerActions.BRK_DEX_GETTKN:
-                case BrokerActions.BRK_DEX_PUTTKN:
-                case BrokerActions.BRK_DEX_WDWREQ:
-                    brkaccount = send.Tags["dexid"];
-                    break;
-
-                // DAO
-                //case BrokerActions.BRK_DAO_CRDAO:
-                case BrokerActions.BRK_DAO_JOIN:
-                case BrokerActions.BRK_DAO_LEAVE:
-                    brkaccount = send.Tags["daoid"];
-                    break;
-
-                case BrokerActions.BRK_DAO_CHANGE:
-                case BrokerActions.BRK_DAO_VOTED_CHANGE:
-                    brkaccount = send.DestinationAccountId;
-                    break;
-
-                // OTC
-                case BrokerActions.BRK_OTC_CRODR:
-                    var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
-                    brkaccount = order.daoId;
-                    break;
-
-                case BrokerActions.BRK_OTC_CRTRD:
-                    var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
-                    brkaccount = trade.daoId;
-                    brkaccount2 = trade.orderId;
-                    break;
-
-                case BrokerActions.BRK_OTC_TRDPAYSENT:
-                case BrokerActions.BRK_OTC_TRDPAYGOT:
-                    brkaccount = send.Tags["tradeid"];
-                    break;
-
-                case BrokerActions.BRK_OTC_TRDCANCEL:
-                    brkaccount = send.Tags["tradeid"];
-                    brkaccount2 = send.Tags["orderid"];
-                    brkaccount3 = send.Tags["daoid"];
-                    break;
-
-                case BrokerActions.BRK_OTC_ORDDELST:
-                case BrokerActions.BRK_OTC_ORDCLOSE:
-                    brkaccount = send.Tags["orderid"];
-                    brkaccount2 = send.Tags["daoid"];
-                    break;
-
-                // OTC Dispute
-                case BrokerActions.BRK_OTC_CRDPT:
-                case BrokerActions.BRK_OTC_RSLDPT:
-                    brkaccount = send.DestinationAccountId; // trade id
-                    var tradeDspt = (await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId)) as IOtcTrade;
-                    brkaccount2 = tradeDspt.Trade.daoId;
-                    break;
-
-                // Voting
-                case BrokerActions.BRK_VOT_CREATE:
-                    var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
-                    brkaccount = subject.DaoId;
-                    break;
-
-                case BrokerActions.BRK_VOT_VOTE:
-                case BrokerActions.BRK_VOT_CLOSE:
-                    brkaccount = send.Tags["voteid"];
-                    break;
-
-                case BrokerActions.BRK_DAO_CRDAO:
-                case BrokerActions.BRK_POOL_CRPL:
-                case BrokerActions.BRK_PFT_CRPFT:
-                case BrokerActions.BRK_STK_CRSTK:
-                case BrokerActions.BRK_DEX_DPOREQ:
-                case BrokerActions.BRK_DLR_CREATE:
-                    brkaccount = null;
-                    break;
-
-                #region universal trade
-                case BrokerActions.BRK_UNI_CRODR:
-                    var uorder = JsonConvert.DeserializeObject<UniOrder>(send.Tags["data"]);
-                    brkaccount = uorder.daoId;
-                    break;
-
-                case BrokerActions.BRK_UNI_CRTRD:
-                    var utrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-                    brkaccount = utrade.daoId;
-                    brkaccount2 = utrade.orderId;
-                    break;
-
-                case BrokerActions.BRK_UNI_TRDPAYSENT:
-                case BrokerActions.BRK_UNI_TRDPAYGOT:
-                    brkaccount = send.Tags["tradeid"];
-                    break;
-
-                case BrokerActions.BRK_UNI_TRDCANCEL:
-                    brkaccount = send.Tags["tradeid"];
-                    brkaccount2 = send.Tags["orderid"];
-                    brkaccount3 = send.Tags["daoid"];
-                    break;
-
-                case BrokerActions.BRK_UNI_ORDDELST:
-                case BrokerActions.BRK_UNI_ORDCLOSE:
-                    brkaccount = send.Tags["orderid"];
-                    brkaccount2 = send.Tags["daoid"];
-                    break;
-
-                // Uni Dispute
-                case BrokerActions.BRK_UNI_CRDPT:
-                case BrokerActions.BRK_UNI_RSLDPT:
-                    brkaccount = send.DestinationAccountId; // trade id
-                    var utradeDspt = (await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId)) as IUniTrade;
-                    brkaccount2 = utradeDspt.Trade.daoId;
-                    break;
-                #endregion
-
-                default:
-                    Console.WriteLine($"Unknown REQ Action: {action}");
-                    brkaccount = null;
-                    break;
-            };
-
             var strs = new List<string>();
-            if(brkaccount != null)
-                strs.Add(brkaccount);
-            if(brkaccount2 != null)
-                strs.Add(brkaccount2);
-            if(brkaccount3 != null)
-                strs.Add(brkaccount3);
-            return strs;
+            string action = null;
+            if (trans is SendTransferBlock send)
+            {                
+                if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                    action = send.Tags[Block.REQSERVICETAG];
+
+                string brkaccount, brkaccount2 = null, brkaccount3 = null;
+                switch (action)
+                {
+                    // profiting, create dividends
+                    case BrokerActions.BRK_PFT_GETPFT:
+                        brkaccount = send.Tags["pftid"];
+                        break;
+
+                    // pool
+                    case BrokerActions.BRK_POOL_ADDLQ:
+                    case BrokerActions.BRK_POOL_SWAP:
+                    case BrokerActions.BRK_POOL_RMLQ:
+                        brkaccount = send.Tags["poolid"];
+                        break;
+
+                    // staking
+                    case BrokerActions.BRK_STK_ADDSTK:
+                        brkaccount = send.DestinationAccountId;
+                        break;
+                    case BrokerActions.BRK_STK_UNSTK:
+                        brkaccount = send.Tags["stkid"];
+                        break;
+
+                    // DEX
+                    //case BrokerActions.BRK_DEX_DPOREQ:
+                    case BrokerActions.BRK_DEX_MINT:
+                    case BrokerActions.BRK_DEX_GETTKN:
+                    case BrokerActions.BRK_DEX_PUTTKN:
+                    case BrokerActions.BRK_DEX_WDWREQ:
+                        brkaccount = send.Tags["dexid"];
+                        break;
+
+                    // DAO
+                    //case BrokerActions.BRK_DAO_CRDAO:
+                    case BrokerActions.BRK_DAO_JOIN:
+                    case BrokerActions.BRK_DAO_LEAVE:
+                        brkaccount = send.Tags["daoid"];
+                        break;
+
+                    case BrokerActions.BRK_DAO_CHANGE:
+                    case BrokerActions.BRK_DAO_VOTED_CHANGE:
+                        brkaccount = send.DestinationAccountId;
+                        break;
+
+                    // OTC
+                    case BrokerActions.BRK_OTC_CRODR:
+                        var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
+                        brkaccount = order.daoId;
+                        break;
+
+                    case BrokerActions.BRK_OTC_CRTRD:
+                        var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+                        brkaccount = trade.daoId;
+                        brkaccount2 = trade.orderId;
+                        break;
+
+                    case BrokerActions.BRK_OTC_TRDPAYSENT:
+                    case BrokerActions.BRK_OTC_TRDPAYGOT:
+                        brkaccount = send.Tags["tradeid"];
+                        break;
+
+                    case BrokerActions.BRK_OTC_TRDCANCEL:
+                        brkaccount = send.Tags["tradeid"];
+                        brkaccount2 = send.Tags["orderid"];
+                        brkaccount3 = send.Tags["daoid"];
+                        break;
+
+                    case BrokerActions.BRK_OTC_ORDDELST:
+                    case BrokerActions.BRK_OTC_ORDCLOSE:
+                        brkaccount = send.Tags["orderid"];
+                        brkaccount2 = send.Tags["daoid"];
+                        break;
+
+                    // OTC Dispute
+                    case BrokerActions.BRK_OTC_CRDPT:
+                    case BrokerActions.BRK_OTC_RSLDPT:
+                        brkaccount = send.DestinationAccountId; // trade id
+                        var tradeDspt = (await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId)) as IOtcTrade;
+                        brkaccount2 = tradeDspt.Trade.daoId;
+                        break;
+
+                    // Voting
+                    case BrokerActions.BRK_VOT_CREATE:
+                        var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
+                        brkaccount = subject.DaoId;
+                        break;
+
+                    case BrokerActions.BRK_VOT_VOTE:
+                    case BrokerActions.BRK_VOT_CLOSE:
+                        brkaccount = send.Tags["voteid"];
+                        break;
+
+                    case BrokerActions.BRK_DAO_CRDAO:
+                    case BrokerActions.BRK_POOL_CRPL:
+                    case BrokerActions.BRK_PFT_CRPFT:
+                    case BrokerActions.BRK_STK_CRSTK:
+                    case BrokerActions.BRK_DEX_DPOREQ:
+                    case BrokerActions.BRK_DLR_CREATE:
+                        brkaccount = null;
+                        break;
+
+                    #region universal trade
+                    case BrokerActions.BRK_UNI_CRODR:
+                        var uorder = JsonConvert.DeserializeObject<UniOrder>(send.Tags["data"]);
+                        brkaccount = uorder.daoId;
+                        break;
+
+                    case BrokerActions.BRK_UNI_CRTRD:
+                        var utrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+                        brkaccount = utrade.daoId;
+                        brkaccount2 = utrade.orderId;
+                        break;
+
+                    case BrokerActions.BRK_UNI_TRDPAYSENT:
+                    case BrokerActions.BRK_UNI_TRDPAYGOT:
+                        brkaccount = send.Tags["tradeid"];
+                        break;
+
+                    case BrokerActions.BRK_UNI_TRDCANCEL:
+                        brkaccount = send.Tags["tradeid"];
+                        brkaccount2 = send.Tags["orderid"];
+                        brkaccount3 = send.Tags["daoid"];
+                        break;
+
+                    case BrokerActions.BRK_UNI_ORDDELST:
+                    case BrokerActions.BRK_UNI_ORDCLOSE:
+                        brkaccount = send.Tags["orderid"];
+                        brkaccount2 = send.Tags["daoid"];
+                        break;
+
+                    // Uni Dispute
+                    case BrokerActions.BRK_UNI_CRDPT:
+                    case BrokerActions.BRK_UNI_RSLDPT:
+                        brkaccount = send.DestinationAccountId; // trade id
+                        var utradeDspt = (await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId)) as IUniTrade;
+                        brkaccount2 = utradeDspt.Trade.daoId;
+                        break;
+                    #endregion
+
+                    case BrokerActions.BRK_DLR_UPDATE:
+                        brkaccount = null;
+                        break;
+
+                    default:
+                        Console.WriteLine($"Unknown REQ Action: {action}");
+                        brkaccount = null;
+                        break;
+                };
+
+                
+                if (brkaccount != null)
+                    strs.Add(brkaccount);
+                if (brkaccount2 != null)
+                    strs.Add(brkaccount2);
+                if (brkaccount3 != null)
+                    strs.Add(brkaccount3);
+
+                strs.Add(send.AccountID);       // itself
+            }
+            else if (trans is ReceiveTransferBlock recv)
+            {
+                strs = new List<string> { recv.AccountID };
+            }
+
+            return new LockerDTO
+            {
+                reqhash = trans.Hash,
+                haswf = action != null,
+                lockedups = strs,
+                seqhashes = new List<string>()
+            };
         }
 
-        public virtual Task<List<string>> GetLockedAccountIds(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public virtual async Task<List<string>> GetLockedAccountIdsAsync(DagSystem sys, TransactionBlock trans)
         {
-            return GetBrokerAccountIDAsync(sys, send);
+            var dto = await GetLocketDTOAsync(sys, trans);
+            return dto.lockedups;
         }
         public abstract Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
 

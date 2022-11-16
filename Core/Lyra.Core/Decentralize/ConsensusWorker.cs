@@ -152,7 +152,11 @@ namespace Lyra.Core.Decentralize
                 // first try auth locally
                 if (_state == null)
                 {
-                    _state = _context.CreateAuthringState(msg, sourceValid);
+                    var statex = await _context.CreateAuthringStateAsync(msg, sourceValid);
+                    if (statex.result != APIResultCodes.Success || statex.state == null)
+                        return;
+
+                    _state = statex.state;
                 }
 
                 // if source is invalid, we just listen to the network. 

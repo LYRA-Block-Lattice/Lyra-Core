@@ -5,6 +5,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.WorkFlow;
 using Lyra.Data;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging;
@@ -774,9 +775,9 @@ namespace Lyra.Core.Decentralize
                     MsgType = ChatMessageType.AuthorizerPrePrepare
                 };
 
-                var state = CreateAuthringState(msg, true);
+                var statex = await CreateAuthringStateAsync(msg, true);
 
-                await SubmitToConsensusAsync(state);
+                await SubmitToConsensusAsync(statex.state);
             }
         }
 
@@ -793,24 +794,68 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = CreateAuthringState(msg, true);
-
-            var sent = await SubmitToConsensusAsync(state);
-            if(sent)
+            var statex = await CreateAuthringStateAsync(msg, true);
+            if(statex.result == APIResultCodes.Success)
             {
-                await state.WaitForCloseAsync();
+                var state = statex.state;
+                var sent = await SubmitToConsensusAsync(statex.state);
+                if (sent)
+                {
+                    await state.WaitForCloseAsync();
 
-                return (state.CommitConsensus, state.GetMajorErrorCode());
+                    return (state.CommitConsensus, state.GetMajorErrorCode());
+                }
+                else
+                {
+                    return (null, APIResultCodes.DoubleSpentDetected);
+                }
             }
             else
             {
-                return (null, APIResultCodes.DoubleSpentDetected);
+                return (null, statex.result);
             }
         }
 
-        public AuthState CreateAuthringState(AuthorizingMsg msg, bool sourceValid)
+        public async Task<(APIResultCodes result, AuthState? state)> CreateAuthringStateAsync(AuthorizingMsg msg, bool sourceValid)
         {
             _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
+
+            if (msg.Block is TransactionBlock trans)
+            {
+                // check if a block is generated from workflow which as locked several chains.
+                bool InWFOK = false;
+                if (trans is IBrokerAccount brkr)
+                {
+                    if(_lockers.ContainsKey(brkr.RelatedTx) && _lockers[brkr.RelatedTx].lockedups.Contains(trans.AccountID))
+                    {
+                        // then should be ok
+                        InWFOK = true;
+                    }
+                    else
+                    {
+                        _log.LogWarning($"maybe missing locked IDs for {trans.Hash} in wf {brkr.RelatedTx}");
+                    }
+                }
+
+                if (!InWFOK)
+                {
+                    // check locker here
+                    var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, trans);
+                    foreach (var str in lockdto.lockedups)
+                    {
+
+
+                        if (_lockers.Any(a => a.Value.lockedups.Contains(str)))
+                        {
+                            // some account was locked!
+                            return (APIResultCodes.ResourceIsBusy, null);
+                        }
+                    }
+
+                    Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
+                    _lockers.TryAdd(lockdto.reqhash, lockdto);
+                }
+            }
 
             AuthState state;
             if (msg.Block is ServiceBlock sb)
@@ -830,7 +875,7 @@ namespace Lyra.Core.Decentralize
 
             state.IsSourceValid = sourceValid;
 
-            return state;
+            return (APIResultCodes.Success, state);
         }
 
         private class LocalDbSyncState
