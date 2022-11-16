@@ -270,11 +270,11 @@ namespace Lyra.Core.WorkFlow
             var index = blocks.Count - (cnt ? 0 : 1);
             if (index >= operations.Length)
             {
-                Console.WriteLine($"{desc.Action} step: {index}/{operations.Length}");
+                Console.WriteLine($"{desc.Action} step: {index}/{operations.Length} {operations[index].Method.Name}");
                 return null;
             }                
 
-            Console.WriteLine($"{desc.Action} step: {index}/{operations.Length}");
+            Console.WriteLine($"{desc.Action} step: {index}/{operations.Length} {operations[index].Method.Name}");
 
             return await operations[index](sys, send);
         }

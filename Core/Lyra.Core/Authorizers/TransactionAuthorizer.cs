@@ -310,6 +310,9 @@ namespace Lyra.Core.Authorizers
                 var tokenCode = chg.Key;
                 var tokenAmount = chg.Value;
 
+                if (tokenCode.ToLower().StartsWith("nft/") && Math.Round(tokenAmount, 0) != tokenAmount)
+                    return APIResultCodes.InvalidNonFungibleAmount;
+
                 if(tokenCode.Contains("#"))
                 {
                     tokenCode = tokenCode.Split('#')[0];

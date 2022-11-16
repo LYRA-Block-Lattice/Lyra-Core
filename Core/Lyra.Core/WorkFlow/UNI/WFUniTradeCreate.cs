@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 namespace Lyra.Core.WorkFlow
 {
     [LyraWorkFlow]//v
-    public class WFUniTradeCreate : WorkFlowBase
+    public class WFUniTradeCreate : UniSharedWFCode
     {
         public override WorkFlowDescription GetDescription()
         {
@@ -57,8 +57,13 @@ namespace Lyra.Core.WorkFlow
                     TradeGenesisReceiveAsync,
                                         
                     // bellow auto trade
+                    // for buyer
                     SendCryptoProductFromTradeToBuyerAsync,
-                    SendCollateralFromDAOToTradeOwnerAsync
+                    SendCollateralFromDAOToBuyerAsync,
+
+                    // for seller
+                    SealOrderAsync, 
+                    SendCollateralToSellerAsync
                 });
             }
             else
@@ -315,7 +320,7 @@ namespace Lyra.Core.WorkFlow
                 Trade = trade,
             };
 
-            var wfstr = WFState.Finished.ToString();
+            string wfstr;
             if (LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.Token
                 || LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.NFT)
 
@@ -327,6 +332,7 @@ namespace Lyra.Core.WorkFlow
             else
             {
                 Uniblock.UTStatus = UniTradeStatus.Open;
+                wfstr = WFState.Finished.ToString();
             }
 
             Uniblock.Balances.Add(trade.offering, trade.amount.ToBalanceLong());
@@ -358,9 +364,9 @@ namespace Lyra.Core.WorkFlow
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralFromDAOToBuyerAsync(DagSystem sys, SendTransferBlock send)
         {
-            Console.WriteLine("Call SendCollateralFromDAOToTradeOwnerAsync");
+            Console.WriteLine("Call SendCollateralFromDAOToBuyerAsync");
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var lastblock = blocks.LastOrDefault() as TransactionBlock;
             var tradelatest = lastblock;

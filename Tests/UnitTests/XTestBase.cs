@@ -100,11 +100,11 @@ namespace UnitTests
             //start the workflow host
             var host = serviceProvider.GetService<IWorkflowHost>();
 
-            var alltypes = typeof(DebiWorkflow)
-                .Assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
+            //var alltypes = typeof(DebiWorkflow)
+            //    .Assembly.GetTypes()
+            //    .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
 
-            foreach (var type in alltypes)
+            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
             {
                 var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                     .Where(a => a.Name == "RegisterWorkflow")
