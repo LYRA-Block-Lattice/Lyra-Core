@@ -541,7 +541,7 @@ namespace UnitTests
             {
                 foreach(var l in cs.Lockedups)
                 {
-                    Console.WriteLine($"In Locking: {l}");
+                    Console.WriteLine($"Pending Locking: {l}");
                 }
             }
             Console.WriteLine();

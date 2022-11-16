@@ -178,7 +178,7 @@ namespace Lyra.Core.Accounts
 
             _ = Task.Run(async () =>
             {
-                Console.WriteLine("ensure mongodb index...");
+                //Console.WriteLine("ensure mongodb index...");
 
                 try
                 {

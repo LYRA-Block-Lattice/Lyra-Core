@@ -104,7 +104,7 @@ namespace Lyra.Core.Decentralize
 
         public void SetView(IList<string> validNodes)
         {
-            _log.LogInformation($"SetView: Authorize with {validNodes.Count} nodes.");
+            //_log.LogInformation($"SetView: Authorize with {validNodes.Count} nodes.");
             _validNodes = validNodes;
         }
 

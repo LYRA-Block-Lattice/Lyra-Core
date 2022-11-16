@@ -972,7 +972,7 @@ namespace Lyra.Core.Decentralize
             {
                 if (evt.Reference == "Exited")
                 {
-                    _log.LogInformation($"Workflow of {lkdto.reqhash} is terminated. ");
+                    _log.LogInformation($"Workflow {lkdto.reqhash} created {lkdto.seqhashes.Count} blocks is terminated. ");
                     _lockers.TryRemove(lkdto.reqhash, out _);
 
                     OnWorkflowFinished?.Invoke(lkdto.reqhash, true);
@@ -1907,7 +1907,7 @@ namespace Lyra.Core.Decentralize
                     // block auth failed. no workflow
                     _lockers.TryRemove(block.Hash, out _);
 
-                    OnBlockFinished?.Invoke(block.Hash, result == ConsensusResult.Nay);
+                    OnBlockFinished?.Invoke(block.Hash, result == ConsensusResult.Yea);
                 }
             }
 
@@ -1925,13 +1925,13 @@ namespace Lyra.Core.Decentralize
             if(result != ConsensusResult.Uncertain)
                 _successBlockCount++;
 
-            _log.LogInformation($"Worker_OnConsensusSuccess {block.Hash.Shorten()} {block.BlockType} {block.Height} result: {result} local is good: {localIsGood}");
+            //_log.LogInformation($"Worker_OnConsensusSuccess {block.Hash.Shorten()} {block.BlockType} {block.Height} result: {result} local is good: {localIsGood}");
 
             // no, don't remove so quick. we will still receive message related to it.
             // should be better solution for high tps to avoid queue increase too big.
             // tps 100 * timeout 20s = 2k buffer, sounds we can handle it.
             //_activeConsensus.TryRemove(block.Hash, out _);
-            _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count} Locked: {LockedCount}");
+            //_log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count} Locked: {LockedCount}");
 
             if (result == ConsensusResult.Yea)
                 _sys.NewBlockGenerated(block);

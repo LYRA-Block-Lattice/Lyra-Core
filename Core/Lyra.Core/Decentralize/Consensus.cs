@@ -818,22 +818,34 @@ namespace Lyra.Core.Decentralize
 
         public async Task<(APIResultCodes result, AuthState? state)> CreateAuthringStateAsync(AuthorizingMsg msg, bool sourceValid)
         {
-            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
+            //_log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
 
             if (msg.Block is TransactionBlock trans)
             {
-                // check if a block is generated from workflow which as locked several chains.
+                // check if a block is generated from workflow which has locked several chains.
                 bool InWFOK = false;
                 if (trans is IBrokerAccount brkr)
                 {
-                    if(_lockers.ContainsKey(brkr.RelatedTx) && _lockers[brkr.RelatedTx].lockedups.Contains(trans.AccountID))
+                    if(_lockers.ContainsKey(brkr.RelatedTx))
                     {
-                        // then should be ok
                         InWFOK = true;
-                    }
-                    else
-                    {
-                        _log.LogWarning($"maybe missing locked IDs for {trans.Hash} in wf {brkr.RelatedTx}");
+
+                        // add the new block to locker dto
+                        var lockdto = _lockers[brkr.RelatedTx];
+                        lockdto.seqhashes.Add(trans.Hash);
+
+                        if (lockdto.lockedups.Contains(trans.AccountID))
+                        {
+                            // then should be ok
+                            
+                            
+                            // cascading lock? no.
+                            //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
+                        }
+                        else
+                        {
+                            lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
+                        }
                     }
                 }
 

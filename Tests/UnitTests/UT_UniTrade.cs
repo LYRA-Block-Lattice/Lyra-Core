@@ -53,7 +53,7 @@ namespace UnitTests
             #endregion
 
 
-            Console.WriteLine("Test sell nft OTC to test2");
+            Console.WriteLine("Test sell nft OTC to test2 for fiat");
             await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);
 
             //Console.WriteLine("Test sell nft to test2");
