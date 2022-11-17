@@ -216,26 +216,31 @@ namespace Lyra.Core.Decentralize
                         await cs.ConsolidateBlocksAsync();
 
                         // monitor workflow and lockups
-                        foreach(var lckdto in cs._lockers.Values.ToArray())
+                        if(cs._lockers.Count > 0)
                         {
-                            if(lckdto.haswf && lckdto.workflowid != null)
+                            foreach (var lckdto in cs._lockers.Values.ToArray())
                             {
-                                var wf = cs._hostEnv.GetWorkflowHost().PersistenceStore.GetWorkflowInstance(lckdto.workflowid);
-                                if(wf == null)
+                                if (lckdto.haswf && lckdto.workflowid != null)
                                 {
-                                    cs._lockers.TryRemove(lckdto.reqhash, out _);
-                                    cs._log.LogWarning($"remove locker for wf exit {lckdto.reqhash}.");
+                                    var wf = cs._hostEnv.GetWorkflowHost().PersistenceStore.GetWorkflowInstance(lckdto.workflowid);
+                                    if (wf == null)
+                                    {
+                                        cs._lockers.TryRemove(lckdto.reqhash, out _);
+                                        cs._log.LogWarning($"remove locker for wf exit {lckdto.reqhash}.");
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                if(!cs._activeConsensus.ContainsKey(lckdto.reqhash))
+                                else
                                 {
-                                    cs._lockers.TryRemove(lckdto.reqhash, out _);
-                                    cs._log.LogWarning($"remove locker for consensus out {lckdto.reqhash}.");
+                                    if (!cs._activeConsensus.ContainsKey(lckdto.reqhash))
+                                    {
+                                        cs._lockers.TryRemove(lckdto.reqhash, out _);
+                                        cs._log.LogWarning($"remove locker for consensus out {lckdto.reqhash}.");
 
+                                    }
                                 }
                             }
+
+                            cs._log.LogWarning($"Locker count: {cs._lockers.Count}");
                         }
                     }
                 }
