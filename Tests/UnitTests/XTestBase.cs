@@ -542,14 +542,18 @@ namespace UnitTests
             //if(checklock)
             //    Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
 
-            Console.WriteLine($"Wait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done. {cs.LockedCount} locked.");
-            if(cs.LockedCount > 0)
+            if(cs != null)
             {
-                foreach(var l in cs.Lockedups)
+                Console.WriteLine($"Wait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done. {cs.LockedCount} locked.");
+                if (cs.LockedCount > 0)
                 {
-                    Console.WriteLine($"Pending Locking: {l}");
+                    foreach (var l in cs.Lockedups)
+                    {
+                        Console.WriteLine($"Pending Locking: {l}");
+                    }
                 }
             }
+
             Console.WriteLine();
         }
 

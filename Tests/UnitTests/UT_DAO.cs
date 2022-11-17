@@ -711,7 +711,7 @@ namespace UnitTests
             await WaitBlock("CancelOTCTradeAsync");
             Assert.IsTrue(cloret.Successful());
 
-            Assert.AreEqual(3, _lastAuthResult.LockedIDs.Count, "ID not locked properly");
+            Assert.AreEqual(4, _lastAuthResult.LockedIDs.Count, "ID not locked properly");
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.daoId));
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.orderId));
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.AccountID));
