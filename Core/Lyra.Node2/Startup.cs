@@ -223,16 +223,16 @@ namespace Lyra.Node2
             //    .Assembly.GetTypes()
             //    .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
 
-            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
-            {
-                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(a => a.Name == "RegisterWorkflow")
-                    .Last();
+            //foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            //{
+            //    var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            //        .Where(a => a.Name == "RegisterWorkflow")
+            //        .Last();
 
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+            //    var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
 
-                genericMethodInfo.Invoke(host, new object[] { });
-            }
+            //    genericMethodInfo.Invoke(host, new object[] { });
+            //}
 
             //host.Start(); // will start later on consensus network is ready
             var evn = app.ApplicationServices.GetService<IHostEnv>();

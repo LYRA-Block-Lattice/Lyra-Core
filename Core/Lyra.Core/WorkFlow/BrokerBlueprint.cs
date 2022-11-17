@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using WorkflowCore.Interface;
+using WorkflowCore.Services;
 
 namespace Lyra.Core.WorkFlow
 {
@@ -214,7 +216,7 @@ deactivate db
             }
         }
 
-        public void Init(AuthorizersFactory af, IAccountCollectionAsync store)
+        public void Init(AuthorizersFactory af, IAccountCollectionAsync store, IWorkflowHost host)
         {
             if (DynWorkFlows != null)
                 return;
@@ -227,6 +229,17 @@ deactivate db
             {
                 var lyrawf = (WorkFlowBase)Activator.CreateInstance(type);
                 AddWorkFlow(af, store, lyrawf);
+            }
+
+            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            {
+                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(a => a.Name == "RegisterWorkflow")
+                    .Last();
+
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+
+                genericMethodInfo.Invoke(host, new object[] { });
             }
         }
         /*
