@@ -855,8 +855,6 @@ namespace Lyra.Core.Decentralize
                     var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, trans);
                     foreach (var str in lockdto.lockedups)
                     {
-
-
                         if (_lockers.Any(a => a.Value.lockedups.Contains(str)))
                         {
                             // some account was locked!

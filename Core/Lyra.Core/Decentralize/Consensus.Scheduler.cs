@@ -12,6 +12,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using ZstdSharp.Unsafe;
 using IScheduler = Quartz.IScheduler;
 
 namespace Lyra.Core.Decentralize
@@ -213,6 +214,29 @@ namespace Lyra.Core.Decentralize
 
                         //if(!cs._activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging))
                         await cs.ConsolidateBlocksAsync();
+
+                        // monitor workflow and lockups
+                        foreach(var lckdto in cs._lockers.Values.ToArray())
+                        {
+                            if(lckdto.haswf && lckdto.workflowid != null)
+                            {
+                                var wf = cs._hostEnv.GetWorkflowHost().PersistenceStore.GetWorkflowInstance(lckdto.workflowid);
+                                if(wf == null)
+                                {
+                                    cs._lockers.TryRemove(lckdto.reqhash, out _);
+                                    cs._log.LogWarning($"remove locker for wf exit {lckdto.reqhash}.");
+                                }
+                            }
+                            else
+                            {
+                                if(!cs._activeConsensus.ContainsKey(lckdto.reqhash))
+                                {
+                                    cs._lockers.TryRemove(lckdto.reqhash, out _);
+                                    cs._log.LogWarning($"remove locker for consensus out {lckdto.reqhash}.");
+
+                                }
+                            }
+                        }
                     }
                 }
                 catch (Exception e)
