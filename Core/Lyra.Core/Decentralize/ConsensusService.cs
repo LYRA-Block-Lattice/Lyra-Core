@@ -2196,7 +2196,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private readonly Mutex _refreshNodesLocker = new Mutex(false);
+        private readonly ManualResetEvent _refreshNodesLocker = new ManualResetEvent(true);
         public void RefreshAllNodesVotes()
         {
             if (!_refreshNodesLocker.WaitOne(1))
@@ -2240,7 +2240,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                _refreshNodesLocker.ReleaseMutex();
+                _refreshNodesLocker.Set();
             }
         }
     }
