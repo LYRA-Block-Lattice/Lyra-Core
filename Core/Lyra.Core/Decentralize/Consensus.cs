@@ -833,7 +833,7 @@ namespace Lyra.Core.Decentralize
             {
                 // check if a block is generated from workflow which has locked several chains.
                 bool InWFOK = false;
-                if (trans is IBrokerAccount brkr)
+                if (trans is IBrokerAccount brkr && _lockers.ContainsKey(brkr.RelatedTx))
                 {
                     if(_lockers.ContainsKey(brkr.RelatedTx))
                     {
@@ -848,6 +848,30 @@ namespace Lyra.Core.Decentralize
                             // then should be ok
                             
                             
+                            // cascading lock? no.
+                            //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
+                        }
+                        else
+                        {
+                            lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
+                        }
+                    }
+                }
+                else if(trans is IPool pool)
+                {
+                    if (_lockers.ContainsKey(pool.RelatedTx))
+                    {
+                        InWFOK = true;
+
+                        // add the new block to locker dto
+                        var lockdto = _lockers[pool.RelatedTx];
+                        lockdto.seqhashes.Add(trans.Hash);
+
+                        if (lockdto.lockedups.Contains(trans.AccountID))
+                        {
+                            // then should be ok
+
+
                             // cascading lock? no.
                             //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
                         }
