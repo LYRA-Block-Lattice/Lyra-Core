@@ -356,6 +356,17 @@ namespace Lyra.Core.WorkFlow
             _logger.LogInformation(log);
             //Console.WriteLine(log);
 
+            await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
+            {
+                Owner = ctx.OwnerAccountId,
+                State = Message == "Workflow is done." ? "Exited" : ctx.State.ToString(),
+                Name = ctx.SvcRequest,
+                Key = ctx.SendHash,
+                Action = ctx.LastBlockType.ToString(),
+                Result = ctx.LastResult.ToString(),
+                Message = Message,
+            });
+
             return ExecutionResult.Next();
         }
     }
