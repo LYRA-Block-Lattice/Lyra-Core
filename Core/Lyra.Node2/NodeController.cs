@@ -216,7 +216,7 @@ namespace LyraLexWeb2
 
         [Route("GetTokenGenesisBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string? AccountId, string TokenTicker, string? Signature)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetTokenGenesisBlockAsync(AccountId, TokenTicker, Signature);

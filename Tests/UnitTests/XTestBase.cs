@@ -307,7 +307,8 @@ namespace UnitTests
             cs.OnWorkflowFinished += (wf, ok) =>
             {
                 //Console.WriteLine($"On workflow {wf} result {ok}");
-                _workflowEnds.Set();
+                if(wf == _workflowKey)
+                    _workflowEnds.Set();
             };
 
             // workflow init

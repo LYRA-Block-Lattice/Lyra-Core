@@ -39,6 +39,7 @@ using System.Security.Policy;
 using Lyra.Core.WorkFlow.Shared;
 using Humanizer;
 using Lyra.Core.Authorizers;
+using System.Threading.Tasks.Dataflow;
 
 namespace Lyra.Core.Decentralize
 {
@@ -976,7 +977,18 @@ namespace Lyra.Core.Decentralize
             return host;
         }
 
-        
+
+
+        //var producer = new ActionBlock<string>(async s =>
+        //{
+        //    foreach (char c in s)
+        //    {
+        //        await consumer.SendAsync(c);
+
+        //        Debug.Print($"Yielded {c}");
+        //    }
+        //});
+
         // set to public is for unit test. better solution later.
         public void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
         {
@@ -991,6 +1003,17 @@ namespace Lyra.Core.Decentralize
 
                     OnWorkflowFinished?.Invoke(lkdto.reqhash, true);
                 }
+
+                //await FireSignalrWorkflowEventAsync(new WorkflowEvent
+                //{
+                //    Owner = ctx.OwnerAccountId,
+                //    State = Message == "Workflow is done." ? "Exited" : ctx.State.ToString(),
+                //    Name = ctx.SvcRequest,
+                //    Key = ctx.SendHash,
+                //    Action = ctx.LastBlockType.ToString(),
+                //    Result = ctx.LastResult.ToString(),
+                //    Message = Message,
+                //});
             }
 
             //lock (lifeo)
