@@ -255,13 +255,13 @@ namespace Lyra.Core.Blocks
             var sb = new StringBuilder();
             foreach (var kvp in Balances)
             {
-                if (sb.Length > 0)
-                    sb.Append(", ");
-
                 if (kvp.Value == 0)
                     continue;
 
-                sb.Append($"{kvp.Key}:{kvp.Value.ToBalanceDecimal()}");
+                if (sb.Length > 0)
+                    sb.Append(", ");
+
+                sb.Append($"{kvp.Key}: {kvp.Value.ToBalanceDecimal()}");
             }
             return sb.ToString();
         }
@@ -273,7 +273,7 @@ namespace Lyra.Core.Blocks
             {
                 if (sb.Length > 0)
                     sb.Append(", ");
-                sb.Append($"{kvp.Key}: {kvp.Value}");
+                sb.Append($"{kvp.Key}:{kvp.Value}");
             }
             return sb.ToString();
         }

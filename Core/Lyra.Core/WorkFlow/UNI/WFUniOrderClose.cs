@@ -77,5 +77,17 @@ namespace Lyra.Core.WorkFlow.Uni
             }
             return APIResultCodes.Success;
         }
+
+        protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, SendTransferBlock send)
+        {
+            return await SealUniOrderAsync(sys, send.Hash, send.Tags["orderid"]);
+        }
+
+        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var daoid = send.Tags["daoid"];
+            var orderid = send.Tags["orderid"];
+            return await SendCollateralToSellerAsync(sys, send.Hash, orderid);
+        }
     }
 }

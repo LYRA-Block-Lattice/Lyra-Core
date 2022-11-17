@@ -50,7 +50,7 @@ namespace Lyra.Core.WorkFlow
 
             if (IsBidToken && IsOfferToken)
             {
-                Console.WriteLine("Auto trade for both token is enabled.");
+                //Console.WriteLine("Auto trade for both token is enabled.");
                 // when both binding and offering are token/nft, the trade will be finish automatically.
                 return Task.FromResult(new[] {
                     SendTokenFromOrderToTradeAsync,
@@ -396,7 +396,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Finished,
+                () => WFState.Running,
                 (b) =>
                 {
                     // block
@@ -411,6 +411,18 @@ namespace Lyra.Core.WorkFlow
                     oldbalance[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
                     b.Balances = oldbalance.ToLongDict();
                 });
+        }
+
+        protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+            return await SealUniOrderAsync(sys, send.Hash, unitrade.orderId);
+        }
+
+        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+            return await SendCollateralToSellerAsync(sys, send.Hash, unitrade.orderId);
         }
     }
 }

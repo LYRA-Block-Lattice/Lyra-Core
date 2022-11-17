@@ -48,7 +48,7 @@ namespace UnitTests
             var nftg1 = await CreateTestNFTAsync(testWallet);
             Assert.IsNotNull(nftg1);
 
-            var nftg2 = await CreateTestNFTAsync(test2Wallet);
+            var nftg2 = await CreateTestNFTAsync(testWallet);
             Assert.IsNotNull(nftg2);
             #endregion
             var t = CreateTestNFTAsync(test2Wallet);
@@ -56,8 +56,8 @@ namespace UnitTests
             Console.WriteLine("Test sell nft OTC to test2 for fiat");
             await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);
 
-            //Console.WriteLine("Test sell nft to test2");
-            //await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
+            Console.WriteLine("Test sell nft to test2");
+            await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
 
             // after test, dump the database statistics
 
@@ -536,7 +536,7 @@ namespace UnitTests
             // after trading, the balance should be
             var collateralCount = 100_000;
             var offeringBalanceShouldBe = offeringBalanceInput 
-                - (bidingGen.DomainName == "fiat" ? 3 : 3)        // sending fee
+                - (bidingGen.DomainName == "fiat" ? 3 : -1)        // sending fee
                 - LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
                 - collateralCount * (LyraGlobal.OfferingNetworkFeeRatio + dao.SellerFeeRatio);
             var bidingBalanceShouldBe = bidingBalanceInput
@@ -552,7 +552,7 @@ namespace UnitTests
                 + LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
                 + collateralCount * dao.SellerFeeRatio
                 + collateralCount * dao.BuyerFeeRatio
-                - 1         // a send
+                + (bidingGen.DomainName == "fiat" ? -1 : -2)         // a send
                 ;
 
             Assert.IsTrue(offeringWallet.GetLastSyncBlock().Balances[offeringGen.Ticker] > 0);

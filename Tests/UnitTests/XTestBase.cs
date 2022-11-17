@@ -532,7 +532,7 @@ namespace UnitTests
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 #if DEBUG
-            var ret = _workflowEnds.WaitOne(3000);
+            var ret = _workflowEnds.WaitOne(300000);
 #else
             var ret = _workflowEnds.WaitOne(3000);
 #endif
@@ -568,6 +568,7 @@ namespace UnitTests
             if(networkId == "xtest")
             {
                 TestSetup();
+                await Task.Delay(100);      // make sure mongodb clean all.
                 await CreateTestBlockchainAsync();
             }                
             else

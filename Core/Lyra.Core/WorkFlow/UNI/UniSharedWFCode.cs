@@ -27,13 +27,11 @@ namespace Lyra.Core.WorkFlow.Uni
             throw new Exception("Shared code. Should not call me.");
         }
 
-        protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SealUniOrderAsync(DagSystem sys, string wfkey, string orderid)
         {
-            var daoid = send.Tags["daoid"];
-            var orderid = send.Tags["orderid"];
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
 
-            var blockNext = await TransactionOperateAsync(sys, send.Hash, lastblock,
+            var blockNext = await TransactionOperateAsync(sys, wfkey, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),
                 () => WFState.Running,
                 (b) =>
@@ -59,11 +57,10 @@ namespace Lyra.Core.WorkFlow.Uni
             return blockNext;
         }
 
-        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, string wfkey, string orderid)
         {
-            var daoid = send.Tags["daoid"];
-            var orderid = send.Tags["orderid"];
             var orderlatest = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
+            var daoid = (orderlatest as IUniOrder).Order.daoId;
             var daolastblock = await sys.Storage.FindLatestBlockAsync(daoid) as TransactionBlock;
 
             // get dao for order genesis
@@ -111,7 +108,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 // broker
                 Name = ((IBrokerAccount)daolastblock).Name,
                 OwnerAccountId = ((IBrokerAccount)daolastblock).OwnerAccountId,
-                RelatedTx = send.Hash,
+                RelatedTx = wfkey,
 
                 // profiting
                 PType = ((IProfiting)daolastblock).PType,
