@@ -145,7 +145,7 @@ namespace Lyra.Core.Decentralize
             _af = new AuthorizersFactory();
             _af.Init();
             _bf = new BrokerFactory();
-            _bf.Init(_af, _sys.Storage, _hostEnv.GetWorkflowHost());
+            _bf.Init(_af, _sys.Storage);
 
             if (localNode == null)
             {
@@ -953,6 +953,20 @@ namespace Lyra.Core.Decentralize
             bool shutdown = (bool)finfo.GetValue(host);
             if (shutdown)
             {
+                if(Settings.Default.LyraNode.Lyra.NetworkId != "xtest")
+                {
+                    foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+                    {
+                        var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                            .Where(a => a.Name == "RegisterWorkflow")
+                            .Last();
+
+                        var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+
+                        genericMethodInfo.Invoke(host, new object[] { });
+                    }
+                }
+
                 _log.LogInformation("Start workflow host.Start()");
                 host.OnStepError += Host_OnStepError;
                 host.OnLifeCycleEvent += Host_OnLifeCycleEvent;

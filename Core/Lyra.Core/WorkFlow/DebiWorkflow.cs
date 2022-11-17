@@ -272,7 +272,7 @@ namespace Lyra.Core.WorkFlow
                     .Input(step => step.Message, data => $"Workflow is done.")
                 .Then(a =>
                 {
-                    Console.WriteLine("WF Ends.");
+                    //Console.WriteLine("WF Ends.");
                     a.Workflow.Reference = "Exited";
                     //ConsensusService.Singleton.UnLockIds(LockingIds);
                 })

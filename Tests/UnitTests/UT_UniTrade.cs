@@ -52,7 +52,6 @@ namespace UnitTests
             Assert.IsNotNull(nftg2);
             #endregion
             var t = CreateTestNFTAsync(test2Wallet);
-            var x = t.Result;
 
             Console.WriteLine("Test sell nft OTC to test2 for fiat");
             await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);
@@ -61,7 +60,6 @@ namespace UnitTests
             //await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
 
             // after test, dump the database statistics
-
 
             await TestChangeDAO();
 
@@ -538,11 +536,11 @@ namespace UnitTests
             // after trading, the balance should be
             var collateralCount = 100_000;
             var offeringBalanceShouldBe = offeringBalanceInput 
-                - (bidingGen.DomainName == "fiat" ? 4 : 3)        // sending fee
+                - (bidingGen.DomainName == "fiat" ? 3 : 3)        // sending fee
                 - LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
                 - collateralCount * (LyraGlobal.OfferingNetworkFeeRatio + dao.SellerFeeRatio);
             var bidingBalanceShouldBe = bidingBalanceInput
-                - (bidingGen.DomainName == "fiat" ? 6 : 1)         // sending fee
+                - (bidingGen.DomainName == "fiat" ? 3 : 1)         // sending fee
                 - collateralCount * (LyraGlobal.BidingNetworkFeeRatio + dao.BuyerFeeRatio);
             var offeringBalanceTokenInput = offeringWallet.GetLastSyncBlock().Balances[offeringGen.Ticker].ToBalanceDecimal();
             var bidingBalanceTokenInput = bidingWallet.GetLastSyncBlock().Balances.ContainsKey(offeringGen.Ticker) ?
@@ -553,11 +551,16 @@ namespace UnitTests
             var daoBalanceShouldBe = daoBalanceInput
                 + LyraGlobal.GetListingFeeFor(LyraGlobal.GetHoldTypeFromTicker(offeringGen.Ticker))
                 + collateralCount * dao.SellerFeeRatio
-                + collateralCount * dao.BuyerFeeRatio;
+                + collateralCount * dao.BuyerFeeRatio
+                - 1         // a send
+                ;
 
             Assert.IsTrue(offeringWallet.GetLastSyncBlock().Balances[offeringGen.Ticker] > 0);
             if (bidingGen.DomainName != "fiat")
                 Assert.IsTrue(bidingWallet.GetLastSyncBlock().Balances[bidingGen.Ticker] > 0);
+
+            await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
+                    dao.AccountID);
 
             var crypto = offeringGen.Ticker;
 
@@ -621,6 +624,9 @@ namespace UnitTests
             var Unig = Unis.Last() as UniOrderGenesisBlock;
             Assert.IsTrue(order.Equals(Unig.Order), "Uni order not equal.");
 
+            await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
+                dao.AccountID, Unig.AccountID);
+
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
             var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
@@ -659,6 +665,17 @@ namespace UnitTests
                 Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
                 Assert.AreEqual(UniTradeStatus.OfferReceived, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
                     $"Trade status not changed to ProductReleased");
+
+                // trade is ok. now its time to close the order
+                var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
+                Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
+
+                await WaitWorkflow($"CloseUniOrderAsync");
+                var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+                Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
+                Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret.GetBlock() as IUniOrder).UOStatus,
+                    $"Order status not changed to Closed: {(ordfnlret.GetBlock() as IUniOrder).UOStatus}");
+                Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
             }
 
             await test2Wallet.SyncAsync(null);
@@ -736,6 +753,9 @@ namespace UnitTests
             //    $"Trade after {direction} ownerWallet balance of crypto should be {100010m - x - 100} but {bal2}");
 
             // dao should be kept
+
+            await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
+                dao.AccountID, Unig.AccountID, tradgen.AccountID);
 
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");

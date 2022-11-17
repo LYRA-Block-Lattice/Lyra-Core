@@ -55,10 +55,11 @@ namespace Lyra.Core.WorkFlow.Uni
             if ((orderblk as IBrokerAccount).OwnerAccountId != send.AccountID)
                 return APIResultCodes.NotSellerOfTrade;
 
-            if ((orderblk as IUniOrder).UOStatus != UniOrderStatus.Open &&
-                (orderblk as IUniOrder).UOStatus != UniOrderStatus.Partial &&
-                (orderblk as IUniOrder).UOStatus != UniOrderStatus.Delist)
-                return APIResultCodes.InvalidOrderStatus;
+            // the order may has already closed because no tradable assert avaliable.
+            //if ((orderblk as IUniOrder).UOStatus != UniOrderStatus.Open &&
+            //    (orderblk as IUniOrder).UOStatus != UniOrderStatus.Partial &&
+            //    (orderblk as IUniOrder).UOStatus != UniOrderStatus.Delist)
+            //    return APIResultCodes.InvalidOrderStatus;
 
             var trades = await sys.Storage.FindUniTradeForOrderAsync(orderid);
             if(trades.Any())

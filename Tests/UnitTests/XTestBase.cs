@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -332,7 +333,7 @@ namespace UnitTests
             var _af = new AuthorizersFactory();
             _af.Init();
             var _bf = new BrokerFactory();
-            _bf.Init(_af, null, host);
+            _bf.Init(_af, null);
 
             await Task.Delay(100);
 
@@ -621,6 +622,36 @@ namespace UnitTests
             Assert.AreEqual(test4PublicKey, test4Wallet.AccountId);
 
             await test4Wallet.SyncAsync(client);
+        }
+
+        protected async Task PrintBalancesForAsync(params string[] accountids)
+        {
+            foreach (var x in accountids)
+            {
+                var ret = await client.GetLastBlockAsync(x);
+                if (ret.Successful())
+                {
+                    var block = ret.GetBlock() as TransactionBlock;
+                    PrintBalance(block.BlockType.ToString(), block);
+                }
+                else
+                {
+                    Console.WriteLine($"Print Balance failed: {ret.ResultCode}");
+                }
+            }
+        }
+
+        protected void PrintBalances(params TransactionBlock[] blocks)
+        {
+            foreach(var x in blocks)
+            {
+                PrintBalance(x.BlockType.ToString(), x);
+            }
+        }
+
+        protected void PrintBalance(string name, TransactionBlock trans)
+        {
+            Console.WriteLine($"Balance: {name}, {trans.BalanceToReadString()}");
         }
 
         protected async Task SetupEventsListener()

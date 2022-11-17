@@ -202,6 +202,7 @@ namespace Lyra.Core.WorkFlow
                     {
                         amount = ((IUniOrder)lastblock).Order.amount - trade.amount,
                     });
+
                     nextOdr.UOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
                         UniOrderStatus.Closed : UniOrderStatus.Partial;
 

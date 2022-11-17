@@ -216,7 +216,7 @@ deactivate db
             }
         }
 
-        public void Init(AuthorizersFactory af, IAccountCollectionAsync store, IWorkflowHost host)
+        public void Init(AuthorizersFactory af, IAccountCollectionAsync store)
         {
             if (DynWorkFlows != null)
                 return;
@@ -229,17 +229,6 @@ deactivate db
             {
                 var lyrawf = (WorkFlowBase)Activator.CreateInstance(type);
                 AddWorkFlow(af, store, lyrawf);
-            }
-
-            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
-            {
-                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(a => a.Name == "RegisterWorkflow")
-                    .Last();
-
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
-
-                genericMethodInfo.Invoke(host, new object[] { });
             }
         }
         /*
