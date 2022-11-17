@@ -777,7 +777,16 @@ namespace Lyra.Core.Decentralize
 
                 var statex = await CreateAuthringStateAsync(msg, true);
 
-                await SubmitToConsensusAsync(statex.state);
+                if(statex.result != APIResultCodes.Success || statex.state == null)
+                {
+                    _log.LogWarning($"Failed to CreateAuthringStateAsync: {statex.result}");
+                }
+
+                var submitret = await SubmitToConsensusAsync(statex.state);
+                if(!submitret)
+                {
+                    _log.LogWarning($"Failed to SubmitToConsensusAsync.");
+                }
             }
         }
 
