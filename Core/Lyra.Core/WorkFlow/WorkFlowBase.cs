@@ -79,6 +79,7 @@ namespace Lyra.Core.WorkFlow
             {
                 if (ConsensusService.Singleton.CheckIfIdIsLocked(lockedId))
                 {
+                    Console.WriteLine($"Resource is busy for workflow: {lockedId}");
                     return new WrokflowAuthResult
                     {
                         LockedIDs = lockedIDs,

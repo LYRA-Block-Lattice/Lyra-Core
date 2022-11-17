@@ -272,6 +272,7 @@ namespace Lyra.Core.Decentralize
                     foreach (var id in tmpResult.LockedIDs)
                         if (_context.CheckIfIdIsLocked(id))
                         {
+                            _log.LogWarning($"Resource is locked for account: {id}");
                             busy = true;
                             break;
                         }  

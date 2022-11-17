@@ -858,6 +858,7 @@ namespace Lyra.Core.Decentralize
                         if (_lockers.Any(a => a.Value.lockedups.Contains(str)))
                         {
                             // some account was locked!
+                            _log.LogWarning($"Resource is locked: {str}");
                             return (APIResultCodes.ResourceIsBusy, null);
                         }
                     }
