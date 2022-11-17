@@ -2199,11 +2199,11 @@ namespace Lyra.Core.Decentralize
         private readonly Mutex _refreshNodesLocker = new Mutex(false);
         public void RefreshAllNodesVotes()
         {
+            if (!_refreshNodesLocker.WaitOne(1))
+                return;
+
             try
             {
-                if (!_refreshNodesLocker.WaitOne(1))
-                    return;
-
                 // remove stalled nodes
                 // debug only
                 foreach (var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)))

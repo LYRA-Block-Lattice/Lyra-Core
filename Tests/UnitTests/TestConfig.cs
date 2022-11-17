@@ -17,10 +17,10 @@ namespace UnitTests
         [AssemblyInitialize()]
         public static void MyTestInitialize(TestContext testContext)
         {
-            var _af = new AuthorizersFactory();
-            _af.Init();
-            var _bf = new BrokerFactory();
-            _bf.Init(_af, null);
+            //var _af = new AuthorizersFactory();
+            //_af.Init();
+            //var _bf = new BrokerFactory();
+            //_bf.Init(_af, null);
         }
     }
 

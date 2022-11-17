@@ -51,7 +51,8 @@ namespace UnitTests
             var nftg2 = await CreateTestNFTAsync(test2Wallet);
             Assert.IsNotNull(nftg2);
             #endregion
-
+            var t = CreateTestNFTAsync(test2Wallet);
+            var x = t.Result;
 
             Console.WriteLine("Test sell nft OTC to test2 for fiat");
             await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);

@@ -329,6 +329,11 @@ namespace UnitTests
             _env.SetWorkflowHost(host);
             cs.StartWorkflowEngine();
 
+            var _af = new AuthorizersFactory();
+            _af.Init();
+            var _bf = new BrokerFactory();
+            _bf.Init(_af, null, host);
+
             await Task.Delay(100);
 
             cs.OnNewBlock += async (b) => (ConsensusResult.Yea, (await AuthAsync(b)).ResultCode);
