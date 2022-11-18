@@ -41,6 +41,7 @@ using Humanizer;
 using Lyra.Core.Authorizers;
 using System.Threading.Tasks.Dataflow;
 using Akka.Util;
+using Loyc.Collections;
 
 namespace Lyra.Core.Decentralize
 {
@@ -1023,14 +1024,16 @@ namespace Lyra.Core.Decentralize
         // set to public is for unit test. better solution later.
         public void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
         {
+            _log.LogInformation($"Workflow Event: {evt.WorkflowDefinitionId} Reference {evt.Reference}");
+
             // evt: instant id is guid, defination id is req tag
             var lkdto = _lockers.Values.FirstOrDefault(a => a.workflowid == evt.WorkflowInstanceId);
             if(lkdto != null )
             {
                 if (evt.Reference == "Exited")
                 {
-                    _log.LogInformation($"Workflow {lkdto.reqhash} created {lkdto.seqhashes.Count} blocks is terminated. ");
-                    _lockers.TryRemove(lkdto.reqhash, out _);
+                    _log.LogInformation($"Workflow {lkdto.reqhash} created {lkdto.seqhashes.Count} blocks state {evt.Reference} is terminated. ");
+                    RemoveLockerDTO(lkdto.reqhash);
 
                     OnWorkflowFinished?.Invoke(lkdto.reqhash, true);
                 }
@@ -1069,7 +1072,7 @@ namespace Lyra.Core.Decentralize
             var lkdto = _lockers.Values.FirstOrDefault(a => a.workflowid == workflow.Id);
             if (lkdto != null)
             {
-                _lockers.TryRemove(lkdto.reqhash, out _);
+                RemoveLockerDTO(lkdto.reqhash);
                 OnWorkflowFinished?.Invoke(lkdto.reqhash, false);                
             }
         }
@@ -1941,17 +1944,17 @@ namespace Lyra.Core.Decentralize
                 await _hubContext.Clients.All.OnEvent(new EventContainer(wfevent));
         }
 
-        public void OnWorkflowTerminated(string keyHash)
-        {
-            if (_lockers.ContainsKey(keyHash))
-            {
-                _lockers.TryRemove(keyHash, out _);
-            }
-            else
-            {
-                _log.LogWarning($"Unlock a non-exists locker DTO by key: {keyHash}");
-            }
-        }
+        //public void OnWorkflowTerminated(string keyHash)
+        //{
+        //    if (_lockers.ContainsKey(keyHash))
+        //    {
+        //        _lockers.TryRemove(keyHash, out _);
+        //    }
+        //    else
+        //    {
+        //        _log.LogWarning($"Unlock a non-exists locker DTO by key: {keyHash}");
+        //    }
+        //}
 
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {
@@ -2045,17 +2048,16 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            //if (block is SendTransferBlock send &&
-            //    send.Tags != null &&
-            //    send.Tags.ContainsKey(Block.REQSERVICETAG))
-            if (block is SendTransferBlock send)
-            {
-                SendReqs.Post((send, result));
-            }
-
+            // let any existing workflow continue execute
             if (block is TransactionBlock trans && block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
             {
                 MgmtReqs.Post((trans, result));
+            }
+            
+            // process any service request from normal user or workflow
+            if (block is SendTransferBlock send)
+            {
+                SendReqs.Post((send, result));
             }
         }
 
@@ -2109,6 +2111,37 @@ namespace Lyra.Core.Decentralize
         //    return _workFlows.FirstOrDefault(a => a.Value == id).Key;
         //}
 
+        private bool AddLockerDTO(LockerDTO dto)
+        {
+            foreach(var id in dto.lockedups)
+            {
+                if (_lockers.Values.Any(a => a.lockedups.Contains(id)))
+                    return false;
+            }
+
+            return _lockers.TryAdd(dto.reqhash, dto);            
+        }
+
+        private bool RemoveLockerDTO(string reqHash)
+        {
+            return _lockers.TryRemove(reqHash, out _);
+        }
+
+        public bool IsAccountLocked(string accountId)
+        {
+            return _lockers.Any(a => a.Value.lockedups.Contains(accountId));
+        }
+
+        public bool IsRequestLocked(string reqHash)
+        {
+            return _lockers.ContainsKey(reqHash);
+        }
+
+        public LockerDTO GetLockerDTOFromReq(string reqHash)
+        {
+            return _lockers[reqHash];
+        }
+
         public async Task ProcessServerReqBlockAsync(SendTransferBlock send, ConsensusResult? result)
         {
             if (result != ConsensusResult.Yea)
@@ -2120,33 +2153,44 @@ namespace Lyra.Core.Decentralize
 
             if (svcreqtag != null)
             {
-                var wfhost = _hostEnv.GetWorkflowHost();
-                var ctx = new LyraContext
+                // try lock some resources
+                var lkrdto = await WorkFlowBase.GetLocketDTOAsync(_sys, send);
+                var lockedok = AddLockerDTO(lkrdto);
+                if(lockedok)
                 {
-                    OwnerAccountId = send.AccountID,
-                    SendHash = send.Hash,
-                    SvcRequest = svcreqtag,
-                    State = WFState.Init,
-                };
+                    // resource locked. then we try to authorize the block.
+                    if (BrokerFactory.DynWorkFlows.ContainsKey(send.Tags[Block.REQSERVICETAG]))
+                    {
+                        //var wf = BrokerFactory.DynWorkFlows[send.Tags[Block.REQSERVICETAG]];
 
-                // id: a guid; 1st argument -> defination id: svcreq
-                var id = await wfhost.StartWorkflow(svcreqtag, ctx);
+                        //var rl = await wf.PreAuthAsync(_sys, send);
 
-                //var wf = await wfhost.PersistenceStore.GetWorkflowInstance(id);
-                var lockdto = _lockers[send.Hash]; // TODO: process key not exists.
-                lockdto.workflowid = id;
+                        //if (rl.Result == APIResultCodes.Success)
+                        //{
+                            // block is leagle. we start a workflow to process it.
+                            var wfhost = _hostEnv.GetWorkflowHost();
+                            var ctx = new LyraContext
+                            {
+                                Send = send,
+                                State = WFState.Init,
+                            };
 
-                if (!lockdto.haswf)
-                    _log.LogCritical($"Fatal!!! locker dto workflow wrong logic for {send.Hash} req: {svcreqtag}");
-
-                //_workFlows.AddOrUpdate(send.Hash, id, (key, oldid) => id);
+                            // id: a guid; 1st argument -> defination id: svcreq
+                            lkrdto.workflowid = await wfhost.StartWorkflow(svcreqtag, ctx);
+                        //}
+                        //else
+                        //{
+                        //    // unable to authorize. the send is wrong. do a refund.
+                        //}
+                    }
+                }
             }
         }
 
         public async Task ProcessManagedBlockAsync(TransactionBlock block, ConsensusResult? result)
         {
             // find the key
-            string key = null;
+            string? key = null;
             
             if(block is IPool pool)
             {
@@ -2156,15 +2200,19 @@ namespace Lyra.Core.Decentralize
             {
                 key = ib.RelatedTx;
             }
-            else if(block is ReceiveTransferBlock recv)
+            else if (block is ReceiveTransferBlock recv)
             {
                 key = recv.SourceHash;
                 //if (block.AccountID == PoolFactoryBlock.FactoryAccount)
             }
+
             // add token gateway, merchant etc.
 
-            if (key == null)
+            if (string.IsNullOrEmpty(key))
+            {
+                _log.LogError($"Should not happen: unknown mgmt block {block.BlockType} {block.Hash}");
                 return;
+            }
 
             var wfhost = _hostEnv.GetWorkflowHost();
             if(result != ConsensusResult.Yea)

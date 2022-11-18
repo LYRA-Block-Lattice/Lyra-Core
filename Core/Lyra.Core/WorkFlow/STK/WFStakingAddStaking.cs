@@ -25,8 +25,10 @@ namespace Lyra.Core.WorkFlow.STK
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+
             var chgs = block.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;

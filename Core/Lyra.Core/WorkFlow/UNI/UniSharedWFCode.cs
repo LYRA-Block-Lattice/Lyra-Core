@@ -22,7 +22,7 @@ namespace Lyra.Core.WorkFlow.Uni
             throw new Exception("Shared code. Should not call me.");
         }
 
-        public override Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             throw new Exception("Shared code. Should not call me.");
         }

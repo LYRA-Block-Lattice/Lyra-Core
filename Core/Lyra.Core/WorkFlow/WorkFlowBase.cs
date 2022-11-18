@@ -54,7 +54,18 @@ namespace Lyra.Core.WorkFlow
             return Task.FromResult((TransactionBlock)null);
         }
 
-        public virtual async Task<WrokflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        //public async Task<TransactionBlock> UnReceiveAsync(DagSystem sys, SendTransferBlock send)
+        //{
+        //    if(GetDescription().RecvVia == BrokerRecvType.None)
+        //    {
+        //        throw new Exception("Must override UnReceiveAsync");
+        //    }
+        //    var block =
+        //        await BrokerOperations.RefundViaCallback[GetDescription().RecvVia](DagSystem.Singleton, send);
+        //    return block;
+        //}
+
+        public virtual async Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             List<string> lockedIDs = null;
             try
@@ -68,7 +79,7 @@ namespace Lyra.Core.WorkFlow
 
             if(lockedIDs == null)
             {
-                return new WrokflowAuthResult
+                return new WorkflowAuthResult
                 {
                     LockedIDs = new List<string>(),
                     Result = APIResultCodes.InvalidOperation,
@@ -80,7 +91,7 @@ namespace Lyra.Core.WorkFlow
                 if (ConsensusService.Singleton.CheckIfIdIsLocked(lockedId))
                 {
                     Console.WriteLine($"Resource is busy for workflow: {lockedId}");
-                    return new WrokflowAuthResult
+                    return new WorkflowAuthResult
                     {
                         LockedIDs = lockedIDs,
                         Result = APIResultCodes.ResourceIsBusy,
@@ -88,10 +99,10 @@ namespace Lyra.Core.WorkFlow
                 }
             }
 
-            return new WrokflowAuthResult
+            return new WorkflowAuthResult
             {
                 LockedIDs = lockedIDs,
-                Result = await PreSendAuthAsync(sys, send, last)
+                Result = await PreSendAuthAsync(sys, send)
             };
         }
 
@@ -283,7 +294,7 @@ namespace Lyra.Core.WorkFlow
             var dto = await GetLocketDTOAsync(sys, trans);
             return dto.lockedups;
         }
-        public abstract Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
+        public abstract Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send);
 
         protected async Task<TransactionBlock> OneByOneAsync(DagSystem sys, SendTransferBlock send,
             params Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[] operations)

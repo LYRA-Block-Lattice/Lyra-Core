@@ -84,7 +84,7 @@ namespace Lyra.Core.WorkFlow.DAO
             return daogen;
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             decimal shareRito, sellerFeeRatio, buyerFeeRatio;
             int seats;

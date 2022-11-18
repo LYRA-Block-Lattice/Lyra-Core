@@ -36,7 +36,7 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("data") ||
@@ -89,6 +89,8 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidAmount;
 
             // verify collateral
+            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+
             var chgs = send.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.collateral)

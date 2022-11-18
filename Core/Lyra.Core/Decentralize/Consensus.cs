@@ -829,18 +829,18 @@ namespace Lyra.Core.Decentralize
         {
             //_log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
 
-            if (msg.Block is TransactionBlock trans)
+/*            if (msg.Block is TransactionBlock trans)
             {
                 // check if a block is generated from workflow which has locked several chains.
                 bool InWFOK = false;
-                if (trans is IBrokerAccount brkr && _lockers.ContainsKey(brkr.RelatedTx))
+                if (trans is IBrokerAccount brkr && IsRequestLocked(brkr.RelatedTx))
                 {
-                    if(_lockers.ContainsKey(brkr.RelatedTx))
+                    if(IsRequestLocked(brkr.RelatedTx))
                     {
                         InWFOK = true;
 
                         // add the new block to locker dto
-                        var lockdto = _lockers[brkr.RelatedTx];
+                        var lockdto = GetLockerDTOFromReq(brkr.RelatedTx);
                         lockdto.seqhashes.Add(trans.Hash);
 
                         if (lockdto.lockedups.Contains(trans.AccountID))
@@ -859,12 +859,12 @@ namespace Lyra.Core.Decentralize
                 }
                 else if(trans is IPool pool)
                 {
-                    if (_lockers.ContainsKey(pool.RelatedTx))
+                    if (IsRequestLocked(pool.RelatedTx))
                     {
                         InWFOK = true;
 
                         // add the new block to locker dto
-                        var lockdto = _lockers[pool.RelatedTx];
+                        var lockdto = GetLockerDTOFromReq(pool.RelatedTx);
                         lockdto.seqhashes.Add(trans.Hash);
 
                         if (lockdto.lockedups.Contains(trans.AccountID))
@@ -888,7 +888,7 @@ namespace Lyra.Core.Decentralize
                     var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, trans);
                     foreach (var str in lockdto.lockedups)
                     {
-                        if (_lockers.Any(a => a.Value.lockedups.Contains(str)))
+                        if (IsAccountLocked(str))
                         {
                             // some account was locked!
                             _log.LogWarning($"Resource is locked: {str}");
@@ -897,9 +897,9 @@ namespace Lyra.Core.Decentralize
                     }
 
                     //Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
-                    _lockers.TryAdd(lockdto.reqhash, lockdto);
+                    AddLockerDTO(lockdto);
                 }
-            }
+            }*/
 
             AuthState state;
             if (msg.Block is ServiceBlock sb)

@@ -30,7 +30,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
         // user pay via off-chain ways and confirm payment in OTC trade.
         // 2022.9.1 we change mind to let only dealer to change dispute state of trade.
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             if (send.Tags.Count != 1)
                 return APIResultCodes.InvalidBlockTags;

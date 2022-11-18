@@ -30,7 +30,7 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             if (send.Tags == null)
                 throw new ArgumentNullException();
@@ -152,7 +152,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeRecvBlock>(),
-                () => WFState.Init,
+                () => WFState.Running,
                 (b) =>
                 {
                     // recv

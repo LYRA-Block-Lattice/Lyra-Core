@@ -13,19 +13,19 @@ namespace Lyra.Core.WorkFlow
         WorkFlowDescription GetDescription();
         Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send);
 
-        Task<WrokflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
+        Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send);
         Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context);
         
-        /// <summary>
-        /// send funds back if auth is failed, or any new situation emerged not allow the operation.
-        /// </summary>
-        /// <param name="sys"></param>
-        /// <param name="send"></param>
-        /// <returns></returns>
+        ///// <summary>
+        ///// send funds back if auth is failed, or any new situation emerged not allow the operation.
+        ///// </summary>
+        ///// <param name="sys"></param>
+        ///// <param name="send"></param>
+        ///// <returns></returns>
         //Task<TransactionBlock> UnReceiveAsync(DagSystem sys, SendTransferBlock send);
     }
 
-    public class WrokflowAuthResult
+    public class WorkflowAuthResult
     {
         public APIResultCodes Result { get; set; }
         public List<string> LockedIDs { get; set; }

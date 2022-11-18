@@ -28,7 +28,7 @@ namespace Lyra.Core.WorkFlow.Uni
         }
 
         // user pay via off-chain ways and confirm payment in Uni trade.
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("tradeid") ||

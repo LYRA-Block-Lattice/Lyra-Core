@@ -52,7 +52,7 @@ namespace Lyra.Core.WorkFlow.OTC
             }
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("tradeid") ||
@@ -150,7 +150,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeRecvBlock>(),
-                () => WFState.Init,
+                () => WFState.Running,
                 (b) =>
                 {
                     // recv

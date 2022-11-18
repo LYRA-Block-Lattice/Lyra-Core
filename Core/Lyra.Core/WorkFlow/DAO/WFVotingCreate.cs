@@ -30,7 +30,7 @@ namespace Lyra.Core.WorkFlow.DAO
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("data") ||

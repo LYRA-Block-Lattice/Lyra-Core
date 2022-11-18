@@ -39,8 +39,6 @@ namespace UnitTests
             var daoDesc = "Doing great business!";
 
             var dao = await CreateDaoAsync(genesisWallet, daoName, daoDesc);
-            Console.WriteLine(cs.PrintProfileInfo());
-            return;
 
             // dealer is necessary.
             await TestDealerAsync();
@@ -1367,11 +1365,11 @@ namespace UnitTests
             {
                 var ret = await testWallet.ServiceRequestAsync(dealerAbi);
                 Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
-                await WaitWorkflow($"Create Dealer");
+                await WaitWorkflow(ret.TxHash, $"Create Dealer");
 
                 var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
-                Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
-                await WaitBlock($"Create Dealer 2");
+                //Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+                await WaitWorkflow(ret2.TxHash, $"Create Dealer 2");
             }
 
             // get dealers

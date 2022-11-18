@@ -23,6 +23,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -300,15 +301,17 @@ namespace UnitTests
 
             cs.OnBlockFinished += (b, ok) =>
             {
-                //Console.WriteLine($"On block {b} result {ok}");
+                Console.WriteLine($"On block {b} result {ok}");
                 _newAuth.Set();
             };
 
             cs.OnWorkflowFinished += (wf, ok) =>
             {
-                //Console.WriteLine($"On workflow {wf} result {ok}");
-                if(wf == _workflowKey)
+                Console.WriteLine($"On workflow {wf} result {ok}");
+                if (wf == _workflowKey)
                     _workflowEnds.Set();
+                else
+                    Console.WriteLine($"wf key different. expecting {_workflowKey} but {wf}");
             };
 
             // workflow init
@@ -511,11 +514,9 @@ namespace UnitTests
         protected async Task WaitBlock(string target)
         {
             Console.WriteLine($"Waiting for block: {target}");
-#if DEBUG
-            var ret = _newAuth.WaitOne(500000);
-#else
-            var ret = _newAuth.WaitOne(10000);
-#endif
+
+            var ret = _newAuth.WaitOne(Debugger.IsAttached ? 300000 : 3000);
+
             Assert.IsTrue(ret, "block not authorized properly.");
         }
 
@@ -526,15 +527,12 @@ namespace UnitTests
 
         protected async Task WaitWorkflow(string key, string target, bool checklock = true)
         {
-            _workflowKey = key;
-            _workflowEnds.Reset();
+            _workflowKey = key;            
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
-#if DEBUG
-            var ret = _workflowEnds.WaitOne(300000);
-#else
-            var ret = _workflowEnds.WaitOne(3000);
-#endif
+
+            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 300000 : 3000);
+
             _workflowEnds.Reset();
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, "workflow not finished properly.");

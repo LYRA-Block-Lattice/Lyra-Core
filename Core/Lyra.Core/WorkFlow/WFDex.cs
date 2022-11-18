@@ -29,7 +29,7 @@ namespace Lyra.Core.WorkFlow
 
         // DEX
         #region BRK_DEX_DPOREQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             var symbol = block.Tags.ContainsKey("symbol") ? block.Tags["symbol"] : null;
             if (symbol == null)
@@ -131,7 +131,7 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid == null)
@@ -227,7 +227,7 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_DEX_GETTKN
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             var dexid2 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid2 == null)
@@ -319,7 +319,7 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_DEX_PUTTKN
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             var dexid3 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid3 == null)
@@ -415,7 +415,7 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_DEX_WDWREQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             var dexid4 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid4 == null)

@@ -1,4 +1,6 @@
-﻿using Lyra.Core.API;
+﻿using Akka.Util;
+using Loyc.Collections;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
@@ -25,7 +27,7 @@ namespace Lyra.Core.WorkFlow
         public TransactionBlock block { get; set; }
         public int count { get; set; }
 
-        private ILogger _logger;
+        private ILogger<Repeator> _logger;
 
         public Repeator(ILogger<Repeator> logger)
         {
@@ -36,7 +38,7 @@ namespace Lyra.Core.WorkFlow
         // +------------------------+-----------+-------------------------+----------------------+
         // | Account Type/Send Type |  Normal   |       Service REQ       |      Management      |
         // +------------------------+-----------+-------------------------+----------------------+
-        // | Normal                 | No Action | Dataflow Action, new WF | Illegal              |
+        // | Normal                 | No Action | Dataflow Action, new WF | Never                |
         // | Broker                 | No Action | Dataflow Action, new WF | Continue in workflow |
         // +------------------------+-----------+-------------------------+----------------------+
 
@@ -46,54 +48,55 @@ namespace Lyra.Core.WorkFlow
         {
             var ctx = context.Workflow.Data as LyraContext;
 
-            _logger.LogInformation($"In Repeator, State: {ctx.State } Key: {ctx.SendHash}");
+            context.Workflow.Reference = ctx.State.ToString();
+
+            _logger.LogInformation($"In Repeator, State: {ctx.State } Key: {ctx.GetSendHash}");
             try
             {
-                var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.SvcRequest];
+                var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.GetSvcRequest()];
 
-                SendTransferBlock? sendBlock = null;
 
-                sendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(ctx.SendHash)
-                    as SendTransferBlock;
-
-                if (sendBlock == null)
+                // send block has tow catalog: having svcreq or not. workflow only process the ones having svcreq.
+                // so there are a lot of queued send blocks, triggering corresponding workflow.
+                // first try to lock the resource (get from send)
+                // if can't, delay random 10 ~ 100 ms.
+                // auth the send.
+                // if auth failed, release the lock, create an unreceive block, procceed next
+                // if auth ok, do full workflow, 
+                // when workflow done, unlock resources. procceed next
+                if(ctx.State == WFState.Init)
                 {
-                    _logger.LogCritical($"Fatal: Workflow can't find the key send block: {ctx.SendHash}");
-                    block = null;
-                    ctx.State = WFState.Error;
+                    ctx.AuthResult = await SubWorkflow.PreAuthAsync(DagSystem.Singleton, ctx.Send);
+                    Console.WriteLine($"CTX Auth result: {ctx.AuthResult.Result}");
+                    block =
+                        await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.Send, ctx.AuthResult);
+                }
+                else if(ctx.State == WFState.Refund)
+                {
+                    block =
+                        await BrokerOperations.RefundViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.Send, ctx.AuthResult);
+                }
+                else if(ctx.State == WFState.Received || ctx.State == WFState.Running)
+                {
+                    block = await SubWorkflow.MainProcAsync(DagSystem.Singleton, ctx.Send, ctx);
+                }                
+
+                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+
+                if (block != null)
+                {
+                    count++;
+                    if (!block.ContainsTag(Block.MANAGEDTAG))
+                        throw new Exception("Missing MANAGEDTAG");
+
+                    if (!Enum.TryParse(block.Tags[Block.MANAGEDTAG], out WFState mgdstate))
+                        throw new Exception("Invalid MANAGEDTAG");
+
+                    Console.WriteLine($"New block state: {mgdstate}");
+                    ctx.State = mgdstate;
                 }
                 else
-                {
-                    // send block has tow catalog: having svcreq or not. workflow only process the ones having svcreq.
-                    // so there are a lot of queued send blocks, triggering corresponding workflow.
-                    // first try to lock the resource (get from send)
-                    // if can't, delay random 10 ~ 100 ms.
-                    // auth the send.
-                    // if auth failed, release the lock, create an unreceive block, procceed next
-                    // if auth ok, do full workflow, 
-                    // when workflow done, unlock resources. procceed next
-
-                    block =
-                        await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
-                            ??
-                        await SubWorkflow.MainProcAsync(DagSystem.Singleton, sendBlock, ctx);
-
-                    _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.SendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
-
-                    if (block != null)
-                    {
-                        count++;
-                        if (!block.ContainsTag(Block.MANAGEDTAG))
-                            throw new Exception("Missing MANAGEDTAG");
-
-                        if (!Enum.TryParse(block.Tags[Block.MANAGEDTAG], out WFState mgdstate))
-                            throw new Exception("Invalid MANAGEDTAG");
-
-                        ctx.State = mgdstate;
-                    }
-                    else
-                        ctx.State = WFState.Finished;
-                }
+                    ctx.State = WFState.Finished;
             }
             catch (Exception ex)
             {
@@ -105,29 +108,74 @@ namespace Lyra.Core.WorkFlow
             return ExecutionResult.Next();
         }
     }
+        
+    //public class ContextSerializer : SerializerBase<LyraContext>
+    //{
+    //    public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, LyraContext value)
+    //    {
+    //        base.Serialize(context, args, value);
+    //    }
 
-    public enum WFState { Init, Running, Finished, ConsensusTimeout, Error, Exited };
+    //    public override LyraContext Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+    //    {
+    //        return base.Deserialize(context, args);
+    //    }
+    //}
 
-    public class ContextSerializer : SerializerBase<LyraContext>
+    /// <summary>
+    /// control the workflow itself.
+    /// </summary>
+    public enum WFState
     {
-        public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, LyraContext value)
-        {
-            base.Serialize(context, args, value);
-        }
+        /// <summary>
+        /// workflow just created. next: receive
+        /// </summary>
+        Init, 
 
-        public override LyraContext Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-        {
-            return base.Deserialize(context, args);
-        }
-    }
+        /// <summary>
+        /// we receive the request whatever it is. next: authorize to decide main loop or refund exit.
+        /// </summary>
+        Received, 
+
+        /// <summary>
+        /// failed to authorize the request. we do refund.
+        /// </summary>
+        Refund,
+
+        /// <summary>
+        /// entering main loop & extra proc
+        /// </summary>
+        Running, 
+
+        /// <summary>
+        /// all done.
+        /// </summary>
+        Finished, 
+
+        /// <summary>
+        /// special case
+        /// </summary>
+        ConsensusTimeout,
+        
+        /// <summary>
+        /// exception happened. code failed or so.
+        /// </summary>
+        Error, 
+
+        /// <summary>
+        /// workflow terminated.
+        /// </summary>
+        Exited,
+    };
 
     [BsonIgnoreExtraElements]
     public class LyraContext
     {
-        public string OwnerAccountId { get; set; }
-        public string SvcRequest { get; set; }
-        public string SendHash { get; set; }
-
+        public SendTransferBlock Send { get; set; } = null!;
+        public string GetOwnerAccountId() => Send.AccountID;
+        public string GetSvcRequest() => Send.Tags![Block.REQSERVICETAG];
+        public string GetSendHash() => Send.Hash!;
+        public WorkflowAuthResult AuthResult { get; set; }
         public WFState State { get; set; }
 
         public BlockTypes LastBlockType { get; set; }
@@ -137,6 +185,11 @@ namespace Lyra.Core.WorkFlow
 
         public int Count { get; set; }
         public int ViewChangeReqCount { get; set; }
+
+        /// <summary>
+        /// private data, shared across all steps of the workflow.
+        /// </summary>
+        public string? spec { get; set; }
 
         public TransactionBlock GetLastBlock()
         {
@@ -150,18 +203,18 @@ namespace Lyra.Core.WorkFlow
             };
             return br.GetBlock() as TransactionBlock;
         }
-        //public void SetLastBlock(TransactionBlock block)
-        //{
-        //    if (block == null)
-        //    {
-        //        LastBlockType = BlockTypes.Null;
-        //    }
-        //    else
-        //    {
-        //        LastBlockType = block.GetBlockType();
-        //        LastBlockJson = JsonConvert.SerializeObject(block);
-        //    }
-        //}
+        public void SetLastBlock(TransactionBlock block)
+        {
+            if (block == null)
+            {
+                LastBlockType = BlockTypes.Null;
+            }
+            else
+            {
+                LastBlockType = block.BlockType;
+                LastBlockJson = JsonConvert.SerializeObject(block);
+            }
+        }
         public static (BlockTypes type, string json) ParseBlock(TransactionBlock tx)
         {
             if (tx == null)
@@ -190,7 +243,7 @@ namespace Lyra.Core.WorkFlow
                             .Then<CustomMessage>()
                                 .Name("Log")
                                 .Input(step => step.Message, data => $"Block {data.GetLastBlock().Hash} submitted. Waiting for result...")
-                            .WaitFor("MgBlkDone", data => data.SendHash, data => new DateTime(data.TimeTicks, DateTimeKind.Utc))
+                            .WaitFor("MgBlkDone", data => data.GetSendHash(), data => new DateTime(data.TimeTicks, DateTimeKind.Utc))
                                 .Output(data => data.LastResult, step => step.EventData)
                             .Then<CustomMessage>()
                                 .Name("Log")
@@ -231,18 +284,18 @@ namespace Lyra.Core.WorkFlow
             builder
                 .StartWith(a =>
                 {
-                    a.Workflow.Reference = "start";
-                    //Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
+                    a.Workflow.Reference = "Start";
+                    Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
                     //ConsensusService.Singleton.LockIds(LockingIds);
                     return ExecutionResult.Next();
                 })
-                    .Output(data => data.State, step => WFState.Running)
+                    //.Output(data => data.State, step => WFState.Running)
                     .Then<CustomMessage>()
                         .Name("Log")
                         .Input(step => step.Message, data => $"State Changed.")
                     .While(a => a.State != WFState.Finished && a.State != WFState.Error)
                         .Do(x => x
-                            .If(data => data.State == WFState.Init || data.State == WFState.Running)
+                            .If(data => true)//data.State == WFState.Running)
                                 .Do(then => then
                                 .StartWith<Repeator>()      // WF to generate new block
                                     .Input(step => step.count, data => data.Count)
@@ -268,7 +321,7 @@ namespace Lyra.Core.WorkFlow
                                             .Output(data => data.State, step => step.PermanentFailed ? WFState.Error : WFState.Running)
                                         .WaitFor("ViewChanged", data => data.GetLastBlock().ServiceHash, data => DateTime.Now)
                                             .Output(data => data.LastResult, step => step.EventData)
-                                            .Output(data => data.State, step => WFState.Running)
+                                            //.Output(data => data.State, step => WFState.Running)
                                         .Then<CustomMessage>()
                                                 .Name("Log")
                                                 .Input(step => step.Message, data => $"View changed.")
@@ -301,7 +354,7 @@ namespace Lyra.Core.WorkFlow
 
     public class ReqViewChange : StepBodyAsync
     {
-        private ILogger _logger;
+        private ILogger<ReqViewChange> _logger;
 
         public bool PermanentFailed { get; set; }
 
@@ -320,7 +373,7 @@ namespace Lyra.Core.WorkFlow
             ctx.ViewChangeReqCount++;
             if (ctx.ViewChangeReqCount > 10)
             {
-                _logger.LogInformation($"View change req more than 10 times. Permanent error. Key: {ctx.SvcRequest}: {ctx.SendHash}");
+                _logger.LogInformation($"View change req more than 10 times. Permanent error. Key: {ctx.GetSvcRequest}: {ctx.GetSendHash}");
                 ctx.State = WFState.Error;
                 PermanentFailed = true;
             }
@@ -335,7 +388,7 @@ namespace Lyra.Core.WorkFlow
 
     public class SubmitBlock : StepBodyAsync
     {
-        private ILogger _logger;
+        private ILogger<SubmitBlock> _logger;
 
         public TransactionBlock? block { get; set; }
 
@@ -361,7 +414,7 @@ namespace Lyra.Core.WorkFlow
     {
         public string Message { get; set; }
 
-        private ILogger _logger;
+        private ILogger<CustomMessage> _logger;
 
         public CustomMessage(ILogger<CustomMessage> logger)
         {
@@ -371,16 +424,16 @@ namespace Lyra.Core.WorkFlow
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
-            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.SendHash}, {ctx.Count}/{ctx.State}, {Message}";
+            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.GetSendHash}, {ctx.Count}/{ctx.State.ToString()}, {Message}";
             _logger.LogInformation(log);
             //Console.WriteLine(log);
 
             await ConsensusService.Singleton.FireSignalrWorkflowEventAsync(new WorkflowEvent
             {
-                Owner = ctx.OwnerAccountId,
+                Owner = ctx.GetOwnerAccountId(),
                 State = Message == "Workflow is done." ? "Exited" : ctx.State.ToString(),
-                Name = ctx.SvcRequest,
-                Key = ctx.SendHash,
+                Name = ctx.GetSvcRequest(),
+                Key = ctx.GetSendHash(),
                 Action = ctx.LastBlockType.ToString(),
                 Result = ctx.LastResult.ToString(),
                 Message = Message,

@@ -44,12 +44,14 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_POOL_CRPL
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
         {
             // generic pool factory
             var tgc = await CheckPoolTagsAsync(sys, send);
             if (tgc != APIResultCodes.Success)
                 return tgc;
+
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
 
             var chgs = send.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
@@ -161,10 +163,12 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_POOL_ADDLQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
+
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
             var vp = await VerifyPoolAsync(sys, block, lastBlock);
             if (vp != APIResultCodes.Success)
@@ -291,7 +295,7 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_POOL_RMLQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
             if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
@@ -299,6 +303,8 @@ namespace Lyra.Core.WorkFlow
             var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
             if (poolGenesis == null)
                 return APIResultCodes.PoolNotExists;
+
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
             var chgs = block.GetBalanceChanges(lastBlock);
 
@@ -393,8 +399,10 @@ namespace Lyra.Core.WorkFlow
 
 
         #region BRK_POOL_SWAP
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
         {
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+
             if (block.Tags.Count > 3 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
 
