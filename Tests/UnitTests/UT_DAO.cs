@@ -56,7 +56,7 @@ namespace UnitTests
             var dcret = await genesisWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.005m, 10, 120, 120);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
-            await WaitWorkflow("CreateDAOAsync");
+            await WaitWorkflow(dcret.TxHash, "CreateDAOAsync");
 
             var nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");

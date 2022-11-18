@@ -32,6 +32,16 @@ namespace Lyra.Core.WorkFlow
             _logger = logger;
         }
 
+
+        // +------------------------+-----------+-------------------------+----------------------+
+        // | Account Type/Send Type |  Normal   |       Service REQ       |      Management      |
+        // +------------------------+-----------+-------------------------+----------------------+
+        // | Normal                 | No Action | Dataflow Action, new WF | Illegal              |
+        // | Broker                 | No Action | Dataflow Action, new WF | Continue in workflow |
+        // +------------------------+-----------+-------------------------+----------------------+
+
+
+
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
@@ -54,6 +64,15 @@ namespace Lyra.Core.WorkFlow
                 }
                 else
                 {
+                    // send block has tow catalog: having svcreq or not. workflow only process the ones having svcreq.
+                    // so there are a lot of queued send blocks, triggering corresponding workflow.
+                    // first try to lock the resource (get from send)
+                    // if can't, delay random 10 ~ 100 ms.
+                    // auth the send.
+                    // if auth failed, release the lock, create an unreceive block, procceed next
+                    // if auth ok, do full workflow, 
+                    // when workflow done, unlock resources. procceed next
+
                     block =
                         await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, sendBlock)
                             ??

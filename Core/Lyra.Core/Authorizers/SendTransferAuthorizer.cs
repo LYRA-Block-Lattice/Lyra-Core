@@ -23,6 +23,11 @@ namespace Lyra.Core.Authorizers
         {
             return BlockTypes.SendTransfer;
         }
+
+        // decouple send. minimal verification.
+        // target normal account: ok or lost.
+        // target IBrokerAccount: unreceive by workflow.
+        // most important, no lock at all!!!
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is SendTransferBlock))
@@ -110,7 +115,7 @@ namespace Lyra.Core.Authorizers
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
-            // a normal send is success.
+/*            // a normal send is success.
             // monitor special account
             if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
             {
@@ -147,7 +152,7 @@ namespace Lyra.Core.Authorizers
                 {
                     return APIResultCodes.InvalidDestinationAccountId;
                 }
-            }
+            }*/
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "SendTransferAuthorizer->TransactionAuthorizer");
         }

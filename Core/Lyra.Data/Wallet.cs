@@ -2545,7 +2545,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> ExecuteResolution(string voteid, ODRResolution resolution)
+        public async Task<AuthorizationAPIResult> ExecuteResolution(string voteid, ODRResolution resolution)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2563,7 +2563,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> ChangeDAO(string daoid, string voteid, DAOChange change)
+        public async Task<AuthorizationAPIResult> ChangeDAO(string daoid, string voteid, DAOChange change)
         {
             var tags = new Dictionary<string, string>
             {

@@ -26,7 +26,7 @@ namespace Lyra.Core.WorkFlow.DAO
             {
                 Action = BrokerActions.BRK_DLR_CREATE,
                 RecvVia = BrokerRecvType.PFRecv,
-                Steps = new[] { GenesisAsync }
+                Steps = new[] { DealerGenesisAsync }
             };
         }
 
@@ -68,7 +68,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidTagParameters;
         }
 
-        public async Task<TransactionBlock> GenesisAsync(DagSystem sys, SendTransferBlock send)
+        public async Task<TransactionBlock> DealerGenesisAsync(DagSystem sys, SendTransferBlock send)
         {
             var arg = JsonConvert.DeserializeObject<DealerCreateArgument>(send.Tags["data"]);
 

@@ -40,6 +40,7 @@ using Lyra.Core.WorkFlow.Shared;
 using Humanizer;
 using Lyra.Core.Authorizers;
 using System.Threading.Tasks.Dataflow;
+using Akka.Util;
 
 namespace Lyra.Core.Decentralize
 {
@@ -121,6 +122,9 @@ namespace Lyra.Core.Decentralize
 
         public bool CheckIfIdIsLocked(string id) => _activeConsensus.Values.Any(a => a.LocalAuthResult != null && (a.LocalAuthResult?.LockedIDs?.Contains(id) ?? false));
 
+        ActionBlock<(SendTransferBlock, ConsensusResult?)> SendReqs;
+        ActionBlock<(TransactionBlock, ConsensusResult?)> MgmtReqs;
+
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IHubContext<LyraEventHub, ILyraEvent> hubContext, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -143,16 +147,13 @@ namespace Lyra.Core.Decentralize
             //_workFlows = new ConcurrentDictionary<string, string>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
-            _af = new AuthorizersFactory();
-            _af.Init();
-            _bf = new BrokerFactory();
-            _bf.Init(_af, _sys.Storage);
-
             if (localNode == null)
             {
                 Board.CurrentLeader = _sys.PosWallet.AccountId;
                 return;         // for unit test
-            }                
+            }
+
+            TestSharedInit();
 
             if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
             {
@@ -410,6 +411,36 @@ namespace Lyra.Core.Decentralize
             // for unit test
             if (Settings.Default.LyraNode.Lyra.NetworkId == "xtest")
                 _localNode = null;
+        }
+
+        public void TestSharedInit()
+        {
+            _af = new AuthorizersFactory();
+            _af.Init();
+            _bf = new BrokerFactory();
+            _bf.Init(_af, _sys.Storage);
+
+            SendReqs = new ActionBlock<(SendTransferBlock, ConsensusResult?)>(
+                async ConsensusResult =>
+                {
+                    await ProcessServerReqBlockAsync(ConsensusResult.Item1, ConsensusResult.Item2);
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = 8
+                }
+                );
+
+            MgmtReqs = new ActionBlock<(TransactionBlock, ConsensusResult?)>(
+                async ConsensusResult =>
+                {
+                    await ProcessManagedBlockAsync(ConsensusResult.Item1, ConsensusResult.Item2);
+                },
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = 8
+                }
+                );
         }
 
         public async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
@@ -2018,11 +2049,16 @@ namespace Lyra.Core.Decentralize
             //    send.Tags != null &&
             //    send.Tags.ContainsKey(Block.REQSERVICETAG))
             if (block is SendTransferBlock send)
-                await ProcessServerReqBlockAsync(send, result);
+            {
+                SendReqs.Post((send, result));
+            }
 
-            if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
-                await ProcessManagedBlockAsync(block as TransactionBlock, result);
+            if (block is TransactionBlock trans && block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
+            {
+                MgmtReqs.Post((trans, result));
+            }
         }
+
 
         private async Task<LyraContext?> GetWfContextByReqHashAsync(string reltx)
         {
@@ -2097,7 +2133,7 @@ namespace Lyra.Core.Decentralize
                 var id = await wfhost.StartWorkflow(svcreqtag, ctx);
 
                 //var wf = await wfhost.PersistenceStore.GetWorkflowInstance(id);
-                var lockdto = _lockers[send.Hash];
+                var lockdto = _lockers[send.Hash]; // TODO: process key not exists.
                 lockdto.workflowid = id;
 
                 if (!lockdto.haswf)

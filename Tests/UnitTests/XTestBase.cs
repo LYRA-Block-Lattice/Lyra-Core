@@ -331,10 +331,7 @@ namespace UnitTests
             _env.SetWorkflowHost(host);
             cs.StartWorkflowEngine();
 
-            var _af = new AuthorizersFactory();
-            _af.Init();
-            var _bf = new BrokerFactory();
-            _bf.Init(_af, null);
+            cs.TestSharedInit();
 
             await Task.Delay(100);
 
@@ -529,7 +526,8 @@ namespace UnitTests
 
         protected async Task WaitWorkflow(string key, string target, bool checklock = true)
         {
-            _workflowKey = key;            
+            _workflowKey = key;
+            _workflowEnds.Reset();
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 #if DEBUG

@@ -24,11 +24,11 @@ namespace Lyra.Core.WorkFlow.DAO
             {
                 Action = BrokerActions.BRK_DAO_CRDAO,
                 RecvVia = BrokerRecvType.PFRecv,
-                Steps = new[] { GenesisAsync }
+                Steps = new[] { DaoGenesisAsync }
             };
         }
 
-        public async Task<TransactionBlock> GenesisAsync(DagSystem sys, SendTransferBlock send)
+        public async Task<TransactionBlock> DaoGenesisAsync(DagSystem sys, SendTransferBlock send)
         {
             var name = send.Tags["name"];
             var desc = send.Tags["desc"];

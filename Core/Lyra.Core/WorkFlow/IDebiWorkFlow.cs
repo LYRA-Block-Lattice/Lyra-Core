@@ -15,6 +15,14 @@ namespace Lyra.Core.WorkFlow
 
         Task<WrokflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
         Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context);
+        
+        /// <summary>
+        /// send funds back if auth is failed, or any new situation emerged not allow the operation.
+        /// </summary>
+        /// <param name="sys"></param>
+        /// <param name="send"></param>
+        /// <returns></returns>
+        //Task<TransactionBlock> UnReceiveAsync(DagSystem sys, SendTransferBlock send);
     }
 
     public class WrokflowAuthResult

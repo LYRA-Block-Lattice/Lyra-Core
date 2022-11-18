@@ -26,7 +26,7 @@ namespace Lyra.Core.WorkFlow.DAO
             {
                 Action = BrokerActions.BRK_VOT_CREATE,
                 RecvVia = BrokerRecvType.DaoRecv,
-                Steps = new[] { CreateGenesisAsync }
+                Steps = new[] { VoteGenesisAsync }
             };
         }
 
@@ -177,7 +177,7 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> VoteGenesisAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
