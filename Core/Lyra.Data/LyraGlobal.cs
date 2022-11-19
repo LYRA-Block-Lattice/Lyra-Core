@@ -59,6 +59,7 @@ namespace Lyra.Core.API
         }
 
         public const string BURNINGACCOUNTID = "L11111111111111111111111111111111111111111111111111111111111111116oUsJe";
+        public const string GUILDACCOUNTID = "L8cqJqYPyx9NjiRYf8KyCjBaCmqdgvZJtEkZ7M9Hf7LnzQU3DamcurxeDEkws9HXPjLaGi9CVgcRwdCp377xLEB1qcX15";
         
         /// <summary>
         /// account who can execute on vote result in the lyra council.

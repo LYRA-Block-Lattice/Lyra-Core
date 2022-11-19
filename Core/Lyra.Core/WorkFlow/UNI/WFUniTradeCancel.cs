@@ -29,8 +29,9 @@ namespace Lyra.Core.WorkFlow.Uni
             };
         }
 
-        public async override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
+        public async override Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
             var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IUniTrade;
 
@@ -51,8 +52,9 @@ namespace Lyra.Core.WorkFlow.Uni
             //}
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]) ||
@@ -140,8 +142,9 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SealTradeAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SealTradeAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
@@ -169,8 +172,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        async Task<TransactionBlock> SendTokenFromTradeToOrderAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromTradeToOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
@@ -198,8 +202,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        async Task<TransactionBlock> OrderReceiveTokenFromTradeAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> OrderReceiveTokenFromTradeAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
 
             var lastblocktrade = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
@@ -231,8 +236,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
             var tradelatest = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
 
@@ -257,8 +263,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        async Task<TransactionBlock> SendTokenFromTradeToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromTradeToTradeOwnerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
             var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IUniTrade;
 

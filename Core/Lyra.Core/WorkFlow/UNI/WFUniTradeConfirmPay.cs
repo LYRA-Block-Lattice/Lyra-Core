@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow.Uni
 {
@@ -28,8 +29,9 @@ namespace Lyra.Core.WorkFlow.Uni
         }
 
         // user pay via off-chain ways and confirm payment in Uni trade.
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
@@ -54,8 +56,9 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, LyraContext contextBlock)
         {
+            var sendBlock = contextBlock.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
             if (recv != null)

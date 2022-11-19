@@ -23,13 +23,14 @@ namespace Lyra.Core.WorkFlow.DAO
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DAO_CRDAO,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
                 Steps = new[] { DaoGenesisAsync }
             };
         }
 
-        public async Task<TransactionBlock> DaoGenesisAsync(DagSystem sys, SendTransferBlock send)
+        public async Task<TransactionBlock> DaoGenesisAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var name = send.Tags["name"];
             var desc = send.Tags["desc"];
             var sellerPar = int.Parse(send.Tags["sellerPar"]);
@@ -84,8 +85,9 @@ namespace Lyra.Core.WorkFlow.DAO
             return daogen;
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             decimal shareRito, sellerFeeRatio, buyerFeeRatio;
             int seats;
 
@@ -128,7 +130,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 if (name.Length > 100 || desc.Length > 300)
                     return APIResultCodes.InputTooLong;
 
-                if (send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                if (send.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                     return APIResultCodes.InvalidServiceRequest;
 
                 if(sellerPar < 0 || sellerPar > 1000 || buyerPar < 0 || buyerPar > 1000)

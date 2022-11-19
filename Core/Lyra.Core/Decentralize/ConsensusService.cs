@@ -1024,7 +1024,7 @@ namespace Lyra.Core.Decentralize
         // set to public is for unit test. better solution later.
         public void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
         {
-            _log.LogInformation($"Workflow Event: {evt.WorkflowDefinitionId} Reference {evt.Reference}");
+            //_log.LogInformation($"Workflow Event: {evt.WorkflowDefinitionId} Reference {evt.Reference}");
 
             // evt: instant id is guid, defination id is req tag
             var lkdto = _lockers.Values.FirstOrDefault(a => a.workflowid == evt.WorkflowInstanceId);
@@ -2208,7 +2208,7 @@ namespace Lyra.Core.Decentralize
 
             // add token gateway, merchant etc.
 
-            if (string.IsNullOrEmpty(key))
+            if (string.IsNullOrEmpty(key) && block.BlockType != BlockTypes.PoolFactory && block.BlockType != BlockTypes.GuildGenesis)
             {
                 _log.LogError($"Should not happen: unknown mgmt block {block.BlockType} {block.Hash}");
                 return;

@@ -28,8 +28,9 @@ namespace Lyra.Core.WorkFlow.Uni
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("daoid") ||                                            
                 !send.Tags.ContainsKey("orderid") ||
@@ -78,13 +79,15 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             return await SealUniOrderAsync(sys, send.Hash, send.Tags["orderid"]);
         }
 
-        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var daoid = send.Tags["daoid"];
             var orderid = send.Tags["orderid"];
             return await SendCollateralToSellerAsync(sys, send.Hash, orderid);

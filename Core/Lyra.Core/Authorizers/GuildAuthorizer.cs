@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
@@ -11,31 +12,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class DaoVoteExecAuthorizer : DaoRecvAuthorizer
+    public class GuildRecvAuthorizer : DaoRecvAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationChange;
-        }
-
-        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
-        {
-            if (!(tblock is DaoVotedChangeBlock))
-                return APIResultCodes.InvalidBlockType;
-
-            var block = tblock as DaoVotedChangeBlock;
-            var vs = await sys.Storage.GetVoteSummaryAsync(block.voteid);
-            if(vs == null || !vs.IsDecided)
-                return APIResultCodes.InvalidVote;
-
-            return await base.AuthorizeImplAsync<T>(sys, tblock);
-        }
-    }
-    public class DaoRecvAuthorizer : BrokerAccountRecvAuthorizer
-    {
-        public override BlockTypes GetBlockType()
-        {
-            return BlockTypes.OrgnizationRecv;
+            return BlockTypes.GuildRecv;
         }
 
         protected override AuthorizationFeeTypes GetFeeType()
@@ -105,11 +86,11 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class DaoSendAuthorizer : BrokerAccountSendAuthorizer
+    public class GuildSendAuthorizer : DaoSendAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationSend;
+            return BlockTypes.GuildSend;
         }
 
         protected override AuthorizationFeeTypes GetFeeType()
@@ -176,34 +157,32 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class DaoGenesisAuthorizer : DaoRecvAuthorizer
+    public class GuildGenesisAuthorizer : DaoGenesisAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.OrgnizationGenesis;
+            return BlockTypes.GuildGenesis;
         }
-
-        //static int count = 0;
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            //if(count == 0)
-            //{
-            //    await Task.Delay(16000);
-            //    count++;
-            //}                
-
-            if (!(tblock is DaoGenesisBlock))
+            if (!(tblock is GuildGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 
             var block = tblock as DaoGenesisBlock;
 
-            if(block.AccountType != AccountTypes.DAO && block.AccountType != AccountTypes.Guild)
+            if(block.AccountID != LyraGlobal.GUILDACCOUNTID)
+                return APIResultCodes.InvalidBlockType;
+
+            if(await sys.Storage.AccountExistsAsync(block.AccountID))
+                return APIResultCodes.InvalidBlockType;
+
+            if(block.AccountType != AccountTypes.Guild)
             {
                 return APIResultCodes.InvalidAccountType;
             }
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoGenesisAuthorizer->DaoAuthorizer");
+            return APIResultCodes.Success;
         }
     }
 }

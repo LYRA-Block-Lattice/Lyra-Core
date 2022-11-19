@@ -1368,7 +1368,7 @@ namespace UnitTests
                 await WaitWorkflow(ret.TxHash, $"Create Dealer");
 
                 var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
-                //Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");
+                Assert.IsTrue(ret2.Successful(), $"wrong create but should success: {ret2.ResultCode}");
                 await WaitWorkflow(ret2.TxHash, $"Create Dealer 2");
             }
 

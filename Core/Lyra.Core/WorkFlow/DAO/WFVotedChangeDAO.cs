@@ -28,8 +28,9 @@ namespace Lyra.Core.WorkFlow.DAO
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("data") ||
                 string.IsNullOrWhiteSpace(send.Tags["data"]) ||
@@ -74,8 +75,9 @@ namespace Lyra.Core.WorkFlow.DAO
             return WFChangeDAO.VerifyDaoChanges(change);
         }
 
-        async Task<TransactionBlock> MainAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> MainAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (recv != null)

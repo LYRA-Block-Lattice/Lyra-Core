@@ -2175,7 +2175,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DaoCreateFee }
             };
 
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return result;
         }
         public async Task<AuthorizationAPIResult> JoinDAOAsync(string daoid, decimal amount)

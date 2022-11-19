@@ -27,8 +27,9 @@ namespace Lyra.Core.WorkFlow.DAO
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("daoid") ||
                 string.IsNullOrWhiteSpace(send.Tags["daoid"])
@@ -47,8 +48,9 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> MainAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> MainAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             // check exists
             var daoid = send.Tags["daoid"];
 

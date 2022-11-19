@@ -30,12 +30,12 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        public override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
+        public override Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context)
         {
-            if (send.Tags == null)
+            if (context.Send.Tags == null)
                 throw new ArgumentNullException();
 
-            var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+            var trade = JsonConvert.DeserializeObject<OTCTrade>(context.Send.Tags["data"]);
             if(trade == null)
                 throw new ArgumentNullException();
 
@@ -56,18 +56,18 @@ namespace Lyra.Core.WorkFlow
             }
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
-            if (send.Tags.Count != 2 ||
-                !send.Tags.ContainsKey("data") ||
-                string.IsNullOrWhiteSpace(send.Tags["data"])
+            if (context.Send.Tags.Count != 2 ||
+                !context.Send.Tags.ContainsKey("data") ||
+                string.IsNullOrWhiteSpace(context.Send.Tags["data"])
                 )
                 return APIResultCodes.InvalidBlockTags;
 
             OTCTrade trade;
             try
             {
-                trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
+                trade = JsonConvert.DeserializeObject<OTCTrade>(context.Send.Tags["data"]);
             }
             catch (Exception ex)
             {
@@ -76,7 +76,7 @@ namespace Lyra.Core.WorkFlow
 
             // daoId
             var dao = await sys.Storage.FindLatestBlockAsync(trade.daoId);
-            if (dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
+            if (dao == null || (dao as TransactionBlock).AccountID != context.Send.DestinationAccountId)
                 return APIResultCodes.InvalidOrgnization;
 
             // orderId
@@ -111,8 +111,8 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidTradeAmount;
 
             // verify collateral
-            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-            var chgs = send.GetBalanceChanges(last);
+            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(context.Send.PreviousHash) as TransactionBlock;
+            var chgs = context.Send.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.collateral)
                 return APIResultCodes.InvalidCollateral;
@@ -153,8 +153,9 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SendTokenFromOrderToTradeAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromOrderToTradeAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
             // send token from order to trade
@@ -217,8 +218,9 @@ namespace Lyra.Core.WorkFlow
             //return sendtotrade;
         }
 
-        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
@@ -238,8 +240,9 @@ namespace Lyra.Core.WorkFlow
                 });
         }
 
-        async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
@@ -263,8 +266,9 @@ namespace Lyra.Core.WorkFlow
                 });
         }
 
-        async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var trade = JsonConvert.DeserializeObject<OTCTrade>(send.Tags["data"]);

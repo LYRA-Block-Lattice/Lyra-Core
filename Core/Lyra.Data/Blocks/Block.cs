@@ -447,6 +447,9 @@ namespace Lyra.Core.Blocks
 
         // NFT
         //NFTGenesis = 110,     // not needed. a normal genesis block can handle it.
+        GuildRecv = 120,
+        GuildSend = 121,
+        GuildGenesis = 122,
     }
 
     public enum APIResultCodes

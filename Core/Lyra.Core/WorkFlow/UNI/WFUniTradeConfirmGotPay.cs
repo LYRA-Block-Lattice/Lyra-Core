@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow.Uni
 {
@@ -31,8 +32,9 @@ namespace Lyra.Core.WorkFlow.Uni
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags == null)
                 throw new ArgumentNullException();
 
@@ -75,8 +77,9 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
             
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
@@ -94,8 +97,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
             var trade = (tradelatest as IUniTrade).Trade;
@@ -139,8 +143,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        protected async Task<TransactionBlock> ChangeStateToBidReceivedAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> ChangeStateToBidReceivedAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
             Console.WriteLine("Exec: ChangeStateToBidReceivedAsync");
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 

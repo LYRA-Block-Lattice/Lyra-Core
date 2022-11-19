@@ -66,20 +66,26 @@ namespace Lyra.Core.WorkFlow
                 // when workflow done, unlock resources. procceed next
                 if(ctx.State == WFState.Init)
                 {
-                    ctx.AuthResult = await SubWorkflow.PreAuthAsync(DagSystem.Singleton, ctx.Send);
+                    ctx.AuthResult = await SubWorkflow.PreAuthAsync(DagSystem.Singleton, ctx);
                     Console.WriteLine($"CTX Auth result: {ctx.AuthResult.Result}");
-                    block =
-                        await BrokerOperations.ReceiveViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.Send, ctx.AuthResult);
+                    if (ctx.AuthResult.Result == APIResultCodes.Success)
+                    {
+                        ctx.State = WFState.NormalReceive;
+                    }
+                    else
+                    {
+                        ctx.State = WFState.RefundReceive;
+                    }
                 }
-                else if(ctx.State == WFState.Refund)
+
+                block = ctx.State switch
                 {
-                    block =
-                        await BrokerOperations.RefundViaCallback[SubWorkflow.GetDescription().RecvVia](DagSystem.Singleton, ctx.Send, ctx.AuthResult);
-                }
-                else if(ctx.State == WFState.Received || ctx.State == WFState.Running)
-                {
-                    block = await SubWorkflow.MainProcAsync(DagSystem.Singleton, ctx.Send, ctx);
-                }                
+                    WFState.NormalReceive => await SubWorkflow.NormalReceiveAsync(DagSystem.Singleton, ctx),
+                    WFState.RefundReceive => await SubWorkflow.RefundReceiveAsync(DagSystem.Singleton, ctx),
+                    WFState.Refund => await SubWorkflow.RefundSendAsync(DagSystem.Singleton, ctx),
+                    WFState.Running => await SubWorkflow.MainProcAsync(DagSystem.Singleton, ctx),
+                    _ => throw new Exception($"Unaccepted wf state: {ctx.State}")
+                }; ;          
 
                 _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
@@ -101,6 +107,7 @@ namespace Lyra.Core.WorkFlow
             catch (Exception ex)
             {
                 _logger.LogCritical($"Fatal: Workflow can't generate block: {ex}");
+                Console.WriteLine($"Fatal: Workflow can't generate block: {ex}");
                 block = null;
                 ctx.State = WFState.Error;
             }
@@ -133,9 +140,14 @@ namespace Lyra.Core.WorkFlow
         Init, 
 
         /// <summary>
+        /// Authorized OK, get svc req and process
+        /// </summary>
+        NormalReceive,
+
+        /// <summary>
         /// we receive the request whatever it is. next: authorize to decide main loop or refund exit.
         /// </summary>
-        Received, 
+        RefundReceive,
 
         /// <summary>
         /// failed to authorize the request. we do refund.

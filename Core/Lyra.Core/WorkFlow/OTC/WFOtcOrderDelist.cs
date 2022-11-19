@@ -31,8 +31,9 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("daoid") ||                                            
                 !send.Tags.ContainsKey("orderid") ||
@@ -57,8 +58,9 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> DelistOrderAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> DelistOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var daoid = send.Tags["daoid"];
             var orderid = send.Tags["orderid"];
 

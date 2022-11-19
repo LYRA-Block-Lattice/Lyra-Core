@@ -114,6 +114,7 @@ namespace Lyra.Core.Authorizers
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
         {
             if (block.AccountID == PoolFactoryBlock.FactoryAccount
+                || block.AccountID == LyraGlobal.GUILDACCOUNTID
                 || block is IPool
                 || block is IProfiting
                 || block is IBrokerAccount)

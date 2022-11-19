@@ -5,6 +5,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.WorkFlow;
 using Lyra.Data;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
@@ -752,6 +753,58 @@ namespace Lyra.Core.Decentralize
                     _ = client.GetPoolAsync("a", "b");
                 }     
             }
+        }
+
+        public async Task<TransactionBlock> GuildGenesisAsync()
+        {
+            var name = "Lyra Guild";
+            var desc = "The orgnization to create DAO";
+            var sellerPar = 120;
+            var buyerPar = 120;
+
+            var AccountId = LyraGlobal.GUILDACCOUNTID;
+            var exists = await _sys.Storage.FindFirstBlockAsync(AccountId);
+            if (exists != null)
+                return null;
+
+            var sb = await _sys.Storage.GetLastServiceBlockAsync();
+            var guildgen = new GuildGenesisBlock
+            {
+                Height = 1,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // transaction
+                AccountType = AccountTypes.Guild,
+                AccountID = AccountId,
+                Balances = new Dictionary<string, long>(),
+
+                // broker
+                Name = name,
+                OwnerAccountId = "",
+                RelatedTx = "",
+
+                // profiting
+                PType = ProfitingType.Orgnization,
+                ShareRito = 1,
+                Seats = 100,
+                SellerFeeRatio = 0.01m,
+                BuyerFeeRatio = 0.01m,
+
+                // dao
+                Description = desc,
+                SellerPar = sellerPar,
+                BuyerPar = buyerPar,
+                Treasure = new Dictionary<string, long>(),
+            };
+
+            guildgen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+
+            // pool blocks are service block so all service block signed by leader node
+            guildgen.InitializeBlock(null, _sys.PosWallet.PrivateKey, AccountId: _sys.PosWallet.AccountId);
+            return guildgen;
         }
 
         public async Task LeaderSendBlockToConsensusAndForgetAsync(Block block)

@@ -30,8 +30,9 @@ namespace Lyra.Core.WorkFlow.DAO
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (
                 send.Tags.ContainsKey("objType") && send.Tags["objType"] == nameof(DealerCreateArgument) &&
                 send.Tags.ContainsKey("data") && !string.IsNullOrWhiteSpace(send.Tags["data"]) &&                
@@ -68,8 +69,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidTagParameters;
         }
 
-        public async Task<TransactionBlock> DealerGenesisAsync(DagSystem sys, SendTransferBlock send)
+        public async Task<TransactionBlock> DealerGenesisAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var arg = JsonConvert.DeserializeObject<DealerCreateArgument>(send.Tags["data"]);
 
             // create a semi random account for pool.

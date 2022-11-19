@@ -29,8 +29,9 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("data") || 
                 string.IsNullOrEmpty(send.Tags["data"]) ||
@@ -114,13 +115,15 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context)
+        public override async Task<TransactionBlock> MainProcAsync(DagSystem sys, LyraContext context)
         {
-            return await ChangeStateAsync(sys, send) ?? await GetBlocksAsync(sys, send);
+            var send = context.Send;
+            return await ChangeStateAsync(sys, context) ?? await GetBlocksAsync(sys, context);
         }
 
-        private async Task<TransactionBlock> GetBlocksAsync(DagSystem sys, SendTransferBlock send)
+        private async Task<TransactionBlock> GetBlocksAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
             if (blocks.Count < resolv.Actions.Length + 1)
@@ -134,7 +137,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     { Parties.DAOTreasure, (tradegen as TransactionBlock).AccountID }
                 };
 
-                return await SlashCollateral(sys, send,
+                return await SlashCollateral(sys, context,
                     tos[resolv.Actions[blocks.Count - 1].to], resolv.Actions[blocks.Count - 1].amount,
                     blocks.Count == resolv.Actions.Length);
             }
@@ -142,8 +145,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 return null;
         }
 
-        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, SendTransferBlock send, string to, decimal amount, bool finalOne)
+        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, LyraContext context, string to, decimal amount, bool finalOne)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
 
@@ -168,8 +172,9 @@ namespace Lyra.Core.WorkFlow.OTC
             return daosendblk;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Count > 0)
                 return null;

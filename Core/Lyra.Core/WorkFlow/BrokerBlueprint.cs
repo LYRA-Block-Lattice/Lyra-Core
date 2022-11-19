@@ -180,7 +180,7 @@ deactivate db
     {
 
     }
-    public enum BrokerRecvType { None, PFRecv, DaoRecv, TradeRecv }
+    public enum BrokerRecvType { None, PFRecv, DaoRecv, TradeRecv, GuildRecv }
     public class BrokerFactory
     {
         public static Dictionary<string, IDebiWorkFlow> DynWorkFlows;

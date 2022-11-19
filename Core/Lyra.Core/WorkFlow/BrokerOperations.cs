@@ -22,6 +22,7 @@ namespace Lyra.Core.WorkFlow
         public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<ReceiveTransferBlock>>> ReceiveViaCallback 
                 => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<ReceiveTransferBlock>>>
                 {
+                    { BrokerRecvType.GuildRecv, ReceiveGuildFeeAsync },
                     { BrokerRecvType.PFRecv, ReceivePoolFactoryFeeAsync },
                     { BrokerRecvType.DaoRecv, ReceiveDaoFeeAsync },
                     { BrokerRecvType.TradeRecv, ReceiveTradeFeeAsync },
@@ -31,11 +32,22 @@ namespace Lyra.Core.WorkFlow
         public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>> RefundViaCallback
                 => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>>
                 {
+                    { BrokerRecvType.GuildRecv, RefundGuildFeeAsync },
                     { BrokerRecvType.PFRecv, RefundPoolFactoryFeeAsync },
                     { BrokerRecvType.DaoRecv, RefundDaoFeeAsync },
                     { BrokerRecvType.TradeRecv, RefundTradeFeeAsync },
                     { BrokerRecvType.None, RefundNoneAsync },
                 };
+
+        public static async Task<ReceiveTransferBlock> ReceiveGuildFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static async Task<SendTransferBlock> RefundGuildFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
 
         public static async Task<SendTransferBlock> RefundPoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
         {
@@ -83,7 +95,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, authResult.Result == APIResultCodes.Success ? 
-                WFState.Received.ToString() : WFState.Refund.ToString());
+                WFState.Running.ToString() : WFState.Refund.ToString());
 
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
@@ -142,7 +154,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, authResult.Result == APIResultCodes.Success ?
-                WFState.Received.ToString() : WFState.Refund.ToString());
+                WFState.Running.ToString() : WFState.Refund.ToString());
 
             var latestBalances = lastblock.Balances.ToDecimalDict();
             var recvBalances = lastblock.Balances.ToDecimalDict();
@@ -196,7 +208,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, authResult.Result == APIResultCodes.Success ?
-                WFState.Received.ToString() : WFState.Refund.ToString());
+                WFState.Running.ToString() : WFState.Refund.ToString());
 
             var latestBalances = lastblock.Balances.ToDecimalDict();
             var recvBalances = lastblock.Balances.ToDecimalDict();

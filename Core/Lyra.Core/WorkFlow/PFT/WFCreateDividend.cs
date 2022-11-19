@@ -26,8 +26,9 @@ namespace Lyra.Core.WorkFlow.PFT
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
             var chgs = block.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
@@ -108,19 +109,19 @@ namespace Lyra.Core.WorkFlow.PFT
         }
 
         // like wallet.receive
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock reqSend)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
             Console.WriteLine("CR Dividend: BrokerOpsAsync");
             // if is current authorizers, sync fee first
             // add check to save resources
-            var pftid = reqSend.Tags["pftid"];
+            var pftid = context.Send.Tags["pftid"];
             var pftgen = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
-            if (pftgen.OwnerAccountId != reqSend.AccountID)
+            if (pftgen.OwnerAccountId != context.Send.AccountID)
                 return null;
 
             if (pftgen.PType == ProfitingType.Node)
             {
-                var feeBlk = await SyncNodeFeesAsync(sys, reqSend);
+                var feeBlk = await SyncNodeFeesAsync(sys, context.Send);
                 if (feeBlk != null)
                     return feeBlk;
             }
@@ -129,7 +130,7 @@ namespace Lyra.Core.WorkFlow.PFT
 
             if (transfer_info.Successful())
             {
-                var receiveBlock = await CNOReceiveProfitAsync(sys, reqSend.Hash, pftid, transfer_info);
+                var receiveBlock = await CNOReceiveProfitAsync(sys, context.Send.Hash, pftid, transfer_info);
 
                 return receiveBlock;        // because we do it one block a time
             }

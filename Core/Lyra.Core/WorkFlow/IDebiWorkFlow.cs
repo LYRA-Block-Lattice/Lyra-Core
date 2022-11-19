@@ -11,18 +11,14 @@ namespace Lyra.Core.WorkFlow
     public interface IDebiWorkFlow
     {
         WorkFlowDescription GetDescription();
-        Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send);
+        Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context);
 
-        Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send);
-        Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context);
-        
-        ///// <summary>
-        ///// send funds back if auth is failed, or any new situation emerged not allow the operation.
-        ///// </summary>
-        ///// <param name="sys"></param>
-        ///// <param name="send"></param>
-        ///// <returns></returns>
-        //Task<TransactionBlock> UnReceiveAsync(DagSystem sys, SendTransferBlock send);
+        Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, LyraContext context);
+        Task<TransactionBlock> MainProcAsync(DagSystem sys, LyraContext context);
+
+        Task<ReceiveTransferBlock> NormalReceiveAsync(DagSystem sys, LyraContext context);
+        Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context);
+        Task<SendTransferBlock> RefundSendAsync(DagSystem sys, LyraContext context);
     }
 
     public class WorkflowAuthResult

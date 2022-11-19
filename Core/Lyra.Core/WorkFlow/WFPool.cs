@@ -44,8 +44,9 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_POOL_CRPL
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             // generic pool factory
             var tgc = await CheckPoolTagsAsync(sys, send);
             if (tgc != APIResultCodes.Success)
@@ -77,8 +78,9 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var pool = await sys.Storage.GetPoolAsync(send.Tags["token0"], send.Tags["token1"]);
             if (pool != null)
                 return null;
@@ -163,8 +165,9 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_POOL_ADDLQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
 
@@ -202,8 +205,9 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
             // assume all send variables are legal
             // token0/1, amount, etc.
             var existsAdd = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
@@ -295,8 +299,9 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_POOL_RMLQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
 
@@ -319,9 +324,10 @@ namespace Lyra.Core.WorkFlow
 
             return APIResultCodes.Success;
         }
-    public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+    public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
     {
-        var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var send = context.Send;
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is PoolWithdrawBlock))
                 return null;
 
@@ -399,8 +405,9 @@ namespace Lyra.Core.WorkFlow
 
 
         #region BRK_POOL_SWAP
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
             if (block.Tags.Count > 3 || !block.Tags.ContainsKey("poolid"))
@@ -461,8 +468,10 @@ namespace Lyra.Core.WorkFlow
             }
             return APIResultCodes.Success;
         }
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
+
             // assume all send variables are legal
             // token0/1, amount, etc.
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(sendBlock.Hash);

@@ -25,8 +25,9 @@ namespace Lyra.Core.WorkFlow.PFT
         }
 
         #region BRK_PFT_CRPFT
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
             var chgs = block.GetBalanceChanges(lastBlock);
@@ -79,8 +80,9 @@ namespace Lyra.Core.WorkFlow.PFT
 
             return APIResultCodes.Success;
         }
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is ProfitingGenesis);
             if (pgen != null)

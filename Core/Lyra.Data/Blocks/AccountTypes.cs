@@ -20,6 +20,7 @@
         /// bound to a physical server
         /// </summary>
         Server = 13,
+        Guild = 14,
 
         // Universal Trades
         OTCSell = 20,

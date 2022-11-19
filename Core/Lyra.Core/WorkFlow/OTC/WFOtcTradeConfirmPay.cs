@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow.OTC
 {
@@ -27,8 +28,9 @@ namespace Lyra.Core.WorkFlow.OTC
         }
 
         // user pay via off-chain ways and confirm payment in OTC trade.
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
@@ -52,8 +54,9 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
             if (recv != null)

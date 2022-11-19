@@ -25,8 +25,9 @@ namespace Lyra.Core.WorkFlow.STK
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
             var chgs = block.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
@@ -82,9 +83,10 @@ namespace Lyra.Core.WorkFlow.STK
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
-            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var send = context.Send;
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(context.Send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is StakingGenesis);
             if (pgen != null)
                 return null;
