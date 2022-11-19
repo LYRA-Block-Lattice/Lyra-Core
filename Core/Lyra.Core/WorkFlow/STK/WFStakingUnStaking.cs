@@ -21,7 +21,7 @@ namespace Lyra.Core.WorkFlow.STK
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_STK_UNSTK,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 

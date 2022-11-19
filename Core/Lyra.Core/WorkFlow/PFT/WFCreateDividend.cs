@@ -22,7 +22,7 @@ namespace Lyra.Core.WorkFlow.PFT
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_PFT_GETPFT,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 

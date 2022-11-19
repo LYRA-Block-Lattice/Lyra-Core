@@ -20,7 +20,7 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_POOL_CRPL,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
@@ -304,7 +304,7 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_POOL_RMLQ,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 

@@ -24,7 +24,7 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_DPOREQ,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
@@ -131,7 +131,7 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_MINT,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
@@ -228,7 +228,7 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_GETTKN,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
@@ -430,7 +430,7 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_WDWREQ,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
