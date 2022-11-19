@@ -53,6 +53,16 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await MainAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await MainAsync(sys, context) as ReceiveTransferBlock;
+        }
+
         async Task<TransactionBlock> MainAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;

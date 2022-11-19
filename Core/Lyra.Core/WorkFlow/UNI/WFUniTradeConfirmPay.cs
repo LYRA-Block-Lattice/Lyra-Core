@@ -23,7 +23,7 @@ namespace Lyra.Core.WorkFlow.Uni
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_UNI_TRDPAYSENT,
-                RecvVia = BrokerRecvType.None,
+                RecvVia = BrokerRecvType.None,      // none rece should implement normal receive refund receive, and refund
                 Steps = new [] { ChangeStateAsync }
             };
         }
@@ -56,7 +56,22 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, LyraContext contextBlock)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return base.RefundReceiveAsync(sys, context);
+        }
+
+        public override Task<SendTransferBlock> RefundSendAsync(DagSystem sys, LyraContext context)
+        {
+            return base.RefundSendAsync(sys, context);
+        }
+
+        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext contextBlock)
         {
             var sendBlock = contextBlock.Send;
             // check exists

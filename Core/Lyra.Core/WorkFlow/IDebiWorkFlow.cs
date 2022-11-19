@@ -11,14 +11,14 @@ namespace Lyra.Core.WorkFlow
     public interface IDebiWorkFlow
     {
         WorkFlowDescription GetDescription();
-        Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context);
+        Task<Func<DagSystem, LyraContext, Task<TransactionBlock?>>[]> GetProceduresAsync(DagSystem sys, LyraContext context);
 
         Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, LyraContext context);
-        Task<TransactionBlock> MainProcAsync(DagSystem sys, LyraContext context);
+        Task<TransactionBlock?> MainProcAsync(DagSystem sys, LyraContext context);
 
-        Task<ReceiveTransferBlock> NormalReceiveAsync(DagSystem sys, LyraContext context);
-        Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context);
-        Task<SendTransferBlock> RefundSendAsync(DagSystem sys, LyraContext context);
+        Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context);
+        Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context);
+        Task<SendTransferBlock?> RefundSendAsync(DagSystem sys, LyraContext context);
     }
 
     public class WorkflowAuthResult

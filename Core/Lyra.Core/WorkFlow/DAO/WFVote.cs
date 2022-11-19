@@ -86,7 +86,17 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> VoteAsync(DagSystem sys, LyraContext context)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await VoteAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await VoteAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        async Task<TransactionBlock?> VoteAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);

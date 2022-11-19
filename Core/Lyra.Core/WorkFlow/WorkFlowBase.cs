@@ -26,7 +26,7 @@ namespace Lyra.Core.WorkFlow
         public BrokerRecvType RecvVia { get; set; }
 
         // use steps to avoid checking block exists every time.
-        public Func<DagSystem, LyraContext, Task<TransactionBlock>>[] Steps { get; set; }
+        public Func<DagSystem, LyraContext, Task<TransactionBlock?>>[] Steps { get; set; }
     }
 
     public abstract class WorkFlowBase : DebiWorkflow, IDebiWorkFlow, IWorkflow<LyraContext>
@@ -56,25 +56,52 @@ namespace Lyra.Core.WorkFlow
             return Task.FromResult((TransactionBlock)null);
         }
 
-        public async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        private async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context, WFState nextState)
         {
             var desc = GetDescription();
             return desc.RecvVia switch
             {
                 BrokerRecvType.GuildRecv => await TransReceiveAsync<GuildRecvBlock>(sys,
-                    context.Send.Hash, context.Send, LyraGlobal.GUILDACCOUNTID, WFState.Running),
-                _ => null
+                    context.Send.Hash, context.Send, LyraGlobal.GUILDACCOUNTID, nextState),
+                BrokerRecvType.DaoRecv => await TransReceiveAsync<DaoRecvBlock>(sys,
+                    context.Send.Hash, context.Send, context.Send.DestinationAccountId, nextState),
+                _ => throw new NotImplementedException($"Should override NormalReceiveAsync and RefundReceiveAsync about in WF {desc.Action}")
             };
         }
 
-        public Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        public virtual async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
-            throw new NotImplementedException();
+            return await DefaultReceiveAsync(sys, context, WFState.Running);
         }
 
-        public Task<SendTransferBlock> RefundSendAsync(DagSystem sys, LyraContext context)
+        public virtual async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
         {
-            throw new NotImplementedException();
+            return await DefaultReceiveAsync(sys, context, WFState.Refund);
+        }
+
+        public virtual async Task<SendTransferBlock?> RefundSendAsync(DagSystem sys, LyraContext context)
+        {
+            var desc = GetDescription();
+            string? srcAccount = null;
+            if(desc.RecvVia == BrokerRecvType.GuildRecv)
+            {
+                srcAccount = LyraGlobal.GUILDACCOUNTID;
+            }
+            else
+            {
+                srcAccount = context.Send.DestinationAccountId;
+            }
+
+            if (srcAccount== null)
+                throw new NotImplementedException($"Should override RefundSendAsync about in WF {desc.Action}");
+
+            var last1 = await sys.Storage.FindLatestBlockAsync(srcAccount) as TransactionBlock;
+            var last2 = await sys.Storage.FindBlockByHashAsync(last1.PreviousHash) as TransactionBlock;
+            var chgs = last1.GetBalanceChanges(last2);
+            return await TransSendAsync<GuildSendBlock>(sys,
+                context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                chgs.Changes,
+                WFState.Finished);
         }
 
         //public async Task<TransactionBlock> UnReceiveAsync(DagSystem sys, SendTransferBlock send)

@@ -24,7 +24,7 @@ namespace Lyra.Core.WorkFlow
 {
     public class Repeator : StepBodyAsync
     {
-        public TransactionBlock block { get; set; }
+        public TransactionBlock? block { get; set; }
         public int count { get; set; }
 
         private ILogger<Repeator> _logger;

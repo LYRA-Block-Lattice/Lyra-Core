@@ -1068,6 +1068,7 @@ namespace Lyra.Core.Decentralize
         public void Host_OnStepError(WorkflowInstance workflow, WorkflowStep step, Exception exception)
         {
             _log.LogError($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
+            Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
 
             var lkdto = _lockers.Values.FirstOrDefault(a => a.workflowid == workflow.Id);
             if (lkdto != null)
@@ -1969,14 +1970,14 @@ namespace Lyra.Core.Decentralize
                 if (!dto.haswf)
                 {
                     // no workflow related. just release the lock.
-                    _lockers.TryRemove(block.Hash, out _);
+                    RemoveLockerDTO(dto.reqhash);
 
                     OnBlockFinished?.Invoke(block.Hash, result == ConsensusResult.Yea);
                 }
                 else if(dto.haswf && dto.workflowid == null && result != ConsensusResult.Yea)
                 {
                     // block auth failed. no workflow
-                    _lockers.TryRemove(block.Hash, out _);
+                    RemoveLockerDTO(dto.reqhash);
 
                     OnBlockFinished?.Invoke(block.Hash, result == ConsensusResult.Yea);
                 }
@@ -2124,7 +2125,16 @@ namespace Lyra.Core.Decentralize
 
         private bool RemoveLockerDTO(string reqHash)
         {
-            return _lockers.TryRemove(reqHash, out _);
+            _log.LogInformation($"Removing locker DTO req: {reqHash} has req: {_lockers.ContainsKey(reqHash)}");
+            LockerDTO dto;
+            var ret = _lockers.TryRemove(reqHash, out dto);
+
+            if(!ret)
+            {
+                _log.LogCritical($"Can't RemoveLockerDTO!!! req: {reqHash} has req: {_lockers.ContainsKey(reqHash)}");
+            }
+
+            return ret;
         }
 
         public bool IsAccountLocked(string accountId)

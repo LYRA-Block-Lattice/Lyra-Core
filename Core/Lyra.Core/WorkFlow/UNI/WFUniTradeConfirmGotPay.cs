@@ -77,7 +77,22 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateToBidReceivedAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return base.RefundReceiveAsync(sys, context);
+        }
+
+        public override Task<SendTransferBlock> RefundSendAsync(DagSystem sys, LyraContext context)
+        {
+            return base.RefundSendAsync(sys, context);
+        }
+
+        protected async Task<TransactionBlock?> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
         {
             var sendBlock = context.Send;
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
@@ -97,7 +112,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, LyraContext context)
+        protected async Task<TransactionBlock?> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
@@ -143,7 +158,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 });
         }
 
-        protected async Task<TransactionBlock> ChangeStateToBidReceivedAsync(DagSystem sys, LyraContext context)
+        protected async Task<TransactionBlock?> ChangeStateToBidReceivedAsync(DagSystem sys, LyraContext context)
         {
             var sendBlock = context.Send;
             Console.WriteLine("Exec: ChangeStateToBidReceivedAsync");

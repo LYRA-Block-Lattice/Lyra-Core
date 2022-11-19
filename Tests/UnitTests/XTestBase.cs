@@ -301,13 +301,13 @@ namespace UnitTests
 
             cs.OnBlockFinished += (b, ok) =>
             {
-                Console.WriteLine($"On block {b} result {ok}");
+                Console.WriteLine($"OnBlockFinished fired {b} result {ok}");
                 _newAuth.Set();
             };
 
             cs.OnWorkflowFinished += (wf, ok) =>
             {
-                Console.WriteLine($"On workflow {wf} result {ok}");
+                Console.WriteLine($"OnWorkflowFinished fired {wf} result {ok}");
                 if (wf == _workflowKey)
                     _workflowEnds.Set();
                 else
@@ -533,11 +533,11 @@ namespace UnitTests
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 
-            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 300000 : 3000);
-
             _workflowEnds.Reset();
+            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 300000 : 10000);
+            
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
-            Assert.IsTrue(ret, "workflow not finished properly.");
+            Assert.IsTrue(ret, $"workflow {_workflowKey} not finished properly.");
             //if(checklock)
             //    Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
 

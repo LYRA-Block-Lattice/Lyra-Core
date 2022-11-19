@@ -225,7 +225,7 @@ namespace Lyra.Core.Decentralize
                                     var wf = cs._hostEnv.GetWorkflowHost().PersistenceStore.GetWorkflowInstance(lckdto.workflowid);
                                     if (wf == null)
                                     {
-                                        cs._lockers.TryRemove(lckdto.reqhash, out _);
+                                        cs.RemoveLockerDTO(lckdto.reqhash);
                                         cs._log.LogWarning($"remove locker for wf exit {lckdto.reqhash}.");
                                     }
                                 }
@@ -233,7 +233,7 @@ namespace Lyra.Core.Decentralize
                                 {
                                     if (!cs._activeConsensus.ContainsKey(lckdto.reqhash))
                                     {
-                                        cs._lockers.TryRemove(lckdto.reqhash, out _);
+                                        cs.RemoveLockerDTO(lckdto.reqhash);
                                         cs._log.LogWarning($"remove locker for consensus out {lckdto.reqhash}.");
 
                                     }

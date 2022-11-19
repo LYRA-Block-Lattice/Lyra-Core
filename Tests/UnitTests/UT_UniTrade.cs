@@ -180,10 +180,17 @@ namespace UnitTests
             await WaitWorkflow(chgret.TxHash, "Change DAO");
             Assert.IsTrue(_authResult);
 
+            await testWallet.SyncAsync();
+            var cp0 = testWallet.BaseBalance;
+
             // test non-owner
             var chgx21 = await testWallet.ChangeDAO(nodesdao.AccountID, null, change);
-            Assert.IsTrue(chgx21.ResultCode == APIResultCodes.Unauthorized, $"Should error change DAO 21: {chgx21.ResultCode}");
-            await WaitBlock("Change DAO Wrong 21");
+            Assert.IsTrue(chgx21.Successful(), $"Should not error change DAO 21: {chgx21.ResultCode}");
+            await WaitWorkflow(chgx21.TxHash, "Change DAO Wrong 21");
+
+            await testWallet.SyncAsync();
+            var cp1 = testWallet.BaseBalance;
+            Assert.AreEqual(cp0 - 2, cp1, $"The refund is not OK! diff {cp0 - cp1}");
 
             // wrong creator
             var chgx2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -192,8 +199,9 @@ namespace UnitTests
                     creator = testWallet.AccountId,
                 }
                 ));
-            Assert.IsTrue(chgx2.ResultCode == APIResultCodes.Unauthorized, $"Should error change DAO 2: {chgx2.ResultCode}");
-            await WaitBlock("Change DAO Wrong 2");
+            Assert.IsTrue(chgx2.Successful(), $"Should not error change DAO 2: {chgx2.ResultCode}");
+            await WaitWorkflow(chgx2.TxHash, "Change DAO Wrong 2");
+
             // wrong desc
             var chgx22 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
                 new
@@ -204,8 +212,8 @@ namespace UnitTests
                     }
                 }
                 ));
-            Assert.IsTrue(chgx22.ResultCode == APIResultCodes.ArgumentOutOfRange, $"Should error change DAO 22: {chgx22.ResultCode}");
-            await WaitBlock("Change DAO Wrong 22");
+            Assert.IsTrue(chgx22.Successful(), $"Should not error change DAO 22: {chgx22.ResultCode}");
+            await WaitWorkflow(chgx22.TxHash, "Change DAO Wrong 22");
 
             // wrong settings
             var chgx23 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -217,17 +225,23 @@ namespace UnitTests
                     }
                 }
                 ));
-            Assert.IsTrue(chgx23.ResultCode == APIResultCodes.InvalidArgument, $"Should error change DAO 23: {chgx23.ResultCode}");
-            await WaitBlock("Change DAO Wrong 23");
+            Assert.IsTrue(chgx23.Successful(), $"Should not error change DAO 23: {chgx23.ResultCode}");
+            await WaitWorkflow(chgx23.TxHash, "Change DAO Wrong 23");
+
+            await testWallet.SyncAsync();
+            var cp2 = testWallet.BaseBalance;
+            Assert.AreEqual(cp0 - 2, cp2, $"The refund is not OK! diff {cp0 - cp2}");
 
             // test out of range settings
             change.settings["ShareRito"] = "1.2";
             change.settings["Description"] = null;
             var chgx1 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change);
-            Assert.IsTrue(!chgx1.Successful(), $"Should error change DAO: {chgx1.ResultCode}");
-            await WaitBlock("Change DAO Wrong 1");
+            Assert.IsTrue(chgx1.Successful(), $"Should not error change DAO: {chgx1.ResultCode}");
+            await WaitWorkflow(chgx1.TxHash, "Change DAO Wrong 1");
 
-
+            await testWallet.SyncAsync();
+            var cp3 = testWallet.BaseBalance;
+            Assert.AreEqual(cp0 - 2, cp3, $"The refund is not OK! diff {cp0 - cp3}");
 
 
             await TestJoinDAO(daoid);
@@ -287,13 +301,13 @@ namespace UnitTests
 
             // test api
             var execret = await genesisWallet.RPC.FindExecForVoteAsync(blockdv.AccountID);
-            Assert.IsTrue(execret.Successful());
+            Assert.IsTrue(execret.Successful(), $"FindExecForVoteAsync ret {execret.ResultCode}");
             Assert.AreEqual(BlockTypes.OrgnizationChange, execret.GetBlock().BlockType);
 
             // test if dup exec detected
             var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
-            Assert.IsTrue(chgret3.ResultCode == APIResultCodes.AlreadyExecuted, $"Can't change DAO: {chgret3.ResultCode}");
-            await WaitBlock("Change DAO 3 by vote");
+            Assert.IsTrue(chgret3.Successful(), $"Should not Can't change DAO: {chgret3.ResultCode}");
+            await WaitWorkflow(chgret3.TxHash, "Change DAO 3 by vote");
 
             // inconsist changes
             var chgret31 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2
@@ -303,8 +317,8 @@ namespace UnitTests
                         settings = new Dictionary<string, string>()
                     }
                 ));
-            Assert.IsTrue(chgret31.ResultCode == APIResultCodes.ArgumentOutOfRange, $"Can't change DAO 31: {chgret31.ResultCode}");
-            await WaitBlock("Change DAO 31 by vote");
+            Assert.IsTrue(chgret31.Successful(), $"should not Can't change DAO 31: {chgret31.ResultCode}");
+            await WaitWorkflow(chgret31.TxHash, "Change DAO 31 by vote");
         }
 
         private async Task TestJoinDAO(string daoid)
@@ -317,8 +331,8 @@ namespace UnitTests
 
             // join DAO / invest
             var invret0 = await testWallet.JoinDAOAsync(daoid, 800m);
-            Assert.IsTrue(invret0.ResultCode == APIResultCodes.InvalidAmount);
-            await WaitBlock("JoinDAOAsync 0");
+            Assert.IsTrue(invret0.Successful());
+            await WaitWorkflow(invret0.TxHash, "JoinDAOAsync 0");
 
             var invret = await testWallet.JoinDAOAsync(daoid, 800000m);
             Assert.IsTrue(invret.Successful());
@@ -328,7 +342,7 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful());
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             var treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
-            Assert.AreEqual(800000m, Math.Round(treasure[testPublicKey], 5));
+            Assert.AreEqual(800800m, Math.Round(treasure[testPublicKey], 5));
 
             // another join DAO
             var invret2 = await test2Wallet.JoinDAOAsync(daoid, 150000m);
@@ -351,7 +365,7 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful());
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
-            Assert.AreEqual(800000m, Math.Round(treasure[testPublicKey], 5));
+            Assert.AreEqual(800800m, Math.Round(treasure[testPublicKey], 5));
             Assert.AreEqual(150000m, Math.Round(treasure[test2PublicKey], 5));
             Assert.AreEqual(50000m, Math.Round(treasure[test3PublicKey], 5));
             Assert.AreEqual(50000m, Math.Round(treasure[test4PublicKey], 5));
@@ -529,8 +543,8 @@ namespace UnitTests
             await WaitWorkflow(voteRet2.TxHash, "Vote on Subject Async 2");
 
             var voteRet2x = await test2Wallet.Vote(voteblk.AccountID, 0);
-            Assert.IsTrue(!voteRet2x.Successful(), $"Vote 2x should error: {voteRet2x.ResultCode}");
-            await WaitBlock("Vote on Subject Async 2x");
+            Assert.IsTrue(voteRet2x.Successful(), $"Vote 2x should not error: {voteRet2x.ResultCode}");
+            await WaitWorkflow(voteRet2x.TxHash, "Vote on Subject Async 2x");
 
             ResetAuthFail();
 
@@ -1367,9 +1381,16 @@ namespace UnitTests
                 Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
                 await WaitWorkflow(ret.TxHash, $"Create Dealer");
 
+                await testWallet.SyncAsync();
+                var cp0 = testWallet.BaseBalance;
+
                 var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
                 Assert.IsTrue(ret2.Successful(), $"wrong create but should success: {ret2.ResultCode}");
                 await WaitWorkflow(ret2.TxHash, $"Create Dealer 2");
+
+                await testWallet.SyncAsync();
+                var cp1 = testWallet.BaseBalance;
+                Assert.AreEqual(cp0 - 1, cp1, $"WF Refund is not OK. diff: {cp0 - cp1}");
             }
 
             // get dealers
