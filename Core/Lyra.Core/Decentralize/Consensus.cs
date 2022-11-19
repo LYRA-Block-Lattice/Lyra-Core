@@ -970,6 +970,19 @@ namespace Lyra.Core.Decentralize
 
             state.IsSourceValid = sourceValid;
 
+            // tmp code to create guild genesis
+            if(msg.Block is SendTransferBlock send && send.DestinationAccountId == LyraGlobal.GUILDACCOUNTID)
+            {
+                if(! await _sys.Storage.AccountExistsAsync(LyraGlobal.GUILDACCOUNTID))
+                {
+                    if (Board.CurrentLeader == _sys.PosWallet.AccountId)
+                    {
+                        var gg = await GuildGenesisAsync();
+                        await SendBlockToConsensusAndWaitResultAsync(gg);
+                    }
+                }
+            }
+
             return (APIResultCodes.Success, state);
         }
 
