@@ -8,6 +8,7 @@ using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Crypto.Generators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,9 +56,15 @@ namespace Lyra.Core.WorkFlow
             return Task.FromResult((TransactionBlock)null);
         }
 
-        public Task<ReceiveTransferBlock> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        public async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
-            throw new NotImplementedException();
+            var desc = GetDescription();
+            return desc.RecvVia switch
+            {
+                BrokerRecvType.GuildRecv => await TransReceiveAsync<GuildRecvBlock>(sys,
+                    context.Send.Hash, context.Send, LyraGlobal.GUILDACCOUNTID, WFState.Running),
+                _ => null
+            };
         }
 
         public Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context)
@@ -365,6 +372,96 @@ namespace Lyra.Core.WorkFlow
             //System.IO.File.AppendAllText("c:\\tmp\\hashs.txt", nextblock.GetHashInput() + "\n\n");
 
             return nextblock;
+        }
+
+        protected async Task<T> TransactionOperateAsync<T>(
+            DagSystem sys,
+            string relatedHash,
+            TransactionBlock prevBlock,
+            Func<T> GenBlock,
+            Func<WFState> NewState,
+            Action<T> ChangeBlock
+            ) where T: TransactionBlock
+        {
+            var lsb = await sys.Storage.GetLastServiceBlockAsync();
+
+            var nextblock = GenBlock();
+
+            // block
+            nextblock.ServiceHash = lsb.Hash;
+            nextblock.Tags = null;
+            nextblock.AddTag(Block.MANAGEDTAG, NewState().ToString());
+
+            // transactions
+            nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
+
+            // ibroker
+            (nextblock as IBrokerAccount).RelatedTx = relatedHash;
+
+            if (ChangeBlock != null)
+                ChangeBlock(nextblock);
+
+            await nextblock.InitializeBlockAsync(prevBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
+
+            return nextblock;
+        }
+
+        async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState nextWFState) where T : TransactionBlock
+        {
+            // check exists
+            var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
+            if (recv != null)
+                return null;
+
+            var prevBlock = await sys.Storage.FindLatestBlockAsync(recvAccountId) as TransactionBlock;
+            var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
+
+            return await TransactionOperateAsync<T>(sys, key, prevBlock,
+                () => prevBlock.GenInc<T>(),
+                () => nextWFState,
+                (b) =>
+                {
+                    // recv
+                    var recv = b as ReceiveTransferBlock;
+                    recv.SourceHash = send.Hash;
+
+                    var bal = recv.Balances.ToDecimalDict();
+                    foreach(var tx in txInfo.Changes)
+                    {
+                        if (bal.ContainsKey(tx.Key))
+                            bal[tx.Key] += tx.Value;
+                        else
+                            bal[tx.Key] = tx.Value;
+                    }
+                    
+                    recv.Balances = bal.ToLongDict();
+                });
+        }
+
+        async Task<T> TransSendAsync<T>(DagSystem sys, string key, string srcAccountId, string dstAccountId,
+            Dictionary<string, decimal> amounts,
+            WFState nextWFState) where T : TransactionBlock
+        {
+            // check exists
+            var prevBlock = await sys.Storage.FindLatestBlockAsync(srcAccountId) as TransactionBlock;
+
+            return await TransactionOperateAsync<T>(sys, key, prevBlock,
+                () => prevBlock.GenInc<T>(),
+                () => nextWFState,
+                (b) =>
+                {
+                    // recv
+                    var snd = b as SendTransferBlock;
+                    snd.DestinationAccountId = dstAccountId;
+
+                    var bal = snd.Balances.ToDecimalDict();
+                    foreach (var tx in amounts)
+                    {
+                        bal[tx.Key] -= tx.Value;
+                    }
+
+                    snd.Balances = bal.ToLongDict();
+                });
         }
 
         #region Receive svc request

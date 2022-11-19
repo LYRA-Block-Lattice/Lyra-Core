@@ -123,7 +123,7 @@ namespace UnitTests
             Assert.IsTrue(alldaoret.Successful(), $"can get all dao: {alldaoret.ResultCode}");
             var daos = alldaoret.GetBlocks();
             if(ownerWallet.NetworkId == "xtest")
-                Assert.AreEqual(1, daos.Count(), $"can't find dao by GetAllDaosAsync");
+                Assert.AreEqual(2, daos.Count(), $"can't find dao by GetAllDaosAsync");
             var dao0 = alldaoret.GetBlocks().First() as DaoGenesisBlock;
             //Assert.IsTrue(daoblk.AuthCompare(dao0));
 
@@ -1345,7 +1345,7 @@ namespace UnitTests
             var dealerAbi = new Wallet.LyraContractABI
             {
                 svcReq = BrokerActions.BRK_DLR_CREATE,
-                targetAccountId = PoolFactoryBlock.FactoryAccount,
+                targetAccountId = LyraGlobal.GUILDACCOUNTID,
                 amounts = new Dictionary<string, decimal>
                     {
                         { LyraGlobal.OFFICIALTICKERCODE, 1 },

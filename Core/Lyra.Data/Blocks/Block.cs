@@ -56,10 +56,17 @@ namespace Lyra.Core.Blocks
             ServiceHash = "need overwrite";   // disable warning
         }
 
+        private T CloneTo<T>() where T : Block
+        {
+            var json = JsonConvert.SerializeObject(this);
+            T t = JsonConvert.DeserializeObject<T>(json);
+            return t;
+        }
+
         public virtual T GenInc<T>() where T : Block
         {
             var x = Activator.CreateInstance<T>();
-            var next = this.ConvertTo<T>()  //gender change
+            var next = CloneTo<T>()  //gender change
                 .With(new
                 {
                     // most necessary!

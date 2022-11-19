@@ -25,7 +25,7 @@ namespace Lyra.Core.WorkFlow.DAO
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DLR_CREATE,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
                 Steps = new[] { DealerGenesisAsync }
             };
         }

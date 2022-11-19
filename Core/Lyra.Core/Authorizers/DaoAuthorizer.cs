@@ -86,10 +86,10 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidServiceRequest;
             }
 
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
-                return APIResultCodes.InvalidServiceRequest;
+            // service must not been processed, no, at least there is a receive block
+            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (processed.Count != 0)
+            //    return APIResultCodes.InvalidServiceRequest;
 
             //var name = relTx.Tags["name"];
 

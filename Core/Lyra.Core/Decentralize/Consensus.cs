@@ -783,8 +783,6 @@ namespace Lyra.Core.Decentralize
 
                 // broker
                 Name = name,
-                OwnerAccountId = "",
-                RelatedTx = "",
 
                 // profiting
                 PType = ProfitingType.Orgnization,
