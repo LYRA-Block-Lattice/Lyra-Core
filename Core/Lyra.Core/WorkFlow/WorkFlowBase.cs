@@ -98,10 +98,27 @@ namespace Lyra.Core.WorkFlow
             var last1 = await sys.Storage.FindLatestBlockAsync(srcAccount) as TransactionBlock;
             var last2 = await sys.Storage.FindBlockByHashAsync(last1.PreviousHash) as TransactionBlock;
             var chgs = last1.GetBalanceChanges(last2);
-            return await TransSendAsync<GuildSendBlock>(sys,
-                context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
-                chgs.Changes,
-                WFState.Finished);
+
+            if(srcAccount == LyraGlobal.GUILDACCOUNTID)
+                return await TransSendAsync<GuildSendBlock>(sys,
+                    context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                    chgs.Changes,
+                    WFState.Finished);
+
+            if(last1 is IDao)
+                return await TransSendAsync<DaoSendBlock>(sys,
+                    context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                    chgs.Changes,
+                    WFState.Finished);
+
+            if(last1 is IUniTrade)
+                return await TransSendAsync<UniTradeSendBlock>(sys,
+                    context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                    chgs.Changes,
+                    WFState.Finished);
+
+            // TODO: support pool, dex, etc.
+            throw new NotImplementedException();
         }
 
         //public async Task<TransactionBlock> UnReceiveAsync(DagSystem sys, SendTransferBlock send)

@@ -1,4 +1,4 @@
-using Converto;
+﻿using Converto;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
@@ -530,11 +530,15 @@ namespace UnitTests
             ResetAuthFail();
         }
 
-        private async Task DoVote(string votehash, bool success)
+        private async Task DoVote(string voteSendHash, bool success)
         {
-            Console.WriteLine($"Vote on {votehash} as {success}");
-            var voteblksRet = await genesisWallet.RPC.GetBlockByHashAsync(votehash);
-            var voteblk = voteblksRet.GetBlock() as TransactionBlock;
+            var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(voteSendHash);
+            Assert.IsTrue(voteblksRet.Successful());
+            var relblocks = voteblksRet.GetBlocks<TransactionBlock>().ToList();
+            var voteblk = relblocks.Where(a => a is VotingGenesisBlock)
+                .FirstOrDefault();
+            Assert.IsNotNull(voteblk);
+
             var voteRet = await testWallet.Vote(voteblk.AccountID, 0);
             Assert.IsTrue(voteRet.Successful(), $"Vote error: {voteRet.ResultCode}");
             await WaitWorkflow(voteRet.TxHash, "Vote on Subject Async");
