@@ -533,8 +533,8 @@ namespace UnitTests
         private async Task DoVote(string votehash, bool success)
         {
             Console.WriteLine($"Vote on {votehash} as {success}");
-            var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(votehash);
-            var voteblk = voteblksRet.GetBlocks().Last() as TransactionBlock;
+            var voteblksRet = await genesisWallet.RPC.GetBlockByHashAsync(votehash);
+            var voteblk = voteblksRet.GetBlock() as TransactionBlock;
             var voteRet = await testWallet.Vote(voteblk.AccountID, 0);
             Assert.IsTrue(voteRet.Successful(), $"Vote error: {voteRet.ResultCode}");
             await WaitWorkflow(voteRet.TxHash, "Vote on Subject Async");

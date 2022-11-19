@@ -55,7 +55,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index);
 
         // Retrives a block by its hash
-        Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature);
+        Task<BlockAPIResult> GetBlockByHashAsync(string? AccountId, string Hash, string? Signature);
         Task<BlockAPIResult> GetBlockByHashAsync(string Hash);
         Task<BlockAPIResult> GetBlockAsync(string Hash);
         Task<BlockAPIResult> GetBlockBySourceHashAsync(string sourceHash);

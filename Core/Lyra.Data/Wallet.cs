@@ -2529,6 +2529,11 @@ namespace Lyra.Core.Accounts
         }
         public async Task<AuthorizationAPIResult> Vote(string voteid, int voteIndex)
         {
+            Console.WriteLine($"Wallet Vote on voteid: {voteid}");
+            if(voteid == LyraGlobal.GUILDACCOUNTID)
+            {
+                Debugger.Break();
+            }
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_VOT_VOTE },
