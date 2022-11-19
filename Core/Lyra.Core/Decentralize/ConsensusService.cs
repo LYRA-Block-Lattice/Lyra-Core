@@ -42,6 +42,7 @@ using Lyra.Core.Authorizers;
 using System.Threading.Tasks.Dataflow;
 using Akka.Util;
 using Loyc.Collections;
+using Lyra.Data.API.WorkFlow;
 
 namespace Lyra.Core.Decentralize
 {
@@ -2050,7 +2051,7 @@ namespace Lyra.Core.Decentralize
             }
 
             // tmp code
-            if (block is SendTransferBlock sendx && sendx.DestinationAccountId == LyraGlobal.GUILDACCOUNTID)
+            if (block is GuildGenesisBlock)
                 return;
 
             // let any existing workflow continue execute

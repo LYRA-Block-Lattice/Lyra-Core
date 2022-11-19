@@ -28,7 +28,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "xtest";
+            var netid = "devnet";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -38,6 +38,10 @@ namespace UnitTests
             var daoName = "First DAO";
             var daoDesc = "Doing great business!";
 
+            var dcret = await genesisWallet.CreateDAOAsync("test dao 1", daoDesc, 1, 0.01m, 0.001m, 10, 120, 130);
+            Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
+            await WaitWorkflow(dcret.TxHash, "CreateDAOAsync");
+            return;
             var dao = await CreateDaoAsync(genesisWallet, daoName, daoDesc);
 
             // dealer is necessary.
@@ -100,7 +104,7 @@ namespace UnitTests
 
         private async Task<IDao> CreateDaoAsync(Wallet ownerWallet, string daoName, string daoDesc)
         {
-            if(ownerWallet.NetworkId == "xtest")
+            if(ownerWallet.NetworkId == "test")
             {
                 var dcret = await ownerWallet.CreateDAOAsync(daoName, daoDesc, 1, 0.01m, 0.001m, 10, 120, 130);
                 Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
