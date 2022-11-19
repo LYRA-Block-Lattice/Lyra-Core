@@ -2049,6 +2049,10 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
+            // tmp code
+            if (block is SendTransferBlock sendx && sendx.DestinationAccountId == LyraGlobal.GUILDACCOUNTID)
+                return;
+
             // let any existing workflow continue execute
             if (block is TransactionBlock trans && block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
             {
