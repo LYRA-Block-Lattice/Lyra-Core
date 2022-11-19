@@ -2130,13 +2130,13 @@ namespace Lyra.Core.Decentralize
 
         private bool RemoveLockerDTO(string reqHash)
         {
-            _log.LogInformation($"Removing locker DTO req: {reqHash} has req: {_lockers.ContainsKey(reqHash)}");
+            //_log.LogInformation($"Removing locker DTO req: {reqHash} has req: {_lockers.ContainsKey(reqHash)}");
             LockerDTO dto;
             var ret = _lockers.TryRemove(reqHash, out dto);
 
             if(!ret)
             {
-                _log.LogCritical($"Can't RemoveLockerDTO!!! req: {reqHash} has req: {_lockers.ContainsKey(reqHash)}");
+                //_log.LogCritical($"Can't RemoveLockerDTO!!! req: {reqHash} has req: {_lockers.ContainsKey(reqHash)}");
             }
 
             return ret;
