@@ -61,14 +61,9 @@ namespace Lyra.Core.WorkFlow.Uni
             return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
         }
 
-        public override Task<ReceiveTransferBlock> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
         {
-            return base.RefundReceiveAsync(sys, context);
-        }
-
-        public override Task<SendTransferBlock> RefundSendAsync(DagSystem sys, LyraContext context)
-        {
-            return base.RefundSendAsync(sys, context);
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
         }
 
         protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext contextBlock)

@@ -115,6 +115,16 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
         public override async Task<TransactionBlock> MainProcAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
@@ -172,7 +182,7 @@ namespace Lyra.Core.WorkFlow.OTC
             return daosendblk;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, LyraContext context)
+        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);

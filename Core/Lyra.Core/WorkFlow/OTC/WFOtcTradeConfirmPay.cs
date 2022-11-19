@@ -54,7 +54,17 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, LyraContext context)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext context)
         {
             var sendBlock = context.Send;
             // check exists

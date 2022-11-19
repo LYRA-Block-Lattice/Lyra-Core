@@ -142,6 +142,16 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await SealTradeAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await SealTradeAsync(sys, context) as ReceiveTransferBlock;
+        }
+
         async Task<TransactionBlock> SealTradeAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;

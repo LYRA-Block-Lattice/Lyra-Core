@@ -142,7 +142,17 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SealTradeAsync(DagSystem sys, LyraContext context)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await SealTradeAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await SealTradeAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        async Task<TransactionBlock?> SealTradeAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var tradeid = send.Tags["tradeid"];
