@@ -39,7 +39,7 @@ namespace Lyra.Core.WorkFlow.STK
                 && block.Tags.Count == 2
                 )
             {
-                if (block.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                if (block.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                     return APIResultCodes.InvalidServiceRequest;
 
                 // verify sender is the owner of stkingblock

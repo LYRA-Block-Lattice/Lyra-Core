@@ -720,5 +720,6 @@ namespace Lyra.Core.Blocks
         DisputeCaseWasNotIncluded,
         InvalidVerificationCode,
         InvalidMetadataUri,
+        APIIsObsolete,
     }
 }

@@ -112,6 +112,10 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
+            // api upgrade / obsolete
+            if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
+                return APIResultCodes.APIIsObsolete;
+
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 

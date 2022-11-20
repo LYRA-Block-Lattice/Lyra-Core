@@ -1873,7 +1873,7 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
             };
-            return await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+            return await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
         }
 
         public async Task<AuthorizationAPIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
@@ -1913,7 +1913,7 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, 1m }
             };
-            var poolWithdrawResult = await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+            var poolWithdrawResult = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return poolWithdrawResult;
         }
 

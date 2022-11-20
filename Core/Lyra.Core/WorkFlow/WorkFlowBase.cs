@@ -61,7 +61,6 @@ namespace Lyra.Core.WorkFlow
             var desc = GetDescription();
             return desc.RecvVia switch
             {
-                BrokerRecvType.PFRecv => await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, context),
                 BrokerRecvType.GuildRecv => await TransReceiveAsync<GuildRecvBlock>(sys, context),
                 BrokerRecvType.DaoRecv => await TransReceiveAsync<DaoRecvBlock>(sys, context),
                 _ => throw new NotImplementedException($"Should override NormalReceiveAsync and RefundReceiveAsync about in WF {desc.Action}")
@@ -375,7 +374,7 @@ namespace Lyra.Core.WorkFlow
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var desc = GetDescription();
 
-            var cnt = desc.RecvVia == BrokerRecvType.None || desc.RecvVia == BrokerRecvType.PFRecv;
+            var cnt = desc.RecvVia == BrokerRecvType.None;
             var index = blocks.Count - (cnt ? 0 : 1);
             if (index >= operations.Length)
             {
