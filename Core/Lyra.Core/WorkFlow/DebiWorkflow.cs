@@ -54,7 +54,7 @@ namespace Lyra.Core.WorkFlow
 
             context.Workflow.Reference = ctx.State.ToString();
 
-            _logger.LogInformation($"In Repeator, State: {ctx.State } Key: {ctx.GetSendHash}");
+            _logger.LogInformation($"In Repeator, State: {ctx.State } Key: {ctx.GetSendHash()}");
             try
             {
                 var SubWorkflow = BrokerFactory.DynWorkFlows[ctx.GetSvcRequest()];

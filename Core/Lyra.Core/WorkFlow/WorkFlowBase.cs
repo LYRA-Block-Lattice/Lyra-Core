@@ -121,6 +121,12 @@ namespace Lyra.Core.WorkFlow
                     chgs.Changes,
                     context.State);
 
+            if (last1 is PoolSwapInBlock || last1 is PoolSwapOutBlock)
+                return await TransSendAsync<PoolSwapOutBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
             // TODO: support pool, dex, etc.
             throw new NotImplementedException();
         }
@@ -454,12 +460,12 @@ namespace Lyra.Core.WorkFlow
             return nextblock;
         }
 
-        Task<T> TransReceiveAsync<T>(DagSystem sys, LyraContext context) where T : TransactionBlock
+        protected Task<T> TransReceiveAsync<T>(DagSystem sys, LyraContext context) where T : TransactionBlock
         {
             return TransReceiveAsync<T>(sys, context.Send.Hash, context.Send, context.Send.DestinationAccountId, context.State);
         }
 
-        async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState) where T : TransactionBlock
+        protected async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState) where T : TransactionBlock
         {
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);

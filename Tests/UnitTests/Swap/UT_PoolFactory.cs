@@ -80,7 +80,7 @@ namespace UnitTests.Swap
         {
             var pool = await client.GetPoolAsync("test1", "test2");
             Assert.IsNull(pool.PoolAccountId);
-            Assert.IsTrue(!string.IsNullOrEmpty(pool.PoolFactoryAccountId), "factory not created");
+            Assert.IsTrue(!string.IsNullOrEmpty(LyraGlobal.GUILDACCOUNTID), "factory not created");
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace UnitTests.Swap
 
                 var pool = await client.GetPoolAsync(tokenFullName, LyraGlobal.OFFICIALTICKERCODE);
                 Assert.IsNull(pool.PoolAccountId, "Pool is already exists.");
-                Assert.IsNotNull(pool.PoolFactoryAccountId, "Pool Factory should be exists.");
+                Assert.IsNotNull(LyraGlobal.GUILDACCOUNTID, "Pool Factory should be exists.");
 
                 var token0 = LyraGlobal.OFFICIALTICKERCODE;
                 var token1 = tokenFullName;
@@ -187,7 +187,7 @@ namespace UnitTests.Swap
 
                 var pool = await client.GetPoolAsync(tokenFullName, LyraGlobal.OFFICIALTICKERCODE);
                 Assert.IsNull(pool.PoolAccountId, "Pool is already exists.");
-                Assert.IsNotNull(pool.PoolFactoryAccountId, "Pool Factory should be exists.");
+                Assert.IsNotNull(LyraGlobal.GUILDACCOUNTID, "Pool Factory should be exists.");
 
                 var token0 = LyraGlobal.OFFICIALTICKERCODE;
                 var token1 = tokenFullName;
@@ -203,7 +203,7 @@ namespace UnitTests.Swap
                 {
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
                 };
-                var poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                var poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should not failed but {poolCreateResult.ResultCode}");
 
@@ -216,7 +216,7 @@ namespace UnitTests.Swap
                 {
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
@@ -229,7 +229,7 @@ namespace UnitTests.Swap
                 {
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
@@ -243,7 +243,7 @@ namespace UnitTests.Swap
                 {
                     { LyraGlobal.OFFICIALTICKERCODE, 1m }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
@@ -257,7 +257,7 @@ namespace UnitTests.Swap
                 {
                     { LyraGlobal.OFFICIALTICKERCODE, 10010 }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
@@ -271,7 +271,7 @@ namespace UnitTests.Swap
                 {
                     { testTokenA, PoolFactoryBlock.PoolCreateFee }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
@@ -285,7 +285,7 @@ namespace UnitTests.Swap
                 {
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId + "a", amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID + "a", amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.InvalidDestinationAccountId, $"Should failed but {poolCreateResult.ResultCode}");
 
@@ -300,24 +300,24 @@ namespace UnitTests.Swap
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee },
                     { testTokenA, PoolFactoryBlock.PoolCreateFee }
                 };
-                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                poolCreateResult = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 Assert.IsFalse(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
-                // test name sort
-                tags = new Dictionary<string, string>
-                {
-                    { "token0", token1 },
-                    { "token1", token0 },
-                    { Block.REQSERVICETAG, BrokerActions.BRK_POOL_CRPL }
-                };
-                amounts = new Dictionary<string, decimal>
-                {
-                    { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
-                };
-                var poolCreateResultx = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(w1.WaitForWorkflow(poolCreateResultx.TxHash, 3000));
-                Assert.IsTrue(poolCreateResultx.ResultCode != APIResultCodes.Success, "Should finally OK.");
+                //// test name sort
+                //tags = new Dictionary<string, string>
+                //{
+                //    { "token0", token1 },
+                //    { "token1", token0 },
+                //    { Block.REQSERVICETAG, BrokerActions.BRK_POOL_CRPL }
+                //};
+                //amounts = new Dictionary<string, decimal>
+                //{
+                //    { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
+                //};
+                //var poolCreateResultx = await w1.SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
+                //Assert.IsTrue(w1.WaitForWorkflow(poolCreateResultx.TxHash, 3000));
+                //Assert.IsTrue(poolCreateResultx.ResultCode != APIResultCodes.Success, "Should finally OK.");
 
                 //// finally do it right
                 //tags = new Dictionary<string, string>();
@@ -326,7 +326,7 @@ namespace UnitTests.Swap
                 //tags.Add(Block.REQSERVICETAG, "");
                 //amounts = new Dictionary<string, decimal>();
                 //amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
-                //var poolCreateResultx = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                //var poolCreateResultx = await w1.SendEx(LyraGlobal.GUILDACCOUNTID, amounts, tags);
                 //Assert.IsTrue(poolCreateResultx.ResultCode == APIResultCodes.Success, "Should finally OK.");
             }
             finally
