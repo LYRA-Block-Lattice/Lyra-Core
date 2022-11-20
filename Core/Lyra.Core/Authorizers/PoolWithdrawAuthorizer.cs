@@ -27,7 +27,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidMessengerAccount;
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if(blocks.Count != 0)
+            if(blocks.Count != 1)
                 return APIResultCodes.InvalidRelatedTx;
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolWithdrawAuthorizer->SendTransferAuthorizer");
