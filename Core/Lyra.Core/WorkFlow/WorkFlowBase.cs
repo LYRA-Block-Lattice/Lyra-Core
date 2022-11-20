@@ -61,7 +61,7 @@ namespace Lyra.Core.WorkFlow
             var desc = GetDescription();
             return desc.RecvVia switch
             {
-                BrokerRecvType.PFRecv => await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, context.Send, context.AuthResult),
+                BrokerRecvType.PFRecv => await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, context),
                 BrokerRecvType.GuildRecv => await TransReceiveAsync<GuildRecvBlock>(sys, context),
                 BrokerRecvType.DaoRecv => await TransReceiveAsync<DaoRecvBlock>(sys, context),
                 _ => throw new NotImplementedException($"Should override NormalReceiveAsync and RefundReceiveAsync about in WF {desc.Action}")

@@ -19,25 +19,25 @@ namespace Lyra.Core.WorkFlow
 {
     public class BrokerOperations
     {
-        public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<ReceiveTransferBlock>>> ReceiveViaCallback 
-                => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<ReceiveTransferBlock>>>
-                {
-                    { BrokerRecvType.GuildRecv, ReceiveGuildFeeAsync },
-                    { BrokerRecvType.PFRecv, ReceivePoolFactoryFeeAsync },
-                    { BrokerRecvType.DaoRecv, ReceiveDaoFeeAsync },
-                    { BrokerRecvType.TradeRecv, ReceiveTradeFeeAsync },
-                    { BrokerRecvType.None, ReceiveNoneAsync },
-                };
+        //public static Dictionary<BrokerRecvType, Func<DagSystem, LyraContext, Task<ReceiveTransferBlock>>> ReceiveViaCallback 
+        //        => new Dictionary<BrokerRecvType, Func<DagSystem, LyraContext, Task<ReceiveTransferBlock>>>
+        //        {
+        //            { BrokerRecvType.GuildRecv, ReceiveGuildFeeAsync },
+        //            { BrokerRecvType.PFRecv, ReceivePoolFactoryFeeAsync },
+        //            { BrokerRecvType.DaoRecv, ReceiveDaoFeeAsync },
+        //            { BrokerRecvType.TradeRecv, ReceiveTradeFeeAsync },
+        //            { BrokerRecvType.None, ReceiveNoneAsync },
+        //        };
 
-        public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>> RefundViaCallback
-                => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>>
-                {
-                    { BrokerRecvType.GuildRecv, RefundGuildFeeAsync },
-                    { BrokerRecvType.PFRecv, RefundPoolFactoryFeeAsync },
-                    { BrokerRecvType.DaoRecv, RefundDaoFeeAsync },
-                    { BrokerRecvType.TradeRecv, RefundTradeFeeAsync },
-                    { BrokerRecvType.None, RefundNoneAsync },
-                };
+        //public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>> RefundViaCallback
+        //        => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>>
+        //        {
+        //            { BrokerRecvType.GuildRecv, RefundGuildFeeAsync },
+        //            { BrokerRecvType.PFRecv, RefundPoolFactoryFeeAsync },
+        //            { BrokerRecvType.DaoRecv, RefundDaoFeeAsync },
+        //            { BrokerRecvType.TradeRecv, RefundTradeFeeAsync },
+        //            { BrokerRecvType.None, RefundNoneAsync },
+        //        };
 
         public static async Task<ReceiveTransferBlock> ReceiveGuildFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
         {
@@ -68,8 +68,9 @@ namespace Lyra.Core.WorkFlow
 
         // every method must check if the operation has been done.
         // if has been done, return null.
-        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
             if (recv != null)
@@ -94,8 +95,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.FullFee,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, authResult.Result == APIResultCodes.Success ? 
-                WFState.Running.ToString() : WFState.Refund.ToString());
+            receiveBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
