@@ -105,7 +105,7 @@ namespace Lyra.Core.WorkFlow.STK
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
 
-            stkNext.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString()); 
+            stkNext.AddTag(Block.MANAGEDTAG, context.State.ToString()); 
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

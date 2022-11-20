@@ -42,7 +42,11 @@ namespace Lyra.Core.WorkFlow
         // | Broker                 | No Action | Dataflow Action, new WF | Continue in workflow |
         // +------------------------+-----------+-------------------------+----------------------+
 
-
+        // the spirit of workflow:
+        // 1. pure function.
+        //      a workflow should change nothing. it's input is immutable database: the blockchain.
+        // 2. refundable.
+        //      any broker account must support refund (with send)
 
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
@@ -85,7 +89,7 @@ namespace Lyra.Core.WorkFlow
                     WFState.Refund => await SubWorkflow.RefundSendAsync(DagSystem.Singleton, ctx),
                     WFState.Running => await SubWorkflow.MainProcAsync(DagSystem.Singleton, ctx),
                     _ => throw new Exception($"Unaccepted wf state: {ctx.State}")
-                }; ;          
+                };       
 
                 _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
@@ -96,10 +100,19 @@ namespace Lyra.Core.WorkFlow
                         throw new Exception("Missing MANAGEDTAG");
 
                     if (!Enum.TryParse(block.Tags[Block.MANAGEDTAG], out WFState mgdstate))
-                        throw new Exception("Invalid MANAGEDTAG");
+                        throw new Exception("Invalid MANAGEDTAG: illeagle state");
 
-                    Console.WriteLine($"New block state: {mgdstate}");
-                    ctx.State = mgdstate;
+                    if (mgdstate != ctx.State)
+                        throw new Exception("Invalid MANAGEDTAG: not current state");
+
+                    ctx.State = ctx.State switch
+                    {
+                        WFState.NormalReceive => WFState.Running,
+                        WFState.RefundReceive => WFState.Refund,
+                        WFState.Refund => WFState.Finished,
+                        WFState.Running => WFState.Running,
+                        _ => ctx.State
+                    };
                 }
                 else
                     ctx.State = WFState.Finished;
@@ -187,11 +200,11 @@ namespace Lyra.Core.WorkFlow
         public string GetOwnerAccountId() => Send.AccountID;
         public string GetSvcRequest() => Send.Tags![Block.REQSERVICETAG];
         public string GetSendHash() => Send.Hash!;
-        public WorkflowAuthResult AuthResult { get; set; }
+        public WorkflowAuthResult? AuthResult { get; set; }
         public WFState State { get; set; }
 
         public BlockTypes LastBlockType { get; set; }
-        public string LastBlockJson { get; set; }
+        public string? LastBlockJson { get; set; }
         public ConsensusResult? LastResult { get; set; }
         public long TimeTicks { get; set; }
 
@@ -202,6 +215,11 @@ namespace Lyra.Core.WorkFlow
         /// private data, shared across all steps of the workflow.
         /// </summary>
         public string? spec { get; set; }
+
+        public LyraContext()
+        {
+            State = WFState.Init;
+        }
 
         public TransactionBlock GetLastBlock()
         {

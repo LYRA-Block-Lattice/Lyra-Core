@@ -10,6 +10,7 @@ using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow.STK
 {
@@ -60,9 +61,9 @@ namespace Lyra.Core.WorkFlow.STK
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
-            return await CNOAddStakingImplAsync(sys, send, send.Hash, true);
+            return await CNOAddStakingImplAsync(sys, context, send, send.Hash);
         }
-        public static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, SendTransferBlock send, string relatedTx, bool finalOne)
+        public static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, LyraContext context, SendTransferBlock send, string relatedTx)
         {
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
@@ -114,7 +115,7 @@ namespace Lyra.Core.WorkFlow.STK
             var chgs = send.GetBalanceChanges(sendPrev);
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
 
-            stkNext.AddTag(Block.MANAGEDTAG, finalOne ? WFState.Finished.ToString() : WFState.Running.ToString());
+            stkNext.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

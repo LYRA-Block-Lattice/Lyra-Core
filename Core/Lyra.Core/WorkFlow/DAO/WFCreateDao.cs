@@ -78,7 +78,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 Treasure = new Dictionary<string, long>(),
             };
 
-            daogen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            daogen.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             daogen.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

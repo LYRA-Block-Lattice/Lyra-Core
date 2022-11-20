@@ -94,7 +94,7 @@ namespace Lyra.Core.WorkFlow.Uni
             
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
                 () => lastblock.GenInc<UniTradeSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     var trade = b as IUniTrade;
@@ -136,7 +136,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // block
@@ -161,7 +161,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
                 () => lastblock.GenInc<UniTradeRecvBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // recv

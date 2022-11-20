@@ -166,7 +166,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcOrderSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
@@ -227,7 +227,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
@@ -250,7 +250,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcOrderRecvBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
@@ -302,7 +302,7 @@ namespace Lyra.Core.WorkFlow
             };
 
             otcblock.Balances.Add(trade.crypto, trade.amount.ToBalanceLong());
-            otcblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            otcblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             otcblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

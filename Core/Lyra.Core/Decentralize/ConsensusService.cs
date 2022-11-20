@@ -2186,8 +2186,7 @@ namespace Lyra.Core.Decentralize
                             var wfhost = _hostEnv.GetWorkflowHost();
                             var ctx = new LyraContext
                             {
-                                Send = send,
-                                State = WFState.Init,
+                                Send = send
                             };
 
                             // id: a guid; 1st argument -> defination id: svcreq

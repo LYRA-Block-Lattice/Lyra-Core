@@ -45,38 +45,36 @@ namespace Lyra.Core.WorkFlow
         }
         public virtual async Task<TransactionBlock> MainProcAsync(DagSystem sys, LyraContext context)
         {            
-            return await BrokerOpsAsync(sys, context) ?? await ExtraOpsAsync(sys, context.Send.Hash);
+            return await BrokerOpsAsync(sys, context) ?? await ExtraOpsAsync(sys, context, context.Send.Hash);
         }
         public virtual async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
             return await OneByOneAsync(sys, context, await GetProceduresAsync(sys, context));
         }
-        public virtual Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash)
+        public virtual Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, LyraContext context, string hash)
         {
             return Task.FromResult((TransactionBlock)null);
         }
 
-        private async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context, WFState nextState)
+        private async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context)
         {
             var desc = GetDescription();
             return desc.RecvVia switch
             {
-                BrokerRecvType.GuildRecv => await TransReceiveAsync<GuildRecvBlock>(sys,
-                    context.Send.Hash, context.Send, LyraGlobal.GUILDACCOUNTID, nextState),
-                BrokerRecvType.DaoRecv => await TransReceiveAsync<DaoRecvBlock>(sys,
-                    context.Send.Hash, context.Send, context.Send.DestinationAccountId, nextState),
+                BrokerRecvType.GuildRecv => await TransReceiveAsync<GuildRecvBlock>(sys, context),
+                BrokerRecvType.DaoRecv => await TransReceiveAsync<DaoRecvBlock>(sys, context),
                 _ => throw new NotImplementedException($"Should override NormalReceiveAsync and RefundReceiveAsync about in WF {desc.Action}")
             };
         }
 
         public virtual async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
-            return await DefaultReceiveAsync(sys, context, WFState.Running);
+            return await DefaultReceiveAsync(sys, context);
         }
 
         public virtual async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
         {
-            return await DefaultReceiveAsync(sys, context, WFState.Refund);
+            return await DefaultReceiveAsync(sys, context);
         }
 
         public virtual async Task<SendTransferBlock?> RefundSendAsync(DagSystem sys, LyraContext context)
@@ -103,19 +101,19 @@ namespace Lyra.Core.WorkFlow
                 return await TransSendAsync<GuildSendBlock>(sys,
                     context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
                     chgs.Changes,
-                    WFState.Finished);
+                    context.State);
 
             if(last1 is IDao)
                 return await TransSendAsync<DaoSendBlock>(sys,
                     context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
                     chgs.Changes,
-                    WFState.Finished);
+                    context.State);
 
             if(last1 is IUniTrade)
                 return await TransSendAsync<UniTradeSendBlock>(sys,
                     context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
                     chgs.Changes,
-                    WFState.Finished);
+                    context.State);
 
             // TODO: support pool, dex, etc.
             throw new NotImplementedException();
@@ -388,7 +386,7 @@ namespace Lyra.Core.WorkFlow
             string relatedHash,
             TransactionBlock prevBlock,
             Func<TransactionBlock> GenBlock,
-            Func<WFState> NewState,
+            Func<WFState> wfState,
             Action<TransactionBlock> ChangeBlock
             )
         {
@@ -399,7 +397,7 @@ namespace Lyra.Core.WorkFlow
             // block
             nextblock.ServiceHash = lsb.Hash;
             nextblock.Tags = null;
-            nextblock.AddTag(Block.MANAGEDTAG, NewState().ToString());
+            nextblock.AddTag(Block.MANAGEDTAG, wfState().ToString());
 
             // transactions
             nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
@@ -423,7 +421,7 @@ namespace Lyra.Core.WorkFlow
             string relatedHash,
             TransactionBlock prevBlock,
             Func<T> GenBlock,
-            Func<WFState> NewState,
+            Func<WFState> wfState,
             Action<T> ChangeBlock
             ) where T: TransactionBlock
         {
@@ -434,7 +432,7 @@ namespace Lyra.Core.WorkFlow
             // block
             nextblock.ServiceHash = lsb.Hash;
             nextblock.Tags = null;
-            nextblock.AddTag(Block.MANAGEDTAG, NewState().ToString());
+            nextblock.AddTag(Block.MANAGEDTAG, wfState().ToString());
 
             // transactions
             nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
@@ -450,7 +448,12 @@ namespace Lyra.Core.WorkFlow
             return nextblock;
         }
 
-        async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState nextWFState) where T : TransactionBlock
+        Task<T> TransReceiveAsync<T>(DagSystem sys, LyraContext context) where T : TransactionBlock
+        {
+            return TransReceiveAsync<T>(sys, context.Send.Hash, context.Send, context.Send.DestinationAccountId, context.State);
+        }
+
+        async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState) where T : TransactionBlock
         {
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
@@ -462,7 +465,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync<T>(sys, key, prevBlock,
                 () => prevBlock.GenInc<T>(),
-                () => nextWFState,
+                () => wfState,
                 (b) =>
                 {
                     // recv
@@ -484,14 +487,14 @@ namespace Lyra.Core.WorkFlow
 
         async Task<T> TransSendAsync<T>(DagSystem sys, string key, string srcAccountId, string dstAccountId,
             Dictionary<string, decimal> amounts,
-            WFState nextWFState) where T : TransactionBlock
+            WFState wfState) where T : TransactionBlock
         {
             // check exists
             var prevBlock = await sys.Storage.FindLatestBlockAsync(srcAccountId) as TransactionBlock;
 
             return await TransactionOperateAsync<T>(sys, key, prevBlock,
                 () => prevBlock.GenInc<T>(),
-                () => nextWFState,
+                () => wfState,
                 (b) =>
                 {
                     // recv

@@ -118,7 +118,7 @@ namespace Lyra.Core.WorkFlow.PFT
                 RelatedTx = send.Hash
             };
 
-            pftGenesis.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            pftGenesis.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             pftGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

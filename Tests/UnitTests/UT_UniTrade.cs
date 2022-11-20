@@ -2,6 +2,7 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Data.API.ABI;
 using Lyra.Data.API.ODR;
@@ -28,7 +29,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -39,6 +40,7 @@ namespace UnitTests
             var daoDesc = "Doing great business!";
 
             var dao = await CreateDaoAsync(genesisWallet, daoName, daoDesc);
+            await TestChangeDAO();
 
             // dealer is necessary.
             await TestDealerAsync();
@@ -64,7 +66,7 @@ namespace UnitTests
 
             // after test, dump the database statistics
 
-            await TestChangeDAO();
+            
 
             //var tradeid = await TestUniTradeDispute();   // test for dispute
             ////await TestVoting(tradeid); // related to dealer. bypass. real test in Uni unit test
@@ -100,7 +102,7 @@ namespace UnitTests
 
         private async Task<IDao> CreateDaoAsync(Wallet ownerWallet, string daoName, string daoDesc)
         {
-            if(ownerWallet.NetworkId == "test")
+            if(ownerWallet.NetworkId == "xtest")
             {
                 var dcret = await ownerWallet.CreateDAOAsync(daoName, daoDesc, 1, 0.01m, 0.001m, 10, 120, 130);
                 Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
@@ -190,7 +192,7 @@ namespace UnitTests
 
             await testWallet.SyncAsync();
             var cp1 = testWallet.BaseBalance;
-            Assert.AreEqual(cp0 - 2, cp1, $"The refund is not OK! diff {cp0 - cp1}");
+            Assert.AreEqual(cp0 - 1, cp1, $"The refund is not OK! diff {cp0 - cp1}");
 
             // wrong creator
             var chgx2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -230,7 +232,7 @@ namespace UnitTests
 
             await testWallet.SyncAsync();
             var cp2 = testWallet.BaseBalance;
-            Assert.AreEqual(cp0 - 2, cp2, $"The refund is not OK! diff {cp0 - cp2}");
+            Assert.AreEqual(cp0 - 1, cp2, $"The refund is not OK! diff {cp0 - cp2}");
 
             // test out of range settings
             change.settings["ShareRito"] = "1.2";
@@ -241,7 +243,7 @@ namespace UnitTests
 
             await testWallet.SyncAsync();
             var cp3 = testWallet.BaseBalance;
-            Assert.AreEqual(cp0 - 2, cp3, $"The refund is not OK! diff {cp0 - cp3}");
+            Assert.AreEqual(cp0 - 1, cp3, $"The refund is not OK! diff {cp0 - cp3}");
 
 
             await TestJoinDAO(daoid);
@@ -343,7 +345,8 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful());
             var nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             var treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
-            Assert.AreEqual(treasure0[testPublicKey] + 800800m, Math.Round(treasure[testPublicKey], 5));
+            var startbalance1 = treasure0.ContainsKey(testPublicKey) ? treasure0[testPublicKey] : 0;
+            Assert.AreEqual(startbalance1 + 800800m, Math.Round(treasure[testPublicKey], 5));
 
             // another join DAO
             var invret2 = await test2Wallet.JoinDAOAsync(daoid, 150000m);
@@ -366,10 +369,10 @@ namespace UnitTests
             Assert.IsTrue(nodesdaoret.Successful());
             nodesdao = nodesdaoret.GetBlock() as TransactionBlock;
             treasure = (nodesdao as IDao).Treasure.ToDecimalDict();
-            Assert.AreEqual(treasure0[testPublicKey] + 800800m, Math.Round(treasure[testPublicKey], 5));
-            Assert.AreEqual(treasure0[test2PublicKey] + 150000m, Math.Round(treasure[test2PublicKey], 5));
-            Assert.AreEqual(treasure0[test3PublicKey] + 50000m, Math.Round(treasure[test3PublicKey], 5));
-            //Assert.AreEqual(treasure0[test4PublicKey] + 50000m, Math.Round(treasure[test4PublicKey], 5));
+            Assert.AreEqual(startbalance1 + 800800m, Math.Round(treasure[testPublicKey], 5));
+            Assert.AreEqual((treasure0.ContainsKey(test2PublicKey) ? treasure0[test2PublicKey] : 0) + 150000m, Math.Round(treasure[test2PublicKey], 5));
+            Assert.AreEqual((treasure0.ContainsKey(test3PublicKey) ? treasure0[test3PublicKey] : 0) + 50000m, Math.Round(treasure[test3PublicKey], 5));
+            Assert.AreEqual((treasure0.ContainsKey(test4PublicKey) ? treasure0[test4PublicKey] : 0) + 50000m, Math.Round(treasure[test4PublicKey], 5));
 
             // test leave DAO
             var leaveret4 = await test4Wallet.LeaveDAOAsync(daoid);
@@ -535,6 +538,13 @@ namespace UnitTests
             var voteblksRet = await genesisWallet.RPC.GetBlocksByRelatedTxAsync(voteSendHash);
             Assert.IsTrue(voteblksRet.Successful());
             var relblocks = voteblksRet.GetBlocks<TransactionBlock>().ToList();
+            Assert.IsTrue(relblocks.Count > 0);
+            var firstmgblk = relblocks[0];
+            Assert.IsTrue(firstmgblk.Tags?.ContainsKey(Block.MANAGEDTAG));
+            var mgmttag = firstmgblk.Tags[Block.MANAGEDTAG];
+            Enum.TryParse(mgmttag, out WFState wfstate);
+            Assert.AreNotEqual(WFState.Refund, wfstate);
+
             var voteblk = relblocks.Where(a => a is VotingGenesisBlock)
                 .FirstOrDefault();
             Assert.IsNotNull(voteblk);

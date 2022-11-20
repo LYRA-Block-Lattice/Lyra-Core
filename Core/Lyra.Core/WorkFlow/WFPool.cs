@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow
 {
@@ -126,7 +127,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash
             };
 
-            poolGenesis.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            poolGenesis.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -239,7 +240,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = sendBlock.Hash
             };
 
-            depositBlock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            depositBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -362,7 +363,7 @@ namespace Lyra.Core.WorkFlow
 
             var sendBlock = await sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
 
-            withdrawBlock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());           
+            withdrawBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());           
 
             var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
             var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
@@ -514,7 +515,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = sendBlock.Hash
             };
 
-            swapInBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            swapInBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -555,7 +556,7 @@ namespace Lyra.Core.WorkFlow
             return swapInBlock;
         }
 
-        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string reqHash)
+        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, LyraContext context, string reqHash)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
             var swout = blocks.FirstOrDefault(a => a is PoolSwapOutBlock);
@@ -587,7 +588,7 @@ namespace Lyra.Core.WorkFlow
                 RelatedTx = send.Hash
             };
 
-            swapOutBlock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            swapOutBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(recv.AccountID) as PoolGenesisBlock;
             var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(recv.AccountID) as TransactionBlock;

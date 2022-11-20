@@ -82,7 +82,7 @@ namespace Lyra.Core.WorkFlow.Uni
         protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
-            return await SealUniOrderAsync(sys, send.Hash, send.Tags["orderid"]);
+            return await SealUniOrderAsync(sys, context, send.Hash, send.Tags["orderid"]);
         }
 
         protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context)
@@ -90,7 +90,7 @@ namespace Lyra.Core.WorkFlow.Uni
             var send = context.Send;
             var daoid = send.Tags["daoid"];
             var orderid = send.Tags["orderid"];
-            return await SendCollateralToSellerAsync(sys, send.Hash, orderid);
+            return await SendCollateralToSellerAsync(sys, context, send.Hash, orderid);
         }
     }
 }

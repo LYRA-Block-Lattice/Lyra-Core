@@ -100,7 +100,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<OtcTradeRecvBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv

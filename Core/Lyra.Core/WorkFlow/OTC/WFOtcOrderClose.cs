@@ -142,7 +142,7 @@ namespace Lyra.Core.WorkFlow.OTC
             
             sendToTradeBlock.Balances["LYR"] = 0;          // all remaining LYR
 
-            sendToTradeBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            sendToTradeBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendToTradeBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendToTradeBlock;
@@ -232,7 +232,7 @@ namespace Lyra.Core.WorkFlow.OTC
             dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
             sendCollateral.Balances = dict.ToLongDict();
 
-            sendCollateral.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            sendCollateral.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendCollateral.InitializeBlock(daolastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendCollateral;

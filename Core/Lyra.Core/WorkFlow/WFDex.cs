@@ -110,7 +110,7 @@ namespace Lyra.Core.WorkFlow
                 AccountType = AccountTypes.DEX
             };
 
-            wgen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            wgen.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             wgen.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -208,7 +208,7 @@ namespace Lyra.Core.WorkFlow
             else
                 mint.Balances.Add(ticker, amount.ToBalanceLong());
 
-            mint.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            mint.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             mint.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -305,7 +305,7 @@ namespace Lyra.Core.WorkFlow
             sendtoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
             sendtoken.Balances[ticker] -= amount.ToBalanceLong();
 
-            sendtoken.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            sendtoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendtoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -413,7 +413,7 @@ namespace Lyra.Core.WorkFlow
                 recvtoken.Balances.Add(ticker, chgs.Changes[ticker].ToBalanceLong());
             }
 
-            recvtoken.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            recvtoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             recvtoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -510,14 +510,14 @@ namespace Lyra.Core.WorkFlow
             burntoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
             burntoken.Balances[ticker] -= amount.ToBalanceLong();
 
-            burntoken.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            burntoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             burntoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
             return burntoken;
         }
 
-        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash)
+        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, LyraContext context, string hash)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(hash);
             if (!blocks.Any(a => a is TokenWithdrawBlock))

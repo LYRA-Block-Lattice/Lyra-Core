@@ -150,7 +150,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             return await TransactionOperateAsync(sys, send.Hash, prevBlock, 
                 () => prevBlock.GenInc<DaoRecvBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv

@@ -147,14 +147,13 @@ namespace Lyra.Core.WorkFlow.OTC
                 };
 
                 return await SlashCollateral(sys, context,
-                    tos[resolv.Actions[blocks.Count - 1].to], resolv.Actions[blocks.Count - 1].amount,
-                    blocks.Count == resolv.Actions.Length);
+                    tos[resolv.Actions[blocks.Count - 1].to], resolv.Actions[blocks.Count - 1].amount);
             }
             else
                 return null;
         }
 
-        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, LyraContext context, string to, decimal amount, bool finalOne)
+        protected async Task<TransactionBlock> SlashCollateral(DagSystem sys, LyraContext context, string to, decimal amount)
         {
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
@@ -165,7 +164,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             var daosendblk = await TransactionOperateAsync(sys, send.Hash, daolatest,
                 () => daolatest.GenInc<DaoSendBlock>(),
-                () => finalOne ? WFState.Finished : WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
@@ -193,7 +192,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<OtcVotedResolutionBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // recv

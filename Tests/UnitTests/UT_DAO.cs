@@ -22,7 +22,7 @@ namespace UnitTests
     {
         IDealer dlr;
 
-        [TestMethod]
+        //[TestMethod]
         public async Task TestDAO()
         {
             await SetupWallets("xtest");
@@ -1227,7 +1227,7 @@ namespace UnitTests
             // we temp disable the dealer creation.
             var ret = await testWallet.ServiceRequestAsync(dealerAbi);
             Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
-            await WaitWorkflow($"Create Dealer");
+            await WaitWorkflow(ret.TxHash, $"Create Dealer");
 
             var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
             Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");

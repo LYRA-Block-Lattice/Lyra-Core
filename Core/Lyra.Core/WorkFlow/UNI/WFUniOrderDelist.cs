@@ -70,7 +70,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                         // send

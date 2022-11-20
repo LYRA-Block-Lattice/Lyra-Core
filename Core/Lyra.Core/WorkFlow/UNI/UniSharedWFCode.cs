@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow.Uni
 {
@@ -27,13 +28,13 @@ namespace Lyra.Core.WorkFlow.Uni
             throw new Exception("Shared code. Should not call me.");
         }
 
-        protected async Task<TransactionBlock> SealUniOrderAsync(DagSystem sys, string wfkey, string orderid)
+        protected async Task<TransactionBlock> SealUniOrderAsync(DagSystem sys, LyraContext context, string wfkey, string orderid)
         {
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
 
             var blockNext = await TransactionOperateAsync(sys, wfkey, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {                    
                     var orderb = b as IUniOrder;
@@ -57,7 +58,7 @@ namespace Lyra.Core.WorkFlow.Uni
             return blockNext;
         }
 
-        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, string wfkey, string orderid)
+        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context, string wfkey, string orderid)
         {
             var orderlatest = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
             var daoid = (orderlatest as IUniOrder).Order.daoId;
@@ -129,7 +130,7 @@ namespace Lyra.Core.WorkFlow.Uni
             dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
             sendCollateral.Balances = dict.ToLongDict();
 
-            sendCollateral.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            sendCollateral.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendCollateral.InitializeBlock(daolastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendCollateral;

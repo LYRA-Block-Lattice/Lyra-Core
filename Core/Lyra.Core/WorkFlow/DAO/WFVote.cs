@@ -111,7 +111,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<VotingBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv

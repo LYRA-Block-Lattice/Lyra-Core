@@ -195,11 +195,11 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
-                    (b as SendTransferBlock).DestinationAccountId = AccountId;
+                    b.DestinationAccountId = AccountId;
 
                     // IUniTrade
                     var nextOdr = b as IUniOrder;
@@ -216,82 +216,52 @@ namespace Lyra.Core.WorkFlow
                     dict[trade.offering] -= trade.amount;
                     b.Balances = dict.ToLongDict();
                 });
-
-            //var nextblock = lastblock.GenInc<UniOrderSendBlock>();  //gender change
-            //var sendtotrade = nextblock
-            //    .With(new
-            //    {
-            //            // generic
-            //        ServiceHash = sb.Hash,
-            //        BlockType = BlockTypes.UniOrderSend,
-
-            //            // send & recv
-            //        DestinationAccountId = AccountId,
-
-            //            // broker
-            //        RelatedTx = send.Hash,
-
-            //            // business object
-            //        Order = nextblock.Order.With(new
-            //        {
-            //            amount = ((IUniOrder)lastblock).Order.amount - trade.amount,
-            //        }),
-            //        OOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
-            //            UniOrderStatus.Closed : UniOrderStatus.Partial,
-            //    });
-
-            //// calculate balance
-            //var dict = lastblock.Balances.ToDecimalDict();
-            //dict[trade.crypto] -= trade.amount;
-            //sendtotrade.Balances = dict.ToLongDict();
-            //sendtotrade.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            //return sendtotrade;
         }
 
-/*        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, LyraContext context)
-        {
-            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-
-            var lastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
-
-            return await TransactionOperateAsync(sys, send.Hash, lastblock,
-                () => lastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Running,
-                (b) =>
+        /*        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, LyraContext context)
                 {
-                    // send
-                    (b as SendTransferBlock).DestinationAccountId = trade.orderId;
+                    var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
 
-                    // send the amount of crypto from dao to order
-                    var dict = lastblock.Balances.ToDecimalDict();
-                    dict[trade.offering] -= trade.amount;
-                    b.Balances = dict.ToLongDict();
-                });
-        }
+                    var lastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
 
-        async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, LyraContext context)
-        {
-            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
-            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+                    return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                        () => lastblock.GenInc<DaoSendBlock>(),
+                        () => context.State,
+                        (b) =>
+                        {
+                            // send
+                            (b as SendTransferBlock).DestinationAccountId = trade.orderId;
 
-            return await TransactionOperateAsync(sys, send.Hash, lastblock,
-                () => lastblock.GenInc<UniOrderRecvBlock>(),
-                () => WFState.Running,
-                (b) =>
+                            // send the amount of crypto from dao to order
+                            var dict = lastblock.Balances.ToDecimalDict();
+                            dict[trade.offering] -= trade.amount;
+                            b.Balances = dict.ToLongDict();
+                        });
+                }
+
+                async Task<TransactionBlock> OrderReceiveCryptoAsync(DagSystem sys, LyraContext context)
                 {
-                    // send
-                    (b as ReceiveTransferBlock).SourceHash = blocks.Last().Hash;
+                    var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+                    var lastblock = await sys.Storage.FindLatestBlockAsync(trade.orderId) as TransactionBlock;
+                    var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
-                    // send the amount of crypto from dao to order
-                    var dict = lastblock.Balances.ToDecimalDict();
-                    if (dict.ContainsKey(trade.offering))
-                        dict[trade.offering] += trade.amount;
-                    else
-                        dict.Add(trade.offering, trade.amount);
-                    b.Balances = dict.ToLongDict();
-                });
-        }*/
+                    return await TransactionOperateAsync(sys, send.Hash, lastblock,
+                        () => lastblock.GenInc<UniOrderRecvBlock>(),
+                        () => context.State,
+                        (b) =>
+                        {
+                            // send
+                            (b as ReceiveTransferBlock).SourceHash = blocks.Last().Hash;
+
+                            // send the amount of crypto from dao to order
+                            var dict = lastblock.Balances.ToDecimalDict();
+                            if (dict.ContainsKey(trade.offering))
+                                dict[trade.offering] += trade.amount;
+                            else
+                                dict.Add(trade.offering, trade.amount);
+                            b.Balances = dict.ToLongDict();
+                        });
+                }*/
 
         async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, LyraContext context)
         {
@@ -327,23 +297,24 @@ namespace Lyra.Core.WorkFlow
                 Trade = trade,
             };
 
-            string wfstr;
-            if (LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.Token
-                || LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.NFT)
+            //string wfstr;
+            //if (LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.Token
+            //    || LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.NFT)
 
-            {
-                // non OTC, set status directly to biding sent.
-                Uniblock.UTStatus = UniTradeStatus.BidReceived;
-                wfstr = WFState.Running.ToString();
-            }
-            else
-            {
-                Uniblock.UTStatus = UniTradeStatus.Open;
-                wfstr = WFState.Finished.ToString();
-            }
+            //{
+            //    // non OTC, set status directly to biding sent.
+            //    Uniblock.UTStatus = UniTradeStatus.BidReceived;
+            //    wfstr = WFState.Running.ToString();
+            //}
+            //else
+            //{
+            //    Uniblock.UTStatus = UniTradeStatus.Open;
+            //    wfstr = WFState.Finished.ToString();
+            //}
+            // TODO: change workflow in other way
 
             Uniblock.Balances.Add(trade.offering, trade.amount.ToBalanceLong());
-            Uniblock.AddTag(Block.MANAGEDTAG, wfstr);
+            Uniblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             Uniblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -359,14 +330,14 @@ namespace Lyra.Core.WorkFlow
             Console.WriteLine("Call SendCryptoProductFromTradeToBuyerAsync");
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<UniTradeSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     var trade = b as IUniTrade;
 
                     trade.UTStatus = UniTradeStatus.OfferReceived;
 
-                    (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
+                    b.DestinationAccountId = trade.OwnerAccountId;
 
                     b.Balances[trade.Trade.offering] = 0;
                 });
@@ -404,7 +375,7 @@ namespace Lyra.Core.WorkFlow
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // block
@@ -425,14 +396,14 @@ namespace Lyra.Core.WorkFlow
         {
             var send = context.Send;
             var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            return await SealUniOrderAsync(sys, send.Hash, unitrade.orderId);
+            return await SealUniOrderAsync(sys, context, send.Hash, unitrade.orderId);
         }
 
         protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            return await SendCollateralToSellerAsync(sys, send.Hash, unitrade.orderId);
+            return await SendCollateralToSellerAsync(sys, context, send.Hash, unitrade.orderId);
         }
     }
 }

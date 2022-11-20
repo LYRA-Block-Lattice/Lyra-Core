@@ -202,7 +202,7 @@ namespace Lyra.Core.WorkFlow
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
 
-            sendToOrderBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            sendToOrderBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendToOrderBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendToOrderBlock;
@@ -248,7 +248,7 @@ namespace Lyra.Core.WorkFlow
 
             Uniblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 
-            Uniblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            Uniblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             Uniblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

@@ -66,9 +66,9 @@ namespace Lyra.Core.WorkFlow.Uni
             return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
         }
 
-        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext contextBlock)
+        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext context)
         {
-            var sendBlock = contextBlock.Send;
+            var sendBlock = context.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
             if (recv != null)
@@ -79,7 +79,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
                 () => lastblock.GenInc<UniTradeRecvBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
