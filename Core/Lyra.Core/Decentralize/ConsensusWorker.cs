@@ -323,7 +323,7 @@ namespace Lyra.Core.Decentralize
 
             stopwatch.Stop();
             if (result.Result == APIResultCodes.Success)
-                _log.LogInformation($"LocalAuthorizingAsync {item.Block.BlockType} takes {stopwatch.ElapsedMilliseconds} ms with {result.Result} for {item.Block.Hash}");
+                _log.LogInformation($"LocalAuthorizingAsync {authorizer.GetType().Name} {item.Block.BlockType} takes {stopwatch.ElapsedMilliseconds} ms with {result.Result} for {item.Block.Hash}");
             else
             {
                 if (result.Result == APIResultCodes.CouldNotFindLatestBlock)
