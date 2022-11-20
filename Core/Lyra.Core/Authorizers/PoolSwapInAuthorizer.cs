@@ -27,7 +27,7 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class PoolRefundRecvAuthorizer : BrokerAccountRecvAuthorizer
+    public class PoolRefundRecvAuthorizer : ReceiveTransferAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
@@ -48,7 +48,7 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class PoolRefundSendAuthorizer : BrokerAccountSendAuthorizer
+    public class PoolRefundSendAuthorizer : SendTransferAuthorizer
     {
         public override BlockTypes GetBlockType()
         {
