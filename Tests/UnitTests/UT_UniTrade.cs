@@ -77,7 +77,8 @@ namespace UnitTests
 
             //// let workflow to finish
             //await Task.Delay(1000);
-            Console.WriteLine(cs.PrintProfileInfo());
+            if(netid == "xtest")
+                Console.WriteLine(cs.PrintProfileInfo());
         }
 
         private async Task<TokenGenesisBlock> CreateTokenAsync(Wallet ownerWallet, string domain, string token, 

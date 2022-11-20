@@ -268,6 +268,9 @@ namespace Lyra.Core.Blocks
 
         protected string DictToStr<TKey, TValue>(Dictionary<TKey, TValue> dict)
         {
+            if (dict == null)
+                return "";
+
             var sb = new StringBuilder();
             foreach (var kvp in dict)
             {
