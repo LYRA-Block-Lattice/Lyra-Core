@@ -121,11 +121,37 @@ namespace Lyra.Core.WorkFlow
                     chgs.Changes,
                     context.State);
 
+            if (last1 is IOtcTrade)
+                return await TransSendAsync<OtcTradeSendBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
+            if (last1 is IOtcOrder)
+                return await TransSendAsync<OtcOrderSendBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
+            if (last1 is IUniTrade)
+                return await TransSendAsync<UniTradeSendBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
+            if (last1 is IUniOrder)
+                return await TransSendAsync<UniOrderSendBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
             if (last1 is PoolSwapInBlock || last1 is PoolSwapOutBlock || last1 is PoolRefundSendBlock || last1 is PoolRefundReceiveBlock)
                 return await TransSendAsync<PoolRefundSendBlock>(sys,
                     context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);
+
+
 
             // TODO: support pool, dex, etc.
             throw new NotImplementedException();
