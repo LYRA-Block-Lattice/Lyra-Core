@@ -1900,7 +1900,7 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.ProfitingAccountCreateFee }
             };
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             if (result.ResultCode != APIResultCodes.Success)
                 return new BlockAPIResult { ResultCode = result.ResultCode };
 
@@ -1942,7 +1942,7 @@ namespace Lyra.Core.Accounts
                 { "pftid", profitingAccountId }
             };
 
-            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var getpftResult = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return getpftResult;
         }
 
@@ -1960,7 +1960,7 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
             };
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             if (result.ResultCode != APIResultCodes.Success)
                 return new BlockAPIResult { ResultCode = result.ResultCode };
 
@@ -2027,7 +2027,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, 1m }
             };
 
-            var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var addStkResult = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return addStkResult;
         }
         #endregion
@@ -2047,7 +2047,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
             };
 
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return result;
         }
 
@@ -2089,7 +2089,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, 1 }
             };
 
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return result;
         }
 
@@ -2113,7 +2113,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, 1 }
             };
 
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return result;
         }
 
@@ -2149,7 +2149,7 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, 1 }
             };
 
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return result;
         }
         #endregion

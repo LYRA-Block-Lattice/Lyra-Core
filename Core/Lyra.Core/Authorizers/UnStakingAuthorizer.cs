@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidTimeRange;
 
             var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            if (send == null || send.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                 return APIResultCodes.InvalidMessengerAccount;
 
             if (block.DestinationAccountId != send.AccountID)
