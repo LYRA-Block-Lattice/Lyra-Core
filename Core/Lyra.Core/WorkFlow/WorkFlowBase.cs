@@ -122,7 +122,7 @@ namespace Lyra.Core.WorkFlow
                     context.State);
 
             if (last1 is PoolSwapInBlock || last1 is PoolSwapOutBlock)
-                return await TransSendAsync<PoolSwapOutBlock>(sys,
+                return await TransSendAsync<PoolRefundSendBlock>(sys,
                     context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);

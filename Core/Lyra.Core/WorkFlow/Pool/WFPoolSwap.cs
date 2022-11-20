@@ -97,7 +97,7 @@ namespace Lyra.Core.WorkFlow.Pool
         public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
         {
             // refund receive doesn't change the pool settings. just receive.
-            return await TransReceiveAsync<PoolSwapInBlock>(sys, context);
+            return await TransReceiveAsync<PoolRefundReceiveBlock>(sys, context);
         }
 
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)

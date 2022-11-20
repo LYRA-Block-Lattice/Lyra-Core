@@ -401,6 +401,8 @@ namespace Lyra.Core.Blocks
         PoolWithdraw = 53,
         PoolSwapIn = 54,
         PoolSwapOut = 55,
+        PoolRefundRecv,
+        PoolRefundSend,
 
         // staking
         ProfitingGenesis = 60,
