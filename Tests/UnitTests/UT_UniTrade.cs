@@ -29,7 +29,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "xtest";
+            var netid = "devnet";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -581,6 +581,7 @@ namespace UnitTests
             Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
             await WaitWorkflow(voteRet2.TxHash, "Vote on Subject Async 2");
 
+            // vote again to trigger an error
             var voteRet2x = await test2Wallet.Vote(voteblk.AccountID, 0);
             Assert.IsTrue(voteRet2x.Successful(), $"Vote 2x should not error: {voteRet2x.ResultCode}");
             await WaitWorkflow(voteRet2x.TxHash, "Vote on Subject Async 2x");

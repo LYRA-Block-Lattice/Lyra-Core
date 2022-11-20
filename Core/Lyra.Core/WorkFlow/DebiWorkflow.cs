@@ -454,7 +454,7 @@ namespace Lyra.Core.WorkFlow
         public override async Task<ExecutionResult> RunAsync(IStepExecutionContext context)
         {
             var ctx = context.Workflow.Data as LyraContext;
-            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.GetSendHash}, {ctx.Count}/{ctx.State.ToString()}, {Message}";
+            var log = $"([WF] {DateTime.Now:mm:ss.ff}) Key is: {ctx.GetSendHash()}, {ctx.Count}/{ctx.State.ToString()}, {Message}";
             _logger.LogInformation(log);
             //Console.WriteLine(log);
 
