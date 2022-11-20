@@ -437,6 +437,7 @@ namespace Lyra.Core.Blocks
         // voting
         VoteGenesis = 100,
         Voting = 101,
+        VotingRefund,
 
         // Dealer
         DealerRecv = 105,

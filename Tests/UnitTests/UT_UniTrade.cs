@@ -248,6 +248,7 @@ namespace UnitTests
 
             await TestJoinDAO(daoid);
 
+            var rand = new Random();
             // test dao change by vote
             VotingSubject daochg = new VotingSubject
             {
@@ -255,7 +256,7 @@ namespace UnitTests
                 DaoId = nodesdao.AccountID,
                 Issuer = genesisWallet.AccountId,
                 TimeSpan = 100,
-                Title = "We need to modify DAO",
+                Title = $"We need to modify DAO ({rand.Next()})",
                 Description = "Change these settings",
                 Options = new[] { "Yay", "Nay" },
             };
@@ -325,6 +326,29 @@ namespace UnitTests
 
         private async Task TestJoinDAO(string daoid)
         {
+            // leave first.
+            var leaveret1 = await testWallet.LeaveDAOAsync(daoid);
+            Assert.IsTrue(leaveret1.Successful(), $"Can't leave DAO: {leaveret1.ResultCode}");
+            await WaitWorkflow(leaveret1.TxHash, "LeaveDAOAsync 1");
+            await testWallet.SyncAsync();
+
+            var leaveret2 = await test2Wallet.LeaveDAOAsync(daoid);
+            Assert.IsTrue(leaveret2.Successful(), $"Can't leave DAO: {leaveret2.ResultCode}");
+            await WaitWorkflow(leaveret2.TxHash, "LeaveDAOAsync 2");
+            
+
+            var leaveret3 = await test3Wallet.LeaveDAOAsync(daoid);
+            Assert.IsTrue(leaveret3.Successful(), $"Can't leave DAO: {leaveret3.ResultCode}");
+            await WaitWorkflow(leaveret3.TxHash, "LeaveDAOAsync 3");
+
+            var leaveret4 = await test4Wallet.LeaveDAOAsync(daoid);
+            Assert.IsTrue(leaveret4.Successful(), $"Can't leave DAO: {leaveret4.ResultCode}");
+            await WaitWorkflow(leaveret4.TxHash, "LeaveDAOAsync 4");
+
+            await test2Wallet.SyncAsync();
+            await test3Wallet.SyncAsync();
+            await test4Wallet.SyncAsync();
+
             // get dao
             var nodesdaoret = await genesisWallet.RPC.GetLastBlockAsync(daoid);
             Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");
@@ -375,9 +399,9 @@ namespace UnitTests
             Assert.AreEqual((treasure0.ContainsKey(test4PublicKey) ? treasure0[test4PublicKey] : 0) + 50000m, Math.Round(treasure[test4PublicKey], 5));
 
             // test leave DAO
-            var leaveret4 = await test4Wallet.LeaveDAOAsync(daoid);
-            Assert.IsTrue(leaveret4.Successful(), $"Can't leave DAO: {leaveret4.ResultCode}");
-            await WaitWorkflow(leaveret4.TxHash, "LeaveDAOAsync 4");
+            var leaveret4x = await test4Wallet.LeaveDAOAsync(daoid);
+            Assert.IsTrue(leaveret4x.Successful(), $"Can't leave DAO: {leaveret4x.ResultCode}");
+            await WaitWorkflow(leaveret4x.TxHash, "LeaveDAOAsync 4");
 
             // then test3 should not exists in the treasure
             var nodesdaoret2 = await genesisWallet.RPC.GetDaoByNameAsync(name);

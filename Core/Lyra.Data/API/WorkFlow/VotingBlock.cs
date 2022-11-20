@@ -126,6 +126,61 @@ namespace Lyra.Data.API.WorkFlow
         }
     }
 
+    [BsonIgnoreExtraElements]
+    public class VotingRefundBlock : BrokerAccountSend, IVoting
+    {
+        public VoteStatus VoteState { get; set; }
+        public VotingSubject Subject { get; set; } = null!;
+        public VoteProposal Proposal { get; set; } = null!;
+
+        public string VoterId { get; set; } = null!;
+        public int OptionIndex { get; set; }
+
+        protected override BlockTypes GetBlockType()
+        {
+            return BlockTypes.VotingRefund;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as VotingBlock;
+
+            return base.AuthCompare(ob) &&
+                VoteState == ob.VoteState &&
+                Subject.GetExtraData() == ob.Subject.GetExtraData() &&
+                Proposal.pptype == ob.Proposal.pptype &&
+                Proposal.data == ob.Proposal.data &&
+                VoterId == ob.VoterId &&
+                    OptionIndex.Equals(ob.OptionIndex);
+        }
+
+        protected override string GetExtraData()
+        {
+            var plainTextBytes = Encoding.UTF8.GetBytes(Proposal.data);
+            var ppdataenc = Convert.ToBase64String(plainTextBytes);
+
+            string extraData = base.GetExtraData();
+            extraData += $"{VoteState}|";
+            extraData += $"{Subject.GetExtraData()}|";
+            extraData += $"{Proposal.pptype}|";
+            extraData += $"{ppdataenc}|";
+            extraData += $"{VoterId}|";
+            extraData += $"{OptionIndex}|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"State: {VoteState}\n";
+            result += $"Subject: {Subject}\n";
+            result += $"Proposal: {Proposal}\n";
+            result += $"VoterId: {VoterId}\n";
+            result += $"OptionIndex: {OptionIndex}\n";
+            return result;
+        }
+    }
+
 
     [BsonIgnoreExtraElements]
     public class VotingGenesisBlock : VotingBlock, IOpeningBlock

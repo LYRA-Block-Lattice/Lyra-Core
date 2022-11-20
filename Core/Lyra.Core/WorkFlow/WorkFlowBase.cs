@@ -99,19 +99,25 @@ namespace Lyra.Core.WorkFlow
 
             if(srcAccount == LyraGlobal.GUILDACCOUNTID)
                 return await TransSendAsync<GuildSendBlock>(sys,
-                    context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);
 
             if(last1 is IDao)
                 return await TransSendAsync<DaoSendBlock>(sys,
-                    context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);
 
             if(last1 is IUniTrade)
                 return await TransSendAsync<UniTradeSendBlock>(sys,
-                    context.Send.Hash, LyraGlobal.GUILDACCOUNTID, context.Send.AccountID,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
+            if (last1 is IVoting)
+                return await TransSendAsync<VotingRefundBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);
 
