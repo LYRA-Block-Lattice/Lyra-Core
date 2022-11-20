@@ -71,7 +71,9 @@ namespace Lyra.Core.WorkFlow
                 if(ctx.State == WFState.Init)
                 {
                     ctx.AuthResult = await SubWorkflow.PreAuthAsync(DagSystem.Singleton, ctx);
-                    Console.WriteLine($"CTX Auth result: {ctx.AuthResult.Result}");
+                    if(ctx.AuthResult.Result != APIResultCodes.Success)
+                        _logger.LogWarning($"CTX Auth result: {ctx.AuthResult.Result}");
+
                     if (ctx.AuthResult.Result == APIResultCodes.Success)
                     {
                         ctx.State = WFState.NormalReceive;
@@ -91,7 +93,7 @@ namespace Lyra.Core.WorkFlow
                     _ => throw new Exception($"Unaccepted wf state: {ctx.State}")
                 };       
 
-                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash()}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
 
                 if (block != null)
                 {
@@ -315,7 +317,7 @@ namespace Lyra.Core.WorkFlow
                 .StartWith(a =>
                 {
                     a.Workflow.Reference = "Start";
-                    Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
+                    //Console.WriteLine($"{this.GetType().Name} start with {a.Workflow.Data}");
                     //ConsensusService.Singleton.LockIds(LockingIds);
                     return ExecutionResult.Next();
                 })

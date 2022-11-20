@@ -52,6 +52,11 @@ namespace Lyra.Core.Accounts
         private ILyraAPI? _rpcClient = null;
         public ILyraAPI? RPC => _rpcClient;
 
+        // to receive living events
+        LyraEventClient _eventClient;
+        string _workflowKey;
+        AutoResetEvent _workflowEnds = new AutoResetEvent(false);
+
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
 
@@ -147,6 +152,47 @@ namespace Lyra.Core.Accounts
                 throw new Exception("Can't create wallet in storage.");
             return wallet;
         }
+
+        public async Task SetupEventsListenerAsync()
+        {
+            var port = NetworkId == "mainnet" ? 5504 : 4504;
+            var url = $"https://{NetworkId}.lyra.live:{port}/events";
+            _eventClient = new LyraEventClient(LyraEventHelper.CreateConnection(new Uri(url)));
+
+            _eventClient.RegisterOnEvent(evt => ProcessEvent(evt));
+
+            await _eventClient.StartAsync();
+        }
+
+        private void ProcessEvent(EventContainer evt)
+        {
+            try
+            {
+                var obj = evt.Get();
+                if (obj is WorkflowEvent wf)
+                {
+                    //Console.WriteLine($"Workflow {wf.Key} State: {wf.State}, Message: {wf.Message}");
+
+                    if (wf.State == "Exited")
+                    {
+                        if (_workflowKey != null && _workflowKey == wf.Key)
+                            _workflowEnds.Set();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ProcessEventAsync: {ex}");
+            }
+        }
+
+        public bool WaitForWorkflow(string txHash, int timeout = 10000)
+        {
+            _workflowKey = txHash;
+
+            return _workflowEnds.WaitOne(timeout);
+        }
+
         // one-time "manual" sync up with the node 
         public async Task<APIResultCodes> SyncAsync(ILyraAPI? RPCClient = null)
         {
