@@ -62,9 +62,6 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as PoolRefundSendBlock;
 
-            if (block.DestinationAccountId != block.RelatedTx)
-                return APIResultCodes.InvalidRelatedTx;
-
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolSwapInAuthorizer->ReceiveTransferAuthorizer");
         }
     }
