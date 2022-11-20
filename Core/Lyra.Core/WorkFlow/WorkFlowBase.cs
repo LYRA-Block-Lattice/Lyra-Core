@@ -393,40 +393,40 @@ namespace Lyra.Core.WorkFlow
             return await operations[index](sys, context);
         }
 
-        protected async Task<TransactionBlock> TransactionOperateAsync(
-            DagSystem sys,
-            string relatedHash,
-            TransactionBlock prevBlock,
-            Func<TransactionBlock> GenBlock,
-            Func<WFState> wfState,
-            Action<TransactionBlock> ChangeBlock
-            )
-        {
-            var lsb = await sys.Storage.GetLastServiceBlockAsync();
+        //protected async Task<TransactionBlock> TransactionOperateAsync(
+        //    DagSystem sys,
+        //    string relatedHash,
+        //    TransactionBlock prevBlock,
+        //    Func<TransactionBlock> GenBlock,
+        //    Func<WFState> wfState,
+        //    Action<TransactionBlock> ChangeBlock
+        //    )
+        //{
+        //    var lsb = await sys.Storage.GetLastServiceBlockAsync();
 
-            var nextblock = GenBlock();
+        //    var nextblock = GenBlock();
 
-            // block
-            nextblock.ServiceHash = lsb.Hash;
-            nextblock.Tags = null;
-            nextblock.AddTag(Block.MANAGEDTAG, wfState().ToString());
+        //    // block
+        //    nextblock.ServiceHash = lsb.Hash;
+        //    nextblock.Tags = null;
+        //    nextblock.AddTag(Block.MANAGEDTAG, wfState().ToString());
 
-            // transactions
-            nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
+        //    // transactions
+        //    nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
 
-            // ibroker
-            (nextblock as IBrokerAccount).RelatedTx = relatedHash;
+        //    // ibroker
+        //    (nextblock as IBrokerAccount).RelatedTx = relatedHash;
 
-            if (ChangeBlock != null)
-                ChangeBlock(nextblock);
+        //    if (ChangeBlock != null)
+        //        ChangeBlock(nextblock);
 
-            await nextblock.InitializeBlockAsync(prevBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
+        //    await nextblock.InitializeBlockAsync(prevBlock, (hash) => Task.FromResult(Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId)));
 
-            //remove this debug code
-            //System.IO.File.AppendAllText("c:\\tmp\\hashs.txt", nextblock.GetHashInput() + "\n\n");
+        //    //remove this debug code
+        //    //System.IO.File.AppendAllText("c:\\tmp\\hashs.txt", nextblock.GetHashInput() + "\n\n");
 
-            return nextblock;
-        }
+        //    return nextblock;
+        //}
 
         protected async Task<T> TransactionOperateAsync<T>(
             DagSystem sys,
@@ -450,7 +450,12 @@ namespace Lyra.Core.WorkFlow
             nextblock.Balances = prevBlock.Balances.ToDecimalDict().ToLongDict();
 
             // ibroker
-            (nextblock as IBrokerAccount).RelatedTx = relatedHash;
+            if (nextblock is IBrokerAccount brkr)
+                brkr.RelatedTx = relatedHash;
+            else if (nextblock is IPool pool)
+                pool.RelatedTx = relatedHash;
+            else
+                throw new InvalidOperationException($"unsupported block type: {nextblock.BlockType}");
 
             if (ChangeBlock != null)
                 ChangeBlock(nextblock);
