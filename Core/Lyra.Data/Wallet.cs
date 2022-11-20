@@ -55,6 +55,8 @@ namespace Lyra.Core.Accounts
         // to receive living events
         LyraEventClient _eventClient;
         string _workflowKey;
+        bool _workflowRefund;
+        public bool IsLastWorkflowRefund => _workflowRefund;
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
 
         private long SyncHeight = -1;
@@ -172,8 +174,11 @@ namespace Lyra.Core.Accounts
                 if (obj is WorkflowEvent wf)
                 {
                     //Console.WriteLine($"Workflow {wf.Key} State: {wf.State}, Message: {wf.Message}");
-
-                    if (wf.State == "Exited")
+                    if(wf.State == "Refund")
+                    {
+                        _workflowRefund = true;
+                    }
+                    else if (wf.State == "Exited")
                     {
                         if (_workflowKey != null && _workflowKey == wf.Key)
                             _workflowEnds.Set();
@@ -184,10 +189,11 @@ namespace Lyra.Core.Accounts
             {
                 Console.WriteLine($"Error in ProcessEventAsync: {ex}");
             }
-        }
+        }                
 
         public bool WaitForWorkflow(string txHash, int timeout = 10000)
         {
+            _workflowRefund = false;
             _workflowKey = txHash;
 
             return _workflowEnds.WaitOne(timeout);
