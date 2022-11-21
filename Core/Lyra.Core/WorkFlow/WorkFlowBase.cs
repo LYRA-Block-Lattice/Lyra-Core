@@ -145,14 +145,6 @@ namespace Lyra.Core.WorkFlow
                     chgs.Changes,
                     context.State);
 
-            if (last1 is PoolSwapInBlock || last1 is PoolSwapOutBlock || last1 is PoolRefundSendBlock || last1 is PoolRefundReceiveBlock)
-                return await TransSendAsync<PoolRefundSendBlock>(sys,
-                    context.Send.Hash, srcAccount, context.Send.AccountID,
-                    chgs.Changes,
-                    context.State);
-
-
-
             // TODO: support pool, dex, etc.
             throw new NotImplementedException();
         }
@@ -528,7 +520,7 @@ namespace Lyra.Core.WorkFlow
                 });
         }
 
-        async Task<T> TransSendAsync<T>(DagSystem sys, string key, string srcAccountId, string dstAccountId,
+        protected async Task<T> TransSendAsync<T>(DagSystem sys, string key, string srcAccountId, string dstAccountId,
             Dictionary<string, decimal> amounts,
             WFState wfState) where T : TransactionBlock
         {

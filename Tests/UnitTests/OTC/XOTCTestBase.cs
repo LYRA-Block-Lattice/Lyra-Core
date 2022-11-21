@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Akka.Util;
+using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -53,7 +54,9 @@ namespace UnitTests.OTC
         protected async Task CancelTradeShouldFail(IOtcTrade trade)
         {
             var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
-            Assert.IsTrue(!cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
+            Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
+            Assert.IsFalse(test2Wallet.WaitForWorkflow(cloret.TxHash, 3000));
+            Assert.IsTrue(test2Wallet.IsLastWorkflowRefund, "cancel trade should fail");
         }
 
         protected async Task<IOtcTrade> GuestCreateTrade(IOtcOrder order)

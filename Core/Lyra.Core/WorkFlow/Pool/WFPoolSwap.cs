@@ -100,6 +100,19 @@ namespace Lyra.Core.WorkFlow.Pool
             return await TransReceiveAsync<PoolRefundReceiveBlock>(sys, context);
         }
 
+        public override async Task<SendTransferBlock?> RefundSendAsync(DagSystem sys, LyraContext context)
+        {
+            var srcAccount = context.Send.DestinationAccountId;
+            var last1 = await sys.Storage.FindLatestBlockAsync(srcAccount) as TransactionBlock;
+            var last2 = await sys.Storage.FindBlockByHashAsync(last1.PreviousHash) as TransactionBlock;
+            var chgs = last1.GetBalanceChanges(last2);
+
+            return await TransSendAsync<PoolRefundSendBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+        }
+
         public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
             var sendBlock = context.Send;
