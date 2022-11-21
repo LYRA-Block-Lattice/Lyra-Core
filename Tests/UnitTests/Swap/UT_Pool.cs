@@ -39,13 +39,15 @@ namespace UnitTests.Swap
             return Signatures.GetSignature(testPrivateKey, lsb.GetBlock().Hash, testPublicKey);
         }
 
-        public Wallet Restore(string privateKey)
+        public async Task<Wallet> RestoreAsync(string privateKey)
         {
             var memStor = new AccountInMemoryStorage();
             try
             {
                 Wallet.Create(memStor, "tmpAcct", "", networkId, privateKey);
-                return Wallet.Open(memStor, "tmpAcct", "");
+                var w = Wallet.Open(memStor, "tmpAcct", "");
+                await w.SetupEventsListenerAsync();
+                return w;
             }
             catch (Exception)
             {
@@ -61,7 +63,7 @@ namespace UnitTests.Swap
             //client = aggClient;
             client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var w1 = Restore(testPrivateKey);
+            var w1 = await RestoreAsync(testPrivateKey);
             await w1.SyncAsync(client);
 
             var balances = w1.GetLastSyncBlock().Balances;
@@ -132,7 +134,7 @@ namespace UnitTests.Swap
                 var pool = await client.GetPoolAsync(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
                 Assert.IsNotNull(pool.PoolAccountId);
 
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 await w1.SyncAsync(client);
 
                 var swapRito = 0m;
@@ -155,6 +157,8 @@ namespace UnitTests.Swap
                     Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);
                 }                
+
+                // verify the deposit is success
             }
             finally
             {
@@ -173,7 +177,7 @@ namespace UnitTests.Swap
                 Assert.IsTrue(LyraGlobal.OFFICIALTICKERCODE == pool.Token0);
                 Assert.IsTrue(testTokenA == pool.Token1);
 
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 await w1.SyncAsync(client);
 
                 var poolLatest = pool.GetBlock() as TransactionBlock;
@@ -229,7 +233,7 @@ namespace UnitTests.Swap
 
                 Assert.IsTrue(poolLatestBlock.Balances[pool.Token0] > 0 && poolLatestBlock.Balances[pool.Token1] > 0, "No liquidate in pool.");
 
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 await w1.SyncAsync(client);
 
                 var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
@@ -279,7 +283,7 @@ namespace UnitTests.Swap
 
                 Assert.IsTrue(poolLatestBlock.Balances[pool.Token0] > 0 && poolLatestBlock.Balances[pool.Token1] > 0, "No liquidate in pool.");
 
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 await w1.SyncAsync(client);
 
                 var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
@@ -338,14 +342,14 @@ namespace UnitTests.Swap
 
                 Assert.IsTrue(poolLatestBlock.Balances[pool.Token0] > 0 && poolLatestBlock.Balances[pool.Token1] > 0, "No liquidate in pool.");
 
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 await w1.SyncAsync(client);
 
                 var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
                 var lyrBalance = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 // ops, someone swapped
-                var w2 = Restore(otherAccountPrivateKey);
+                var w2 = await RestoreAsync(otherAccountPrivateKey);
                 var w2result = await w2.SyncAsync(client);
                 Assert.IsTrue(w2result == APIResultCodes.Success, $"W2 sync failed: {w2result}");
 
@@ -406,7 +410,7 @@ namespace UnitTests.Swap
 
                 Assert.IsTrue(poolLatestBlock.Balances[pool.Token0] > 0 && poolLatestBlock.Balances[pool.Token1] > 0, "No liquidate in pool.");
 
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 await w1.SyncAsync(client);
 
                 var testTokenBalance = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
@@ -415,8 +419,9 @@ namespace UnitTests.Swap
                 // send wrong token
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var cal = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
-
                 var result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, testTokenB, amount, cal.SwapOutAmount);
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Should failed but: {result.ResultCode}");
 
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
@@ -447,8 +452,7 @@ namespace UnitTests.Swap
                 try
                 {
                     result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal.SwapOutAmount);
-                    Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
-                    Assert.Fail("Should has over flow exception.");
+                    Assert.IsTrue(result.ResultCode == APIResultCodes.InsufficientFunds);
                 }
                 catch { }
 
@@ -463,7 +467,8 @@ namespace UnitTests.Swap
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 cal = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal.MinimumReceived);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
 
                 var poolGenesisResult = await client.GetBlockByIndexAsync(poolLatestBlock.AccountID, 1);
@@ -480,7 +485,7 @@ namespace UnitTests.Swap
                 var testTokenBalance2 = w1.GetLastSyncBlock().Balances[testTokenA].ToBalanceDecimal();
                 var lyrBalance2 = w1.GetLastSyncBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
-                Assert.AreEqual(testTokenBalance + amountToGet, testTokenBalance2);
+                Assert.AreEqual(testTokenBalance + amountToGet, testTokenBalance2, $"amount to get {amountToGet} diff {testTokenBalance + amountToGet - testTokenBalance2}");
                 Assert.AreEqual(lyrBalance - 2 - amount, lyrBalance2);
 
             }

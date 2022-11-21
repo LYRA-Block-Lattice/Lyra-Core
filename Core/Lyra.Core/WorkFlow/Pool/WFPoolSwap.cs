@@ -72,7 +72,7 @@ namespace Lyra.Core.WorkFlow.Pool
                 if (toGet <= 0)
                     return APIResultCodes.InvalidSwapSlippage;
 
-                if (poolLatest.Balances.Any(a => a.Value == 0))
+                if (poolLatest.Balances[poolGenesis.Token0] == 0 || poolLatest.Balances[poolGenesis.Token1] == 0)
                 {
                     // can't calculate rito
                     return APIResultCodes.PoolOutOfLiquidaty;
