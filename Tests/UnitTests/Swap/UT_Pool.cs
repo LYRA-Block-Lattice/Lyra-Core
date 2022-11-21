@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Akka.Util;
+using FluentAssertions;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Authorizers;
@@ -95,7 +96,8 @@ namespace UnitTests.Swap
                 var token1 = testTokenA;
 
                 var poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
-                await Task.Delay(3000);     // give consens network time to create it.
+                Assert.IsTrue(w1.WaitForWorkflow(poolCreateResult.TxHash, 3000));
+                Assert.IsFalse(w1.IsLastWorkflowRefund);     // give consens network time to create it.
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, "Can't create pool for " + token1);
             }
 
@@ -119,7 +121,6 @@ namespace UnitTests.Swap
 
         public async Task APoolSetupProperlyAsync()
         {
-            await Task.Delay(1000);
             var pool = await client.GetPoolAsync(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
             Assert.IsNotNull(pool.PoolAccountId);
             pool.PoolAccountId.Should().StartWith("L");
@@ -198,7 +199,8 @@ namespace UnitTests.Swap
                 var result = await w1.RemoveLiquidateFromPoolAsync(pool.Token0, pool.Token1);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to withdraw from pool: " + result.ResultCode);
 
-                await Task.Delay(5000);
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.IsLastWorkflowRefund);
                 pool = await client.GetPoolAsync(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
                 Assert.IsNotNull(pool.PoolAccountId);
 
@@ -245,7 +247,8 @@ namespace UnitTests.Swap
 
                 var result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, testTokenA, amount, cal1.MinimumReceived);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {testTokenA}: {result.ResultCode}");
-                await Task.Delay(5000);
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.IsLastWorkflowRefund);
 
                 var poolGenesisResult = await client.GetBlockByIndexAsync(poolLatestBlock.AccountID, 1);
                 var block = poolGenesisResult.GetBlock();
@@ -295,7 +298,8 @@ namespace UnitTests.Swap
 
                 var result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal1.MinimumReceived);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
-                await Task.Delay(9000);
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.IsLastWorkflowRefund);
 
                 // then the pool should receive the funds
                 var poolInResult = await client.GetBlockByIndexAsync(pool.PoolAccountId, poolLatestBlock.Height + 1);
@@ -360,26 +364,30 @@ namespace UnitTests.Swap
                 var otherResult = await w2.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, otherAmount, cal1.MinimumReceived);
                 Assert.IsTrue(otherResult.ResultCode == APIResultCodes.Success, $"Failed to swap other account {LyraGlobal.OFFICIALTICKERCODE}: {otherResult.ResultCode}");
 
-                await Task.Delay(6000);
+                Assert.IsTrue(w1.WaitForWorkflow(otherResult.TxHash, 3000));
+                Assert.IsFalse(w1.IsLastWorkflowRefund);
 
                 // then the slippage is triggered
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
                 var result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal2.SwapOutAmount);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.IsLastWorkflowRefund);
                 // APIResultCodes.SwapSlippageExcceeded
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Should not Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
 
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var cal3 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0.001m);
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal3.SwapOutAmount + 1000);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Should Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
 
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var cal4 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0.1m);
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal4.MinimumReceived);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
 
                 var amountToGet = cal4.MinimumReceived;
@@ -420,24 +428,24 @@ namespace UnitTests.Swap
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var cal = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
                 var result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, testTokenB, amount, cal.SwapOutAmount);
-                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 5000));
                 Assert.IsTrue(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Should failed but: {result.ResultCode}");
 
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 cal = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenB, LyraGlobal.OFFICIALTICKERCODE, amount, cal.SwapOutAmount);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 5000));
                 Assert.IsTrue(result.ResultCode == APIResultCodes.PoolNotExists, $"Should failed but: {result.ResultCode}");
 
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 result = await w1.SwapTokenAsync(testTokenB, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal.SwapOutAmount);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 5000));
                 Assert.IsTrue(result.ResultCode == APIResultCodes.PoolNotExists, $"Should failed but: {result.ResultCode}");
 
                 amount = lyrBalance + 1;
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal.SwapOutAmount);
-                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 3000));
+                Assert.IsFalse(w1.WaitForWorkflow(result.TxHash, 5000));
                 Assert.IsTrue(result.ResultCode == APIResultCodes.InsufficientFunds, $"Should failed but: {result.ResultCode}");
 
                 //amount = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / 2 + 1000m;
@@ -468,7 +476,7 @@ namespace UnitTests.Swap
                 cal = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
                 result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, cal.MinimumReceived);
                 Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
-                Assert.IsTrue(w1.IsLastWorkflowRefund);
+                Assert.IsFalse(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
 
                 var poolGenesisResult = await client.GetBlockByIndexAsync(poolLatestBlock.AccountID, 1);
