@@ -143,6 +143,7 @@ namespace UnitTests.Swap
                 if (swapRito == 0)
                 {
                     var result = await w1.AddLiquidateToPoolAsync(pool.Token0, 50000m, pool.Token1, 3000000m);
+                    Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);
                 }
                 else
@@ -151,9 +152,9 @@ namespace UnitTests.Swap
                     var token1Amount = Math.Round(token0Amount / swapRito, 8);
 
                     var result = await w1.AddLiquidateToPoolAsync(pool.Token0, token0Amount, pool.Token1, token1Amount);
+                    Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);
-                }
-                await Task.Delay(3000);
+                }                
             }
             finally
             {
