@@ -428,7 +428,7 @@ namespace UnitTests.Swap
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var cal = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, testTokenA, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, amount, 0);
                 var result = await w1.SwapTokenAsync(LyraGlobal.OFFICIALTICKERCODE, testTokenA, testTokenB, amount, cal.SwapOutAmount);
-                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 5000));
+                Assert.IsTrue(w1.WaitForWorkflow(result.TxHash, 3000));
                 Assert.IsTrue(w1.IsLastWorkflowRefund);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Should failed but: {result.ResultCode}");
 

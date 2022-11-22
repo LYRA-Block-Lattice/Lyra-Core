@@ -326,7 +326,7 @@ namespace Lyra.Core.Authorizers
                 if (nftgen == null)
                     return APIResultCodes.TokenGenesisBlockNotFound;
 
-                if (Math.Round(tokenAmount, 0) != tokenAmount)
+                if (NonFungibleDomains.Contains(nftgen.DomainName) && Math.Round(tokenAmount, 0) != tokenAmount)
                     return APIResultCodes.InvalidNonFungibleAmount;
 
                 if(send_or_receice_block.BlockType == BlockTypes.SendTransfer && TradeOnlyDomains.Contains(nftgen.DomainName))
