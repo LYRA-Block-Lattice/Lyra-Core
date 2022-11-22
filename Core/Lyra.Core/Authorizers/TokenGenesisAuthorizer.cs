@@ -18,6 +18,10 @@ namespace Lyra.Core.Authorizers
             "wizard", "official", "tether", "contract"
         };
 
+        private readonly List<string> _nftDomains = new List<string> {
+            "nft", "tot", 
+        };
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.TokenGenesis;
@@ -54,7 +58,7 @@ namespace Lyra.Core.Authorizers
                 if(block.DomainName.ToLower() != block.DomainName)
                     return APIResultCodes.InvalidDomainName;        // make sure domain name is lower case.
 
-                if (block.DomainName == "nft" && block.Ticker.ToLower() != block.Ticker)
+                if (_nftDomains.Contains(block.DomainName) && block.Ticker.ToLower() != block.Ticker)
                     return APIResultCodes.InvalidTickerName;        // make sure guid is lower case.
 
                 if (r.IsMatch(block.Ticker.Replace(block.DomainName + "/", "")))
@@ -70,7 +74,7 @@ namespace Lyra.Core.Authorizers
                 bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
                 if (!tokenIssuerIsSeed0 && block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
                 {
-                    if (block.DomainName != "nft" && block.DomainName.Length < 6)
+                    if (!_nftDomains.Contains(block.DomainName) && block.DomainName.Length < 6)
                         return APIResultCodes.DomainNameTooShort;
                     if(LyraNodeConfig.GetNetworkId() != "xtest")    // for unit test
                     {
@@ -120,7 +124,7 @@ namespace Lyra.Core.Authorizers
                 if (block.NonFungibleKey != null && !Signatures.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
 
-                if(block.DomainName != "nft")
+                if(!_nftDomains.Contains(block.DomainName))
                     return APIResultCodes.InvalidNFT;
 
                 // Validate Collectible NFT
@@ -129,7 +133,8 @@ namespace Lyra.Core.Authorizers
                     if (block.Precision != 0)
                         return APIResultCodes.InvalidNFT;
 
-                    if (block.NonFungibleType != NonFungibleTokenTypes.Collectible)
+                    if (block.NonFungibleType != NonFungibleTokenTypes.Collectible
+                            && block.NonFungibleType != NonFungibleTokenTypes.TradeOnly)
                         return APIResultCodes.InvalidNFT;
                 }
 

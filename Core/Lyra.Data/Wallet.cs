@@ -783,7 +783,7 @@ namespace Lyra.Core.Accounts
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
             }
 
-            // check tokens exists
+            // check tokens exists but allow fiat exists.
             if (Amounts.Keys.Any(a => !previousBlock.Balances.ContainsKey(a)))
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenNotFound };
@@ -1785,7 +1785,8 @@ namespace Lyra.Core.Accounts
             string metadataUri
             )
         {
-            string ticker = "nft/" + Guid.NewGuid().ToString();
+            var domain = "nft";
+            string ticker = domain + "/" + Guid.NewGuid().ToString();
 
             TransactionBlock latestBlock = await GetLatestBlockAsync();
             if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
@@ -1798,7 +1799,7 @@ namespace Lyra.Core.Accounts
             TokenGenesisBlock tokenBlock = new TokenGenesisBlock
             {
                 Ticker = ticker,
-                DomainName = "nft",
+                DomainName = domain,
                 Description = description,
                 Precision = 0,
                 IsFinalSupply = true,
@@ -1810,7 +1811,6 @@ namespace Lyra.Core.Accounts
                 FeeType = AuthorizationFeeTypes.Regular,
                 RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(36500)),
                 ContractType = ContractTypes.Collectible,
-                VoteFor = VoteFor,
                 IsNonFungible = true,
                 NonFungibleType = NonFungibleTokenTypes.Collectible,
                 Custom1 = name,
@@ -1833,6 +1833,65 @@ namespace Lyra.Core.Accounts
             var result = await _rpcClient.CreateTokenAsync(tokenBlock);
 
             await ProcessResultAsync(result, "CreateNFT", tokenBlock);
+
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> CreateTOTAsync(
+                string name,
+                string description,
+                int supply,
+                string metadataUri
+                )
+        {
+            var domain = "tot";
+            string ticker = domain + "/" + Guid.NewGuid().ToString();
+
+            TransactionBlock latestBlock = await GetLatestBlockAsync();
+            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
+                throw new Exception("Unable to get latest service block.");
+
+            TokenGenesisBlock tokenBlock = new TokenGenesisBlock
+            {
+                Ticker = ticker,
+                DomainName = domain,
+                Description = description,
+                Precision = 0,
+                IsFinalSupply = true,
+                AccountID = AccountId,
+                Balances = new Dictionary<string, long>(),
+                ServiceHash = svcBlockResult.GetBlock().Hash,
+                Fee = TokenGenerationFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.Regular,
+                RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(36500)),
+                ContractType = ContractTypes.TradeOnlyToken,
+                IsNonFungible = true,
+                NonFungibleType = NonFungibleTokenTypes.TradeOnly,
+                Custom1 = name,
+                Custom2 = metadataUri,
+                //NonFungibleKey = AccountId
+            };
+
+            var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };
+
+            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
+            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee.ToBalanceLong());
+
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in latestBlock.Balances)
+                if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
+                    tokenBlock.Balances.Add(balance.Key, balance.Value);
+
+            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+
+            var result = await _rpcClient.CreateTokenAsync(tokenBlock);
+
+            await ProcessResultAsync(result, "CreateTOT", tokenBlock);
 
             return result;
         }

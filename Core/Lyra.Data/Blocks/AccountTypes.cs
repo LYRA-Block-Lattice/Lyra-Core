@@ -31,5 +31,7 @@
         SKUBuy,
         SVCSell,   // human labour, service product, like Fiver.com
         SVCBuy,
+        TOTSell,
+        TOTBuy,
     }
 }

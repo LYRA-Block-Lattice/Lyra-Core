@@ -43,6 +43,9 @@ namespace Lyra.Core.Blocks
         // Lyra or Custom Collectible NFT
         Collectible = 2,
 
+        // trade only token
+        TradeOnly = 3,
+
         // external NFT
         //ERC1155 = 3,  
     }

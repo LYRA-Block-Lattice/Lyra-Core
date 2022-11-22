@@ -723,5 +723,6 @@ namespace Lyra.Core.Blocks
         InvalidVerificationCode,
         InvalidMetadataUri,
         APIIsObsolete,
+        TotTransferNotAllowed,
     }
 }

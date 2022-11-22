@@ -18,6 +18,13 @@ namespace Lyra.Core.Authorizers
 {
     public abstract class TransactionAuthorizer : BaseAuthorizer
     {
+        static readonly List<string> TradeOnlyDomains = new List<string>
+        {
+            "tot", "sku", "svc"
+        };
+        static readonly List<string> NonFungibleDomains = new List<string>{
+            "nft", "tot", "sku", "svc"
+        };
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             var tx = tblock as TransactionBlock;
@@ -310,9 +317,6 @@ namespace Lyra.Core.Authorizers
                 var tokenCode = chg.Key;
                 var tokenAmount = chg.Value;
 
-                if (tokenCode.ToLower().StartsWith("nft/") && Math.Round(tokenAmount, 0) != tokenAmount)
-                    return APIResultCodes.InvalidNonFungibleAmount;
-
                 if(tokenCode.Contains("#"))
                 {
                     tokenCode = tokenCode.Split('#')[0];
@@ -322,8 +326,25 @@ namespace Lyra.Core.Authorizers
                 if (nftgen == null)
                     return APIResultCodes.TokenGenesisBlockNotFound;
 
-                if (!nftgen.IsNonFungible)
-                    return APIResultCodes.Success;
+                if (Math.Round(tokenAmount, 0) != tokenAmount)
+                    return APIResultCodes.InvalidNonFungibleAmount;
+
+                if(send_or_receice_block.BlockType == BlockTypes.SendTransfer && TradeOnlyDomains.Contains(nftgen.DomainName))
+                {
+                    if (send_or_receice_block.Tags == null)
+                        return APIResultCodes.TotTransferNotAllowed;
+
+                    // verify tot
+                    if (!send_or_receice_block.Tags.ContainsKey(Block.MANAGEDTAG))
+                    {
+                        if (!send_or_receice_block.Tags.ContainsKey(Block.REQSERVICETAG)
+                            || send_or_receice_block.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_UNI_CRODR
+                            )
+                        {
+                            return APIResultCodes.TotTransferNotAllowed;
+                        }
+                    }
+                }
 
                 //INonFungibleToken non_fungible_token = send_block.GetNonFungibleTransaction(previousBlock);
                 if (send_or_receice_block.NonFungibleToken == null)

@@ -109,8 +109,14 @@ namespace Lyra.Core.WorkFlow
                     chgs.Changes,
                     context.State);
 
-            if(last1 is IUniTrade)
+            if (last1 is IUniTrade)
                 return await TransSendAsync<UniTradeSendBlock>(sys,
+                    context.Send.Hash, srcAccount, context.Send.AccountID,
+                    chgs.Changes,
+                    context.State);
+
+            if (last1 is IUniOrder)
+                return await TransSendAsync<UniOrderSendBlock>(sys,
                     context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);
@@ -129,18 +135,6 @@ namespace Lyra.Core.WorkFlow
 
             if (last1 is IOtcOrder)
                 return await TransSendAsync<OtcOrderSendBlock>(sys,
-                    context.Send.Hash, srcAccount, context.Send.AccountID,
-                    chgs.Changes,
-                    context.State);
-
-            if (last1 is IUniTrade)
-                return await TransSendAsync<UniTradeSendBlock>(sys,
-                    context.Send.Hash, srcAccount, context.Send.AccountID,
-                    chgs.Changes,
-                    context.State);
-
-            if (last1 is IUniOrder)
-                return await TransSendAsync<UniOrderSendBlock>(sys,
                     context.Send.Hash, srcAccount, context.Send.AccountID,
                     chgs.Changes,
                     context.State);

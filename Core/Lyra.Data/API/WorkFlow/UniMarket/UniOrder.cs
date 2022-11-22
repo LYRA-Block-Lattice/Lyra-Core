@@ -19,7 +19,8 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         Fiat,
         NFT,
         SKU,
-        SVC,        
+        SVC,       
+        TOT,
     }
 
     public class UniOrder

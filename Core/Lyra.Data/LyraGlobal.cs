@@ -79,6 +79,7 @@ namespace Lyra.Core.API
             return hodes switch
             {
                 HoldTypes.NFT => 100,
+                HoldTypes.TOT => 100,
                 _ => 10,
             };
         }
@@ -91,6 +92,7 @@ namespace Lyra.Core.API
                     "nft" => AccountTypes.NFTSell,
                     "svc" => AccountTypes.SVCSell,
                     "sku" => AccountTypes.SKUSell,
+                    "tot" => AccountTypes.TOTSell,
                     _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
                 };
         }
@@ -99,6 +101,7 @@ namespace Lyra.Core.API
             var secs = ticker.Split('/');
             return secs[0] switch
             {
+                "tot" => HoldTypes.TOT,
                 "nft" => HoldTypes.NFT,
                 "svc" => HoldTypes.SVC,
                 "sku" => HoldTypes.SKU,

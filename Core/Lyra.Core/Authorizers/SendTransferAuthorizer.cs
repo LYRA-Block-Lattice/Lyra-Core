@@ -19,6 +19,10 @@ namespace Lyra.Core.Authorizers
 {
     public class SendTransferAuthorizer : TransactionAuthorizer
     {
+        private readonly List<string> _totDomains = new List<string> {
+            "tot", "sku", "svc"
+        };
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.SendTransfer;
