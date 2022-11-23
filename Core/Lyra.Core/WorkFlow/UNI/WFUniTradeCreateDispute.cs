@@ -118,6 +118,12 @@ namespace Lyra.Core.WorkFlow.OTC
                     else
                         oldbalance.Add("LYR", txInfo.Changes["LYR"]);
                     b.Balances = oldbalance.ToLongDict();
+
+                    // if refund receive, attach a refund reason.
+                    if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+                    {
+                        b.AddTag("auth", context.AuthResult.Result.ToString());
+                    }
                 });
             return votblk;
         }

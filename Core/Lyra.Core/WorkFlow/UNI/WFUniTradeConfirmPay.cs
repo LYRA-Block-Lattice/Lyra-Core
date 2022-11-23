@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
@@ -97,6 +98,12 @@ namespace Lyra.Core.WorkFlow.Uni
                     }
 
                     b.Balances = recvBalances.ToLongDict();
+
+                    // if refund receive, attach a refund reason.
+                    if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+                    {
+                        b.AddTag("auth", context.AuthResult.Result.ToString());
+                    }
                 });
         }
     }

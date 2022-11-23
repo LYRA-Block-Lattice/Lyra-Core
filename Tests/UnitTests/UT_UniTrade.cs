@@ -30,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -44,6 +44,10 @@ namespace UnitTests
             
             // dealer is necessary.
             await TestDealerAsync();
+
+            // tmp zone for fast test
+            await TestNodeFee();
+            // end
 
             // tot
             var totg1 = await CreateTestToTAsync(testWallet);
@@ -80,10 +84,10 @@ namespace UnitTests
 
 
             //var tradeid = await TestUniTradeDispute();   // test for dispute
-            ////await TestVoting(tradeid); // related to dealer. bypass. real test in Uni unit test
+            //await TestVoting(tradeid); // related to dealer. bypass. real test in Uni unit test
 
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
             //await TestNodeFee();
 
             //// let workflow to finish
@@ -200,7 +204,7 @@ namespace UnitTests
             // test non-owner
             var chgx21 = await testWallet.ChangeDAO(nodesdao.AccountID, null, change);
             Assert.IsTrue(chgx21.Successful(), $"Should not error change DAO 21: {chgx21.ResultCode}");
-            await WaitWorkflow(chgx21.TxHash, "Change DAO Wrong 21");
+            await WaitWorkflow(chgx21.TxHash, "Change DAO Wrong 21", APIResultCodes.Unauthorized);
 
             await testWallet.SyncAsync();
             var cp1 = testWallet.BaseBalance;
@@ -214,7 +218,7 @@ namespace UnitTests
                 }
                 ));
             Assert.IsTrue(chgx2.Successful(), $"Should not error change DAO 2: {chgx2.ResultCode}");
-            await WaitWorkflow(chgx2.TxHash, "Change DAO Wrong 2");
+            await WaitWorkflow(chgx2.TxHash, "Change DAO Wrong 2", APIResultCodes.Unauthorized);
 
             // wrong desc
             var chgx22 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -227,7 +231,7 @@ namespace UnitTests
                 }
                 ));
             Assert.IsTrue(chgx22.Successful(), $"Should not error change DAO 22: {chgx22.ResultCode}");
-            await WaitWorkflow(chgx22.TxHash, "Change DAO Wrong 22");
+            await WaitWorkflow(chgx22.TxHash, "Change DAO Wrong 22", APIResultCodes.ArgumentOutOfRange);
 
             // wrong settings
             var chgx23 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change.With(
@@ -240,7 +244,7 @@ namespace UnitTests
                 }
                 ));
             Assert.IsTrue(chgx23.Successful(), $"Should not error change DAO 23: {chgx23.ResultCode}");
-            await WaitWorkflow(chgx23.TxHash, "Change DAO Wrong 23");
+            await WaitWorkflow(chgx23.TxHash, "Change DAO Wrong 23", APIResultCodes.InvalidArgument);
 
             await testWallet.SyncAsync();
             var cp2 = testWallet.BaseBalance;
@@ -251,7 +255,7 @@ namespace UnitTests
             change.settings["Description"] = null;
             var chgx1 = await genesisWallet.ChangeDAO(nodesdao.AccountID, null, change);
             Assert.IsTrue(chgx1.Successful(), $"Should not error change DAO: {chgx1.ResultCode}");
-            await WaitWorkflow(chgx1.TxHash, "Change DAO Wrong 1");
+            await WaitWorkflow(chgx1.TxHash, "Change DAO Wrong 1", APIResultCodes.InvalidShareRitio);
 
             await testWallet.SyncAsync();
             var cp3 = testWallet.BaseBalance;
@@ -312,7 +316,6 @@ namespace UnitTests
             var chgret2 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
             Assert.IsTrue(chgret2.Successful(), $"Can't change DAO: {chgret2.ResultCode}");
             await WaitWorkflow(chgret2.TxHash, "Change DAO 2 by vote");
-            Assert.IsTrue(_authResult);
 
             // test api
             var execret = await genesisWallet.RPC.FindExecForVoteAsync(blockdv.AccountID);
@@ -322,7 +325,7 @@ namespace UnitTests
             // test if dup exec detected
             var chgret3 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2);
             Assert.IsTrue(chgret3.Successful(), $"Should not Can't change DAO: {chgret3.ResultCode}");
-            await WaitWorkflow(chgret3.TxHash, "Change DAO 3 by vote");
+            await WaitWorkflow(chgret3.TxHash, "Change DAO 3 by vote", APIResultCodes.AlreadyExecuted);
 
             // inconsist changes
             var chgret31 = await genesisWallet.ChangeDAO(nodesdao.AccountID, blockdv.AccountID, change2
@@ -333,29 +336,44 @@ namespace UnitTests
                     }
                 ));
             Assert.IsTrue(chgret31.Successful(), $"should not Can't change DAO 31: {chgret31.ResultCode}");
-            await WaitWorkflow(chgret31.TxHash, "Change DAO 31 by vote");
+            await WaitWorkflow(chgret31.TxHash, "Change DAO 31 by vote", APIResultCodes.ArgumentOutOfRange);
         }
 
         private async Task TestJoinDAO(string daoid)
         {
             // leave first.
-            var leaveret1 = await testWallet.LeaveDAOAsync(daoid);
-            Assert.IsTrue(leaveret1.Successful(), $"Can't leave DAO: {leaveret1.ResultCode}");
-            await WaitWorkflow(leaveret1.TxHash, "LeaveDAOAsync 1");
-            await testWallet.SyncAsync();
+            var daolastret = await client.GetLastBlockAsync(daoid);
+            Assert.IsTrue(daolastret.Successful());
+            var daolast = daolastret.As<IDao>();
 
-            var leaveret2 = await test2Wallet.LeaveDAOAsync(daoid);
-            Assert.IsTrue(leaveret2.Successful(), $"Can't leave DAO: {leaveret2.ResultCode}");
-            await WaitWorkflow(leaveret2.TxHash, "LeaveDAOAsync 2");
-            
+            if(daolast.Treasure.ContainsKey(testPublicKey))
+            {
+                var leaveret1 = await testWallet.LeaveDAOAsync(daoid);
+                Assert.IsTrue(leaveret1.Successful(), $"Can't leave DAO: {leaveret1.ResultCode}");
+                await WaitWorkflow(leaveret1.TxHash, "LeaveDAOAsync 1");
+                await testWallet.SyncAsync();
+            }
 
-            var leaveret3 = await test3Wallet.LeaveDAOAsync(daoid);
-            Assert.IsTrue(leaveret3.Successful(), $"Can't leave DAO: {leaveret3.ResultCode}");
-            await WaitWorkflow(leaveret3.TxHash, "LeaveDAOAsync 3");
+            if (daolast.Treasure.ContainsKey(test2PublicKey))
+            {
+                var leaveret2 = await test2Wallet.LeaveDAOAsync(daoid);
+                Assert.IsTrue(leaveret2.Successful(), $"Can't leave DAO: {leaveret2.ResultCode}");
+                await WaitWorkflow(leaveret2.TxHash, "LeaveDAOAsync 2");
+            }
 
-            var leaveret4 = await test4Wallet.LeaveDAOAsync(daoid);
-            Assert.IsTrue(leaveret4.Successful(), $"Can't leave DAO: {leaveret4.ResultCode}");
-            await WaitWorkflow(leaveret4.TxHash, "LeaveDAOAsync 4");
+            if (daolast.Treasure.ContainsKey(test3PublicKey))
+            {
+                var leaveret3 = await test3Wallet.LeaveDAOAsync(daoid);
+                Assert.IsTrue(leaveret3.Successful(), $"Can't leave DAO: {leaveret3.ResultCode}");
+                await WaitWorkflow(leaveret3.TxHash, "LeaveDAOAsync 3");
+            }
+
+            if (daolast.Treasure.ContainsKey(test4PublicKey))
+            {
+                var leaveret4 = await test4Wallet.LeaveDAOAsync(daoid);
+                Assert.IsTrue(leaveret4.Successful(), $"Can't leave DAO: {leaveret4.ResultCode}");
+                await WaitWorkflow(leaveret4.TxHash, "LeaveDAOAsync 4");
+            }
 
             await test2Wallet.SyncAsync();
             await test3Wallet.SyncAsync();
@@ -371,7 +389,7 @@ namespace UnitTests
             // join DAO / invest
             var invret0 = await testWallet.JoinDAOAsync(daoid, 800m);
             Assert.IsTrue(invret0.Successful());
-            await WaitWorkflow(invret0.TxHash, "JoinDAOAsync 0");
+            await WaitWorkflow(invret0.TxHash, "JoinDAOAsync 0", APIResultCodes.InvalidAmount);
 
             var invret = await testWallet.JoinDAOAsync(daoid, 800000m);
             Assert.IsTrue(invret.Successful());
@@ -596,9 +614,7 @@ namespace UnitTests
             // vote again to trigger an error
             var voteRet2x = await test2Wallet.Vote(voteblk.AccountID, 0);
             Assert.IsTrue(voteRet2x.Successful(), $"Vote 2x should not error: {voteRet2x.ResultCode}");
-            await WaitWorkflow(voteRet2x.TxHash, "Vote on Subject Async 2x");
-
-            ResetAuthFail();
+            await WaitWorkflow(voteRet2x.TxHash, "Vote on Subject Async 2x", APIResultCodes.InvalidVote);
 
             if (success)
             {
@@ -908,7 +924,7 @@ namespace UnitTests
             Assert.AreEqual(APIResultCodes.ResourceIsBusy, cloret2.ResultCode, $"Not locked properly: {cloret2.ResultCode}");
 
             await WaitBlock("CancelUniTradeAsync");
-            await WaitWorkflow(cloret2.TxHash, "CancelUniTradeAsync 2", false);
+            await WaitWorkflow(cloret2.TxHash, "CancelUniTradeAsync 2", APIResultCodes.Success);
 
             ResetAuthFail();
 
@@ -1250,13 +1266,15 @@ namespace UnitTests
             Console.WriteLine("Profiting gen");
             var crpftret = await genesisWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 0.5m, 50);
+            await WaitWorkflow(crpftret.TxHash, "create profiting");
             Assert.IsTrue(crpftret.Successful());
-            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            var pfts = await genesisWallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+            var pftblock = pfts.FirstOrDefault();
             Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
 
             Console.WriteLine("Generate dividends");
-            await genesisWallet.CreateDividendsAsync(pftblock.AccountID);
-            await Task.Delay(2 * 1000);
+            var crdvd = await genesisWallet.CreateDividendsAsync(pftblock.AccountID);
+            await WaitWorkflow(crdvd.TxHash, "create dividents");
         }
 
         private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)
@@ -1265,14 +1283,14 @@ namespace UnitTests
 
             var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 30, true);
             Assert.IsTrue(crstkret.Successful());
-
-            var stkblock = crstkret.GetBlock() as StakingBlock;
+            await WaitWorkflow(crstkret.TxHash, "create staking");
+            var stks = await w.GetBrokerAccountsAsync<StakingGenesis>();
+            var stkblock = stks.FirstOrDefault();
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
-            await WaitWorkflow($"CreateStakingAccountAsync {stkblock.RelatedTx}");
 
             var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);
             Assert.IsTrue(addstkret.Successful());
-            await WaitWorkflow($"AddStakingAsync {addstkret.TxHash}");
+            await WaitWorkflow(addstkret.TxHash, $"AddStakingAsync {addstkret.TxHash}");
 
             var stk = await w.GetStakingAsync(stkblock.AccountID);
             Assert.AreEqual(amount, (stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
@@ -1284,7 +1302,7 @@ namespace UnitTests
             var balance = w.BaseBalance;
             var unstkret = await w.UnStakingAsync(stkid);
             Assert.IsTrue(unstkret.Successful(), $"Failed to UnStaking: {unstkret.ResultCode}");
-            await WaitWorkflow($"UnStakingAsync {unstkret.TxHash}");
+            await WaitWorkflow(unstkret.TxHash, $"UnStakingAsync {unstkret.TxHash}");
             await w.SyncAsync(null);
             var nb = balance + 2000m - 2;// * 0.988m; // two send fee
             //Assert.AreEqual(nb, w.BaseBalance);
@@ -1293,8 +1311,9 @@ namespace UnitTests
             Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
 
             var unstkretx = await w.UnStakingAsync(stkid);
-            await WaitBlock($"UnStakingAsync {unstkret.TxHash}");
-            Assert.IsTrue(!unstkretx.Successful());
+            await WaitWorkflow(unstkretx.TxHash, $"UnStakingAsync {unstkretx.TxHash}", APIResultCodes.InvalidUnstaking);
+            //await WaitBlock($"UnStakingAsync {unstkret.TxHash}");
+            Assert.IsTrue(unstkretx.Successful());
         }
 
         private async Task TestProfitingAndStaking()
@@ -1307,7 +1326,9 @@ namespace UnitTests
             var crpftret = await testWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 shareRito, 50);
             Assert.IsTrue(crpftret.Successful(), $"Can't create profiting: {crpftret.ResultCode}");
-            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            await WaitWorkflow(crpftret.TxHash, "Create profiting account");
+            var pftblocks = await testWallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+            var pftblock = pftblocks.FirstOrDefault();
             Assert.IsTrue(pftblock.OwnerAccountId == testWallet.AccountId);
 
             Console.WriteLine("Staking 1");
@@ -1404,6 +1425,7 @@ namespace UnitTests
             // remove liquidate from pool
             var rmliqret = await testWallet.RemoveLiquidateFromPoolAsync(token0, "LYR");
             Assert.IsTrue(rmliqret.Successful());
+            await WaitWorkflow(rmliqret.TxHash, "remove liquidate from pool");
 
             await testWallet.SyncAsync(null);
         }
@@ -1442,7 +1464,7 @@ namespace UnitTests
 
                 var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
                 Assert.IsTrue(ret2.Successful(), $"wrong create but should success: {ret2.ResultCode}");
-                await WaitWorkflow(ret2.TxHash, $"Create Dealer 2");
+                await WaitWorkflow(ret2.TxHash, $"Create Dealer 2", APIResultCodes.DuplicateName);
 
                 await testWallet.SyncAsync();
                 var cp1 = testWallet.BaseBalance;

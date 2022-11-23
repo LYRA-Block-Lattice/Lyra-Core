@@ -180,6 +180,12 @@ namespace Lyra.Core.WorkFlow.Uni
                     b.Balances = recvBalances.ToLongDict();
 
                     (b as IUniTrade).UTStatus = UniTradeStatus.BidReceived;
+
+                    // if refund receive, attach a refund reason.
+                    if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+                    {
+                        b.AddTag("auth", context.AuthResult.Result.ToString());
+                    }
                 });
         }
     }

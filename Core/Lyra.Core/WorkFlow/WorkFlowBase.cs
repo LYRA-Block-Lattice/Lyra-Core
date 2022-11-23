@@ -479,10 +479,10 @@ namespace Lyra.Core.WorkFlow
 
         protected Task<T> TransReceiveAsync<T>(DagSystem sys, LyraContext context) where T : TransactionBlock
         {
-            return TransReceiveAsync<T>(sys, context.Send.Hash, context.Send, context.Send.DestinationAccountId, context.State);
+            return TransReceiveAsync<T>(sys, context.Send.Hash, context.Send, context.Send.DestinationAccountId, context.State, context.AuthResult);
         }
 
-        protected async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState) where T : TransactionBlock
+        protected async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState, WorkflowAuthResult authResult) where T : TransactionBlock
         {
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
@@ -511,6 +511,12 @@ namespace Lyra.Core.WorkFlow
                     }
                     
                     recv.Balances = bal.ToLongDict();
+
+                    // if refund receive, attach a refund reason.
+                    if(wfState == WFState.NormalReceive || wfState == WFState.RefundReceive)
+                    {
+                        recv.AddTag("auth", authResult.Result.ToString());
+                    }
                 });
         }
 
@@ -536,7 +542,7 @@ namespace Lyra.Core.WorkFlow
                         bal[tx.Key] -= tx.Value;
                     }
 
-                    snd.Balances = bal.ToLongDict();
+                    snd.Balances = bal.ToLongDict();                    
                 });
         }
 

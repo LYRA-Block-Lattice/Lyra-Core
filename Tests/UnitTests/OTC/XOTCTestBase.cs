@@ -39,7 +39,7 @@ namespace UnitTests.OTC
         {
             var cloret = await test2Wallet.CancelOTCTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
             Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
-            await WaitWorkflow(cloret.TxHash, "CancelOTCTradeAsync", false);
+            await WaitWorkflow(cloret.TxHash, "CancelOTCTradeAsync", APIResultCodes.Success);
 
             var tradeQueryRet = await test2Wallet.RPC.FindOtcTradeAsync(test2Wallet.AccountId, false, 0, 10);
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindOtcTradeAsync: {tradeQueryRet.ResultCode}");

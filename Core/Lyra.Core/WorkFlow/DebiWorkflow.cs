@@ -72,7 +72,10 @@ namespace Lyra.Core.WorkFlow
                 {
                     ctx.AuthResult = await SubWorkflow.PreAuthAsync(DagSystem.Singleton, ctx);
                     if(ctx.AuthResult.Result != APIResultCodes.Success)
+                    {
                         _logger.LogWarning($"CTX Auth result: {ctx.AuthResult.Result}");
+                        Console.WriteLine($"CTX Auth result: {ctx.AuthResult.Result} for {ctx.Send.Hash}");
+                    }                        
 
                     if (ctx.AuthResult.Result == APIResultCodes.Success)
                     {

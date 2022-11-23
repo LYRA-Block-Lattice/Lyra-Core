@@ -79,8 +79,8 @@ namespace UnitTests
                 // test create profiting account
                 var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking * 2);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
-
-                var pgen = result.GetBlock() as ProfitingBlock;
+                var pfts = await wx.GetBrokerAccountsAsync<ProfitingGenesis>();
+                var pgen = pfts.FirstOrDefault();
                 Assert.IsNotNull(pgen);
 
                 Console.WriteLine($"Profit account: {pgen.AccountID}");
@@ -101,7 +101,8 @@ namespace UnitTests
                     var result2 = await stkx.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 1000, true);
                     Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
 
-                    var stkgen = result2.GetBlock() as StakingBlock;
+                    var stks = await stkx.GetBrokerAccountsAsync<StakingGenesis>();
+                    var stkgen = stks.FirstOrDefault();
                     Assert.IsNotNull(stkgen);
 
                     // test add staking
@@ -121,7 +122,8 @@ namespace UnitTests
                     var result2 = await stkx.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 1000, false);
                     Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
 
-                    var stkgen = result2.GetBlock() as StakingBlock;
+                    var stks = await stkx.GetBrokerAccountsAsync<StakingGenesis>();
+                    var stkgen = stks.FirstOrDefault();
                     Assert.IsNotNull(stkgen);
 
                     // test add staking

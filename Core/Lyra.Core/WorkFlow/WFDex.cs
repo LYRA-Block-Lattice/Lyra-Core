@@ -414,6 +414,11 @@ namespace Lyra.Core.WorkFlow
             }
 
             recvtoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
+            // if refund receive, attach a refund reason.
+            if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+            {
+                recvtoken.AddTag("auth", context.AuthResult.Result.ToString());
+            }
 
             recvtoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 

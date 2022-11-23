@@ -28,11 +28,6 @@ namespace Lyra.Core.Authorizers
             if (relTx == null || relTx.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                 return APIResultCodes.InvalidServiceRequest;
 
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
-                return APIResultCodes.InvalidServiceRequest;
-
             // create a semi random account for pool.
             // it can be verified by other nodes.
             var keyStr = $"{relTx.Hash.Substring(0, 16)},{block.Token0},{block.Token1},{relTx.AccountID}";

@@ -1997,7 +1997,7 @@ namespace Lyra.Core.Accounts
         }
 
         #region Staking Account
-        public async Task<BlockAPIResult> CreateProfitingAccountAsync(string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
+        public async Task<AuthorizationAPIResult> CreateProfitingAccountAsync(string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2011,33 +2011,33 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.ProfitingAccountCreateFee }
             };
-            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
-            if (result.ResultCode != APIResultCodes.Success)
-                return new BlockAPIResult { ResultCode = result.ResultCode };
+            return await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
+            //if (result.ResultCode != APIResultCodes.Success)
+            //    return new BlockAPIResult { ResultCode = result.ResultCode };
 
-            var latx = await GetLatestBlockAsync();
-            for (int i = 0; i < 60; i++)
-            {
-                // then find by RelatedTx                
-                var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(latx.Hash);
-                if (blocks.Successful())
-                {
-                    var txs = blocks.GetBlocks();
-                    var gen = txs.FirstOrDefault(a => a is ProfitingBlock pb && pb.OwnerAccountId == AccountId);
-                    if (gen != null)
-                    {
-                        var ret = new BlockAPIResult
-                        {
-                            ResultCode = APIResultCodes.Success,
-                        };
-                        ret.SetBlock(gen);
-                        return ret;
-                    }
-                }
-                await Task.Delay(1000);
-            }
+            //var latx = await GetLatestBlockAsync();
+            //for (int i = 0; i < 60; i++)
+            //{
+            //    // then find by RelatedTx                
+            //    var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(latx.Hash);
+            //    if (blocks.Successful())
+            //    {
+            //        var txs = blocks.GetBlocks();
+            //        var gen = txs.FirstOrDefault(a => a is ProfitingBlock pb && pb.OwnerAccountId == AccountId);
+            //        if (gen != null)
+            //        {
+            //            var ret = new BlockAPIResult
+            //            {
+            //                ResultCode = APIResultCodes.Success,
+            //            };
+            //            ret.SetBlock(gen);
+            //            return ret;
+            //        }
+            //    }
+            //    await Task.Delay(1000);
+            //}
 
-            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+            //return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
         }
 
         public async Task<AuthorizationAPIResult> CreateDividendsAsync(string profitingAccountId)
@@ -2057,7 +2057,7 @@ namespace Lyra.Core.Accounts
             return getpftResult;
         }
 
-        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake, bool compoundMode)
+        public async Task<AuthorizationAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake, bool compoundMode)
         {
             var tags = new Dictionary<string, string>
             {
@@ -2071,33 +2071,47 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
             };
-            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
-            if (result.ResultCode != APIResultCodes.Success)
-                return new BlockAPIResult { ResultCode = result.ResultCode };
+            return await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
+            //if (result.ResultCode != APIResultCodes.Success)
+            //    return new BlockAPIResult { ResultCode = result.ResultCode };
 
-            var latx = await GetLatestBlockAsync();
-            for (int i = 0; i < 60; i++)
+            //var latx = await GetLatestBlockAsync();
+            //for (int i = 0; i < 60; i++)
+            //{
+            //    // then find by RelatedTx
+            //    var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(latx.Hash);
+            //    if (blocks.Successful())
+            //    {
+            //        var txs = blocks.GetBlocks();
+            //        var gen = txs.FirstOrDefault(a => a is IBrokerAccount pb && pb.OwnerAccountId == AccountId);
+            //        if (gen != null)
+            //        {
+            //            var ret = new BlockAPIResult
+            //            {
+            //                ResultCode = APIResultCodes.Success,
+            //            };
+            //            ret.SetBlock(gen);
+            //            return ret;
+            //        }
+            //    }
+            //    await Task.Delay(1000);
+            //}
+
+            //return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+        }
+
+        public async Task<List<T>> GetBrokerAccountsAsync<T>()
+        {
+            var result = await _rpcClient!.GetAllBrokerAccountsForOwnerAsync(AccountId);
+            if (result.ResultCode == APIResultCodes.Success)
             {
-                // then find by RelatedTx
-                var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(latx.Hash);
-                if (blocks.Successful())
-                {
-                    var txs = blocks.GetBlocks();
-                    var gen = txs.FirstOrDefault(a => a is IBrokerAccount pb && pb.OwnerAccountId == AccountId);
-                    if (gen != null)
-                    {
-                        var ret = new BlockAPIResult
-                        {
-                            ResultCode = APIResultCodes.Success,
-                        };
-                        ret.SetBlock(gen);
-                        return ret;
-                    }
-                }
-                await Task.Delay(1000);
-            }
+                var blks = result.GetBlocks();
 
-            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+                var allStks = blks.Where(a => a is T)
+                      .Cast<T>();
+                return allStks.ToList();
+            }
+            return new List<T>();
         }
 
         public async Task<AuthorizationAPIResult> AddStakingAsync(string stakingAccountId, decimal amount)

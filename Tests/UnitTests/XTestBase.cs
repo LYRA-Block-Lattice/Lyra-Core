@@ -237,7 +237,7 @@ namespace UnitTests
 
                     _lastAuthResult = await LockAuth(sys, block);
 
-                    if(_lastAuthResult.Result != APIResultCodes.Success)
+                    //if(_lastAuthResult.Result != APIResultCodes.Success)
                         Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {_lastAuthResult.Result} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
                     //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
@@ -522,19 +522,19 @@ namespace UnitTests
             Assert.IsTrue(ret, "block not authorized properly.");
         }
 
-        protected async Task WaitWorkflow(string target, bool checklock = true)
+        protected async Task WaitWorkflow(string target)
         {
-            await WaitWorkflow(null, target, checklock);
+            await WaitWorkflow(null, target);
         }
 
-        protected async Task WaitWorkflow(string key, string target, bool checklock = true)
+        protected async Task<APIResultCodes> WaitWorkflow(string key, string target, APIResultCodes expected = APIResultCodes.Success)
         {
             _workflowKey = key;            
 
             Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 
             _workflowEnds.Reset();
-            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 300000 : 10000);
+            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 30000 : 10000);
             
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, $"workflow {_workflowKey} not finished properly.");
@@ -554,6 +554,18 @@ namespace UnitTests
             }
 
             Console.WriteLine();
+
+            var blksret = await client.GetBlocksByRelatedTxAsync(key);
+            Assert.IsTrue(blksret.Successful(), $"Can't get related tx while wait for workflow: {blksret.ResultCode}");
+            var blk1 = blksret.GetBlocks().FirstOrDefault();
+
+            //Assert.IsTrue(_lastAuthResult.Result == APIResultCodes.Success, $"Last result is not success: {_lastAuthResult.Result}");
+            Assert.IsNotNull(blk1, $"can't get wf recv block for key {key}");
+
+            Assert.IsTrue(blk1.Tags.ContainsKey("auth"), "wf first block not contains auth tag.");
+            var wfresult = Enum.Parse<APIResultCodes>(blk1.Tags["auth"]);
+            Assert.IsTrue(wfresult == expected, $"workflow result not expected: {wfresult}");
+            return wfresult;
         }
 
         private async Task CreateConsolidation()

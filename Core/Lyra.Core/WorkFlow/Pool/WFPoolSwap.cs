@@ -139,6 +139,11 @@ namespace Lyra.Core.WorkFlow.Pool
             };
 
             swapInBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
+            // if refund receive, attach a refund reason.
+            if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+            {
+                swapInBlock.AddTag("auth", context.AuthResult.Result.ToString());
+            }
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);

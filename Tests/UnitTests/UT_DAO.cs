@@ -718,11 +718,11 @@ namespace UnitTests
 
             // try lock it
             var cloret2 = await test2Wallet.CancelOTCTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
-            await WaitBlock("CancelOTCTradeAsync 2");
+            //await WaitBlock("CancelOTCTradeAsync 2");
             Assert.AreEqual(APIResultCodes.ResourceIsBusy, cloret2.ResultCode, $"Not locked properly: {cloret2.ResultCode}");
 
             await WaitBlock("CancelOTCTradeAsync");
-            await WaitWorkflow("CancelOTCTradeAsync", false);
+            //await WaitWorkflow("CancelOTCTradeAsync", false);
 
             ResetAuthFail();
 
@@ -1045,7 +1045,8 @@ namespace UnitTests
             var crpftret = await genesisWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 0.5m, 50);
             Assert.IsTrue(crpftret.Successful());
-            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            var pftblocks = await genesisWallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+            var pftblock = pftblocks.FirstOrDefault();
             Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
 
             Console.WriteLine("Generate dividends");
@@ -1060,7 +1061,8 @@ namespace UnitTests
             var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 30, true);
             Assert.IsTrue(crstkret.Successful());
 
-            var stkblock = crstkret.GetBlock() as StakingBlock;
+            var stks = await w.GetBrokerAccountsAsync<StakingGenesis>();
+            var stkblock = stks.FirstOrDefault();
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
             await WaitWorkflow($"CreateStakingAccountAsync {stkblock.RelatedTx}");
 
@@ -1101,7 +1103,8 @@ namespace UnitTests
             var crpftret = await testWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 shareRito, 50);
             Assert.IsTrue(crpftret.Successful(), $"Can't create profiting: {crpftret.ResultCode}");
-            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            var pfts = await testWallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+            var pftblock = pfts.FirstOrDefault();
             Assert.IsTrue(pftblock.OwnerAccountId == testWallet.AccountId);
 
             Console.WriteLine("Staking 1");

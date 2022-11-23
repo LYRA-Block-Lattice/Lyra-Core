@@ -131,7 +131,8 @@ namespace Lyra.Core.WorkFlow.DAO
 
         public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
         {
-            return await MainAsync(sys, context) as ReceiveTransferBlock;
+            // just receive, change nothing.
+            return await TransReceiveAsync<DaoRecvBlock>(sys, context) as ReceiveTransferBlock;
         }
 
         async Task<TransactionBlock?> MainAsync(DagSystem sys, LyraContext context)
@@ -187,6 +188,12 @@ namespace Lyra.Core.WorkFlow.DAO
                             dao.BuyerPar = int.Parse(chg.Value);
                         else if (chg.Key == "Description")
                             dao.Description = chg.Value;
+                    }
+
+                    // if refund receive, attach a refund reason.
+                    if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+                    {
+                        b.AddTag("auth", context.AuthResult.Result.ToString());
                     }
                 });
         }
