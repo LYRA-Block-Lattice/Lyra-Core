@@ -1285,7 +1285,7 @@ namespace UnitTests
             Assert.IsTrue(crstkret.Successful());
             await WaitWorkflow(crstkret.TxHash, "create staking");
             var stks = await w.GetBrokerAccountsAsync<StakingGenesis>();
-            var stkblock = stks.FirstOrDefault();
+            var stkblock = stks.LastOrDefault();
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
 
             var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);

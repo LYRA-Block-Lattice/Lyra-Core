@@ -96,7 +96,7 @@ namespace Lyra.Core.WorkFlow
                     _ => throw new Exception($"Unaccepted wf state: {ctx.State}")
                 };       
 
-                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash()}, {ctx.Count}/, BrokerOpsAsync called and generated {block}");
+                _logger.LogInformation($"Key is ({DateTime.Now:mm:ss.ff}): {ctx.GetSendHash()}, {ctx.Count}/, BrokerOpsAsync called and generated {block?.Hash}");
 
                 if (block != null)
                 {
