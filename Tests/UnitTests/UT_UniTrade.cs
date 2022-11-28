@@ -30,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "xtest";
+            var netid = "devnet";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -46,7 +46,7 @@ namespace UnitTests
             await TestDealerAsync();
 
             // tmp zone for fast test
-            await TestNodeFee();
+
             // end
 
             // tot
@@ -78,7 +78,7 @@ namespace UnitTests
             await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
 
 
-            await TestChangeDAO();
+            //await TestChangeDAO();
             // after test, dump the database statistics
 
 
@@ -1323,7 +1323,7 @@ namespace UnitTests
 
             // create a profiting account
             Console.WriteLine("Profiting gen");
-            var crpftret = await testWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
+            var crpftret = await testWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Merchant,
                 shareRito, 50);
             Assert.IsTrue(crpftret.Successful(), $"Can't create profiting: {crpftret.ResultCode}");
             await WaitWorkflow(crpftret.TxHash, "Create profiting account");
@@ -1383,18 +1383,21 @@ namespace UnitTests
             var token0 = "unnitest/test0";
             var token1 = "unnitest/test1";
             var secs0 = token0.Split('/');
-            var result0 = await testWallet.CreateTokenAsync(secs0[1], secs0[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
-            Assert.IsTrue(result0.Successful(), "Failed to create token: " + result0.ResultCode);
-            await testWallet.SyncAsync(null);
+            if(networkId == "xtest")
+            {
+                var result0 = await testWallet.CreateTokenAsync(secs0[1], secs0[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(result0.Successful(), "Failed to create token: " + result0.ResultCode);
+                await testWallet.SyncAsync(null);
 
-            var secs1 = token1.Split('/');
-            var result1 = await testWallet.CreateTokenAsync(secs1[1], secs1[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
-            Assert.IsTrue(result0.Successful(), "Failed to create token: " + result1.ResultCode);
-            await testWallet.SyncAsync(null);
+                var secs1 = token1.Split('/');
+                var result1 = await testWallet.CreateTokenAsync(secs1[1], secs1[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(result0.Successful(), "Failed to create token: " + result1.ResultCode);
+                await testWallet.SyncAsync(null);
+                var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
+                Assert.IsTrue(crplret.Successful(), $"Error create liquidate pool {crplret.ResultCode}");
+                await WaitWorkflow(crplret.TxHash, "CreateLiquidatePoolAsync");
+            }
 
-            var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
-            Assert.IsTrue(crplret.Successful(), $"Error create liquidate pool {crplret.ResultCode}");
-            await WaitWorkflow(crplret.TxHash, "CreateLiquidatePoolAsync");
             var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(pool.PoolAccountId != null && pool.PoolAccountId.StartsWith('L'), "Can't get pool created.");
 

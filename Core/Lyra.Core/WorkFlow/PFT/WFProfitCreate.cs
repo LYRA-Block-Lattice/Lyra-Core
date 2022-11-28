@@ -56,8 +56,8 @@ namespace Lyra.Core.WorkFlow.PFT
                     if (pfts.Any(a => a.Name == block.Tags["name"]))
                         return APIResultCodes.DuplicateName;
 
-                    // one type per account. just keep it simple.
-                    if (pfts.Any(a => a.PType == ptype))
+                    // one node type per account. just keep it simple.
+                    if (pfts.Any(a => a.PType == ProfitingType.Node && a.PType == ptype))
                         return APIResultCodes.DuplicateAccountType;
 
                     if (shareRito == 0 && seats != 0)
