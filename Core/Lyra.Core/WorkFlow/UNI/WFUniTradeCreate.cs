@@ -295,6 +295,7 @@ namespace Lyra.Core.WorkFlow
 
                 // Uni
                 Trade = trade,
+                Delivery = new DeliveryStatus()
             };
 
             //string wfstr;
@@ -335,7 +336,7 @@ namespace Lyra.Core.WorkFlow
                 {
                     var trade = b as IUniTrade;
 
-                    trade.UTStatus = UniTradeStatus.OfferReceived;
+                    trade.UTStatus = UniTradeStatus.Processing;
 
                     b.DestinationAccountId = trade.OwnerAccountId;
 

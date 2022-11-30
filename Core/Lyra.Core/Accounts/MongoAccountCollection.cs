@@ -2381,7 +2381,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountId = accountId,
                     TotalTrades = trades.Count,
-                    FinishedCount = trades.Where(a => (a as IUniTrade).UTStatus == UniTradeStatus.OfferReceived).Count(),
+                    FinishedCount = trades.Where(a => (a as IUniTrade).UTStatus == UniTradeStatus.Closed).Count(),
                 });
             }
             return stats;

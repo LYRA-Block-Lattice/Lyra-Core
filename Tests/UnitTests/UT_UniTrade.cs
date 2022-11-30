@@ -30,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -760,8 +760,8 @@ namespace UnitTests
                 // status changed to BuyerPaid
                 var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
                 Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-                Assert.AreEqual(UniTradeStatus.BidSent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
-                    $"Trade statust not changed to BuyerPaid");
+                Assert.AreEqual(UniTradeStatus.Processing, (trdlatest.GetBlock() as IUniTrade).UTStatus,
+                    $"Trade statust not changed to Delivering");
 
                 // seller got the payment
                 var wlt2 = offeringWallet;
@@ -773,8 +773,8 @@ namespace UnitTests
                 // status changed to BuyerPaid
                 var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
                 Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
-                Assert.AreEqual(UniTradeStatus.OfferReceived, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
-                    $"Trade status not changed to ProductReleased");
+                Assert.AreEqual(UniTradeStatus.Closed, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
+                    $"Trade status not changed to Closed");
 
                 // trade is ok. now its time to close the order
                 var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
@@ -903,7 +903,7 @@ namespace UnitTests
             var tradeStatusShouldBe = UniTradeStatus.Open;
             if (tradgen.Trade.bidby == HoldTypes.Token || tradgen.Trade.bidby == HoldTypes.NFT)
             {
-                tradeStatusShouldBe = UniTradeStatus.BidReceived;
+                tradeStatusShouldBe = UniTradeStatus.Processing;
             }
             // make sure the status of trade is Open or BidRecived
             Assert.AreEqual(tradeStatusShouldBe, tradgen.UTStatus, "Wrong trade status");
@@ -1003,7 +1003,7 @@ namespace UnitTests
             var tradeStatusShouldBe = UniTradeStatus.Open;
             if (trade.bidby == HoldTypes.Token || trade.bidby == HoldTypes.NFT)
             {
-                tradeStatusShouldBe = UniTradeStatus.OfferReceived;
+                tradeStatusShouldBe = UniTradeStatus.Processing;
             }
             else
             {
@@ -1182,7 +1182,7 @@ namespace UnitTests
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
-            Assert.AreEqual(UniTradeStatus.BidSent, (trdlatest.GetBlock() as IUniTrade).UTStatus,
+            Assert.AreEqual(UniTradeStatus.Processing, (trdlatest.GetBlock() as IUniTrade).UTStatus,
                 $"Trade status not changed to BuyerPaid");
 
             // seller not got the payment. seller raise a dispute

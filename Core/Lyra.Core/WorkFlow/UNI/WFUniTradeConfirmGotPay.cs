@@ -66,7 +66,7 @@ namespace Lyra.Core.WorkFlow.Uni
             if (order == null)
                 return APIResultCodes.InvalidParameterFormat;
 
-            if (trade.UTStatus != UniTradeStatus.BidSent)
+            if (trade.UTStatus != UniTradeStatus.Processing)
                 return APIResultCodes.InvalidTradeStatus;
 
             if(order.OwnerAccountId != send.AccountID)
@@ -99,7 +99,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 {
                     var trade = b as IUniTrade;
 
-                    trade.UTStatus = UniTradeStatus.OfferReceived;
+                    //trade.UTStatus = UniTradeStatus.OfferReceived;
 
                     (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
 
@@ -179,7 +179,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     }
                     b.Balances = recvBalances.ToLongDict();
 
-                    (b as IUniTrade).UTStatus = UniTradeStatus.BidReceived;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.Closed;
 
                     // if refund receive, attach a refund reason.
                     if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)

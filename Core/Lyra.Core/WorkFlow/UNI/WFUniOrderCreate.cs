@@ -32,7 +32,7 @@ namespace Lyra.Core.WorkFlow
                 Steps = new[]
                 {
                     SendTokenFromDaoToOrderAsync,
-                    CreateGenesisAsync
+                    CreateOrderGenesisAsync
                 }
             };
         }
@@ -149,7 +149,7 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, LyraContext context)
+        async Task<TransactionBlock?> SendTokenFromDaoToOrderAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var order = JsonConvert.DeserializeObject<UniOrder>(send.Tags["data"]);
@@ -208,7 +208,7 @@ namespace Lyra.Core.WorkFlow
             return sendToOrderBlock;
         }
 
-        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, LyraContext context)
+        async Task<TransactionBlock?> CreateOrderGenesisAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);

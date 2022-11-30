@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Humanizer;
+using Lyra.Core.Blocks;
 using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
@@ -15,12 +16,19 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         Open,
 
         // trade begins
-        BidSent = 10,
-        BidReceived,
-        OfferSent,
-        OfferReceived,
+        Processing,
+        //Arrived,
+        //BidSent = 10,
+        //BidReceived,
+        //OfferSent,
+        //OfferReceived,
+
+        //// sku to sku
+        //BothShipping,
+        //BothConfirmed,
 
         // special trade has special state, add bellow.
+
 
         // trade ends successfull
         Closed = 30,
@@ -33,12 +41,60 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         Canceled = 50,
     };
 
+    public enum PoDCatalog
+    {
+        BidSent,
+        BidReceived,
+        OfferSent,
+        OfferReceived,
+    }
+
+    // to protect privacy we only store signature in block.
+    // user create this structure and send it to peer in protected messaging tunnel.
+    // peer can verify it.
+    public class ProofOfDilivery : SignableObject
+    {
+        public PoDCatalog Catalog { get; set; }
+        public string Owner { get; set; } = null!;
+        public string? Carrier { get; set; }
+        public string? TrackingTag { get; set; }
+        public string? ExtraInfo { get; set; }  // any suppliciant info
+
+        public override string GetHashInput()
+        {
+            return $"{Catalog}|{Owner}|{Carrier}|{TrackingTag}|{ExtraInfo}";
+        }
+
+        protected override string GetExtraData()
+        {
+            return "";
+        }
+    }
+
+    public class DeliveryStatus
+    {
+        // catalog vs PoD signature
+        public Dictionary<PoDCatalog, string>? Proofs { get; set; }
+
+        public override string ToString()
+        {
+            return Proofs?
+                .Select(m => $"Proof of {m.Key.Humanize()}:{m.Value}")
+                .Aggregate((m1, m2) => $"{m1}\n{m2}") ?? "";
+        }
+
+        public string HashSrc => Proofs?
+                .Select(m => $"{m.Key}:{m.Value}")
+                .Aggregate((m1, m2) => $"{m1},{m2}") ?? "";
+    }
+
     /// <summary>
     /// 
     /// </summary>
     public interface IUniTrade : IBrokerAccount
     {
         UniTrade Trade { get; set; }
+        DeliveryStatus Delivery { get; set; }
         UniTradeStatus UTStatus { get; set; }
     }
 
@@ -46,6 +102,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     public class UniTradeRecvBlock : BrokerAccountRecv, IUniTrade
     {
         public UniTrade Trade { get; set; } = null!;
+        public DeliveryStatus Delivery { get; set; } = null!;
         public UniTradeStatus UTStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
@@ -68,6 +125,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData(this) + "|";
             extraData += $"{UTStatus}|";
+            extraData += $"{Delivery.HashSrc}|";
             return extraData;
         }
 
@@ -76,6 +134,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string result = base.Print();
             result += $"{Trade}\n";
             result += $"Status: {UTStatus}\n";
+            result += Delivery.ToString();
             return result;
         }
     }
@@ -84,6 +143,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     public class UniTradeSendBlock : BrokerAccountSend, IUniTrade
     {
         public UniTrade Trade { get; set; } = null!;
+        public DeliveryStatus Delivery { get; set; } = null!;
         public UniTradeStatus UTStatus { get; set; }
 
         protected override BlockTypes GetBlockType()
@@ -106,6 +166,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData(this) + "|";
             extraData += $"{UTStatus}|";
+            extraData += $"{Delivery.HashSrc}|";
             return extraData;
         }
 
@@ -114,6 +175,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string result = base.Print();
             result += $"{Trade}\n";
             result += $"Status: {UTStatus}\n";
+            result += Delivery.ToString();
             return result;
         }
     }

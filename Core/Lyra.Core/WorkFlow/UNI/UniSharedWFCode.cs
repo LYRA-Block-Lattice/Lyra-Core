@@ -78,7 +78,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var allTrades = await sys.Storage.FindUniTradeForOrderAsync(orderid);
             var totalAmount = allTrades.Cast<IUniTrade>()
-                .Where(a => a.UTStatus == UniTradeStatus.OfferReceived)
+                .Where(a => a.UTStatus == UniTradeStatus.Closed)
                 .Sum(a => a.Trade.amount);
 
 
