@@ -99,6 +99,7 @@ namespace Lyra.Node2
             services.AddTransient<ReqViewChange>();
             services.AddTransient<SubmitBlock>();
             services.AddTransient<CustomMessage>();
+            services.AddTransient<Terminator>();
 
             services.AddApiVersioning(options => {
                 options.DefaultApiVersion = new ApiVersion(1, 0);

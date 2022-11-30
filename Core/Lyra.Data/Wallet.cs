@@ -2498,7 +2498,7 @@ namespace Lyra.Core.Accounts
 
             var amounts = new Dictionary<string, decimal>
             {
-                { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor(order.offerby) + order.cltamt },
+                { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor() + order.cltamt },
                 { order.offering, order.amount }
             };
 
@@ -2532,7 +2532,8 @@ namespace Lyra.Core.Accounts
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDPAYSENT },
                 { "tradeid", tradeid },
-                { "pod", pod1.Sign(PrivateKey, AccountId) }
+                { "pod", pod1.Catalog.ToString() },
+                { "sign", pod1.Sign(PrivateKey, AccountId) }
             };
 
             var amounts = new Dictionary<string, decimal>
@@ -2544,13 +2545,14 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentConfirmAsync(string tradeid, ProofOfDilivery pod2)
+        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentConfirmAsync(string tradeid, ProofOfDilivery pod1)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDPAYGOT },
                 { "tradeid", tradeid },
-                { "pod", pod2.Sign(PrivateKey, AccountId) }
+                { "pod", pod1.Catalog.ToString() },
+                { "sign", pod1.Sign(PrivateKey, AccountId) }
             };
 
             var amounts = new Dictionary<string, decimal>

@@ -1946,17 +1946,11 @@ namespace Lyra.Core.Decentralize
                 await _hubContext.Clients.All.OnEvent(new EventContainer(wfevent));
         }
 
-        //public void OnWorkflowTerminated(string keyHash)
-        //{
-        //    if (_lockers.ContainsKey(keyHash))
-        //    {
-        //        _lockers.TryRemove(keyHash, out _);
-        //    }
-        //    else
-        //    {
-        //        _log.LogWarning($"Unlock a non-exists locker DTO by key: {keyHash}");
-        //    }
-        //}
+        public void OnWorkflowTerminated(string key, bool authSuccess, bool hasError)
+        {
+            // we assume 
+            Console.WriteLine($"OnWorkflowTerminated: {key} Auth: {authSuccess} Error: {hasError}");
+        }
 
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)
         {

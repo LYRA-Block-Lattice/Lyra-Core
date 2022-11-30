@@ -74,6 +74,7 @@ namespace UnitTests
         protected AuthResult _lastAuthResult;
         AutoResetEvent _newAuth = new AutoResetEvent(false);
 
+        protected string _currentTestTask;
         string _workflowKey;
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
@@ -531,19 +532,19 @@ namespace UnitTests
         {
             _workflowKey = key;            
 
-            Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
+            Console.WriteLine($"\n{_currentTestTask} Waiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 
             _workflowEnds.Reset();
             var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 30000 : 20000);
             
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
-            Assert.IsTrue(ret, $"workflow {_workflowKey} not finished properly.");
+            Assert.IsTrue(ret, $"{_currentTestTask} workflow {_workflowKey} not finished properly.");
             //if(checklock)
             //    Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
 
             if(cs != null)
             {
-                Console.WriteLine($"Wait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done. {cs.LockedCount} locked.");
+                Console.WriteLine($"{_currentTestTask} Wait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done. {cs.LockedCount} locked.");
                 if (cs.LockedCount > 0)
                 {
                     foreach (var l in cs.Lockedups)

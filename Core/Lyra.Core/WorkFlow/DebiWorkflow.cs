@@ -134,19 +134,6 @@ namespace Lyra.Core.WorkFlow
         }
     }
         
-    //public class ContextSerializer : SerializerBase<LyraContext>
-    //{
-    //    public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, LyraContext value)
-    //    {
-    //        base.Serialize(context, args, value);
-    //    }
-
-    //    public override LyraContext Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
-    //    {
-    //        return base.Deserialize(context, args);
-    //    }
-    //}
-
     /// <summary>
     /// control the workflow itself.
     /// </summary>
@@ -376,13 +363,14 @@ namespace Lyra.Core.WorkFlow
                             ) // do
                 .Then<CustomMessage>()
                     .Name("Log")
-                    .Input(step => step.Message, data => $"Workflow is done.")
+                    .Input(step => step.Message, data => $"Workflow is done.")                
                 .Then(a =>
                 {
                     //Console.WriteLine("WF Ends.");
                     a.Workflow.Reference = "Exited";
                     //ConsensusService.Singleton.UnLockIds(LockingIds);
                 })
+                .Then<Terminator>()
                 ;
         }
     }
@@ -473,6 +461,22 @@ namespace Lyra.Core.WorkFlow
                 Result = ctx.LastResult.ToString(),
                 Message = Message,
             });
+
+            return ExecutionResult.Next();
+        }
+    }
+
+    public class Terminator : StepBody
+    {
+        public override ExecutionResult Run(IStepExecutionContext context)
+        {
+            var ctx = context.Workflow.Data as LyraContext;
+
+            ConsensusService.Singleton.OnWorkflowTerminated(
+                ctx.Send.Hash,
+                ctx.AuthResult.Result == APIResultCodes.Success,
+                ctx.State == WFState.Error
+                );
 
             return ExecutionResult.Next();
         }

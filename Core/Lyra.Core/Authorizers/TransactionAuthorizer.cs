@@ -335,11 +335,20 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.TotTransferNotAllowed;
 
                     // verify tot
-                    if (!send_or_receice_block.Tags.ContainsKey(Block.MANAGEDTAG))
+                    if (send_or_receice_block.Tags.ContainsKey(Block.MANAGEDTAG))
                     {
-                        if (!send_or_receice_block.Tags.ContainsKey(Block.REQSERVICETAG)
-                            || send_or_receice_block.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_UNI_CRODR
-                            )
+                        // default contract generated block is allowed.
+                    }
+                    else
+                    {
+                        // non contract blocks 
+                        if (!send_or_receice_block.Tags.ContainsKey(Block.REQSERVICETAG))
+                        {
+                            return APIResultCodes.TotTransferNotAllowed;
+                        }
+
+                        if (send_or_receice_block.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_UNI_CRODR
+                            && send_or_receice_block.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_UNI_CRTRD)
                         {
                             return APIResultCodes.TotTransferNotAllowed;
                         }

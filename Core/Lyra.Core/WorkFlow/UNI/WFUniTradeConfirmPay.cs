@@ -33,12 +33,13 @@ namespace Lyra.Core.WorkFlow.Uni
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
-            if (send.Tags == null || send.Tags.Count != 3 ||
+            if (send.Tags == null || send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 !send.Tags.ContainsKey("pod") ||
-                string.IsNullOrWhiteSpace(send.Tags["tradeid"])
-                ||
-                string.IsNullOrWhiteSpace(send.Tags["pod"])
+                !send.Tags.ContainsKey("sign") ||
+                string.IsNullOrWhiteSpace(send.Tags["tradeid"]) ||
+                string.IsNullOrWhiteSpace(send.Tags["pod"]) ||
+                string.IsNullOrWhiteSpace(send.Tags["sign"])
                 )
                 return APIResultCodes.InvalidBlockTags;
 
@@ -49,13 +50,29 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var trade = tradeblk as IUniTrade;
             // only fiat trade is OTC.
-            if (trade == null || !trade.Trade.biding.ToLower().StartsWith("fiat/"))
+            if (trade == null || !LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
                 return APIResultCodes.InvalidTradeStatus;
 
-            if (trade.OwnerAccountId != send.AccountID)
+            PoDCatalog catalog;
+            if(!Enum.TryParse<PoDCatalog>(send.Tags["pod"], out catalog))
+            {
+                return APIResultCodes.InvalidBlockTags;
+            }
+
+            if(trade.OwnerAccountId == send.AccountID && catalog != PoDCatalog.BidSent) // must be bidsent
+            {
+                return APIResultCodes.InvalidProofOfDelivery;
+            }
+            
+            if(trade.Trade.orderOwnerId == send.AccountID && catalog != PoDCatalog.OfferSent)
+            {
+                return APIResultCodes.InvalidProofOfDelivery;
+            }
+
+            if (trade.OwnerAccountId != send.AccountID && trade.Trade.orderOwnerId != send.AccountID)
                 return APIResultCodes.NotOwnerOfTrade;
 
-            if (trade.UTStatus != UniTradeStatus.Open)
+            if (trade.UTStatus != UniTradeStatus.Open && trade.UTStatus != UniTradeStatus.Processing)
                 return APIResultCodes.InvalidTradeStatus;
 
             // verify pod?
@@ -115,7 +132,8 @@ namespace Lyra.Core.WorkFlow.Uni
                     
                     if(context.State == WFState.NormalReceive)
                     {
-                        trade.Delivery.Add(PoDCatalog.BidSent, sendBlock.Tags["pod"]);
+                        PoDCatalog catalog = Enum.Parse<PoDCatalog>(sendBlock.Tags["pod"]);
+                        trade.Delivery.Add(catalog, sendBlock.Tags["sign"]);
                     }
                 });
         }

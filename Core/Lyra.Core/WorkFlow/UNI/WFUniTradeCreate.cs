@@ -44,10 +44,8 @@ namespace Lyra.Core.WorkFlow
             // seller fiat, buyer fiat: seller manual send, buyer manual confirm, manual send, seller manual confirm
             // holding type: NFT, Token: auto transfer. others: manual deliver and need peer to confirm.
 
-            bool IsBidToken = LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.Token
-                || LyraGlobal.GetHoldTypeFromTicker(trade.biding) == HoldTypes.NFT;
-            bool IsOfferToken = LyraGlobal.GetHoldTypeFromTicker(trade.offering) == HoldTypes.Token
-                || LyraGlobal.GetHoldTypeFromTicker(trade.offering) == HoldTypes.NFT;
+            bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);
+            bool IsOfferToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.offering);
 
             if (IsBidToken && IsOfferToken)
             {
@@ -336,7 +334,7 @@ namespace Lyra.Core.WorkFlow
                 {
                     var trade = b as IUniTrade;
 
-                    trade.UTStatus = UniTradeStatus.Processing;
+                    trade.UTStatus = UniTradeStatus.Closed;
 
                     b.DestinationAccountId = trade.OwnerAccountId;
 

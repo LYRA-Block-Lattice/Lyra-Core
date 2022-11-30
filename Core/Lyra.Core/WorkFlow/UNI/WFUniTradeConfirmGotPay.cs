@@ -38,11 +38,13 @@ namespace Lyra.Core.WorkFlow.Uni
             if (send.Tags == null)
                 throw new ArgumentNullException();
 
-            if (send.Tags == null || send.Tags.Count != 3 ||
+            if (send.Tags == null || send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]) ||
                 !send.Tags.ContainsKey("pod") ||
-                string.IsNullOrWhiteSpace(send.Tags["pod"])
+                string.IsNullOrWhiteSpace(send.Tags["pod"]) ||
+                !send.Tags.ContainsKey("sign") ||
+                string.IsNullOrWhiteSpace(send.Tags["sign"])
                 )
                 return APIResultCodes.InvalidBlockTags;
 
@@ -56,7 +58,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 return APIResultCodes.InvalidParameterFormat;
 
             // only fiat trade is OTC.
-            if (trade == null || !trade.Trade.biding.ToLower().StartsWith("fiat/"))
+            if (trade == null || !LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
                 return APIResultCodes.InvalidTradeStatus;
 
             // check if seller is the order's owner
@@ -72,9 +74,25 @@ namespace Lyra.Core.WorkFlow.Uni
             if (trade.UTStatus != UniTradeStatus.Processing)
                 return APIResultCodes.InvalidTradeStatus;
 
-            if(order.OwnerAccountId != send.AccountID)
+            if(order.OwnerAccountId != send.AccountID && trade.OwnerAccountId != send.AccountID)
             {
                 return APIResultCodes.NotSellerOfTrade;
+            }
+
+            PoDCatalog catalog;
+            if (!Enum.TryParse<PoDCatalog>(send.Tags["pod"], out catalog))
+            {
+                return APIResultCodes.InvalidBlockTags;
+            }
+
+            if (trade.OwnerAccountId == send.AccountID && catalog != PoDCatalog.OfferReceived) // must be bidsent
+            {
+                return APIResultCodes.InvalidProofOfDelivery;
+            }
+
+            if (trade.Trade.orderOwnerId == send.AccountID && catalog != PoDCatalog.BidReceived)
+            {
+                return APIResultCodes.InvalidProofOfDelivery;
             }
 
             return APIResultCodes.Success;
@@ -90,8 +108,44 @@ namespace Lyra.Core.WorkFlow.Uni
             return await ChangeStateToBidReceivedAsync(sys, context) as ReceiveTransferBlock;
         }
 
+        private async Task<bool> CheckTradeDone(DagSystem sys, LyraContext context)
+        {
+            var tradeid = context.Send.Tags["tradeid"];
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid);
+            var trade = tradeblk as IUniTrade;
+            bool bidIsOk;
+            if (LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
+            {
+                // should has bid received
+                bidIsOk = trade.Delivery.Proofs.ContainsKey(PoDCatalog.BidSent) 
+                    && trade.Delivery.Proofs.ContainsKey(PoDCatalog.BidReceived);
+            }
+            else
+            {
+                bidIsOk = true;
+            }
+
+
+            bool offerIsOk;
+            if (LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.offering))
+            {
+                // should has bid received
+                offerIsOk = trade.Delivery.Proofs.ContainsKey(PoDCatalog.OfferSent)
+                    && trade.Delivery.Proofs.ContainsKey(PoDCatalog.OfferReceived);
+            }
+            else
+            {
+                offerIsOk = true;
+            }
+
+            return offerIsOk && bidIsOk;
+        }
+
         protected async Task<TransactionBlock?> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
         {
+            if (!await CheckTradeDone(sys, context))
+                return null;
+
             var sendBlock = context.Send;
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
             
@@ -102,7 +156,7 @@ namespace Lyra.Core.WorkFlow.Uni
                 {
                     var trade = b as IUniTrade;
 
-                    //trade.UTStatus = UniTradeStatus.OfferReceived;
+                    trade.UTStatus = UniTradeStatus.Closed;
 
                     (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
 
@@ -112,6 +166,9 @@ namespace Lyra.Core.WorkFlow.Uni
 
         protected async Task<TransactionBlock?> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, LyraContext context)
         {
+            if (!await CheckTradeDone(sys, context))
+                return null;
+
             var send = context.Send;
             var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
@@ -183,7 +240,8 @@ namespace Lyra.Core.WorkFlow.Uni
                     }
                     b.Balances = recvBalances.ToLongDict();
 
-                    (b as IUniTrade).UTStatus = UniTradeStatus.Closed;
+                    // no, don't change anything.
+                    //(b as IUniTrade).UTStatus = UniTradeStatus.Closed;
 
                     // if refund receive, attach a refund reason.
                     if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
@@ -193,7 +251,8 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     if (context.State == WFState.NormalReceive)
                     {
-                        trade.Delivery.Add(PoDCatalog.BidReceived, sendBlock.Tags["pod"]);
+                        PoDCatalog catalog = Enum.Parse<PoDCatalog>(sendBlock.Tags["pod"]);
+                        trade.Delivery.Add(catalog, sendBlock.Tags["sign"]);
                     }
                 });
         }

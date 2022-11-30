@@ -8,18 +8,22 @@ using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
-using Org.BouncyCastle.Crypto.Generators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WorkflowCore.Interface;
-using WorkflowCore.Models;
-using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Lyra.Core.WorkFlow
 {
+    // should have a method to support dynamic workflow invokation.
+    // e.g. after confirm of OTC delivery, trigger closing of trade.
+    // chained workflow on specified condition.
+    // question: do it outside or inside?
+    // outside is better. need a place to handle them.
+    // or a event bus for workflow
+    // set workflow to listen to specified event, like otc confirmation.
     public class WorkFlowDescription
     {
         public string Action { get; set; }

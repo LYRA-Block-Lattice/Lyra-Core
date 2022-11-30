@@ -74,14 +74,15 @@ namespace Lyra.Core.API
 
         #endregion
 
-        public static decimal GetListingFeeFor(HoldTypes hodes)
+        public static decimal GetListingFeeFor(/*HoldTypes hodes*/)
         {
-            return hodes switch
-            {
-                HoldTypes.NFT => 100,
-                HoldTypes.TOT => 100,
-                _ => 10,
-            };
+            return 100;
+            //return hodes switch
+            //{
+            //    HoldTypes.NFT => 100,
+            //    HoldTypes.TOT => 100,
+            //    _ => 10,
+            //};
         }
 
         public static AccountTypes GetAccountTypeFromTicker(string ticker)
@@ -108,6 +109,15 @@ namespace Lyra.Core.API
                 "fiat" => HoldTypes.Fiat,
                 _ => HoldTypes.Token,
             };
+        }
+
+        public static bool GetOTCRequirementFromTicker(string ticker)
+        {
+            return ticker.StartsWith("tot/")
+                || ticker.StartsWith("fiat/")
+                || ticker.StartsWith("sku/")
+                || ticker.StartsWith("svc/")
+                ;
         }
 
         #region Key calculation
