@@ -38,9 +38,12 @@ namespace Lyra.Core.WorkFlow.Uni
             if (send.Tags == null)
                 throw new ArgumentNullException();
 
-            if (send.Tags.Count != 2 ||
+            if (send.Tags == null || send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("tradeid") ||
-                string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
+                string.IsNullOrWhiteSpace(send.Tags["tradeid"]) ||
+                !send.Tags.ContainsKey("pod") ||
+                string.IsNullOrWhiteSpace(send.Tags["pod"])
+                )
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.Tags["tradeid"];
@@ -165,7 +168,8 @@ namespace Lyra.Core.WorkFlow.Uni
                 (b) =>
                 {
                     // recv
-                    (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
+                    b.SourceHash = sendBlock.Hash;
+                    var trade = b as IUniTrade;
 
                     var txInfo = sendBlock.GetBalanceChanges(sys.Storage.FindBlockByHash(sendBlock.PreviousHash) as TransactionBlock);
 
@@ -185,6 +189,11 @@ namespace Lyra.Core.WorkFlow.Uni
                     if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
                     {
                         b.AddTag("auth", context.AuthResult.Result.ToString());
+                    }
+
+                    if (context.State == WFState.NormalReceive)
+                    {
+                        trade.Delivery.Add(PoDCatalog.BidReceived, sendBlock.Tags["pod"]);
                     }
                 });
         }

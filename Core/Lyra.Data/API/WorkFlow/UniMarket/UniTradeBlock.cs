@@ -86,6 +86,20 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public string HashSrc => Proofs?
                 .Select(m => $"{m.Key}:{m.Value}")
                 .Aggregate((m1, m2) => $"{m1},{m2}") ?? "";
+
+        public void Add(PoDCatalog catalog, string signature)
+        {
+            if (Proofs == null)
+                Proofs = new Dictionary<PoDCatalog, string>();
+
+            if (string.IsNullOrWhiteSpace(signature))
+                throw new ArgumentOutOfRangeException("Invalid PoD signature");
+
+            if (Proofs.ContainsKey(catalog))
+                throw new InvalidOperationException("PoD catalog already exists");
+
+            Proofs.Add(catalog, signature);
+        }
     }
 
     /// <summary>

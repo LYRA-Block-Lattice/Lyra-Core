@@ -77,6 +77,7 @@ namespace UnitTests
             Console.WriteLine("Test sell nft to test2 for tether usd");
             await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
 
+            return;
 
             //await TestChangeDAO();
             // after test, dump the database statistics
@@ -750,10 +751,24 @@ namespace UnitTests
 
                 //tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
                 // cancel one
+                var tradeQueryRet2 = await testWallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+                Assert.IsTrue(tradeQueryRet2.Successful(), $"Can't query trade via GetLastBlockAsync: {tradeQueryRet2.ResultCode}");
+                var tradlast = tradeQueryRet2.GetBlock() as IUniTrade;
+                Assert.IsTrue(tradlast.Delivery != null);
+                Assert.IsTrue(tradlast.Delivery.Proofs == null);
 
                 // buyer send payment indicator
                 var wlt = test2Wallet;
-                AuthorizationAPIResult payindret = await wlt.UniTradeFiatPaymentSentAsync(tradgen.AccountID);
+
+                var pod1 = new ProofOfDilivery
+                {
+                    Catalog = PoDCatalog.BidSent,
+                    Owner = wlt.AccountId,
+                    Carrier = tradgen.Trade.payVia,
+                    TrackingTag = "A000000000",
+                };
+
+                AuthorizationAPIResult payindret = await wlt.UniTradeFiatPaymentSentAsync(tradgen.AccountID, pod1);
                 Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
                 await WaitWorkflow(payindret.TxHash, $"UniTradeBuyerPaymentSentAsync");
@@ -763,9 +778,24 @@ namespace UnitTests
                 Assert.AreEqual(UniTradeStatus.Processing, (trdlatest.GetBlock() as IUniTrade).UTStatus,
                     $"Trade statust not changed to Delivering");
 
+                tradlast = trdlatest.GetBlock() as IUniTrade;
+                Assert.IsTrue(tradlast.Delivery.Proofs != null, "delivery proofs should not be null");
+                Assert.IsTrue(tradlast.Delivery.Proofs.Count == 1, "delivery proofs should have proof");
+                Assert.IsTrue(tradlast.Delivery.Proofs.ContainsKey(PoDCatalog.BidSent), "delivery proofs should has proof of bid sent.");
+                Assert.IsTrue(tradlast.Delivery.Proofs[PoDCatalog.BidSent] == pod1.Signature, "proof not right");
+
                 // seller got the payment
                 var wlt2 = offeringWallet;
-                var gotpayret = await wlt2.UniTradeFiatPaymentConfirmAsync(tradgen.AccountID);
+
+                var pod2 = new ProofOfDilivery
+                {
+                    Catalog = PoDCatalog.BidReceived,
+                    Owner = wlt2.AccountId,
+                    Carrier = pod1.Carrier,
+                    TrackingTag = pod1.TrackingTag
+                };
+
+                var gotpayret = await wlt2.UniTradeFiatPaymentConfirmAsync(tradgen.AccountID, pod2);
                 Assert.IsTrue(gotpayret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
                 await WaitWorkflow(gotpayret.TxHash, $"UniTradeSellerGotPaymentAsync");
@@ -775,6 +805,12 @@ namespace UnitTests
                 Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
                 Assert.AreEqual(UniTradeStatus.Closed, (trdlatest2.GetBlock() as IUniTrade).UTStatus,
                     $"Trade status not changed to Closed");
+
+                tradlast = trdlatest2.GetBlock() as IUniTrade;
+                Assert.IsTrue(tradlast.Delivery.Proofs != null, "delivery proofs should not be null");
+                Assert.IsTrue(tradlast.Delivery.Proofs.Count == 2, "delivery proofs should have proofs");
+                Assert.IsTrue(tradlast.Delivery.Proofs.ContainsKey(PoDCatalog.BidReceived), "delivery proofs should has proof of bid received.");
+                Assert.IsTrue(tradlast.Delivery.Proofs[PoDCatalog.BidReceived] == pod2.Signature, "proof not right");
 
                 // trade is ok. now its time to close the order
                 var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
@@ -1173,9 +1209,12 @@ namespace UnitTests
             var tradeQueryResultBlocks2 = tradeQueryRet2.GetBlocks().OrderBy(a => a.TimeStamp);
             //Assert.AreEqual(3, tradeQueryResultBlocks2.Count());
             Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks2.Last() as TransactionBlock).AccountID);
+            var tradlast = tradeQueryResultBlocks2.Last() as IUniTrade;
+            Assert.IsTrue(tradlast.Delivery != null);
+            Assert.IsTrue(tradlast.Delivery.Proofs.Count == 0);
 
             // buyer send payment indicator
-            var payindret = await test2Wallet.UniTradeFiatPaymentSentAsync(tradgen.AccountID);
+            var payindret = await test2Wallet.UniTradeFiatPaymentSentAsync(tradgen.AccountID, null);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
             await WaitWorkflow(payindret.TxHash, "UniTradeBuyerPaymentSentAsync");
@@ -1184,6 +1223,12 @@ namespace UnitTests
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
             Assert.AreEqual(UniTradeStatus.Processing, (trdlatest.GetBlock() as IUniTrade).UTStatus,
                 $"Trade status not changed to BuyerPaid");
+
+            tradlast = trdlatest.GetBlock() as IUniTrade;
+            Assert.IsTrue(tradlast.Delivery != null);
+            Assert.IsTrue(tradlast.Delivery.Proofs.Count == 1);
+            Assert.IsTrue(tradlast.Delivery.Proofs.ContainsKey(PoDCatalog.BidSent));
+            //Assert.IsTrue(Signatures.VerifyAccountSignature( tradlast.Delivery.Proofs[PoDCatalog.BidSent]));
 
             // seller not got the payment. seller raise a dispute
             var crdptret = await testWallet.UniTradeRaiseDisputeAsync(tradgen.AccountID);

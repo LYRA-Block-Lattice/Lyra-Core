@@ -2526,12 +2526,13 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentSentAsync(string tradeid)
-        {
+        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentSentAsync(string tradeid, ProofOfDilivery pod1)
+        {            
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDPAYSENT },
                 { "tradeid", tradeid },
+                { "pod", pod1.Sign(PrivateKey, AccountId) }
             };
 
             var amounts = new Dictionary<string, decimal>
@@ -2543,12 +2544,13 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentConfirmAsync(string tradeid)
+        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentConfirmAsync(string tradeid, ProofOfDilivery pod2)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_UNI_TRDPAYGOT },
                 { "tradeid", tradeid },
+                { "pod", pod2.Sign(PrivateKey, AccountId) }
             };
 
             var amounts = new Dictionary<string, decimal>

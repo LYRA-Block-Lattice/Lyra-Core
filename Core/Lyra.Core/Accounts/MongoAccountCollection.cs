@@ -90,6 +90,7 @@ namespace Lyra.Core.Accounts
             }
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Utc, BsonType.Document));
+            BsonSerializer.RegisterSerializer(new EnumSerializer<PoDCatalog>(BsonType.String));
 
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {

@@ -33,9 +33,13 @@ namespace Lyra.Core.WorkFlow.Uni
         public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
-            if (send.Tags.Count != 2 ||
+            if (send.Tags == null || send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("tradeid") ||
-                string.IsNullOrWhiteSpace(send.Tags["tradeid"]))
+                !send.Tags.ContainsKey("pod") ||
+                string.IsNullOrWhiteSpace(send.Tags["tradeid"])
+                ||
+                string.IsNullOrWhiteSpace(send.Tags["pod"])
+                )
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.Tags["tradeid"];
@@ -53,6 +57,8 @@ namespace Lyra.Core.WorkFlow.Uni
 
             if (trade.UTStatus != UniTradeStatus.Open)
                 return APIResultCodes.InvalidTradeStatus;
+
+            // verify pod?
 
             return APIResultCodes.Success;
         }
@@ -83,8 +89,10 @@ namespace Lyra.Core.WorkFlow.Uni
                 () => context.State,
                 (b) =>
                 {
-                    (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
-                    (b as IUniTrade).UTStatus = UniTradeStatus.Processing;
+                    b.SourceHash = sendBlock.Hash;
+
+                    var trade = b as IUniTrade;
+                    trade.UTStatus = UniTradeStatus.Processing;
 
                     // calculate balance
                     var latestBalances = lastblock.Balances.ToDecimalDict();
@@ -103,6 +111,11 @@ namespace Lyra.Core.WorkFlow.Uni
                     if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
                     {
                         b.AddTag("auth", context.AuthResult.Result.ToString());
+                    }
+                    
+                    if(context.State == WFState.NormalReceive)
+                    {
+                        trade.Delivery.Add(PoDCatalog.BidSent, sendBlock.Tags["pod"]);
                     }
                 });
         }
