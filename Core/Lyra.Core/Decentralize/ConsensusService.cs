@@ -867,6 +867,8 @@ namespace Lyra.Core.Decentralize
                 {
                     LocalDbSyncState.Remove();
 
+                    StartWorkflowEngine();  // because genesis goes directly into almighty, so no chance to init workflow engine.
+
                     // reset bill board contents related to leader
                     Board.LeaderCandidate = ProtocolSettings.Default.StandbyValidators[0];
                     Board.LeaderCandidateVotes = 4;
