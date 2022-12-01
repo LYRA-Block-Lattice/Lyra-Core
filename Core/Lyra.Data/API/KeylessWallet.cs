@@ -473,7 +473,7 @@ namespace Lyra.Data.API
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
             };
 
-            return await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+            return await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
         }
 
         public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
@@ -513,7 +513,7 @@ namespace Lyra.Data.API
             {
                 { LyraGlobal.OFFICIALTICKERCODE, 1m }
             };
-            var poolWithdrawResult = await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+            var poolWithdrawResult = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return poolWithdrawResult;
         }
 
@@ -572,7 +572,7 @@ namespace Lyra.Data.API
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.ProfitingAccountCreateFee }
             };
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             if (result.ResultCode != APIResultCodes.Success)
                 return new BlockAPIResult { ResultCode = result.ResultCode };
 
@@ -613,7 +613,7 @@ namespace Lyra.Data.API
                 { "pftid", profitingAccountId }
             };
 
-            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);
+            var getpftResult = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amountsDeposit, tags);
             return getpftResult;
         }
 
@@ -631,7 +631,7 @@ namespace Lyra.Data.API
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
             };
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             if (result.ResultCode != APIResultCodes.Success)
                 return new BlockAPIResult { ResultCode = result.ResultCode };
 
@@ -697,7 +697,7 @@ namespace Lyra.Data.API
                 { LyraGlobal.OFFICIALTICKERCODE, 1m }
             };
 
-            var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var addStkResult = await SendExAsync(LyraGlobal.GUILDACCOUNTID, amounts, tags);
             return addStkResult;
         }
         #endregion

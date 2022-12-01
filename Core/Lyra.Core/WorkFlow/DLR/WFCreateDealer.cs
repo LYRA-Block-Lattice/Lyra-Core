@@ -69,7 +69,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidTagParameters;
         }
 
-        public async Task<TransactionBlock> DealerGenesisAsync(DagSystem sys, LyraContext context)
+        public async Task<TransactionBlock?> DealerGenesisAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var arg = JsonConvert.DeserializeObject<DealerCreateArgument>(send.Tags["data"]);
