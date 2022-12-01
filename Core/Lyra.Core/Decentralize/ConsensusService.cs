@@ -2257,7 +2257,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            _log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+            //_log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
             if (item is ChatMsg chatMsg)
             {
                 await OnRecvChatMsgAsync(chatMsg);
