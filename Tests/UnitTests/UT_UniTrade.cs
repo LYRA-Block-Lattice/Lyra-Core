@@ -30,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "xtest";
+            var netid = "devnet";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -89,12 +89,12 @@ namespace UnitTests
             _currentTestTask = "TOT2TOT";
             await TestUniTradeAsync(dao, testWallet, totg1, test2Wallet, totg2);
 
-            return;
 
-            //await TestChangeDAO();
+            _currentTestTask = "DAOCHG";
+            await TestChangeDAO();
             // after test, dump the database statistics
 
-
+            _currentTestTask = "*";
 
             //var tradeid = await TestUniTradeDispute();   // test for dispute
             //await TestVoting(tradeid); // related to dealer. bypass. real test in Uni unit test
@@ -777,15 +777,14 @@ namespace UnitTests
             var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
 
             bool hasOTC = false;
-            if (LyraGlobal.GetOTCRequirementFromTicker(bidingGen.Ticker))
-            {
-                await ConfirmOTCAsync(tradgen, true, bidingWallet, offeringWallet);
-                hasOTC = true;
-            }
-
             if (LyraGlobal.GetOTCRequirementFromTicker(offeringGen.Ticker))
             {
                 await ConfirmOTCAsync(tradgen, false, offeringWallet, bidingWallet);
+                hasOTC = true;
+            }
+            if (LyraGlobal.GetOTCRequirementFromTicker(bidingGen.Ticker))
+            {
+                await ConfirmOTCAsync(tradgen, true, bidingWallet, offeringWallet);
                 hasOTC = true;
             }
 
