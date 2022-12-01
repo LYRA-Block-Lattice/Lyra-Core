@@ -117,7 +117,7 @@ namespace Lyra.Core.WorkFlow
 
             if (!userOk)
                 return APIResultCodes.NotRegisteredToDealer;
-
+            /*
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = propGen.Ticker.Split('/')[1];
 
@@ -134,7 +134,7 @@ namespace Lyra.Core.WorkFlow
             if (tokenSymbol == "ETH") usdprice = prices["ETH"];
             if (tokenSymbol == "BTC") usdprice = prices["BTC"];
             if (tokenSymbol == "USDT") usdprice = prices["USDT"];
-            //var selcryptoprice = Math.Round(usdprice / prices[order.fiat.ToLower()], 2);
+            //var selcryptoprice = Math.Round(usdprice / prices[order.fiat.ToLower()], 2); */
 
             //if (order.collateral * prices["LYR"] < prices[tokenSymbol] * order.amount * ((dao as IDao).SellerPar / 100))
             //    return APIResultCodes.CollateralNotEnough;
