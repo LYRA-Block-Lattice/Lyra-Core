@@ -72,7 +72,7 @@ namespace Lyra.Core.Decentralize
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStart;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
         public BlockChainState CurrentState => _stateMachine.State;
-        public bool CanDoConsense => CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging;
+        public bool CanDoConsense => CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Genesis;
 
         readonly ILogger _log;
         IHostEnv _hostEnv;
@@ -2257,7 +2257,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            //_log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+            _log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
             if (item is ChatMsg chatMsg)
             {
                 await OnRecvChatMsgAsync(chatMsg);
