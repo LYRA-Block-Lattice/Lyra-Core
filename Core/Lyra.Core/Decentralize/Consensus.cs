@@ -515,10 +515,14 @@ namespace Lyra.Core.Decentralize
             var pf = await CreatePoolFactoryBlockAsync();
             await SendBlockToConsensusAndWaitResultAsync(pf);
 
+            await Task.Delay(2000);
+            var gg = await GuildGenesisAsync();
+            await SendBlockToConsensusAndWaitResultAsync(gg);            
+
             await Task.Delay(-1000 * LyraGlobal.CONSOLIDATIONDELAY);        // because cons block has a time shift.
             await Task.Delay(2000);
 
-            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
+            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen, pf, gg);
             await SendBlockToConsensusAndWaitResultAsync(consGen);
 
             await Task.Delay(1000);
@@ -591,14 +595,15 @@ namespace Lyra.Core.Decentralize
             return svcBlock;
         }
 
-        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen, PoolFactoryBlock pf)
+        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen, 
+            PoolFactoryBlock pf, TransactionBlock gg)
         {
             var consBlock = new ConsolidationBlock
             {
                 createdBy = ProtocolSettings.Default.StandbyValidators[0],
                 blockHashes = new List<string>()
                 {
-                    svcGen.Hash, lyraGen.Hash, pf.Hash
+                    svcGen.Hash, lyraGen.Hash, pf.Hash, gg.Hash
                 },
                 totalBlockCount = 3     // not including self
             };
@@ -608,6 +613,7 @@ namespace Lyra.Core.Decentralize
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));
             mt.AppendLeaf(MerkleHash.Create(lyraGen.Hash));
             mt.AppendLeaf(MerkleHash.Create(pf.Hash));
+            mt.AppendLeaf(MerkleHash.Create(gg.Hash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = svcGen.Hash;
