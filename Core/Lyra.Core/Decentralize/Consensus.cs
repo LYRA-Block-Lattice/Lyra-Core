@@ -515,7 +515,7 @@ namespace Lyra.Core.Decentralize
             var pf = await CreatePoolFactoryBlockAsync();
             await SendBlockToConsensusAndWaitResultAsync(pf);
 
-            await Task.Delay(25000);        // because cons block has a time shift.
+            await Task.Delay(-1 * LyraGlobal.CONSOLIDATIONDELAY + 5);        // because cons block has a time shift.
 
             var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
             await SendBlockToConsensusAndWaitResultAsync(consGen);
