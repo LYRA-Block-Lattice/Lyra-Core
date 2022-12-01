@@ -172,21 +172,28 @@ namespace Lyra.Data.API
                     })
                     .OrderByDescending(x => x.Count);
 
-                var best = coll.First();
+                var best = coll.FirstOrDefault();
 
-                if (best.Count >= expectedCount)
+                if(best != null)
                 {
-                    var x = results.First(a => a.IsSuccess && a.Result == best.Data);
+                    if (best.Count >= expectedCount)
+                    {
+                        var x = results.First(a => a.IsSuccess && a.Result == best.Data);
 
-                    finalResult = x.Result;
-                    //return (x.Result, "");
+                        finalResult = x.Result;
+                        //return (x.Result, "");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Aggregator Result count: {best.Count} / {expectedCount} / {taskss.Count}");
+                        // print the unconsist ones
+                    }
+                    dbConsist = best.Count == results.Count();
                 }
                 else
                 {
-                    Console.WriteLine($"Aggregator Result count: {best.Count} / {expectedCount} / {taskss.Count}");
-                    // print the unconsist ones
+                    dbConsist = true;
                 }
-                dbConsist = best.Count == results.Count();
             }
 
             var failedResult = results.Where(a => !a.IsSuccess);
