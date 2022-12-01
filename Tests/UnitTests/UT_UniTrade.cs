@@ -131,7 +131,8 @@ namespace UnitTests
 
         private async Task<IDao> CreateDaoAsync(Wallet ownerWallet, string daoName, string daoDesc)
         {
-            if(ownerWallet.NetworkId == "xtest")
+            var daochkret = await testWallet.RPC.GetDaoByNameAsync(daoName);
+            if (!daochkret.Successful())
             {
                 var dcret = await ownerWallet.CreateDAOAsync(daoName, daoDesc, 1, 0.01m, 0.001m, 10, 120, 130);
                 Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
@@ -1554,7 +1555,8 @@ namespace UnitTests
             };
 
             // we temp disable the dealer creation.
-            if(testWallet.NetworkId == "xtest")
+            var dlrchkret = await testWallet.RPC.GetDealerByAccountIdAsync(testWallet.AccountId);
+            if (!dlrchkret.Successful())
             {
                 var ret = await testWallet.ServiceRequestAsync(dealerAbi);
                 Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
@@ -1636,6 +1638,12 @@ namespace UnitTests
             Assert.IsTrue(recvBlock.Balances[tickrToSend] == 1m.ToBalanceLong());
 
             // then test3 will send to test4
+            if (test3Wallet.BaseBalance < 10000)
+            {
+                await genesisWallet.SendAsync(1000000, test3Wallet.AccountId);
+                await test3Wallet.SyncAsync();
+            }                
+
             var send2ret = await test3Wallet.SendAsync(1m, test4PublicKey, nftgen.Ticker);
             Assert.IsTrue(send2ret.Successful(), $"Faid to send NFT to test3: {send2ret.ResultCode}");
 

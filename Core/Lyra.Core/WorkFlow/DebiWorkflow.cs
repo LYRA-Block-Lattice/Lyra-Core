@@ -458,7 +458,7 @@ namespace Lyra.Core.WorkFlow
                 Name = ctx.GetSvcRequest(),
                 Key = ctx.GetSendHash(),
                 Action = ctx.LastBlockType.ToString(),
-                Result = ctx.LastResult.ToString(),
+                Result = ctx.LastResult?.ToString(),
                 Message = Message,
             });
 
@@ -474,7 +474,7 @@ namespace Lyra.Core.WorkFlow
 
             ConsensusService.Singleton.OnWorkflowTerminated(
                 ctx.Send.Hash,
-                ctx.AuthResult.Result == APIResultCodes.Success,
+                ctx.AuthResult == null ? false : ctx.AuthResult.Result == APIResultCodes.Success,
                 ctx.State == WFState.Error
                 );
 

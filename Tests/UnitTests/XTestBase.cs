@@ -357,7 +357,7 @@ namespace UnitTests
             await AuthAsync(pf);
             var gg = await cs.GuildGenesisAsync();
             await AuthAsync(gg);
-            var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
+            var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf, gg);
             await AuthAsync(consGen);
             //await store.AddBlockAsync(consGen);
 
