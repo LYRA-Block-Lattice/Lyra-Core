@@ -601,7 +601,7 @@ namespace Lyra.Core.Decentralize
                 },
                 totalBlockCount = 3     // not including self
             };
-            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-18);
+            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY);
 
             var mt = new MerkleTree();
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));

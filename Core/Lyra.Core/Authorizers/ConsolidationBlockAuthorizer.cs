@@ -95,7 +95,7 @@ namespace Lyra.Core.Authorizers
         {
             var cons = block as ConsolidationBlock;
             var uniTime = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY);
-            if (sys.ConsensusState != BlockChainState.StaticSync && sys.ConsensusState != BlockChainState.Genesis)
+            if (sys.ConsensusState != BlockChainState.StaticSync)
             {
                 // time shift 15 seconds.
                 if (block.TimeStamp < uniTime.AddSeconds(-15) || block.TimeStamp > uniTime.AddSeconds(15))
