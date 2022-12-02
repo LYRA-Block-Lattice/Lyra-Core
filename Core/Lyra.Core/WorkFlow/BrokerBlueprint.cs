@@ -193,7 +193,7 @@ deactivate db
         {
             var desc = workflow.GetDescription();
             DynWorkFlows.Add(desc.Action, workflow);
-            Console.WriteLine($"Adding workflow {desc.Action}");
+            //Console.WriteLine($"Adding workflow {desc.Action}");
             //if(desc.Blocks != null)
             //foreach(var bd in desc.Blocks)
             //{

@@ -91,7 +91,7 @@ namespace UnitTests
 
 
             _currentTestTask = "DAOCHG";
-            await TestChangeDAO();
+            //await TestChangeDAO();
             // after test, dump the database statistics
 
             _currentTestTask = "*";
@@ -355,6 +355,30 @@ namespace UnitTests
 
         private async Task TestJoinDAO(string daoid)
         {
+            if (testWallet.BaseBalance < 810000)
+            {
+                await genesisWallet.SendAsync(2000000, testWallet.AccountId);
+                await testWallet.SyncAsync();
+            }
+
+            if (test2Wallet.BaseBalance < 810000)
+            {
+                await genesisWallet.SendAsync(2000000, test2Wallet.AccountId);
+                await test2Wallet.SyncAsync();
+            }
+
+            if (test3Wallet.BaseBalance < 810000)
+            {
+                await genesisWallet.SendAsync(2000000, test3Wallet.AccountId);
+                await test3Wallet.SyncAsync();
+            }
+
+            if (test4Wallet.BaseBalance < 810000)
+            {
+                await genesisWallet.SendAsync(2000000, test4Wallet.AccountId);
+                await test4Wallet.SyncAsync();
+            }
+
             // leave first.
             var daolastret = await client.GetLastBlockAsync(daoid);
             Assert.IsTrue(daolastret.Successful());
@@ -404,6 +428,12 @@ namespace UnitTests
             var invret0 = await testWallet.JoinDAOAsync(daoid, 800m);
             Assert.IsTrue(invret0.Successful());
             await WaitWorkflow(invret0.TxHash, "JoinDAOAsync 0", APIResultCodes.InvalidAmount);
+
+            if(testWallet.BaseBalance < 810000)
+            {
+                await genesisWallet.SendAsync(2000000, testWallet.AccountId);
+                await testWallet.SyncAsync();
+            }
 
             var invret = await testWallet.JoinDAOAsync(daoid, 800000m);
             Assert.IsTrue(invret.Successful());
@@ -1482,7 +1512,10 @@ namespace UnitTests
             var token0 = "unnitest/test0";
             var token1 = "unnitest/test1";
             var secs0 = token0.Split('/');
-            if(networkId == "xtest")
+
+            var poole = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
+            if(poole.PoolAccountId == null)
+            //if (networkId == "xtest")
             {
                 var result0 = await testWallet.CreateTokenAsync(secs0[1], secs0[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(result0.Successful(), "Failed to create token: " + result0.ResultCode);
