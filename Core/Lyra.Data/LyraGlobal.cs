@@ -96,7 +96,7 @@ namespace Lyra.Core.API
                     "sku" => AccountTypes.TOTSell,
                     "tot" => AccountTypes.TOTSell,
                     "fiat" => AccountTypes.TOTSell,
-                    _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
+                    _ => AccountTypes.TokenSell,
                 };
         }
         public static HoldTypes GetHoldTypeFromTicker(string ticker)

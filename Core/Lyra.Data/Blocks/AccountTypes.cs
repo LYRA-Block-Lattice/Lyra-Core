@@ -27,6 +27,8 @@
         NFTBuy,
         TOTSell,
         TOTBuy,
+        TokenSell,
+        TokenBuy,
         //OTCSell = 20,
         //OTCBuy,
         //SKUSell,    // goods
