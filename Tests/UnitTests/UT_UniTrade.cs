@@ -51,13 +51,19 @@ namespace UnitTests
 
             // tot
             var metaurl1 = await CreateTotMetaDataAsync(netid, testWallet, HoldTypes.TOT, "tot1", "test tot 1", null);
-            var totg1 = await CreateTestToTAsync(netid, testWallet, metaurl1);
+            var totg1 = await CreateTestToTAsync(netid, testWallet, HoldTypes.TOT, metaurl1);
 
             var metaurl2 = await CreateTotMetaDataAsync(netid, test2Wallet, HoldTypes.TOT, "tot2", "test tot 2", null);
-            var totg2 = await CreateTestToTAsync(netid, test2Wallet, metaurl2);
+            var totg2 = await CreateTestToTAsync(netid, test2Wallet, HoldTypes.TOT, metaurl2);
 
-            var fiatg = await CreateTokenAsync(genesisWallet, "fiat", "USD", "US Dollar", 0);
-            var fiatg2 = await CreateTokenAsync(genesisWallet, "fiat", "CNY", "China Yuan", 0);
+            var fiatmetaurl1 = await CreateTotMetaDataAsync(netid, testWallet, HoldTypes.Fiat, "fiat1, USD", "test fiat 1", null);
+            var fiatg = await CreateTestToTAsync(netid, testWallet, HoldTypes.Fiat, fiatmetaurl1);
+
+            var fiatmetaurl2 = await CreateTotMetaDataAsync(netid, test2Wallet, HoldTypes.Fiat, "fiat2, CNY", "test fiat 2", null);
+            var fiatg2 = await CreateTestToTAsync(netid, test2Wallet, HoldTypes.Fiat, fiatmetaurl2);
+
+            //var fiatg = await CreateTokenAsync(genesisWallet, "fiat", "USD", "US Dollar", 0);
+            //var fiatg2 = await CreateTokenAsync(genesisWallet, "fiat", "CNY", "China Yuan", 0);
             var tetherg = await CreateTokenAsync(genesisWallet, "tether", "USDT", "USDT", 10000000);
 
             Assert.IsTrue((await genesisWallet.SendAsync(10000m, testPublicKey, tetherg.Ticker)).Successful());
@@ -75,9 +81,9 @@ namespace UnitTests
             var t = CreateTestNFTAsync(test2Wallet);
 
 
-            //Console.WriteLine("Test fiat to tot");
-            //_currentTestTask = "Fiat2TOT";
-            //await TestUniTradeAsync(dao, testWallet, fiatg, test2Wallet, totg2);
+            Console.WriteLine("Test fiat to tot");
+            _currentTestTask = "Fiat2TOT";
+            await TestUniTradeAsync(dao, testWallet, fiatg, test2Wallet, totg2);
 
             Console.WriteLine("Test sell nft to test2 for tether usd");
             _currentTestTask = "NFT2Tether";
@@ -701,7 +707,8 @@ namespace UnitTests
                     daoCost = 1;
                     break;
                 case "Fiat2TOT":
-                    daoCost = 0;
+                    offeringCost = 5;
+                    daoCost = 1;
                     break;
                 default: break;
             }
@@ -735,9 +742,9 @@ namespace UnitTests
                 - daoCost         // a send
                 ;
 
-            if(!offeringGen.Ticker.StartsWith("fiat/"))
+            //if(!offeringGen.Ticker.StartsWith("fiat/"))
                 Assert.IsTrue(offeringWallet.GetLastSyncBlock().Balances[offeringGen.Ticker] > 0);
-            if (bidingGen.DomainName != "fiat")
+            //if (bidingGen.DomainName != "fiat")
                 Assert.IsTrue(bidingWallet.GetLastSyncBlock().Balances[bidingGen.Ticker] > 0);
 
             await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
@@ -932,7 +939,7 @@ namespace UnitTests
 
             await offeringWallet.SyncAsync();
             var offeringBalanceOut = offeringWallet.BaseBalance;
-            Assert.AreEqual(offeringBalanceShouldBe, offeringBalanceOut, $"Offering wallet balance is not right, diff: {offeringBalanceOut - offeringBalanceShouldBe}");
+            Assert.AreEqual(offeringBalanceShouldBe, offeringBalanceOut, $"{_currentTestTask} Offering wallet balance is not right, diff: {offeringBalanceOut - offeringBalanceShouldBe}");
             
             await bidingWallet.SyncAsync();
             var bidingBalanceOut = bidingWallet.BaseBalance;
@@ -1717,7 +1724,7 @@ namespace UnitTests
             var signature = Signatures.GetSignature(ownerWallet.PrivateKey, input, ownerWallet.AccountId);
             var retJson = await ac.CreateMetaAsync(ownerWallet.AccountId, signature, totType, name, description);
             var dynret = JsonConvert.DeserializeObject<dynamic>(retJson);
-            Assert.IsTrue(Convert.ToBoolean(dynret.ok));
+            Assert.IsTrue(Convert.ToBoolean(dynret.ok), Convert.ToString(dynret.error));
 
             var metaurl = Convert.ToString(dynret.value.url);
             var meta = await ac.GetAsync<TOTMeta>(metaurl);
@@ -1735,7 +1742,7 @@ namespace UnitTests
         /// <param name="description"></param>
         /// <param name="properties"></param>
         /// <returns></returns>
-        public async Task<TokenGenesisBlock> CreateTestToTAsync(string netid, Wallet ownerWallet, string metauri)
+        public async Task<TokenGenesisBlock> CreateTestToTAsync(string netid, Wallet ownerWallet, HoldTypes type, string metauri)
         {
             //var ticker = "nft/a346b16b-ca6c-4c86-9519-1e72fd517e9B";
             //var retg = await ownerWallet.RPC.GetTokenGenesisBlockAsync(testPublicKey, ticker, "aaa");
@@ -1747,7 +1754,7 @@ namespace UnitTests
             var rand = new Random();
 
             var name = $"a great ToT ({rand.NextInt64()})";
-            var ret = await ownerWallet.CreateTOTAsync(name, "a tot for unit test", 10, metauri);
+            var ret = await ownerWallet.CreateTOTAsync(type, name, "a tot for unit test", 1000, metauri);
             Assert.IsTrue(ret.Successful(), $"Create TOT failed: {ret.ResultMessage}");
 
             // send
@@ -1766,7 +1773,7 @@ namespace UnitTests
             };
 
             var sendRet = await ownerWallet.SendExAsync(test3PublicKey, amounts, null, nft);
-            Assert.IsTrue(sendRet.ResultCode == APIResultCodes.TotTransferNotAllowed, $"Should faid to send ToT: {sendRet.ResultCode}");
+            Assert.IsTrue(sendRet.ResultCode == APIResultCodes.TotTransferNotAllowed, $"Should faid to send ToT {type}: {sendRet.ResultCode}");
             var sendBlock = ownerWallet.GetLastSyncBlock();
             ResetAuthFail();
 

@@ -1839,13 +1839,21 @@ namespace Lyra.Core.Accounts
         }
 
         public async Task<AuthorizationAPIResult> CreateTOTAsync(
+                HoldTypes type,
                 string name,
                 string description,
                 int supply,
                 string metadataUri
                 )
         {
-            var domain = "tot";
+            var domain = type switch
+            {
+                HoldTypes.NFT => "nft",
+                HoldTypes.Fiat => "fiat",
+                HoldTypes.SKU => "tot",
+                _ => "tot"
+            };
+
             string ticker = domain + "/" + Guid.NewGuid().ToString();
 
             TransactionBlock latestBlock = await GetLatestBlockAsync();
@@ -2500,10 +2508,8 @@ namespace Lyra.Core.Accounts
             var amounts = new Dictionary<string, decimal>
             {
                 { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor() + order.cltamt },
+                { order.offering, order.amount }
             };
-
-            if (order.offerby != HoldTypes.Fiat)      // Fiat will goes offline/OTC
-                amounts.Add(order.offering, order.amount);
 
             var result = await SendExAsync(order.daoId, amounts, tags);
             return result;

@@ -565,7 +565,7 @@ namespace UnitTests
 
             Assert.IsTrue(blk1.Tags.ContainsKey("auth"), "wf first block not contains auth tag.");
             var wfresult = Enum.Parse<APIResultCodes>(blk1.Tags["auth"]);
-            Assert.IsTrue(wfresult == expected, $"workflow result not expected: {wfresult}");
+            Assert.IsTrue(wfresult == expected, $"{_currentTestTask} workflow result not expected: {wfresult}");
             return wfresult;
         }
 

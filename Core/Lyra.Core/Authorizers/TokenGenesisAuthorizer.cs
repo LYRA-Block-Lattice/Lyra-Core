@@ -19,7 +19,7 @@ namespace Lyra.Core.Authorizers
         };
 
         private readonly List<string> _nftDomains = new List<string> {
-            "nft", "tot", 
+            "nft", "tot", "fiat", 
         };
 
         public override BlockTypes GetBlockType()
@@ -84,8 +84,8 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            if (block.DomainName == "fiat" && block.Balances[block.Ticker] != 0)
-                return APIResultCodes.InvalidBalance;
+            //if (block.DomainName == "fiat" && block.Balances[block.Ticker] != 0)
+            //    return APIResultCodes.InvalidBalance;
 
             if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
                 return APIResultCodes.CannotModifyImportedAccount;

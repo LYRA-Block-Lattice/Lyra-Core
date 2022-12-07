@@ -20,10 +20,10 @@ namespace Lyra.Core.Authorizers
     {
         static readonly List<string> TradeOnlyDomains = new List<string>
         {
-            "tot", "sku", "svc"
+            "tot", "sku", "svc", "fiat"
         };
         static readonly List<string> NonFungibleDomains = new List<string>{
-            "nft", "tot", "sku", "svc"
+            "nft", "tot", "sku", "svc", "fiat"
         };
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {

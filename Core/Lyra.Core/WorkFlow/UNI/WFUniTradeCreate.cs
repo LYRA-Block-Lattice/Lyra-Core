@@ -153,7 +153,7 @@ namespace Lyra.Core.WorkFlow
 
             var bidg = await sys.Storage.FindTokenGenesisBlockAsync("", trade.biding);
 
-            if (bidg.DomainName != "fiat")
+            if(!LyraGlobal.GetOTCRequirementFromTicker(bidg.Ticker))
             {
                 if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
                     chgs.Changes[bidg.Ticker] != trade.amount ||
