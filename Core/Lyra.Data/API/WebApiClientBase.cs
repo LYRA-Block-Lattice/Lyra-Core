@@ -1,6 +1,7 @@
 ﻿using DexServer.Ext;
 using Lyra.Core.API;
 using Lyra.Data.Crypto;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +23,7 @@ namespace Lyra.Data.API
         {
             _cancel = new CancellationTokenSource();
         }
-        private HttpClient CreateClient()
+        private HttpClient CreateClient(string? Url = null)
         {
             var handler = new HttpClientHandler();
             try
@@ -37,14 +38,18 @@ namespace Lyra.Data.API
             catch { }
 
             var client = new HttpClient(handler)
-            {
-                BaseAddress = new Uri(UrlBase),
+            {                
 #if DEBUG
                 Timeout = new TimeSpan(0, 5, 0)
 #else
                 Timeout = new TimeSpan(0, 0, 15)
 #endif
-        };
+            };
+
+            if (Url == null)
+                client.BaseAddress = new Uri(UrlBase);
+            else
+                client.BaseAddress = new Uri(Url);
             
             return client;
         }
@@ -89,6 +94,27 @@ namespace Lyra.Data.API
             }                
         }
 
+        public async Task<T> GetAsync<T>(string url)
+        {
+            using var client = CreateClient(url);
+            HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+            if (response.IsSuccessStatusCode)
+            {
+                if (typeof(T) == typeof(string))
+                    return (T)(object)await response.Content.ReadAsStringAsync();
+                else
+                {
+                    var result = await response.Content.ReadAsAsync<T>();
+                    return result;
+                }
+            }
+            else
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed for {url}, {resp}");
+            }
+        }
+
         public async Task<T> GetAsync<T>(string action, Dictionary<string, string>? args = null)
         {
             var url = $"{action}/?" + args?.Aggregate(new StringBuilder(),
@@ -123,6 +149,22 @@ namespace Lyra.Data.API
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<APIResult>();
+                return result;
+            }
+            else
+            {
+                var resp = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Web Api Failed for {action}, {resp}");
+            }
+        }
+
+        protected async Task<string> PostJsonAsync(string action, object obj)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync(action, JsonConvert.SerializeObject(obj));
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
                 return result;
             }
             else

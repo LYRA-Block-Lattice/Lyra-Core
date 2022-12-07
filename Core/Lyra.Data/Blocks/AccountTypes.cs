@@ -23,15 +23,15 @@
         Guild = 14,
 
         // Universal Trades
-        OTCSell = 20,
-        OTCBuy,
-        NFTSell,
+        NFTSell = 20,
         NFTBuy,
-        SKUSell,    // goods
-        SKUBuy,
-        SVCSell,   // human labour, service product, like Fiver.com
-        SVCBuy,
         TOTSell,
         TOTBuy,
+        //OTCSell = 20,
+        //OTCBuy,
+        //SKUSell,    // goods
+        //SKUBuy,
+        //SVCSell,   // human labour, service product, like Fiver.com
+        //SVCBuy,
     }
 }

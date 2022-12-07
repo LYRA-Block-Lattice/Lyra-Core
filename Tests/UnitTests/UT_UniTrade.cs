@@ -30,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -50,10 +50,11 @@ namespace UnitTests
             // end
 
             // tot
-            var totg1 = await CreateTestToTAsync(testWallet);
-            var totg2 = await CreateTestToTAsync(test2Wallet);
+            var metaurl1 = await CreateTotMetaDataAsync(netid, testWallet, HoldTypes.TOT, "tot1", "test tot 1", null);
+            var totg1 = await CreateTestToTAsync(netid, testWallet, metaurl1);
 
-
+            var metaurl2 = await CreateTotMetaDataAsync(netid, test2Wallet, HoldTypes.TOT, "tot2", "test tot 2", null);
+            var totg2 = await CreateTestToTAsync(netid, test2Wallet, metaurl2);
 
             var fiatg = await CreateTokenAsync(genesisWallet, "fiat", "USD", "US Dollar", 0);
             var fiatg2 = await CreateTokenAsync(genesisWallet, "fiat", "CNY", "China Yuan", 0);
@@ -73,6 +74,11 @@ namespace UnitTests
             #endregion
             var t = CreateTestNFTAsync(test2Wallet);
 
+
+            //Console.WriteLine("Test fiat to tot");
+            //_currentTestTask = "Fiat2TOT";
+            //await TestUniTradeAsync(dao, testWallet, fiatg, test2Wallet, totg2);
+
             Console.WriteLine("Test sell nft to test2 for tether usd");
             _currentTestTask = "NFT2Tether";
             await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
@@ -88,7 +94,6 @@ namespace UnitTests
             Console.WriteLine("Test tot to tot");
             _currentTestTask = "TOT2TOT";
             await TestUniTradeAsync(dao, testWallet, totg1, test2Wallet, totg2);
-
 
             _currentTestTask = "DAOCHG";
             //await TestChangeDAO();
@@ -694,6 +699,9 @@ namespace UnitTests
                     offeringCost = 5;
                     bidingCost = 5;
                     daoCost = 1;
+                    break;
+                case "Fiat2TOT":
+                    daoCost = 0;
                     break;
                 default: break;
             }
@@ -1695,7 +1703,39 @@ namespace UnitTests
             //Assert.IsTrue(ret.Successful(), $"Create NFT failed: {ret.ResultMessage}");
         }
 
-        public async Task<TokenGenesisBlock> CreateTestToTAsync(Wallet ownerWallet)
+        private async Task<string> CreateTotMetaDataAsync(string netid, Wallet ownerWallet, HoldTypes totType,
+            string name,
+            string description,
+            dynamic properties
+            )
+        {
+            var ac = new AcademyClient(netid);
+
+            // try to sign the request
+            var lsb = await client.GetLastServiceBlockAsync();
+            var input = $"{ownerWallet.AccountId}:{lsb.GetBlock().Hash}:{name}:{description}";
+            var signature = Signatures.GetSignature(ownerWallet.PrivateKey, input, ownerWallet.AccountId);
+            var retJson = await ac.CreateMetaAsync(ownerWallet.AccountId, signature, totType, name, description);
+            var dynret = JsonConvert.DeserializeObject<dynamic>(retJson);
+            Assert.IsTrue(Convert.ToBoolean(dynret.ok));
+
+            var metaurl = Convert.ToString(dynret.value.url);
+            var meta = await ac.GetAsync<TOTMeta>(metaurl);
+            Assert.IsTrue(meta != null);
+            Assert.AreEqual(meta.name, meta.name);
+            Assert.AreEqual(meta.description, meta.description);
+            return metaurl;
+        }
+
+        /// <summary>
+        /// create tot to sell
+        /// </summary>
+        /// <param name="ownerWallet"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="properties"></param>
+        /// <returns></returns>
+        public async Task<TokenGenesisBlock> CreateTestToTAsync(string netid, Wallet ownerWallet, string metauri)
         {
             //var ticker = "nft/a346b16b-ca6c-4c86-9519-1e72fd517e9B";
             //var retg = await ownerWallet.RPC.GetTokenGenesisBlockAsync(testPublicKey, ticker, "aaa");
@@ -1704,7 +1744,6 @@ namespace UnitTests
             //await BurnAllNFT();
             //return;
 
-            var metauri = "https://lyra.live/meta/some";
             var rand = new Random();
 
             var name = $"a great ToT ({rand.NextInt64()})";

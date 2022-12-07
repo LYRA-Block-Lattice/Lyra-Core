@@ -1,8 +1,11 @@
 ﻿using DexServer.Ext;
 using Lyra.Core.API;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Crypto;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
@@ -16,7 +19,7 @@ namespace Lyra.Data.API
     {
         public AcademyClient(string networkid)
         {
-            if (networkid == "devnet")
+            if (networkid == "devnet" || networkid == "xtest")
                 UrlBase = "https://localhost:7288/svc/";
             else if (networkid == "testnet")
                 UrlBase = "https://starttestnet.lyra.live/svc/";
@@ -25,6 +28,20 @@ namespace Lyra.Data.API
         }
 
         public async Task<string> CreateMetaAsync(string accountId, string signature,
+            HoldTypes type,
+                string name, string description)
+        {
+            dynamic args = new ExpandoObject();
+            args.accountId = accountId;
+            args.signature = signature;
+            args.name = name;
+            args.description = description;
+            args.type = type.ToString();
+            
+            return await PostJsonAsync("CreateTotMeta", args);
+        }
+
+        public async Task<string> CreateNFTMetaAsync(string accountId, string signature,
             string name, string description, string ipfscid)
         {
             var args = new Dictionary<string, string>

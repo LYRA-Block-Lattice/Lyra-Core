@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Lyra.Core.API
 {
@@ -91,9 +92,10 @@ namespace Lyra.Core.API
                 return secs[0] switch
                 {
                     "nft" => AccountTypes.NFTSell,
-                    "svc" => AccountTypes.SVCSell,
-                    "sku" => AccountTypes.SKUSell,
+                    "svc" => AccountTypes.TOTSell,
+                    "sku" => AccountTypes.TOTSell,
                     "tot" => AccountTypes.TOTSell,
+                    "fiat" => AccountTypes.TOTSell,
                     _ => throw new NotSupportedException($"ticker {ticker} is not supported yet.")
                 };
         }
@@ -111,13 +113,13 @@ namespace Lyra.Core.API
             };
         }
 
+        // code gen by chatGPT
         public static bool GetOTCRequirementFromTicker(string ticker)
         {
-            return ticker.StartsWith("tot/")
-                || ticker.StartsWith("fiat/")
-                || ticker.StartsWith("sku/")
-                || ticker.StartsWith("svc/")
-                ;
+            // Use a regular expression to match the ticker prefix
+            var pattern = @"^(tot|fiat|sku|svc)\/";
+            var regex = new Regex(pattern);
+            return regex.IsMatch(ticker);
         }
 
         #region Key calculation

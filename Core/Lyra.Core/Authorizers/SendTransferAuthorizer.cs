@@ -66,9 +66,9 @@ namespace Lyra.Core.Authorizers
             if (block.AccountID.Equals(LyraGlobal.BURNINGACCOUNTID))
                 return APIResultCodes.InvalidAccountId;
 
-            // fiat token never be in wallet.
-            if(block.Balances.Any(a => a.Key.ToLower().StartsWith("fiat/")))
-                return APIResultCodes.InvalidBalance;
+            //// fiat token never be in wallet.
+            //if(block.Balances.Any(a => a.Key.ToLower().StartsWith("fiat/")))
+            //    return APIResultCodes.InvalidBalance;
 
             //// 1. check if the account already exists
             //if (!await sys.Storage.AccountExists(block.AccountID))

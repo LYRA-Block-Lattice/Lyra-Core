@@ -19,6 +19,7 @@ using Lyra.Data.API.ODR;
 using System.Globalization;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using Org.BouncyCastle.Asn1.X509;
+using static Microsoft.VisualStudio.Threading.SingleThreadedSynchronizationContext;
 
 namespace Lyra.Core.Accounts
 {
@@ -2499,8 +2500,10 @@ namespace Lyra.Core.Accounts
             var amounts = new Dictionary<string, decimal>
             {
                 { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor() + order.cltamt },
-                { order.offering, order.amount }
             };
+
+            if (order.offerby != HoldTypes.Fiat)      // Fiat will goes offline/OTC
+                amounts.Add(order.offering, order.amount);
 
             var result = await SendExAsync(order.daoId, amounts, tags);
             return result;

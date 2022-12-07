@@ -50,7 +50,7 @@ namespace UnitTests
         protected readonly string test4PrivateKey = "yEEj2uvCQji75Qps4jZdPRZj7KtFoeW2dh7pmfXjEuYXK9Uz3";
         protected string test4PublicKey = "LUT5jYomQHCJQhG3Co7GadEtohpwwYtyYz1vABHGeDkLDpSJGXFfpYgD9XckRXQg2Hv2Yrb2Ade3jbecZpLf4hbVho6b5n";
 
-        protected string fiat = "EUR";
+        protected string fiat = "fiat/USD";
 
         IHostEnv _env;
         protected ConsensusService cs;
@@ -97,8 +97,8 @@ namespace UnitTests
             var ta = new TestAuthorizer(probe);
             sys = ta.TheDagSystem;
             sys.StartConsensus();
-            store = ta.TheDagSystem.Storage;          
-            
+            store = ta.TheDagSystem.Storage;
+
             //IServiceProvider serviceProvider = ConfigureServices();
 
             ////start the workflow host
@@ -118,7 +118,7 @@ namespace UnitTests
 
             //    genericMethodInfo.Invoke(host, new object[] { });
             //}
-           
+
             //host.OnStepError += cs.Host_OnStepError;
             //host.OnLifeCycleEvent += cs.Host_OnLifeCycleEvent;
             //host.Start();

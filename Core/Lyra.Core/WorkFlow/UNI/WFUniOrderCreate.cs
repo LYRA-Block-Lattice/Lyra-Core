@@ -94,10 +94,13 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidCollateral;
 
             // verify crypto
-            if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
-                chgs.Changes[propGen.Ticker] != order.amount ||
-                chgs.Changes.Count != 2)
-                return APIResultCodes.InvalidAmountToSend;
+            if(propGen.DomainName != "fiat")
+            {
+                if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
+                    chgs.Changes[propGen.Ticker] != order.amount ||
+                    chgs.Changes.Count != 2)
+                    return APIResultCodes.InvalidAmountToSend;
+            }
 
             // check the price of order and collateral.
             var uri = new Uri(new Uri((dlr as IDealer).Endpoint), "/api/dealer/");
@@ -197,6 +200,7 @@ namespace Lyra.Core.WorkFlow
             // calculate balance
             var dict = lastblock.Balances.ToDecimalDict();
 
+            //if(!order.offering.StartsWith("fiat/"))     // fiat is TOT
             dict[order.offering] -= order.amount;
 
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
