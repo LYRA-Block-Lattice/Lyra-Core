@@ -22,10 +22,10 @@ namespace Lyra.Core.Authorizers
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is OtcVotedResolutionBlock))
+            if (!(tblock is UniVotedResolutionBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as OtcVotedResolutionBlock;
+            var block = tblock as UniVotedResolutionBlock;
             var vs = await sys.Storage.GetVoteSummaryAsync(block.voteid);
             if (vs == null || !vs.IsDecided)
                 return APIResultCodes.InvalidVote;

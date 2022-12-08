@@ -438,8 +438,9 @@ namespace UnitTests.Uni
 
             var voteCrtRet = await test4Wallet.CreateVoteSubject(subject, proposal);
             Assert.IsTrue(voteCrtRet.Successful(), $"Create vote subject error {voteCrtRet.ResultCode}");
+            Assert.IsTrue(test4Wallet.WaitForWorkflow(voteCrtRet.TxHash));
+            Assert.IsFalse(test4Wallet.IsLastWorkflowRefund, "should not refund.");
 
-            await Task.Delay(4000);
             // find method 2
             var votefindret2 = await test4Wallet.RPC.FindAllVoteForTradeAsync(trade.AccountID);
             Assert.IsTrue(votefindret2.Successful(), $"Can't find vote: {votefindret2.ResultCode}");

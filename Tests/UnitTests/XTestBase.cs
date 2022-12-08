@@ -645,6 +645,7 @@ namespace UnitTests
                 await testWallet.SetupEventsListenerAsync();
                 await test2Wallet.SetupEventsListenerAsync();
                 await test3Wallet.SetupEventsListenerAsync();
+                await test4Wallet.SetupEventsListenerAsync();
             }
         }
 

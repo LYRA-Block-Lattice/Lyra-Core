@@ -193,7 +193,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
-                () => prevBlock.GenInc<OtcVotedResolutionBlock>(),
+                () => prevBlock.GenInc<UniVotedResolutionBlock>(),
                 () => context.State,
                 (b) =>
                 {
