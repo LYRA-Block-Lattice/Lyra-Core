@@ -1,4 +1,5 @@
 ﻿using Akka.Util;
+using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
@@ -52,12 +53,12 @@ namespace UnitTests.Uni
             //Assert.IsTrue(!trades.Any(a => (a as IUniTrade).OTStatus == UniTradeStatus.Open), $"real state is: {}");
         }
 
-        protected async Task CancelTradeShouldFail(IUniTrade trade)
+        protected async Task CancelTradeShouldFail(Wallet wallet, IUniTrade trade)
         {
-            var cloret = await test2Wallet.CancelUniTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
+            var cloret = await wallet.CancelUniTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
             Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
-            Assert.IsFalse(test2Wallet.WaitForWorkflow(cloret.TxHash, 3000));
-            Assert.IsTrue(test2Wallet.IsLastWorkflowRefund, "cancel trade should fail");
+            Assert.IsTrue(wallet.WaitForWorkflow(cloret.TxHash, 6000));
+            Assert.IsTrue(wallet.IsLastWorkflowRefund, "cancel trade should fail");
         }
 
         protected async Task<IUniTrade> GuestCreateTrade(IUniOrder order)
@@ -112,7 +113,9 @@ namespace UnitTests.Uni
         protected async Task CloseOrderShouldFail(IUniOrder order)
         {
             var closeret = await testWallet.CloseUniOrderAsync(order.Order.daoId, order.AccountID);
-            Assert.IsTrue(!closeret.Successful(), $"Should fail to close order: {closeret.ResultCode}");
+            Assert.IsTrue(closeret.Successful(), $"Should not fail to close order: {closeret.ResultCode}");
+            await WaitWorkflow(closeret.TxHash, "Close order");
+            Assert.IsTrue(testWallet.IsLastWorkflowRefund, "Should fail to close order");
         }
 
         protected async Task<IUniOrder> HostCreateOrder()

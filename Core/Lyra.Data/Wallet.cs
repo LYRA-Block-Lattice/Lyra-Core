@@ -2494,7 +2494,7 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(tradeid, amounts, tags);
             return result;
         }
-        #endregion
+        #endregion //OTC
 
         #region Universal Market
         public async Task<AuthorizationAPIResult> CreateUniOrderAsync(UniOrder order)
@@ -2692,7 +2692,7 @@ namespace Lyra.Core.Accounts
         {
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_RSLDPT },
+                { Block.REQSERVICETAG, BrokerActions.BRK_UNI_RSLDPT },
                 { "voteid", voteid },
                 { "data", JsonConvert.SerializeObject(resolution) },
             };

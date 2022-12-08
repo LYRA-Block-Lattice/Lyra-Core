@@ -30,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -843,9 +843,9 @@ namespace UnitTests
             if(hasOTC)
             {
                 // trade is ok. now its time to close the order
-                var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
-                Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
-                await WaitWorkflow(closeret.TxHash, $"CloseUniOrderAsync");
+                var closeret2 = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
+                Assert.IsTrue(closeret2.Successful(), $"Unable to close order: {closeret2.ResultCode}");
+                await WaitWorkflow(closeret2.TxHash, $"CloseUniOrderAsync");
             }
 
             var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
@@ -881,28 +881,37 @@ namespace UnitTests
             //Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
 
             // delist the order (only when amount > 1)
-            //Console.WriteLine($"Delisting order: {Unig.AccountID}");
-            //var dlret = await offeringWallet.DelistUniOrderAsync(dao.AccountID, Unig.AccountID);
-            //Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
-            //await WaitWorkflow($"DelistUniOrderAsync");
 
-            //var orddlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
-            //Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
-            //Assert.AreEqual(UniOrderStatus.Delist, (orddlret.GetBlock() as IUniOrder).UOStatus,
-            //    $"Order status not changed to Delisted");
+            var orderlatestblk = ordfnlret.GetBlock() as IUniOrder;
 
-            // trade is ok. now its time to close the order
-            //var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
-            //Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
+            if(orderlatestblk.Order.amount > 0)
+            {
+                Console.WriteLine($"Delisting order: {Unig.AccountID}");
+                var dlret = await offeringWallet.DelistUniOrderAsync(dao.AccountID, Unig.AccountID);
+                Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
+                await WaitWorkflow($"DelistUniOrderAsync");
 
-            //await WaitWorkflow($"CloseUniOrderAsync");
-            //var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
-            //Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
-            //Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret.GetBlock() as IUniOrder).UOStatus,
-            //    $"Order status not changed to Closed: {(ordfnlret.GetBlock() as IUniOrder).UOStatus}");
-            //Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
+                var orddlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+                Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
+                Assert.AreEqual(UniOrderStatus.Delist, (orddlret.GetBlock() as IUniOrder).UOStatus,
+                    $"Order status not changed to Delisted");
+            }
 
-            //await offeringWallet.SyncAsync(null);
+            if(orderlatestblk.UOStatus != UniOrderStatus.Closed)
+            {
+                //trade is ok.now its time to close the order
+                var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
+                Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
+
+                await WaitWorkflow($"CloseUniOrderAsync");
+                var ordfnlret2 = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+                Assert.IsTrue(ordfnlret2.Successful(), $"Can't get order latest block: {ordfnlret2.ResultCode}");
+                Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret2.GetBlock() as IUniOrder).UOStatus,
+                    $"Order status not changed to Closed: {(ordfnlret2.GetBlock() as IUniOrder).UOStatus}");
+                Assert.AreEqual(0, (ordfnlret2.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
+
+                await offeringWallet.SyncAsync(null);
+            }
 
             //if (order.dir == TradeDirection.Sell)
             //{

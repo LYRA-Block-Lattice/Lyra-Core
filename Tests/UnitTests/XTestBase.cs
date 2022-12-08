@@ -639,6 +639,13 @@ namespace UnitTests
             Assert.AreEqual(test4PublicKey, test4Wallet.AccountId);
 
             await test4Wallet.SyncAsync(client);
+
+            if(networkId != "xtest")
+            {
+                await testWallet.SetupEventsListenerAsync();
+                await test2Wallet.SetupEventsListenerAsync();
+                await test3Wallet.SetupEventsListenerAsync();
+            }
         }
 
         protected async Task PrintBalancesForAsync(params string[] accountids)

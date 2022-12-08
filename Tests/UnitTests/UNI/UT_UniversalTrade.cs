@@ -369,7 +369,7 @@ namespace UnitTests.Uni
                 await Task.Delay(2000);
 
                 // trade has been canceled by dealer based on the complaint and reply 
-                await CancelTradeShouldFail(trade);
+                await CancelTradeShouldFail(test2Wallet, trade);
 
                 await HostCloseOrder(order);
             }
@@ -383,7 +383,7 @@ namespace UnitTests.Uni
                 var ret = await dealer.ComplainReplyAsync(reply);
                 Assert.IsTrue(ret.Successful());
 
-                await CancelTradeShouldFail(trade);
+                await CancelTradeShouldFail(test2Wallet, trade);
 
                 await CloseOrderShouldFail(order);
             }
@@ -677,7 +677,7 @@ namespace UnitTests.Uni
         {            
             var briefret = await dealer.GetTradeBriefAsync(tradeId, test2PublicKey,
                 Signatures.GetSignature(test2PrivateKey, hash, test2PublicKey));
-            Assert.IsTrue(briefret.Successful());
+            Assert.IsTrue(briefret.Successful(), $"failed to get trade brief: {briefret.ResultCode}");
             var brief = briefret.Deserialize<TradeBrief>();
             return brief;
         }

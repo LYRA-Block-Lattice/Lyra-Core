@@ -4,6 +4,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.Identity;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using StreamJsonRpc;
@@ -13,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.WorkFlow.OTC
+namespace Lyra.Core.WorkFlow.Uni
 {
     [LyraWorkFlow]//v
     public class WFUniTradeCreateDispute : WorkFlowBase
@@ -37,7 +38,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.DestinationAccountId;
-            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IUniTrade;
             if (tradeblk == null)
                 return APIResultCodes.InvalidTrade;
 
@@ -52,8 +53,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.PermissionDenied;
 
             // can't reopen closed dispute trade
-            if (tradeblk.OTStatus == OTCTradeStatus.Dispute ||
-                tradeblk.OTStatus == OTCTradeStatus.DisputeClosed)
+            if (tradeblk.UTStatus == UniTradeStatus.Dispute ||
+                tradeblk.UTStatus == UniTradeStatus.DisputeClosed)
                 return APIResultCodes.InvalidTradeStatus;
 
             // and the dispute was not raised to lyra council
@@ -99,7 +100,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
-                () => prevBlock.GenInc<OtcTradeRecvBlock>(),
+                () => prevBlock.GenInc<UniTradeRecvBlock>(),
                 () => context.State,
                 (b) =>
                 {
@@ -110,7 +111,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     (b as IBrokerAccount).RelatedTx = send.Hash;
 
                     // trade
-                    (b as IOtcTrade).OTStatus = OTCTradeStatus.Dispute;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.Dispute;
 
                     var oldbalance = prevBlock.Balances.ToDecimalDict();
                     if (oldbalance.ContainsKey("LYR"))
