@@ -118,8 +118,9 @@ namespace Lyra.Core.WorkFlow.OTC
                     // we verify cancel request and reply by signature.
                     var lastCase = brief.GetDisputeHistory().Last();
 
-                    if (!lastCase.Verify(tradeblk))
-                        return APIResultCodes.Unauthorized;
+                    // disable for upgrade, non-compatible
+                    //if (!lastCase.Verify(tradeblk))
+                    //    return APIResultCodes.Unauthorized;
 
                     //if (!lastCase.GetAllowCancel())
                     //    return APIResultCodes.InvalidOperation; // cancellation is controlled by trading room

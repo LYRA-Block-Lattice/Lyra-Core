@@ -20,7 +20,7 @@ using static Akka.Actor.Status;
 
 namespace UnitTests.OTC
 {
-    [TestClass]
+    //[TestClass]
     public class UT_Trade : XOTCTestBase
     {
         public async Task Setup()
