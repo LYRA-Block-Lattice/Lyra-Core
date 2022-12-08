@@ -6,6 +6,7 @@ using Lyra.Data.API;
 using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
@@ -90,14 +91,14 @@ namespace Lyra.Core.WorkFlow.DAO
                     return APIResultCodes.InvalidArgument;
 
                 // trade's dao == subject' dao
-                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.TradeId) as IOtcTrade;
+                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.TradeId) as IUniTrade;
                 if(tradeblk == null)
                     return APIResultCodes.InvalidArgument;
 
                 if(tradeblk.Trade.daoId != subject.DaoId)
                     return APIResultCodes.InvalidDAO;
 
-                if (tradeblk.OTStatus != OTCTradeStatus.Dispute)
+                if (tradeblk.UTStatus != UniTradeStatus.Dispute)
                     return APIResultCodes.InvalidTradeStatus;
 
                 // verify complain is from user. by signature.

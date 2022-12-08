@@ -5,6 +5,7 @@ using Lyra.Data.API;
 using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Neo;
@@ -15,7 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.WorkFlow.OTC
+namespace Lyra.Core.WorkFlow.Uni
 {
     [LyraWorkFlow]//v
     public class WFUniTradeResolveDispute : WorkFlowBase
@@ -39,8 +40,8 @@ namespace Lyra.Core.WorkFlow.OTC
                 return APIResultCodes.InvalidBlockTags;
 
             var tradeid = send.DestinationAccountId;
-            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
-            if (tradeblk == null || tradeblk is not IOtcTrade)
+            var tradeblk = await sys.Storage.FindLatestBlockAsync(tradeid) as IUniTrade;
+            if (tradeblk == null || tradeblk is not IUniTrade)
                 return APIResultCodes.InvalidTrade;
 
             var dlr = sys.Storage.FindFirstBlock(tradeblk.Trade.dealerId) as IDealer;
@@ -93,7 +94,7 @@ namespace Lyra.Core.WorkFlow.OTC
                 }
             }
 
-            if ((tradeblk as IOtcTrade).OTStatus != OTCTradeStatus.Dispute)
+            if ((tradeblk as IUniTrade).UTStatus != UniTradeStatus.Dispute)
                 return APIResultCodes.InvalidTradeStatus;
 
             // verify resolution
@@ -139,7 +140,7 @@ namespace Lyra.Core.WorkFlow.OTC
             if (blocks.Count < resolv.Actions.Length + 1)
             {
                 // populate tos
-                var tradegen = await sys.Storage.FindFirstBlockAsync(resolv.TradeId) as IOtcTrade;
+                var tradegen = await sys.Storage.FindFirstBlockAsync(resolv.TradeId) as IUniTrade;
                 var tos = new Dictionary<Parties, string>
                 {
                     { Parties.Seller, tradegen.Trade.orderOwnerId },
@@ -160,7 +161,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var resolv = JsonConvert.DeserializeObject<ODRResolution>(send.Tags["data"]);
 
-            var tradelatest = await sys.Storage.FindLatestBlockAsync(resolv.TradeId) as IOtcTrade;
+            var tradelatest = await sys.Storage.FindLatestBlockAsync(resolv.TradeId) as IUniTrade;
             var daolatest = await sys.Storage.FindLatestBlockAsync(tradelatest.Trade.daoId) as TransactionBlock;
 
             var daosendblk = await TransactionOperateAsync(sys, send.Hash, daolatest,
@@ -200,7 +201,7 @@ namespace Lyra.Core.WorkFlow.OTC
                     (b as ReceiveTransferBlock).SourceHash = send.Hash;
 
                     // trade
-                    (b as IOtcTrade).OTStatus = OTCTradeStatus.DisputeClosed;
+                    (b as IUniTrade).UTStatus = UniTradeStatus.DisputeClosed;
 
                     (b as IVoteExec).voteid = send.Tags["voteid"];
 
