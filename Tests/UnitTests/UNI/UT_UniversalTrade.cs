@@ -143,8 +143,7 @@ namespace UnitTests.Uni
             // test3 as staker vote yay
             var voteRet2 = await test3Wallet.Vote(vote.AccountID, 1);
             Assert.IsTrue(voteRet2.Successful(), $"Vote error: {voteRet2.ResultCode}");
-
-            await Task.Delay(2000);
+            Assert.IsTrue(test3Wallet.WaitForWorkflow(voteRet2.TxHash));
 
             // after voting is decided, there will be a time delay to execute. such as one day.
             // then the DAO could execute the resolution. in the time delay, anyone can raise the
@@ -169,8 +168,6 @@ namespace UnitTests.Uni
             // guest complain again to raise the dispute level
             var claim = await GuestComplainLevel2(trade);
 
-            await Task.Delay(3000);
-
             var resolution = await CreateODRResolution(trade);
 
             Assert.IsNotNull(resolution);
@@ -182,8 +179,10 @@ namespace UnitTests.Uni
             Wallet.Create(walletStor5, "xunit2", "1234", networkId, devLordKey);
             var devLord = Wallet.Open(walletStor5, "xunit2", "1234", client);
             devLord.NoConsole = true;
+            await devLord.SetupEventsListenerAsync();
             await devLord.SyncAsync(client);
-            Assert.IsTrue(devLord.BaseBalance > 10000, "Lord dev have no balance!");
+
+            Assert.IsTrue(devLord.BaseBalance > 10000, $"Lord dev have no balance! send to {devLord.AccountId}");
 
             // dao owner need to create a vote
             var vote = await TheLordCreateAVote(devLord, trade, resolution);
@@ -197,23 +196,23 @@ namespace UnitTests.Uni
                 var primx = Wallet.Open(walletStorx, "xunit2", "1234", client);
                 primx.NoConsole = true;
                 await primx.SyncAsync(client);
+                await primx.SetupEventsListenerAsync();
                 Assert.IsTrue(primx.BaseBalance > 10000, "Primx have no balance!");
 
                 var voteRetx = await primx.Vote(vote.AccountID, 1);
-                //Assert.IsTrue(voteRetx.Successful(), $"Vote error: {voteRetx.ResultCode}");
-                await Task.Delay(2000);
+                Assert.IsTrue(voteRetx.Successful(), $"Vote error: {voteRetx.ResultCode}");
+                Assert.IsTrue(test3Wallet.WaitForWorkflow(voteRetx.TxHash));
             }
 
             var retsr = await dealer.SubmitResolutionAsync(resolution, vote.AccountID);
             Assert.IsTrue(retsr.Successful(), $"Unable to submit resolution: {retsr.ResultCode}");
 
             await ReplyToResolution(trade, resolution, true);
-            await Task.Delay(3000);
 
             // the Lord try to execute the resolution.
             var resret = await devLord.ExecuteResolution(vote.AccountID, resolution);
             Assert.IsTrue(resret.Successful(), $"The Lord can't execute the resolution: {resret.ResultCode}");
-            await Task.Delay(3000);
+            Assert.IsTrue(devLord.WaitForWorkflow(resret.TxHash));
 
             var trdblk = (await client.GetLastBlockAsync(trade.AccountID)).As<IUniTrade>();
             Assert.IsTrue(trdblk.UTStatus == UniTradeStatus.DisputeClosed, $"lyra council arbitration failed!");
@@ -366,7 +365,8 @@ namespace UnitTests.Uni
                 var ret = await dealer.ComplainReplyAsync(reply);
                 Assert.IsTrue(ret.Successful());
 
-                await Task.Delay(2000);
+                // dealer create a workflow
+                await Task.Delay(5000);
 
                 // trade has been canceled by dealer based on the complaint and reply 
                 await CancelTradeShouldFail(test2Wallet, trade);
@@ -382,6 +382,9 @@ namespace UnitTests.Uni
 
                 var ret = await dealer.ComplainReplyAsync(reply);
                 Assert.IsTrue(ret.Successful());
+
+                // dealer create a workflow
+                await Task.Delay(15000);
 
                 await CancelTradeShouldFail(test2Wallet, trade);
 

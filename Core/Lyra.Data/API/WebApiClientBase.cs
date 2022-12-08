@@ -94,9 +94,9 @@ namespace Lyra.Data.API
             }                
         }
 
-        public async Task<T> GetAsync<T>(string url)
+        public async Task<T> GetObjectAsync<T>(string url)
         {
-            using var client = CreateClient(url);
+            using var client = CreateClient(url.StartsWith("http") ? url : null);
             HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
             if (response.IsSuccessStatusCode)
             {

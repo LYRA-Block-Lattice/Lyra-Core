@@ -57,7 +57,7 @@ namespace UnitTests.Uni
         {
             var cloret = await wallet.CancelUniTradeAsync(trade.Trade.daoId, trade.Trade.orderId, trade.AccountID);
             Assert.IsTrue(cloret.Successful(), $"Error cancel trade: {cloret.ResultCode}");
-            Assert.IsTrue(wallet.WaitForWorkflow(cloret.TxHash, 6000));
+            Assert.IsTrue(wallet.WaitForWorkflow(cloret.TxHash, 6000), $"wf {cloret.TxHash} not exit properly.");
             Assert.IsTrue(wallet.IsLastWorkflowRefund, "cancel trade should fail");
         }
 

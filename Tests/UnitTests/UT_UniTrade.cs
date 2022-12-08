@@ -1736,7 +1736,7 @@ namespace UnitTests
             Assert.IsTrue(Convert.ToBoolean(dynret.ok), Convert.ToString(dynret.error));
 
             var metaurl = Convert.ToString(dynret.value.url);
-            var meta = await ac.GetAsync<TOTMeta>(metaurl);
+            var meta = await ac.GetObjectAsync<TOTMeta>(metaurl);
             Assert.IsTrue(meta != null);
             Assert.AreEqual(meta.name, meta.name);
             Assert.AreEqual(meta.description, meta.description);

@@ -26,7 +26,7 @@ namespace UnitTests
 
             Assert.IsTrue(prices.ContainsKey("LYR"));
             Assert.IsTrue(prices.ContainsKey("BTC"));
-            Assert.IsTrue(prices.ContainsKey("LYR_INT"));
+            Assert.IsTrue(prices.ContainsKey("LYR_INT"), "no internal LYR price");
         }
 
 
