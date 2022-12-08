@@ -2416,7 +2416,7 @@ namespace Lyra.Core.Accounts
         {
             var myvotes = new List<TransactionBlock>();
 
-            var tradeblk = await FindLatestBlockAsync(tradeid) as IOtcTrade;
+            var tradeblk = await FindLatestBlockAsync(tradeid) as IUniTrade;
             if (tradeblk == null)
                 return myvotes;
 
@@ -2477,7 +2477,7 @@ namespace Lyra.Core.Accounts
 
             filterDefination = filter.And(
                     filter.Or(filter.Eq("BlockType", BlockTypes.OrgnizationChange),
-                        filter.Eq("BlockType", BlockTypes.OTCTradeResolutionRecv)),
+                        filter.Eq("BlockType", BlockTypes.UniTradeResolutionRecv)),
                     filter.Eq("voteid", voteid)
                 );
 
