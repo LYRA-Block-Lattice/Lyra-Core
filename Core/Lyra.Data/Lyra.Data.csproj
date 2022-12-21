@@ -15,6 +15,7 @@
     <PackageIconUrl />
     <Copyright>Lyra Live Inc.</Copyright>
     <Nullable>enable</Nullable>
+    <PackageOutputPath>C:\working\lyra-tools\UserLibrary</PackageOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

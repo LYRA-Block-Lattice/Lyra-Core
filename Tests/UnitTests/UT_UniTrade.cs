@@ -1763,7 +1763,7 @@ namespace UnitTests
             var rand = new Random();
 
             var name = $"a great ToT ({rand.NextInt64()})";
-            var ret = await ownerWallet.CreateTOTAsync(type, name, "a tot for unit test", 1000, metauri);
+            var ret = await ownerWallet.CreateTOTAsync(type, name, "a tot for unit test", 1000, metauri, null);
             Assert.IsTrue(ret.Successful(), $"Create TOT failed: {ret.ResultMessage}");
 
             // send

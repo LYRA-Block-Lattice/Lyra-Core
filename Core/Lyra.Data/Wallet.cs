@@ -1838,12 +1838,25 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="name"></param>
+        /// <param name="description"></param>
+        /// <param name="supply"></param>
+        /// <param name="metadataUri"></param>
+        /// <param name="descSignature">private product info, signed by the owner.
+        /// the owner will send the info privately, but this info can be later published & verified by the signature.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public async Task<AuthorizationAPIResult> CreateTOTAsync(
                 HoldTypes type,
                 string name,
                 string description,
                 int supply,
-                string metadataUri
+                string metadataUri,
+                string descSignature
                 )
         {
             var domain = type switch
@@ -1883,6 +1896,7 @@ namespace Lyra.Core.Accounts
                 NonFungibleType = NonFungibleTokenTypes.TradeOnly,
                 Custom1 = name,
                 Custom2 = metadataUri,
+                Custom3 = descSignature,
                 //NonFungibleKey = AccountId
             };
 

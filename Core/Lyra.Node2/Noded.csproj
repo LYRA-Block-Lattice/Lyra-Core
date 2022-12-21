@@ -22,15 +22,19 @@
   <ItemGroup>
     <Compile Remove="Accounts\**" />
     <Compile Remove="Authorizers\**" />
+    <Compile Remove="Models\**" />
     <Compile Remove="Protos\**" />
     <Content Remove="Accounts\**" />
     <Content Remove="Authorizers\**" />
+    <Content Remove="Models\**" />
     <Content Remove="Protos\**" />
     <EmbeddedResource Remove="Accounts\**" />
     <EmbeddedResource Remove="Authorizers\**" />
+    <EmbeddedResource Remove="Models\**" />
     <EmbeddedResource Remove="Protos\**" />
     <None Remove="Accounts\**" />
     <None Remove="Authorizers\**" />
+    <None Remove="Models\**" />
     <None Remove="Protos\**" />
   </ItemGroup>
   <ItemGroup>
@@ -62,8 +66,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lyra.Core\Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
   </ItemGroup>
 </Project>
