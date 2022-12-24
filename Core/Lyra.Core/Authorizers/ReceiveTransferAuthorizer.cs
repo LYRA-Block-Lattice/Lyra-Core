@@ -34,6 +34,7 @@ namespace Lyra.Core.Authorizers
             BlockTypes.DealerGenesis,
             BlockTypes.UniOrderGenesis,
             BlockTypes.UniTradeGenesis,
+            BlockTypes.FiatWalletGenesis,
         };
 
         

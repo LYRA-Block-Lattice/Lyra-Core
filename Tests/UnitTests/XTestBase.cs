@@ -392,6 +392,12 @@ namespace UnitTests
             mock.Setup(x => x.FindDexWalletAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string, string>((owner, symbol, provider) => Task.FromResult(api.FindDexWalletAsync(owner, symbol, provider)).Result);
 
+            // Fiat
+            mock.Setup(x => x.GetAllFiatWalletsAsync(It.IsAny<string>()))
+                .Returns<string>((owner) => Task.FromResult(api.GetAllFiatWalletsAsync(owner)).Result);
+            mock.Setup(x => x.FindFiatWalletAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string>((owner, symbol) => Task.FromResult(api.FindFiatWalletAsync(owner, symbol)).Result);
+
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
             mock.Setup(x => x.GetBlockByHashAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -561,7 +567,7 @@ namespace UnitTests
             var blk1 = blksret.GetBlocks().FirstOrDefault();
 
             //Assert.IsTrue(_lastAuthResult.Result == APIResultCodes.Success, $"Last result is not success: {_lastAuthResult.Result}");
-            Assert.IsNotNull(blk1, $"can't get wf recv block for key {key}");
+            Assert.IsNotNull(blk1, $"{_currentTestTask} can't get wf recv block for key {key}");
 
             Assert.IsTrue(blk1.Tags.ContainsKey("auth"), "wf first block not contains auth tag.");
             var wfresult = Enum.Parse<APIResultCodes>(blk1.Tags["auth"]);

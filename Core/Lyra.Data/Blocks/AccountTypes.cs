@@ -23,12 +23,16 @@
         Guild = 14,
 
         // Universal Trades
-        NFTSell = 20,
-        NFTBuy,
-        TOTSell,
-        TOTBuy,
-        TokenSell,
-        TokenBuy,
+        NFT = 30,
+        Fiat,
+        TOT,
+        
+        //NFTSell = 20,
+        //NFTBuy,
+        //TOTSell,
+        //TOTBuy,
+        //TokenSell,
+        //TokenBuy,
         //OTCSell = 20,
         //OTCBuy,
         //SKUSell,    // goods

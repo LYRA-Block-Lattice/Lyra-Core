@@ -240,6 +240,13 @@ namespace Lyra.Core.WorkFlow
                         brkaccount = send.Tags["dexid"];
                         break;
 
+                    // Fiat
+                    case BrokerActions.BRK_FIAT_CRACT:    // not needed
+                    case BrokerActions.BRK_FIAT_PRINT:
+                    case BrokerActions.BRK_FIAT_GET:
+                        brkaccount = null;// temp let it null. send.Tags["fatwltid"];
+                        break;
+
                     // DAO
                     //case BrokerActions.BRK_DAO_CRDAO:
                     case BrokerActions.BRK_DAO_JOIN:
@@ -353,7 +360,7 @@ namespace Lyra.Core.WorkFlow
 
                     default:
                         if(action != null)
-                            Console.WriteLine($"Unknown REQ Action: {action}");
+                            Console.WriteLine($"Unknown REQ Action for setup locker: {action}");
                         brkaccount = null;
                         break;
                 };
@@ -536,7 +543,7 @@ namespace Lyra.Core.WorkFlow
                 () => wfState,
                 (b) =>
                 {
-                    // recv
+                    // send
                     var snd = b as SendTransferBlock;
                     snd.DestinationAccountId = dstAccountId;
 

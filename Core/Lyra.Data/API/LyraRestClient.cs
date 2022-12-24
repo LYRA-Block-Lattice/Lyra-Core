@@ -848,6 +848,21 @@ namespace Lyra.Core.API
             return await GetAsync<BlockAPIResult>("FindDexWallet", args);
         }
 
+        public async Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            return await GetMultiBlockByUrlAsync($"GetAllFiatWallets/?owner=" + owner);
+        }
+        public async Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "owner", owner },
+                { "symbol", symbol },
+            };
+
+            return await GetAsync<BlockAPIResult>("FindFiatWallet", args);
+        }
+
         public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
         {
             var args = new Dictionary<string, string>

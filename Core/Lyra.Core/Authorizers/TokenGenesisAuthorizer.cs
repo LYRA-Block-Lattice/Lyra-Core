@@ -19,7 +19,7 @@ namespace Lyra.Core.Authorizers
         };
 
         private readonly List<string> _nftDomains = new List<string> {
-            "nft", "tot", "fiat", 
+            "nft", "tot"
         };
 
         public override BlockTypes GetBlockType()
@@ -76,6 +76,7 @@ namespace Lyra.Core.Authorizers
                 {
                     if (!_nftDomains.Contains(block.DomainName) && block.DomainName.Length < 6)
                         return APIResultCodes.DomainNameTooShort;
+
                     if(LyraNodeConfig.GetNetworkId() != "xtest")    // for unit test
                     {
                         if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))

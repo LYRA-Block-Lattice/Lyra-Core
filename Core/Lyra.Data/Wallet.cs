@@ -1863,7 +1863,6 @@ namespace Lyra.Core.Accounts
             {
                 HoldTypes.NFT => "nft",
                 HoldTypes.Fiat => "fiat",
-                HoldTypes.SKU => "tot",
                 _ => "tot"
             };
 

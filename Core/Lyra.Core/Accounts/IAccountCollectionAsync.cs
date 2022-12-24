@@ -154,6 +154,10 @@ namespace Lyra.Core.Accounts
 
         // DEX
         Task<List<TransactionBlock>> GetAllDexWalletsAsync(string owner);
-        Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider);
+        Task<TransactionBlock?> FindDexWalletAsync(string owner, string symbol, string provider);
+
+        // Fiat
+        Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner);
+        Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol);
     }
 }

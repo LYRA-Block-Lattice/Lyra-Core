@@ -294,9 +294,19 @@ namespace Lyra.Core.Accounts
             return StopWatcher.TrackAsync(() => _store.GetAllDexWalletsAsync(owner), StopWatcher.GetCurrentMethod());
         }
 
-        public Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider)
+        public Task<TransactionBlock?> FindDexWalletAsync(string owner, string symbol, string provider)
         {
             return StopWatcher.TrackAsync(() => _store.FindDexWalletAsync(owner, symbol, provider), StopWatcher.GetCurrentMethod());
+        }
+
+        public Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner)
+        {
+            return StopWatcher.TrackAsync(() => _store.GetAllFiatWalletsAsync(owner), StopWatcher.GetCurrentMethod());
+        }
+
+        public Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol)
+        {
+            return StopWatcher.TrackAsync(() => _store.FindFiatWalletAsync(owner, symbol), StopWatcher.GetCurrentMethod());
         }
 
         public void Dispose()

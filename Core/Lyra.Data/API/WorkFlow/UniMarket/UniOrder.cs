@@ -16,11 +16,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     public enum HoldTypes
     {
         Token,
-        Fiat,
         NFT,
-        SKU,
-        SVC,       
+        Fiat,        
         TOT,
+        SVC,     
     }
 
     public class UniOrder

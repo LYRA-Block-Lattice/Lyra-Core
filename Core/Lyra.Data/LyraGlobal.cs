@@ -86,17 +86,30 @@ namespace Lyra.Core.API
             //};
         }
 
+        public static bool IsTokenTradeOnly(string ticker)
+        {
+            var secs = ticker.Split('/');
+            return secs[0] switch
+            {
+                "svc" => true,
+                "sku" => true,
+                "tot" => true,
+                "fiat" => true,
+                _ => false,
+            };
+        }
+
         public static AccountTypes GetAccountTypeFromTicker(string ticker)
         {
             var secs = ticker.Split('/');
                 return secs[0] switch
                 {
-                    "nft" => AccountTypes.NFTSell,
-                    "svc" => AccountTypes.TOTSell,
-                    "sku" => AccountTypes.TOTSell,
-                    "tot" => AccountTypes.TOTSell,
-                    "fiat" => AccountTypes.TOTSell,
-                    _ => AccountTypes.TokenSell,
+                    "nft" => AccountTypes.NFT,
+                    //"svc" => AccountTypes.TOT,
+                    //"sku" => AccountTypes.TOTSell,
+                    "tot" => AccountTypes.TOT,
+                    "fiat" => AccountTypes.Fiat,
+                    _ => AccountTypes.Standard,
                 };
         }
         public static HoldTypes GetHoldTypeFromTicker(string ticker)
@@ -107,7 +120,7 @@ namespace Lyra.Core.API
                 "tot" => HoldTypes.TOT,
                 "nft" => HoldTypes.NFT,
                 "svc" => HoldTypes.SVC,
-                "sku" => HoldTypes.SKU,
+                //"sku" => HoldTypes.SKU,
                 "fiat" => HoldTypes.Fiat,
                 _ => HoldTypes.Token,
             };

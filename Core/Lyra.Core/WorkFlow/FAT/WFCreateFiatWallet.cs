@@ -15,18 +15,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.WorkFlow.DLR
+namespace Lyra.Core.WorkFlow.FAT
 {
     [LyraWorkFlow]
-    public class WFCreateDealer : WorkFlowBase
+    public class WFCreateFiatWallet : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
         {
             return new WorkFlowDescription
             {
-                Action = BrokerActions.BRK_DLR_CREATE,
+                Action = BrokerActions.BRK_FIAT_CRACT,
                 RecvVia = BrokerRecvType.GuildRecv,
-                Steps = new[] { DealerGenesisAsync }
+                Steps = new[] { FiatGenesisAsync }
             };
         }
 
@@ -34,34 +34,33 @@ namespace Lyra.Core.WorkFlow.DLR
         {
             var send = context.Send;
             if (
-                send.Tags.ContainsKey("objType") && send.Tags["objType"] == nameof(DealerCreateArgument) &&
+                send.Tags.ContainsKey("objType") && send.Tags["objType"] == nameof(FiatCreateWallet) &&
                 send.Tags.ContainsKey("data") && !string.IsNullOrWhiteSpace(send.Tags["data"]) &&                
                 send.Tags.Count == 3
                 )
             {
-                DealerCreateArgument arg;
+                FiatCreateWallet arg;
                 try
                 {
-                    arg = JsonConvert.DeserializeObject<DealerCreateArgument>(send.Tags["data"]);
+                    arg = JsonConvert.DeserializeObject<FiatCreateWallet>(send.Tags["data"]);
                     if (arg == null)
                         throw new Exception();
                 }
                 catch
                 {
-                    return APIResultCodes.InvalidArgument;
+                    return APIResultCodes.InvalidTagParameters;
                 }
 
                 // validate the argument
-                if (!Signatures.ValidateAccountId(arg.DealerAccountId))
-                    return APIResultCodes.InvalidAccountId;
+                var ticker = arg.symbol;
+                var gens = await sys.Storage.FindTokenGenesisBlockAsync(null, ticker);
+                if (gens == null)
+                    return APIResultCodes.InvalidTagParameters;
 
-                if (arg.Mode != ClientMode.Permissionless)
-                    return APIResultCodes.InvalidArgument;
-
-                // check name dup
-                var existsdealer = sys.Storage.GetDealerByName(arg.Name);
-                if (existsdealer != null)
-                    return APIResultCodes.DuplicateName;
+                // wallet should not exits
+                var existsWallet = await sys.Storage.FindFiatWalletAsync(send.AccountID, ticker);
+                if(existsWallet != null)
+                    return APIResultCodes.AccountAlreadyExists;
 
                 return APIResultCodes.Success;
             }
@@ -69,22 +68,24 @@ namespace Lyra.Core.WorkFlow.DLR
                 return APIResultCodes.InvalidTagParameters;
         }
 
-        public async Task<TransactionBlock?> DealerGenesisAsync(DagSystem sys, LyraContext context)
+        public async Task<TransactionBlock?> FiatGenesisAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
-            var arg = JsonConvert.DeserializeObject<DealerCreateArgument>(send.Tags["data"]);
+            var arg = JsonConvert.DeserializeObject<FiatCreateWallet>(send.Tags["data"]);
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{send.Hash.Substring(0, 16)},{arg.DealerAccountId},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{arg.symbol},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var exists = await sys.Storage.FindFirstBlockAsync(AccountId);
             if (exists != null)
                 return null;
 
+            var ticker = arg.symbol;
+            var gens = await sys.Storage.FindTokenGenesisBlockAsync(null, ticker);
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var daogen = new DealerGenesisBlock
+            var daogen = new FiatWalletGenesis
             {
                 Height = 1,
                 ServiceHash = sb.Hash,
@@ -93,18 +94,18 @@ namespace Lyra.Core.WorkFlow.DLR
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // transaction
-                AccountType = AccountTypes.Server,
+                AccountType = AccountTypes.Fiat,
                 AccountID = AccountId,
                 Balances = new Dictionary<string, long>(),
 
                 // broker
-                Name = arg.Name,
+                Name = $"Fiat wallet for {arg.symbol}",
                 OwnerAccountId = send.AccountID,
                 RelatedTx = send.Hash,
 
-                // dealer
-                Endpoint = arg.ServiceUrl,
-                Description = arg.Description,
+                //
+                ExtSymbol = arg.symbol,
+                GenesisHash = gens.Hash,
             };
 
             daogen.AddTag(Block.MANAGEDTAG, context.State.ToString());

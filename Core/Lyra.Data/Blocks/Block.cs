@@ -460,6 +460,13 @@ namespace Lyra.Core.Blocks
         GuildRecv = 120,
         GuildSend = 121,
         GuildGenesis = 122,
+
+        // Fiat
+        FiatWalletGenesis = 130,
+        FiatTokenPrint = 131,
+        FiatTokenBurn = 132,
+        FiatSendToken = 133,
+        FiatRecvToken = 134,
     }
 
     public enum APIResultCodes

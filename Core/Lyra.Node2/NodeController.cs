@@ -655,6 +655,23 @@ namespace LyraLexWeb2
             return await _node.FindDexWalletAsync(owner, symbol, provider);
         }
 
+        // Fiat
+        [Route("GetAllFiatWallets")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetAllFiatWalletsAsync(owner);
+        }
+
+        [Route("FindFiatWallet")]
+        [HttpGet]
+        public async Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindFiatWalletAsync(owner, symbol);
+        }
+
         [Route("GetAllDaos")]
         [HttpGet]
         public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)

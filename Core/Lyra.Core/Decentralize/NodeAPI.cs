@@ -1182,7 +1182,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag?.Storage.FindDexWalletAsync(owner, symbol, provider);
+                var block = await NodeService.Dag.Storage.FindDexWalletAsync(owner, symbol, provider);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -1195,6 +1195,58 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in FindDexWalletAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetAllFiatWalletsAsync(owner);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                    return result;
+                }
+
+                result.SetBlocks(blocks.ToArray());
+                result.ResultCode = APIResultCodes.Success;
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetAllFiatWalletsAsync(Hash): " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+        public async Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.FindFiatWalletAsync(owner, symbol);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindFiatWalletAsync: " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }

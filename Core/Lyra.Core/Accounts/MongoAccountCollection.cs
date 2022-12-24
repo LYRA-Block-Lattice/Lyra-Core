@@ -2114,12 +2114,39 @@ namespace Lyra.Core.Accounts
             return all;
         }
 
-        public async Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider)
+        public async Task<TransactionBlock?> FindDexWalletAsync(string owner, string symbol, string provider)
         {
             var all = await GetAllDexWalletsAsync(owner);
             return all.Cast<IDexWallet>()
                 .FirstOrDefault(a => a.ExtSymbol == symbol && a.ExtProvider == provider)
                 as TransactionBlock;
+        }
+
+        // Fiat wallet
+        public async Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol)
+        {
+            var all = await GetAllFiatWalletsAsync(owner);
+            return all.Cast<IFiatWallet>()
+                .FirstOrDefault(a => a.ExtSymbol == symbol)
+                as TransactionBlock;
+        }
+
+        public async Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner)
+        {
+            var wgens = await _blocks.OfType<FiatWalletGenesis>()
+                .Find(a => a.OwnerAccountId == owner)
+                .ToListAsync();
+
+            var all = new List<TransactionBlock>();
+            foreach (var w in wgens)
+            {
+                var dw = await FindLatestBlockAsync(w.AccountID) as TransactionBlock;
+                if (dw != null)
+                    all.Add(dw);
+                else
+                    _log.LogCritical("Not IFiatWallet!!!");
+            }
+            return all;
         }
 
         public async Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize)
