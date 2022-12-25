@@ -47,6 +47,7 @@ namespace Lyra.Core.WorkFlow
             bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);
             bool IsOfferToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.offering);
 
+            // if token then auto process
             if (IsBidToken && IsOfferToken)
             {
                 //Console.WriteLine("Auto trade for both token is enabled.");
@@ -65,6 +66,18 @@ namespace Lyra.Core.WorkFlow
                     SendCollateralToSellerAsync
                 });
             }
+            //else if(IsBidToken && !IsOfferToken)
+            //{
+            //    return Task.FromResult(new[] {
+            //        SendTokenFromOrderToTradeAsync,
+            //        TradeGenesisReceiveAsync,
+                                        
+            //        // bellow auto trade
+            //        // for buyer
+            //        SendCryptoProductFromTradeToBuyerAsync,
+            //        SendCollateralFromDAOToBuyerAsync,
+            //    });
+            //}
             else
             {
                 // all need OTC
@@ -325,6 +338,10 @@ namespace Lyra.Core.WorkFlow
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var lastblock = blocks.LastOrDefault() as TransactionBlock;
+
+            //var trade = (lastblock as IUniTrade).Trade;
+            //bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);
+            //bool IsOfferToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.offering);
 
             Console.WriteLine("Call SendCryptoProductFromTradeToBuyerAsync");
             return await TransactionOperateAsync(sys, send.Hash, lastblock,

@@ -49,9 +49,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 return APIResultCodes.InvalidTrade;
 
             var trade = tradeblk as IUniTrade;
-            // only fiat trade is OTC.
-            if (trade == null || !LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
-                return APIResultCodes.InvalidTradeStatus;
+            
+            //if (trade == null || !LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
+            //    return APIResultCodes.InvalidTradeStatus;
 
             PoDCatalog catalog;
             if(!Enum.TryParse<PoDCatalog>(send.Tags["pod"], out catalog))

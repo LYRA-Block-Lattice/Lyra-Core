@@ -2541,14 +2541,14 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, trade.cltamt },
             };
 
-            if (trade.bidby != HoldTypes.Fiat)      // Fiat will goes offline/OTC
+            if(!LyraGlobal.GetOTCRequirementFromTicker(trade.biding))
                 amounts.Add(trade.biding, trade.amount);
 
             var result = await SendExAsync(trade.daoId, amounts, tags);
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentSentAsync(string tradeid, ProofOfDilivery pod1)
+        public async Task<AuthorizationAPIResult> UniSendProofOfDiliveryAsync(string tradeid, ProofOfDilivery pod1)
         {            
             var tags = new Dictionary<string, string>
             {
@@ -2567,7 +2567,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> UniTradeFiatPaymentConfirmAsync(string tradeid, ProofOfDilivery pod1)
+        public async Task<AuthorizationAPIResult> UniConfirmProofOfDiliveryAsync(string tradeid, ProofOfDilivery pod1)
         {
             var tags = new Dictionary<string, string>
             {

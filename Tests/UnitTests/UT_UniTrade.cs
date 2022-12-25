@@ -69,11 +69,11 @@ namespace UnitTests
             var metaurl2 = await CreateTotMetaDataAsync(netid, test2Wallet, HoldTypes.TOT, "tot2", "test tot 2", null);
             var totg2 = await CreateTestToTAsync(netid, test2Wallet, HoldTypes.TOT, metaurl2);
 
-            var fiatmetaurl1 = await CreateTotMetaDataAsync(netid, testWallet, HoldTypes.Fiat, "fiat1, USD", "test fiat 1", null);
-            var fiatg = await CreateTestToTAsync(netid, testWallet, HoldTypes.Fiat, fiatmetaurl1);
+            //var fiatmetaurl1 = await CreateTotMetaDataAsync(netid, testWallet, HoldTypes.Fiat, "fiat1, USD", "test fiat 1", null);
+            //var fiatg = await CreateTestToTAsync(netid, testWallet, HoldTypes.Fiat, fiatmetaurl1);
 
-            var fiatmetaurl2 = await CreateTotMetaDataAsync(netid, test2Wallet, HoldTypes.Fiat, "fiat2, CNY", "test fiat 2", null);
-            var fiatg2 = await CreateTestToTAsync(netid, test2Wallet, HoldTypes.Fiat, fiatmetaurl2);
+            //var fiatmetaurl2 = await CreateTotMetaDataAsync(netid, test2Wallet, HoldTypes.Fiat, "fiat2, CNY", "test fiat 2", null);
+            //var fiatg2 = await CreateTestToTAsync(netid, test2Wallet, HoldTypes.Fiat, fiatmetaurl2);
 
             //var fiatg = await CreateTokenAsync(genesisWallet, "fiat", "USD", "US Dollar", 0);
             //var fiatg2 = await CreateTokenAsync(genesisWallet, "fiat", "CNY", "China Yuan", 0);
@@ -94,21 +94,21 @@ namespace UnitTests
             var t = CreateTestNFTAsync(test2Wallet);
 
 
-            Console.WriteLine("Test fiat to tot");
-            _currentTestTask = "Fiat2TOT";
-            await TestUniTradeAsync(dao, testWallet, fiatg, test2Wallet, totg2);
+            //Console.WriteLine("Test fiat to tot");
+            //_currentTestTask = "Fiat2TOT";
+            //await TestUniTradeAsync(dao, testWallet, fiatg, test2Wallet, totg2);
 
             Console.WriteLine("Test sell nft to test2 for tether usd");
             _currentTestTask = "NFT2Tether";
             await TestUniTradeAsync(dao, testWallet, nftg2, test2Wallet, tetherg);
 
-            Console.WriteLine("Test sell nft OTC to test2 for fiat");
-            _currentTestTask = "NFT2Fiat";
-            await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);
+            //Console.WriteLine("Test sell nft OTC to test2 for fiat");
+            //_currentTestTask = "NFT2Fiat";
+            //await TestUniTradeAsync(dao, testWallet, nftg1, test2Wallet, fiatg);
 
-            Console.WriteLine("Test tot to fiat");
-            _currentTestTask = "TOT2Fiat";
-            await TestUniTradeAsync(dao, testWallet, totg1, test2Wallet, fiatg2);
+            //Console.WriteLine("Test tot to fiat");
+            //_currentTestTask = "TOT2Fiat";
+            //await TestUniTradeAsync(dao, testWallet, totg1, test2Wallet, fiatg2);
 
             Console.WriteLine("Test tot to tot");
             _currentTestTask = "TOT2TOT";
@@ -985,11 +985,13 @@ namespace UnitTests
             bool hasOTC = false;
             if (LyraGlobal.GetOTCRequirementFromTicker(offeringGen.Ticker))
             {
+                Console.WriteLine($"{_currentTestTask} Confirm OTC from seller");
                 await ConfirmOTCAsync(tradgen, false, offeringWallet, bidingWallet);
                 hasOTC = true;
             }
             if (LyraGlobal.GetOTCRequirementFromTicker(bidingGen.Ticker))
             {
+                Console.WriteLine($"{_currentTestTask} Confirm OTC from buyer");
                 await ConfirmOTCAsync(tradgen, true, bidingWallet, offeringWallet);
                 hasOTC = true;
             }
@@ -1153,10 +1155,10 @@ namespace UnitTests
                 TrackingTag = "A000000000",
             };
 
-            AuthorizationAPIResult payindret = await wlt.UniTradeFiatPaymentSentAsync(tradgen.AccountID, pod1);
+            AuthorizationAPIResult payindret = await wlt.UniSendProofOfDiliveryAsync(tradgen.AccountID, pod1);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
-            await WaitWorkflow(payindret.TxHash, $"UniTradeBuyerPaymentSentAsync");
+            await WaitWorkflow(payindret.TxHash, $"UniSendProofOfDiliveryAsync");
             // status changed to BuyerPaid
             var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
@@ -1180,10 +1182,10 @@ namespace UnitTests
                 TrackingTag = pod1.TrackingTag
             };
 
-            var gotpayret = await wlt2.UniTradeFiatPaymentConfirmAsync(tradgen.AccountID, pod2);
+            var gotpayret = await wlt2.UniConfirmProofOfDiliveryAsync(tradgen.AccountID, pod2);
             Assert.IsTrue(gotpayret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
-            await WaitWorkflow(gotpayret.TxHash, $"UniTradeSellerGotPaymentAsync");
+            await WaitWorkflow(gotpayret.TxHash, $"UniConfirmProofOfDiliveryAsync");
 
             // status
             var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
@@ -1306,14 +1308,12 @@ namespace UnitTests
             Assert.AreEqual(trade, tradgen.Trade);
 
             var tradeStatusShouldBe = UniTradeStatus.Open;
-            if (trade.bidby == HoldTypes.Token || trade.bidby == HoldTypes.NFT)
+            bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);
+            bool IsOfferToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.offering);
+            if (IsBidToken && IsOfferToken)
             {
                 tradeStatusShouldBe = UniTradeStatus.Closed;
             }
-            else
-            {
-                Assert.AreEqual(UniTradeStatus.Open, tradgen.UTStatus);
-            }                
 
             // verify by api
             var tradeQueryRet = await bidingWallet.RPC.FindUniTradeAsync(bidingWallet.AccountId, false, 0, 10);
@@ -1336,7 +1336,7 @@ namespace UnitTests
             Assert.IsTrue(tradeQueryRet3.Successful(), $"Can't query trade via FindUniTradeByStatusAsync: {tradeQueryRet3.ResultCode}");
             var tradeQueryResultBlocks3 = tradeQueryRet3.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks3.Count());
-            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks3.Last() as TransactionBlock).AccountID);
+            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks3.Last() as TransactionBlock).AccountID, $"In {_currentTestTask} create trade");
 
             return tradgen;
         }
@@ -1483,7 +1483,7 @@ namespace UnitTests
             Assert.IsTrue(tradlast.Delivery.Proofs.Count == 0);
 
             // buyer send payment indicator
-            var payindret = await test2Wallet.UniTradeFiatPaymentSentAsync(tradgen.AccountID, null);
+            var payindret = await test2Wallet.UniSendProofOfDiliveryAsync(tradgen.AccountID, null);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
             await WaitWorkflow(payindret.TxHash, "UniTradeBuyerPaymentSentAsync");

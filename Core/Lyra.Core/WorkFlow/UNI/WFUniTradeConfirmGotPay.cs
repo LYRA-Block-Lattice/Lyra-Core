@@ -57,9 +57,9 @@ namespace Lyra.Core.WorkFlow.Uni
             if (trade == null)
                 return APIResultCodes.InvalidParameterFormat;
 
-            // only fiat trade is OTC.
-            if (trade == null || !LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
-                return APIResultCodes.InvalidTradeStatus;
+            //// only fiat trade is OTC.
+            //if (trade == null || !LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.biding))
+            //    return APIResultCodes.InvalidTradeStatus;
 
             // check if seller is the order's owner
             var orderid = trade.Trade.orderId;
