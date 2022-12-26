@@ -330,6 +330,7 @@ namespace Lyra.Core.WorkFlow
 
             // pool blocks are service block so all service block signed by leader node
             Uniblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            Console.WriteLine($"trade genesis hash input: {Uniblock.GetHashInput()}");
             return Uniblock;
         }
 

@@ -513,7 +513,7 @@ namespace UnitTests
             var rret = await dealer.RegisterAsync(testPublicKey, "unittest1", "Unit", "", "Test 1", "u1@", "111", "111", "",
                 Signatures.GetSignature(testPrivateKey, (lsb.GetBlock().Hash), testPublicKey), "", ""
                 );
-            Assert.IsTrue(rret.Successful());
+            Assert.IsTrue(rret.Successful(), $"dealer register error {rret.ResultCode}");
             var rret2 = await dealer.RegisterAsync(test2PublicKey, "unittest2", "Unit", "", "Test 2", "u1@", "222", "111", "",
                 Signatures.GetSignature(test2PrivateKey, (lsb.GetBlock().Hash), test2PublicKey), "", ""
                 );

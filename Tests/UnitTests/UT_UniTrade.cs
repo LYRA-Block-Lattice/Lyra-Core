@@ -934,7 +934,7 @@ namespace UnitTests
             };
 
             var ret = await offeringWallet.CreateUniOrderAsync(order);
-            Assert.IsTrue(ret.Successful(), $"{_currentTestTask} Can't create order: {ret.ResultCode}");
+            Assert.IsTrue(ret.Successful(), $"{_currentTestTask} Can't create order: {ret.ResultCode} for {offeringWallet.AccountId}");
 
             //await Task.Delay(5000);
             //return;
