@@ -228,37 +228,9 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<string?> FindTokensAsync(string? keyword)
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string? keyword)
         {
-            string? result = null;
-            try
-            {
-                //if (!NodeService.Dag.Storage.AccountExists(AccountId))
-                //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
-
-                var blocks = await NodeService.Dag.Storage.FindTokensAsync(keyword == "(null)" ? null : keyword);
-                if (blocks != null)
-                {
-                    var ret = blocks.Select(a =>
-                        new
-                        {
-                            Token = a.Ticker,
-                            Domain = a.DomainName,
-                            IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
-                            Name = a.Custom1,   // NFT's name
-                            Description = a.Custom2,    
-                        }
-                    );
-
-                    return JsonConvert.SerializeObject( ret );
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception in FindTokensAsync: " + e.Message);
-            }
-
-            return result;
+            return await NodeService.Dag.Storage.FindTokensAsync(keyword == "(null)" ? null : keyword);
         }
 
         public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)

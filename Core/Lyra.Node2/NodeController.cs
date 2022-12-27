@@ -824,8 +824,17 @@ namespace LyraLexWeb2
         public async Task<IActionResult> SearchTokenAsync(string q)
         {
             if (!CheckServiceStatus()) return null;
-            var result = await (_node as NodeAPI).FindTokensAsync(q);
-            return new JsonResult(result);
+            var blocks = await (_node as NodeAPI).FindTokensAsync(q);
+            var ret = blocks.Select(a =>
+                new
+                {
+                    Token = a.Ticker,
+                    Domain = a.DomainName,
+                    IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
+                    Name = a.Custom1,   // NFT's name
+                    Description = a.Custom2,
+                });
+            return new JsonResult(ret);
         }
 
         //[HttpPost]

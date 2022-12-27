@@ -707,7 +707,7 @@ namespace Lyra.Core.Accounts
         public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword)
         {
             var regexFilter = Regex.Escape(keyword);
-            var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/^" + regexFilter + "$/i"));
+            var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i"));
             var genResult = await _blocks.OfType<TokenGenesisBlock>()
                 .Find(filter)
                 .Limit(200)
