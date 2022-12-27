@@ -326,7 +326,7 @@ namespace Lyra.Core.Blocks
         //}
     }
 
-    public enum BlockTypes : byte
+    public enum BlockTypes
     {
         Null = 0,
 

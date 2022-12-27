@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Lyra.Core.Accounts.MongoAccountCollection;
 
 namespace Lyra.Core.Accounts
 {
@@ -41,7 +42,7 @@ namespace Lyra.Core.Accounts
         public async Task<Block> FindBlockByHashAsync(string hash) => await StopWatcher.TrackAsync(() => _store.FindBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(hash);
         public async Task<Block> FindBlockByHashAsync(string AccountId, string hash) => await StopWatcher.TrackAsync(() => _store.FindBlockByHashAsync(AccountId, hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(AccountId, hash);
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword) => await StopWatcher.TrackAsync(() => _store.FindTokenGenesisBlocksAsync(keyword), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlocksAsync(keyword);
-        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword) => await StopWatcher.TrackAsync(() => _store.FindTokensAsync(keyword), StopWatcher.GetCurrentMethod());//_store.FindTokensAsync(keyword);
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog) => await StopWatcher.TrackAsync(() => _store.FindTokensAsync(keyword, catalog), StopWatcher.GetCurrentMethod());//_store.FindTokensAsync(keyword);
         public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker) => await StopWatcher.TrackAsync(() => _store.FindTokenGenesisBlockAsync(Hash, Ticker), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlockAsync(Hash, Ticker);
         public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash) => await StopWatcher.TrackAsync(() => _store.FindBlockBySourceHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockBySourceHashAsync(hash);
         public async Task<long> GetBlockCountAsync() => await StopWatcher.TrackAsync(() => _store.GetBlockCountAsync(), StopWatcher.GetCurrentMethod());//_store.GetBlockCountAsync();

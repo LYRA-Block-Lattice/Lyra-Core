@@ -8,6 +8,7 @@ using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using static Lyra.Core.Accounts.MongoAccountCollection;
 
 namespace Lyra.Core.Accounts
 {
@@ -55,7 +56,7 @@ namespace Lyra.Core.Accounts
         Block GetDealerByAccountId(string accountId);
 
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
-        Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword);
+        Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);
         Task<Block> FindBlockByHashAsync(string AccountId, string hash);

@@ -228,9 +228,9 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string? keyword)
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string? keyword, string catalog)
         {
-            return await NodeService.Dag.Storage.FindTokensAsync(keyword == "(null)" ? null : keyword);
+            return await NodeService.Dag.Storage.FindTokensAsync(keyword, catalog);
         }
 
         public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)

@@ -704,10 +704,59 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword)
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog)
         {
             var regexFilter = Regex.Escape(keyword);
-            var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i"));
+            var builder = Builders<TokenGenesisBlock>.Filter;
+
+            FilterDefinition<TokenGenesisBlock> filter;
+            if (catalog == "TOT")
+            {
+                filter = builder.And(
+                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                        ),
+                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/")),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"))
+                        )
+                    );
+            }
+            else if (catalog == "Fiat")
+            {
+                filter = builder.And(
+                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                        ),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/"))
+                    );
+            }
+            else if (catalog == "Token")
+            {
+                filter = builder.And(
+                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                        ),
+                    builder.Not(
+                        builder.Or(
+                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/")),
+                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/")),
+                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"))
+                            )
+                        )
+                    );
+            }
+            else
+            {
+                filter = builder.Or(
+                    builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                    builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                    );
+            }
+
             var genResult = await _blocks.OfType<TokenGenesisBlock>()
                 .Find(filter)
                 .Limit(200)

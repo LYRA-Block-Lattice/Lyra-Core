@@ -821,10 +821,10 @@ namespace LyraLexWeb2
         // pure json rest api
         [HttpGet]
         [Route("SearchToken")]
-        public async Task<IActionResult> SearchTokenAsync(string q)
+        public async Task<IActionResult> SearchTokenAsync(string? q, string? cat)
         {
             if (!CheckServiceStatus()) return null;
-            var blocks = await (_node as NodeAPI).FindTokensAsync(q);
+            var blocks = await (_node as NodeAPI).FindTokensAsync(q, cat);
             var ret = blocks.Select(a =>
                 new
                 {
