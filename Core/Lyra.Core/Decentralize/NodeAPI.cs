@@ -1718,6 +1718,11 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        Task<string?> INodeAPI.FindTokensAsync(string? keyword, string? cat)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

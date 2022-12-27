@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -1051,6 +1052,22 @@ namespace Lyra.Core.API
         {
             return PostAsync<SimpleJsonAPIResult>("GetUniTradeStatsForUsers", req);
         }
+
         #endregion
+
+        public async Task<string?> FindTokensAsync(string? keyword, string? cat)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(
+                        $"SearchTokens?q={keyword}&cat={cat}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
     }
 }

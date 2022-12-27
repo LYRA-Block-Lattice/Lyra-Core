@@ -135,7 +135,7 @@ namespace Lyra.Core.API
         Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req);
 
         // json api, no we don't want add it to the interface.
-        //Task<string?> FindTokensAsync(string? keyword);
+        Task<string?> FindTokensAsync(string? keyword, string? cat);
     }
 
     public interface INodeTransactionAPI

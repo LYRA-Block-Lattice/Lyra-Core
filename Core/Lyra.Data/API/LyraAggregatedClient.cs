@@ -679,6 +679,11 @@ namespace Lyra.Data.API
         {
             return SeedClient.GetUniTradeStatsForUsersAsync(req);
         }
+
+        public Task<string?> FindTokensAsync(string? keyword, string? cat)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
