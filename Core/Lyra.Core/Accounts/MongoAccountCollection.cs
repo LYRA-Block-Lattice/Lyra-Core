@@ -680,6 +680,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
         {
+            // LJc... is a bot which created a lot of spam tokens
             //.Where(x => x.AccountID != "LJcP9ztmYqzjbSRsr2sKZ44pSkhqdtUp5g8YbgPQbxNPNf9FuQ93K1FQUSXYxcofZqgV8qgzWYXArjR9w9VPGBbENcS1Z3") // filter out trash token
             var builder = Builders<TokenGenesisBlock>.Filter;
             var filterDefinition =
@@ -697,6 +698,18 @@ namespace Lyra.Core.Accounts
             {
                 return result.ToList().Where(a => a.Ticker.Contains(keyword)).ToList();
             }
+        }
+
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword)
+        {
+            var regexFilter = Regex.Escape(keyword);
+            var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/^" + regexFilter + "$/i"));
+            var genResult = await _blocks.OfType<TokenGenesisBlock>()
+                .Find(filter)
+                .Limit(200)
+                .ToListAsync();
+
+            return genResult;
         }
 
         private IEnumerable<String> FindAllImportedAccountID()

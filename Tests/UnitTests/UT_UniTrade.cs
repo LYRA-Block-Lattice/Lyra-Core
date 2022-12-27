@@ -32,7 +32,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "xtest";
+            var netid = "devnet";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();

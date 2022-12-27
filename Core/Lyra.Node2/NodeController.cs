@@ -817,6 +817,17 @@ namespace LyraLexWeb2
             return await _node.GetUniTradeStatsForUsersAsync(req);
         }
         #endregion
+
+        // pure json rest api
+        [HttpGet]
+        [Route("SearchToken")]
+        public async Task<IActionResult> SearchTokenAsync(string q)
+        {
+            if (!CheckServiceStatus()) return null;
+            var result = await (_node as NodeAPI).FindTokensAsync(q);
+            return new JsonResult(result);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

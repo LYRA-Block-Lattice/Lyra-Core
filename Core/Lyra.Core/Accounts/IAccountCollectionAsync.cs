@@ -55,6 +55,7 @@ namespace Lyra.Core.Accounts
         Block GetDealerByAccountId(string accountId);
 
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
+        Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);
         Task<Block> FindBlockByHashAsync(string AccountId, string hash);
