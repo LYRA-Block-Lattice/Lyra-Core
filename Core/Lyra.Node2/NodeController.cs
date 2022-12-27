@@ -831,8 +831,7 @@ namespace LyraLexWeb2
                     Token = a.Ticker,
                     Domain = a.DomainName,
                     IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
-                    Name = a.Custom1,   // NFT's name
-                    Description = a.Custom2,
+                    Name = a.Custom1 ?? a.Ticker,   // NFT's name
                 });
             return new JsonResult(ret);
         }
