@@ -371,6 +371,10 @@ namespace Lyra.Core.Accounts
                     {
                         continue;
                     }
+                    else if (blk is FiatPrintBlock)
+                    {
+                        continue;
+                    }
                     else
                     {
                         _log.LogCritical($"Unprocessed block type: {blk.BlockType} Height: {blk.Height}");
