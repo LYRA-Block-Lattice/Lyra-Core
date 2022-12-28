@@ -684,6 +684,11 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        public Task<string?> FindDaosAsync(string? keyword)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

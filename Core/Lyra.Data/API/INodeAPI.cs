@@ -136,6 +136,7 @@ namespace Lyra.Core.API
 
         // json api, no we don't want add it to the interface.
         Task<string?> FindTokensAsync(string? keyword, string? cat);
+        Task<string?> FindDaosAsync(string? keyword);
     }
 
     public interface INodeTransactionAPI

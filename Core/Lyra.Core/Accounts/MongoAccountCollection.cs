@@ -765,6 +765,21 @@ namespace Lyra.Core.Accounts
             return genResult;
         }
 
+        public async Task<List<DaoGenesisBlock>> FindDaosAsync(string keyword)
+        {
+            var regexFilter = Regex.Escape(keyword);
+            var builder = Builders<DaoGenesisBlock>.Filter;
+
+            FilterDefinition<DaoGenesisBlock> filter = builder.Regex(u => u.Name, new BsonRegularExpression("/" + regexFilter + "/i"));
+
+            var genResult = await _blocks.OfType<DaoGenesisBlock>()
+                .Find(filter)
+                .Limit(200)
+                .ToListAsync();
+
+            return genResult;
+        }
+
         private IEnumerable<String> FindAllImportedAccountID()
         {
             var p1 = new BsonArray

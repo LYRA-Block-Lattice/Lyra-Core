@@ -820,8 +820,8 @@ namespace LyraLexWeb2
 
         // pure json rest api
         [HttpGet]
-        [Route("SearchTokens")]
-        public async Task<IActionResult> SearchTokenAsync(string? q, string? cat)
+        [Route("FindTokens")]
+        public async Task<IActionResult> FindTokenAsync(string? q, string? cat)
         {
             if (!CheckServiceStatus()) return null;
             var blocks = await (_node as NodeAPI).FindTokensAsync(q, cat);
@@ -832,6 +832,27 @@ namespace LyraLexWeb2
                     Domain = a.DomainName,
                     IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
                     Name = a.Custom1 ?? a.Ticker,   // NFT's name
+                });
+            return new JsonResult(ret);
+        }
+
+        [HttpGet]
+        [Route("FindDaos")]
+        public async Task<IActionResult> FindDaosAsync(string? q)
+        {
+            if (!CheckServiceStatus()) return null;
+            var blocks = await (_node as NodeAPI).FindDaosAsync(q);
+            var ret = blocks.Select(a =>
+                new
+                {
+                    a.Name,
+                    DaoId = a.AccountID,
+                    a.Seats,
+                    a.ShareRito,
+                    a.SellerPar,
+                    a.SellerFeeRatio,
+                    a.BuyerPar,
+                    a.BuyerFeeRatio,
                 });
             return new JsonResult(ret);
         }

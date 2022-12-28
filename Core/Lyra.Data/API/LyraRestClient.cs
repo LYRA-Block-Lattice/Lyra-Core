@@ -1059,7 +1059,22 @@ namespace Lyra.Core.API
         {
             using var client = CreateClient();
             HttpResponseMessage response = await client.GetAsync(
-                        $"SearchTokens?q={keyword}&cat={cat}").ConfigureAwait(false);
+                        $"FindTokens?q={keyword}&cat={cat}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<string?> FindDaosAsync(string? keyword)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(
+                        $"FindDaos?q={keyword}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
