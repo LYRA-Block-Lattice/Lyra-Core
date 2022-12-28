@@ -842,7 +842,9 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             var blocks = await (_node as NodeAPI).FindDaosAsync(q);
-            var ret = blocks.Select(a =>
+            var ret = blocks
+                .Where(a => a.Name != "Lyra Guild")     // important.
+                .Select(a =>
                 new
                 {
                     a.Name,

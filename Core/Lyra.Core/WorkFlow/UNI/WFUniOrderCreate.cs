@@ -58,7 +58,10 @@ namespace Lyra.Core.WorkFlow
 
             // daoid
             var dao = await sys.Storage.FindLatestBlockAsync(order.daoId);
-            if (string.IsNullOrEmpty(order.daoId) || dao == null || (dao as TransactionBlock).AccountID != send.DestinationAccountId)
+            if (string.IsNullOrEmpty(order.daoId) || dao == null || 
+                (dao as TransactionBlock).AccountID != send.DestinationAccountId ||
+                (dao as IDao).Name == "Lyra Guild"      // "Lyra Guild" is not a normal dao
+                )
                 return APIResultCodes.InvalidOrgnization;
 
             // verify Dealer exists
