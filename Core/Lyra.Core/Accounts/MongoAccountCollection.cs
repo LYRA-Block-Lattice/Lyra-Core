@@ -2392,6 +2392,7 @@ namespace Lyra.Core.Accounts
         {
             var q = _blocks.OfType<UniOrderGenesisBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
+                .SortByDescending(a => a.TimeStamp)
                 .ToList();
 
             var blks = new List<Block>();
