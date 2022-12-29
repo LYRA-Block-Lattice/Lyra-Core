@@ -81,8 +81,8 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.TokenNotFound;
 
             // payBy
-            //if (order.payBy == null || order.payBy.Length == 0)
-            //    return APIResultCodes.InvalidOrder;
+            if (order.payBy == null)
+                return APIResultCodes.InvalidOrder;
 
             // price, amount
             if (order.price <= 0.00001m || order.amount < 0.0001m)

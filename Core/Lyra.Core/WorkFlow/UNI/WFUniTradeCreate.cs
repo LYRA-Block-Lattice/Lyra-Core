@@ -143,8 +143,8 @@ namespace Lyra.Core.WorkFlow
                 order.amount < trade.amount ||
                 orderblk.OwnerAccountId != trade.orderOwnerId ||
                 trade.pay > order.limitMax ||
-                trade.pay < order.limitMin ||
-                !order.payBy.Contains(trade.payVia)
+                trade.pay < order.limitMin
+                //|| !order.payBy.Contains(trade.payVia)
                 )
                 return APIResultCodes.InvalidTrade;
 
