@@ -393,7 +393,7 @@ namespace Lyra.Core.Accounts
         }
 
         #region Universal trade
-        public Task<List<Block>> GetUniOrdersByOwnerAsync(string accountId)
+        public Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId)
         {
             return StopWatcher.Track(() => _store.GetUniOrdersByOwnerAsync(accountId), "GetUniOrdersByOwner");
         }

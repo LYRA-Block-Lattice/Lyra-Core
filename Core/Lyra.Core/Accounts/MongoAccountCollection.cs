@@ -2388,17 +2388,18 @@ namespace Lyra.Core.Accounts
         }
 
         #region Universal order/trade
-        public async Task<List<Block>> GetUniOrdersByOwnerAsync(string accountId)
+        public async Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId)
         {
             var q = _blocks.OfType<UniOrderGenesisBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
                 .SortByDescending(a => a.TimeStamp)
                 .ToList();
 
-            var blks = new List<Block>();
+            var blks = new List<TransactionBlock>();
             foreach (var x in q)
             {
-                var b = await FindLatestBlockAsync(x.AccountID);
+                blks.Add(x);
+                var b = await FindLatestBlockAsync(x.AccountID) as TransactionBlock;
                 blks.Add(b);
             }
             return blks;

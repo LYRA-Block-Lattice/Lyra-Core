@@ -46,7 +46,7 @@ namespace Lyra.Core.Accounts
         Task<List<TradeStats>> GetOtcTradeStatsForUsersAsync(List<string> accountIds);
 
         // Universal Order and trade
-        Task<List<Block>> GetUniOrdersByOwnerAsync(string accountId);
+        Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId);
         Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync();
         Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
         Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);
