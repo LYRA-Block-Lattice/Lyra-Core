@@ -117,7 +117,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
             extraData += $"{limitMin}|";
             extraData += $"{limitMax}|";
-            extraData += $"{string.Join(",", payBy)}|";
+            extraData += $"{string.Join(",", payBy ?? new string[0] )}|";
             return extraData;
         }
 
@@ -135,7 +135,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"Seller Collateral: {cltamt}\n";
             result += $"limitMin: {limitMin}\n";
             result += $"limitMax: {limitMax}\n";
-            result += $"Pay By: {string.Join(", ", payBy)}\n";
+            result += $"Pay By: {string.Join(", ", payBy ?? new string[0])}\n";
             return result;
         }
     }
