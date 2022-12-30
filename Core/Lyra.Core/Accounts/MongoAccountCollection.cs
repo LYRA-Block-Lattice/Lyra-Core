@@ -2412,7 +2412,8 @@ namespace Lyra.Core.Accounts
             {
                 blks.Add(x);
                 var b = await FindLatestBlockAsync(x.AccountID) as TransactionBlock;
-                blks.Add(b);
+                if(b.Hash != x.Hash)
+                    blks.Add(b);
             }
             return blks;
         }
@@ -2499,7 +2500,8 @@ namespace Lyra.Core.Accounts
             {
                 blks.Add(x as TransactionBlock);
                 var b = await FindLatestBlockAsync((x as TransactionBlock).AccountID) as TransactionBlock;
-                blks.Add(b);
+                if(b.Hash != x.Hash)
+                    blks.Add(b);
             }
             return blks;
         }
