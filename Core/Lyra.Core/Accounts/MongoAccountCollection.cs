@@ -703,7 +703,24 @@ namespace Lyra.Core.Accounts
                 return result.ToList().Where(a => a.Ticker.Contains(keyword)).ToList();
             }
         }
+        public async Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId)
+        {
+            var block = FindLatestBlock(accountId);
+            if (block == null || block is not TransactionBlock tx)
+                return null;
 
+            var genss = new List<TokenGenesisBlock>();
+            foreach(var b in tx.Balances.Where(a => a.Value > 0))
+            {
+                var gens = await FindTokenGenesisBlockAsync(null, b.Key);
+                if (gens != null)
+                    genss.Add(gens);
+                else
+                    throw new InvalidOperationException("No genesis block found for balance entry.");
+            }
+
+            return genss;
+        }
         public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog)
         {
             var regexFilter = Regex.Escape(keyword);

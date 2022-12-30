@@ -1065,6 +1065,21 @@ namespace Lyra.Core.API
 
         #endregion
 
+        public async Task<string?> FindTokensForAccountAsync(string accountId)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(
+                        $"FindTokensForAccount?accountId={accountId}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<string?> FindTokensAsync(string? keyword, string? cat)
         {
             using var client = CreateClient();

@@ -828,6 +828,23 @@ namespace LyraLexWeb2
 
         // pure json rest api
         [HttpGet]
+        [Route("FindTokensForAccount")]
+        public async Task<IActionResult> FindTokensForAccountAsync(string accountId)
+        {
+            if (!CheckServiceStatus()) return null;
+            var blocks = await (_node as NodeAPI).FindTokensForAccountAsync(accountId);
+            var ret = blocks.Select(a =>
+                new
+                {
+                    Token = a.Ticker,
+                    Domain = a.DomainName,
+                    IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
+                    Name = a.Custom1 ?? a.Ticker,   // NFT's name
+                });
+            return new JsonResult(ret);
+        }
+
+        [HttpGet]
         [Route("FindTokens")]
         public async Task<IActionResult> FindTokenAsync(string? q, string? cat)
         {

@@ -58,6 +58,7 @@ namespace Lyra.Core.Accounts
 
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog);
+        Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);
         Task<Block> FindBlockByHashAsync(string AccountId, string hash);

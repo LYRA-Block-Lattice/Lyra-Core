@@ -694,6 +694,11 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        public Task<string?> FindTokensForAccountAsync(string accountId)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

@@ -228,6 +228,10 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId)
+        {
+            return await NodeService.Dag.Storage.FindTokensForAccountAsync(accountId);
+        }
         public async Task<List<TokenGenesisBlock>> FindTokensAsync(string? keyword, string catalog)
         {
             return await NodeService.Dag.Storage.FindTokensAsync(keyword, catalog);
@@ -1756,6 +1760,11 @@ namespace Lyra.Core.Decentralize
         }
 
         Task<string?> INodeAPI.FindDaosAsync(string? keyword)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<string?> INodeAPI.FindTokensForAccountAsync(string accountId)
         {
             throw new NotImplementedException();
         }
