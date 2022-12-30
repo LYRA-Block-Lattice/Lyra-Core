@@ -2472,13 +2472,24 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid)
         {
-            var filter = Builders<TransactionBlock>.Filter;
-            var filterDefination = filter.Eq("Trade.orderId", orderid);
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.And(
+                filter.Eq("Trade.orderId", orderid),
+                filter.Eq("BlockType", BlockTypes.UniTradeGenesis));
 
-            var q = await _snapshots
-                .FindAsync(filterDefination);
+            var q = _blocks
+                .Find(filterDefination)
+                .SortByDescending(a => a.TimeStamp)
+                .ToList();
 
-            return q.ToList();
+            var blks = new List<TransactionBlock>();
+            foreach (var x in q)
+            {
+                blks.Add(x as TransactionBlock);
+                var b = await FindLatestBlockAsync((x as TransactionBlock).AccountID) as TransactionBlock;
+                blks.Add(b);
+            }
+            return blks;
         }
 
         public async Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds)
