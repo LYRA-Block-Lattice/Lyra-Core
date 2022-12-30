@@ -1065,11 +1065,11 @@ namespace Lyra.Core.API
 
         #endregion
 
-        public async Task<string?> FindTokensForAccountAsync(string accountId)
+        public async Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
         {
             using var client = CreateClient();
             HttpResponseMessage response = await client.GetAsync(
-                        $"FindTokensForAccount?accountId={accountId}").ConfigureAwait(false);
+                        $"FindTokensForAccount?accountId={accountId}&keyword={keyword}&catalog={catalog}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {

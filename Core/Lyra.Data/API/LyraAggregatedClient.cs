@@ -695,7 +695,7 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<string?> FindTokensForAccountAsync(string accountId)
+        public Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
         {
             throw new NotImplementedException();
         }

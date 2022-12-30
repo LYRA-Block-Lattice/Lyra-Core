@@ -703,7 +703,7 @@ namespace Lyra.Core.Accounts
                 return result.ToList().Where(a => a.Ticker.Contains(keyword)).ToList();
             }
         }
-        public async Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId)
+        public async Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
         {
             var block = FindLatestBlock(accountId);
             if (block == null || block is not TransactionBlock tx)
@@ -712,11 +712,23 @@ namespace Lyra.Core.Accounts
             var genss = new List<TokenGenesisBlock>();
             foreach(var b in tx.Balances.Where(a => a.Value > 0))
             {
-                var gens = await FindTokenGenesisBlockAsync(null, b.Key);
-                if (gens != null)
-                    genss.Add(gens);
-                else
-                    throw new InvalidOperationException("No genesis block found for balance entry.");
+                if (catalog == "Fiat" && !b.Key.StartsWith("fiat/"))
+                    continue;
+
+                if(catalog == "TOT" && !b.Key.StartsWith("tot/") && !b.Key.StartsWith("svc/"))
+                    continue;
+
+                if(catalog == "NFT" && !b.Key.StartsWith("nft/"))
+                    continue;
+
+                if (b.Key.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    var gens = await FindTokenGenesisBlockAsync(null, b.Key);
+                    if (gens != null)
+                        genss.Add(gens);
+                    else
+                        throw new InvalidOperationException("No genesis block found for balance entry.");
+                }
             }
 
             return genss;
