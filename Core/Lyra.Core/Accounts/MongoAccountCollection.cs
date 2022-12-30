@@ -733,6 +733,16 @@ namespace Lyra.Core.Accounts
                         builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/"))
                     );
             }
+            else if (catalog == "NFT")
+            {
+                filter = builder.And(
+                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                        ),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/"))
+                    );
+            }
             else if (catalog == "Token")
             {
                 filter = builder.And(
@@ -744,6 +754,7 @@ namespace Lyra.Core.Accounts
                         builder.Or(
                             builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/")),
                             builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/")),
+                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/")),
                             builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"))
                             )
                         )
@@ -751,10 +762,11 @@ namespace Lyra.Core.Accounts
             }
             else
             {
-                filter = builder.Or(
-                    builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
-                    builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
-                    );
+                throw new InvalidOperationException("Unknown token catalog.");
+                //filter = builder.Or(
+                //    builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                //    builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                //    );
             }
 
             var genResult = await _blocks.OfType<TokenGenesisBlock>()
