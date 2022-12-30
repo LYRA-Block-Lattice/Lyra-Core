@@ -660,6 +660,11 @@ namespace Lyra.Data.API
             return SeedClient.GetUniOrdersByOwnerAsync(accountId);
         }
 
+        public Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            return SeedClient.FindUniTradeForOrderAsync(orderid);
+        }
+
         public Task<ContainerAPIResult> FindTradableUniAsync()
         {
             return SeedClient.FindTradableUniAsync();

@@ -129,6 +129,7 @@ namespace Lyra.Core.API
 
         // Universal Trade
         Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId);
+        Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid);
         Task<ContainerAPIResult> FindTradableUniAsync();
         Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
         Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);

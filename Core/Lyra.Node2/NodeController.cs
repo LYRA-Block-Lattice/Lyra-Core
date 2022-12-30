@@ -785,6 +785,14 @@ namespace LyraLexWeb2
             return await _node.GetUniOrdersByOwnerAsync(accountId);
         }
 
+        [Route("FindUniTradeForOrder")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindUniTradeForOrderAsync(orderid);
+        }
+
         [Route("FindTradableUni")]
         [HttpGet]
         public async Task<ContainerAPIResult> FindTradableUniAsync()

@@ -1011,6 +1011,16 @@ namespace Lyra.Core.API
             return await GetAsync<MultiBlockAPIResult>("GetUniOrdersByOwner", args);
         }
 
+        public async Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "orderid", orderid },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("FindUniTradeForOrder", args);
+        }
+
         public async Task<ContainerAPIResult> FindTradableUniAsync()
         {
             var args = new Dictionary<string, string>

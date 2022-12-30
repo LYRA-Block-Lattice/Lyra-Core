@@ -1618,7 +1618,34 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in GetDaoByNameAsync: " + e.Message);
+                Console.WriteLine("Exception in GetUniOrdersByOwnerAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindUniTradeForOrderAsync(orderid);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindUniTradeForOrderAsync: " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
