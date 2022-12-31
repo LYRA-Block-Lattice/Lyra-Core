@@ -74,7 +74,7 @@ namespace Lyra.Core.Authorizers
                 bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
                 if (!tokenIssuerIsSeed0 && block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
                 {
-                    if (!_nftDomains.Contains(block.DomainName) && block.DomainName.Length < 6)
+                    if (!_nftDomains.Contains(block.DomainName) && block.DomainName.Length < 4)
                         return APIResultCodes.DomainNameTooShort;
 
                     if(LyraNodeConfig.GetNetworkId() != "xtest")    // for unit test

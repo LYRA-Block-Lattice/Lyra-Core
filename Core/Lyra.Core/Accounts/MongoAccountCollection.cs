@@ -710,7 +710,7 @@ namespace Lyra.Core.Accounts
                 return null;
 
             var genss = new List<TokenGenesisBlock>();
-            foreach(var b in tx.Balances.Where(a => a.Value > 0))
+            foreach(var b in tx.Balances.Where(a => a.Value > 0))   //  not need. we need 0 balance for fiat, etc.
             {
                 if (catalog != "Fiat" && b.Key.StartsWith("fiat/"))
                     continue;
