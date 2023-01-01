@@ -1069,7 +1069,7 @@ namespace Lyra.Core.API
         {
             using var client = CreateClient();
             HttpResponseMessage response = await client.GetAsync(
-                        $"FindTokensForAccount?accountId={accountId}&keyword={keyword}&catalog={catalog}").ConfigureAwait(false);
+                        $"FindTokensForAccount?accountId={accountId}&q={keyword}&cat={catalog}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {

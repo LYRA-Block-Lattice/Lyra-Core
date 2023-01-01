@@ -41,7 +41,7 @@ namespace Lyra.Data.API
             return await PostJsonAsync("CreateTotMeta", args);
         }
 
-        public async Task<string> CreateNFTMetaAsync(string accountId, string signature,
+        public async Task<string> CreateNFTMetaIpfsAsync(string accountId, string signature,
             string name, string description, string ipfscid)
         {
             var args = new Dictionary<string, string>
@@ -52,7 +52,21 @@ namespace Lyra.Data.API
                 { "description", description },
                 { "ipfscid", ipfscid}
             };
-            return await GetAsync<string>("CreateMeta", args);
+            return await GetAsync<string>("CreateMetaIpfs", args);
+        }
+
+        public async Task<string> CreateNFTMetaHostedAsync(string accountId, string signature,
+            string name, string description, string imgUrl)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "signature", signature },
+                { "name", name },
+                { "description", description },
+                { "imgUrl", imgUrl}
+            };
+            return await GetAsync<string>("CreateMetaHosted", args);
         }
 
         public async Task<string> VerifyEmailAsync(string accountId, string email, string signature)
