@@ -724,7 +724,7 @@ namespace Lyra.Core.Accounts
                 var gens = await FindTokenGenesisBlockAsync(null, b.Key);
 
                 if (gens != null && (b.Key.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1
-                    || gens.Custom1.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1))
+                    || gens.Custom1?.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1))
                 {
                     genss.Add(gens);
                 }                

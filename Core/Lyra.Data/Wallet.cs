@@ -20,6 +20,7 @@ using System.Globalization;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using Org.BouncyCastle.Asn1.X509;
 using static Microsoft.VisualStudio.Threading.SingleThreadedSynchronizationContext;
+using Lyra.Data.API.ABI;
 
 namespace Lyra.Core.Accounts
 {
@@ -2657,6 +2658,59 @@ namespace Lyra.Core.Accounts
             return result;
         }
         #endregion
+
+        /// <summary>
+        /// the owner request to print fiat. WF will print it.
+        /// </summary>
+        /// <param name="owner"></param>
+        /// <param name="symbol"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public async Task<APIResult> PrintFiatAsync(string symbol, long count)
+        {
+            var existsWalletRet = await RPC.FindFiatWalletAsync(AccountId, symbol);
+            if (!existsWalletRet.Successful())
+            {
+                var crwlt = new LyraContractABI
+                {
+                    svcReq = BrokerActions.BRK_FIAT_CRACT,
+                    targetAccountId = LyraGlobal.GUILDACCOUNTID,
+                    amounts = new Dictionary<string, decimal>
+                    {
+                        { LyraGlobal.OFFICIALTICKERCODE, 1 },
+                    },
+                    objArgument = new FiatCreateWallet
+                    {
+                        symbol = symbol,
+                    }
+                };
+
+                var result = await ServiceRequestAsync(crwlt);
+                WaitForWorkflow(result.TxHash);
+            }
+
+            var printMoeny = new LyraContractABI
+            {
+                svcReq = BrokerActions.BRK_FIAT_PRINT,
+                targetAccountId = LyraGlobal.GUILDACCOUNTID,
+                amounts = new Dictionary<string, decimal>
+                    {
+                        { LyraGlobal.OFFICIALTICKERCODE, 1 },
+                    },
+                objArgument = new FiatPrintMoney
+                {
+                    symbol = symbol,
+                    amount = count,
+                }
+            };
+
+            var result2 = await ServiceRequestAsync(printMoeny);
+            WaitForWorkflow(result2.TxHash);
+
+            await SyncAsync();
+
+            return result2;
+        }
 
         #region Voting
         public async Task<AuthorizationAPIResult> CreateVoteSubject(VotingSubject subject,
