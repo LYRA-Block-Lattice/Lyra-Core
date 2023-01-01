@@ -719,7 +719,14 @@ namespace Lyra.Core.Accounts
                     continue;
 
                 if(catalog == "NFT" && !b.Key.StartsWith("nft/"))
-                    continue;                
+                    continue;
+
+                if (catalog == "Token" && (b.Key.StartsWith("nft/") ||
+                    b.Key.StartsWith("fiat/") ||
+                    b.Key.StartsWith("tot/") ||
+                    b.Key.StartsWith("svc/")
+                    ))
+                    continue;
 
                 var gens = await FindTokenGenesisBlockAsync(null, b.Key);
 
