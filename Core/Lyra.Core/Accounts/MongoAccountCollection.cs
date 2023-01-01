@@ -712,23 +712,22 @@ namespace Lyra.Core.Accounts
             var genss = new List<TokenGenesisBlock>();
             foreach(var b in tx.Balances.Where(a => a.Value > 0))   //  not need. we need 0 balance for fiat, etc.
             {
-                if (catalog != "Fiat" && b.Key.StartsWith("fiat/"))
+                if (catalog == "Fiat" && !b.Key.StartsWith("fiat/"))
                     continue;
 
-                if(catalog != "TOT" && (b.Key.StartsWith("tot/") || b.Key.StartsWith("svc/")))
+                if(catalog == "TOT" && !(b.Key.StartsWith("tot/") || b.Key.StartsWith("svc/")))
                     continue;
 
-                if(catalog != "NFT" && b.Key.StartsWith("nft/"))
-                    continue;
+                if(catalog == "NFT" && !b.Key.StartsWith("nft/"))
+                    continue;                
 
-                if (b.Key.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1)
+                var gens = await FindTokenGenesisBlockAsync(null, b.Key);
+
+                if (gens != null && (b.Key.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1
+                    || gens.Custom1.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1))
                 {
-                    var gens = await FindTokenGenesisBlockAsync(null, b.Key);
-                    if (gens != null)
-                        genss.Add(gens);
-                    else
-                        throw new InvalidOperationException("No genesis block found for balance entry.");
-                }
+                    genss.Add(gens);
+                }                
             }
 
             return genss;
