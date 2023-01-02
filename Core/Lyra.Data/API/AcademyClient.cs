@@ -27,7 +27,7 @@ namespace Lyra.Data.API
                 UrlBase = "https://start.lyra.live/svc/";
         }
 
-        public async Task<string> CreateMetaAsync(string accountId, string signature,
+        public async Task<string> CreateTotMetaAsync(string accountId, string signature,
             HoldTypes type,
                 string name, string description)
         {

@@ -65,7 +65,9 @@ namespace Lyra.Core.WorkFlow.Uni
             var trades = await sys.Storage.FindUniTradeForOrderAsync(orderid);
             if(trades.Any())
             {
-                var opened = trades.Cast<IUniTrade>()
+                var opened = trades
+                    .Where(a => a.BlockType != BlockTypes.UniTradeGenesis)
+                    .Cast<IUniTrade>()
                     .Where(a => a.UTStatus != UniTradeStatus.Canceled
                         && a.UTStatus != UniTradeStatus.Closed
                         && a.UTStatus != UniTradeStatus.DisputeClosed

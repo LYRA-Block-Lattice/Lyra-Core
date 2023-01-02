@@ -32,7 +32,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -138,6 +138,7 @@ namespace UnitTests
             foreach (var tsell in Enum.GetValues(typeof(HoldTypes)).Cast<HoldTypes>())
                 foreach (var tbuy in Enum.GetValues(typeof(HoldTypes)).Cast<HoldTypes>())
                 {
+                    Console.WriteLine($"\n----- Test sell {tsell} to test2 for {tbuy}\n");
                     await TestTradeForTypeAsync(netid, dao, tsell, tbuy);
                 }
         }
@@ -149,8 +150,7 @@ namespace UnitTests
 
             var tgbuy = await CreateForHoldTypeAsync(netid, tbuy, test2Wallet, false);
             Assert.IsNotNull(tgbuy, $"buying genesis for {tbuy} is not ok");
-
-            Console.WriteLine($"Test sell {tsell} to test2 for {tbuy}");
+            
             _currentTestTask = $"{tsell}2{tbuy}";
             await TestUniTradeAsync(dao, testWallet, tgsell, test2Wallet, tgbuy);
         }
@@ -972,7 +972,8 @@ namespace UnitTests
             //    Assert.AreEqual(0, daot.Balances[crypto].ToBalanceDecimal());
             //}
 
-            var Unig = Unis.Last() as UniOrderGenesisBlock;
+            // result is time reverse sorted
+            var Unig = Unis.First(a => a.BlockType == BlockTypes.UniOrderGenesis) as UniOrderGenesisBlock;
             Assert.IsTrue(order.Equals(Unig.Order), "Uni order not equal.");
 
             await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
@@ -1892,11 +1893,12 @@ namespace UnitTests
             var lsb = await client.GetLastServiceBlockAsync();
             var input = $"{ownerWallet.AccountId}:{lsb.GetBlock().Hash}:{name}:{description}";
             var signature = Signatures.GetSignature(ownerWallet.PrivateKey, input, ownerWallet.AccountId);
-            var retJson = await ac.CreateMetaAsync(ownerWallet.AccountId, signature, totType, name, description);
+            var retJson = await ac.CreateTotMetaAsync(ownerWallet.AccountId, signature, totType, name, description);
             var dynret = JsonConvert.DeserializeObject<dynamic>(retJson);
-            Assert.IsTrue(Convert.ToBoolean(dynret.ok), Convert.ToString(dynret.error));
 
-            var metaurl = Convert.ToString(dynret.value.url);
+            Assert.IsTrue(dynret.ret == "Success");
+
+            var metaurl = Convert.ToString(dynret.result);
             var meta = await ac.GetObjectAsync<TOTMeta>(metaurl);
             Assert.IsTrue(meta != null);
             Assert.AreEqual(meta.name, meta.name);
