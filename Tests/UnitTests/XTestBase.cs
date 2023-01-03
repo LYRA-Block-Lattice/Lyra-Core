@@ -506,7 +506,7 @@ namespace UnitTests
             Assert.IsTrue(ret == APIResultCodes.Success, $"gensisis can't sync: {ret}");
 
             // make sure test and test2 has been registed to dealer
-            var url = networkId == "devnet" ? "https://dealer.devnet.lyra.live:7070" : "https://dealertestnet.lyra.live/";
+            var url = networkId == "devnet" ? "https://dealerdevnet.lyra.live/" : "https://dealertestnet.lyra.live/";
             dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
 
             var lsb = await client.GetLastServiceBlockAsync();
