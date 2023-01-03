@@ -687,8 +687,8 @@ namespace UnitTests
 
         protected async Task SetupEventsListener()
         {
-            var port = TestConfig.networkId == "mainnet" ? 5504 : 4504;
-            var url = $"https://{TestConfig.networkId}.lyra.live:{port}/events";
+            //var port = TestConfig.networkId == "mainnet" ? 5504 : 4504;
+            var url = $"https://{TestConfig.networkId}.lyra.live/events";
             _eventClient = new LyraEventClient(LyraEventHelper.CreateConnection(new Uri(url)));
 
             _eventClient.RegisterOnEvent(async evt => await ProcessEventAsync(evt));

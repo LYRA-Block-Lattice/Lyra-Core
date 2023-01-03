@@ -159,8 +159,8 @@ namespace Lyra.Core.Accounts
 
         public async Task SetupEventsListenerAsync()
         {
-            var port = NetworkId == "mainnet" ? 5504 : 4504;
-            var url = $"https://{NetworkId}.lyra.live:{port}/events";
+            //var port = NetworkId == "mainnet" ? 5504 : 4504;
+            var url = $"https://{NetworkId}.lyra.live/events";
             _eventClient = new LyraEventClient(LyraEventHelper.CreateConnection(new Uri(url)));
 
             _eventClient.RegisterOnEvent(evt => ProcessEvent(evt));
