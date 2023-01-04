@@ -422,8 +422,8 @@ namespace UnitTests
                 .Returns<int, int>((page, pageSize) => Task.FromResult(api.GetAllDaosAsync(page, pageSize)).Result);
             mock.Setup(x => x.GetOtcOrdersByOwnerAsync(It.IsAny<string>()))
                 .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
-            mock.Setup(x => x.FindTradableOtcAsync())
-                .Returns(() => Task.FromResult(api.FindTradableOtcAsync()).Result);
+            mock.Setup(x => x.FindTradableOrdersAsync())
+                .Returns(() => Task.FromResult(api.FindTradableOrdersAsync()).Result);
             mock.Setup(x => x.FindOtcTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) => 
                     Task.FromResult(api.FindOtcTradeAsync(accountId, isOpen, page, pagesize)).Result);

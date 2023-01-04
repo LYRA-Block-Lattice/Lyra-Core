@@ -2341,24 +2341,36 @@ namespace Lyra.Core.Accounts
             return blks;
         }
 
-        private async Task<List<TransactionBlock>> FindTradableOtcOrdersAsync()
+        private async Task<List<TransactionBlock>> FindTradableUniOrdersAsync(string catalog)
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.Or(
-                filter.Eq("OOStatus", OTCOrderStatus.Open),
-                filter.Eq("OOStatus", OTCOrderStatus.Partial)
+                filter.Eq("UOStatus", UniOrderStatus.Open),
+                filter.Eq("UOStatus", UniOrderStatus.Partial)
                 );
 
+            if(catalog != "All")
+            {
+                var type = catalog switch
+                {
+                    "Token" => HoldTypes.Token,
+                    "NFT" => HoldTypes.NFT,
+                    "Fiat" => HoldTypes.Fiat,
+                    _ => HoldTypes.TOT,
+                };
+
+                filterDefination = filter.And(filterDefination, filter.Eq("Order.offerby", type));
+            }
             var q = await _snapshots
                 .FindAsync(filterDefination);
 
             return q.ToList();
         }
 
-        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync()
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync()
         {
-            var ords = await FindTradableOtcOrdersAsync();
-            var daoIds = ords.Cast<IOtcOrder>()
+            var ords = await FindTradableUniOrdersAsync("ALL");
+            var daoIds = ords.Cast<IUniOrder>()
                 .Select(a => a.Order.daoId)
                 .Distinct()
                 .ToList();

@@ -12,6 +12,7 @@
     <DockerfileContext>..\..</DockerfileContext>
     <ReleaseVersion>3.1</ReleaseVersion>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Lyra.Node Mainnet' ">
     <ExternalConsole>true</ExternalConsole>

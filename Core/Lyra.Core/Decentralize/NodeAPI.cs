@@ -1347,13 +1347,13 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        public async Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
             var result = new ContainerAPIResult();
 
             try
             {
-                var dict = await NodeService.Dag.Storage.FindTradableOtcAsync();
+                var dict = await NodeService.Dag.Storage.FindTradableOrdersAsync();
                 foreach (var kvp in dict)
                     result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToArray());
 
@@ -1361,7 +1361,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in FindTradableOtcAsync: " + e.Message);
+                Console.WriteLine("Exception in FindTradableOrdersAsync: " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }

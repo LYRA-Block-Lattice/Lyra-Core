@@ -72,6 +72,7 @@ namespace Lyra.Node2
 
             services.AddMvc();
             services.AddControllers();
+            services.AddEndpointsApiExplorer();
             services.AddSignalR();
 
             // workflow need this
@@ -122,9 +123,49 @@ namespace Lyra.Node2
             //services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
 
             // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = $"{LyraGlobal.PRODUCTNAME} API", Version = "v1" });
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = $"{LyraGlobal.PRODUCTNAME} API",
+                    Description = "Lyra blockchain API.",
+                    TermsOfService = new Uri("https://lyra.live/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Contact",
+                        Url = new Uri("https://lyra.live/contact")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License",
+                        Url = new Uri("https://lyra.live/license")
+                    }
+                });
+
+                options.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Version = "v2",
+                    Title = $"Lyra Web3 eCommerce API",
+                    Description = "Lyra Web3 eCommerce API with blockchain data query.",
+                    TermsOfService = new Uri("https://lyra.live/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Contact",
+                        Url = new Uri("https://lyra.live/contact")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License",
+                        Url = new Uri("https://lyra.live/license")
+                    }
+                });
+
+                // using System.Reflection;
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+                var xmlFilename2 = $"Lyra.Data.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename2));
             });
         }
 
@@ -197,6 +238,7 @@ namespace Lyra.Node2
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V1");
+                c.SwaggerEndpoint("/swagger/v2/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V2");
             });
 
             //app.UseHttpsRedirection();

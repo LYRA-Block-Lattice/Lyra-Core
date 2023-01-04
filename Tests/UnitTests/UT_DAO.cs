@@ -547,7 +547,7 @@ namespace UnitTests
             await CheckDAO(name, desc);
 
             // test find tradable orders
-            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            var tradableret = await testWallet.RPC.FindTradableOrdersAsync();
             Assert.IsTrue(tradableret.Successful(), "Unable to find tradable.");
             var tradableblks = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, tradableblks.Count(), $"Trade {direction} tradable block count is {tradableblks.Count()}");
@@ -738,7 +738,7 @@ namespace UnitTests
         private async Task<OtcTradeGenesisBlock> CreateOTCTradeAsync(TransactionBlock dao1, OTCOrderGenesisBlock otcg, TradeDirection direction)
         {
             // here comes a buyer, he who want to buy 1 BTC.
-            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            var tradableret = await testWallet.RPC.FindTradableOrdersAsync();
             Assert.IsTrue(tradableret.Successful(), $"Can't find tradableorders: {tradableret.ResultCode}: {tradableret.ResultMessage}");
             var ords = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, ords.Count(), "Order count not right");
@@ -894,7 +894,7 @@ namespace UnitTests
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
 
             // here comes a buyer, he who want to buy 1 BTC.
-            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            var tradableret = await testWallet.RPC.FindTradableOrdersAsync();
             Assert.IsTrue(tradableret.Successful(), $"Can't find tradableorders: {tradableret.ResultCode}: {tradableret.ResultMessage}");
             var ords = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, ords.Count(), "Order count not right");

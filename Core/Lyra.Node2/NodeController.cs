@@ -26,6 +26,7 @@ using Noded.Services;
 
 namespace LyraLexWeb2
 {
+    //[ApiExplorerSettings(GroupName = "v1")]
     [Route("api/[controller]")]
     [ApiController]
     public class NodeController : ControllerBase
@@ -698,10 +699,10 @@ namespace LyraLexWeb2
 
         [Route("FindTradableOtc")]
         [HttpGet]
-        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        public async Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.FindTradableOtcAsync();
+            return await _node.FindTradableOrdersAsync();
         }
 
         [Route("FindOtcTrade")]

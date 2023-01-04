@@ -17,7 +17,7 @@ namespace UnitTests
         public async Task TestGetTradableOtc()
         {
             var lyraApi = LyraRestClient.Create("devnet", "", "", "");
-            var tosret = await lyraApi.FindTradableOtcAsync();
+            var tosret = await lyraApi.FindTradableOrdersAsync();
             Assert.IsTrue(tosret.Successful());
 
             var allblks = tosret.GetBlocks("orders");

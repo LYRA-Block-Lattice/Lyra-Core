@@ -114,7 +114,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize);
         Task<BlockAPIResult> GetDaoByNameAsync(string name);
         Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId);
-        Task<ContainerAPIResult> FindTradableOtcAsync();
+        Task<ContainerAPIResult> FindTradableOrdersAsync();
         Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
         Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize);
         Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req);
