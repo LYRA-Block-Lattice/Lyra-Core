@@ -1,11 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Akka.Util;
+using Lyra.Core.API;
+using Lyra.Core.Decentralize;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Security.Policy;
 using System.Threading.Tasks;
 
 namespace Noded
 {
-
+    /// <summary>
+    /// web api for Lyra Web3 eCommerce
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -21,13 +28,46 @@ namespace Noded
 
         }
 
-        //GET: api/Node/5
+        /// <summary>
+        /// Find block by hash
+        /// </summary>
+        /// <param name="hash">the SHA256 hash of block</param>
+        /// <returns>Json serialized block</returns>
+        [Route("Block")]
+        [HttpGet]
         [ApiExplorerSettings(GroupName = "v2")]
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        public async Task<IActionResult> FindBlockByHashAsync(string hash)
         {
-            return "value";
+            var blk = await NodeService.Dag.Storage.FindBlockByHashAsync(hash);
+            if (blk == null)
+            {
+                return NotFound("Block not found.");
+            }
+            return Ok(blk);
         }
+
+        [Route("Orders")]
+        [HttpGet]
+        [ApiExplorerSettings(GroupName = "v2")]
+        public async Task<IActionResult> FindTradableUniOrdersAsync(string? catalog)
+        {
+            var blks = await NodeService.Dag.Storage.FindTradableUniOrdersAsync(catalog);
+            if (blks == null)
+            {
+                return NotFound($"Orders not found for catalog {catalog}.");
+            }
+
+            var result = JsonConvert.SerializeObject(blks);
+            return Content(result, "application/json");
+        }
+
+        ////GET: api/Node/5
+        //[ApiExplorerSettings(GroupName = "v2")]
+        //[HttpGet("{id}", Name = "Get")]
+        //public string Get(int id)
+        //{
+        //    return "value";
+        //}
 
         //[HttpGet]
         //public async Task<List<TodoItem>> Get() =>

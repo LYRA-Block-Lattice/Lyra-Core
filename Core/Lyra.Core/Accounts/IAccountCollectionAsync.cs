@@ -163,5 +163,7 @@ namespace Lyra.Core.Accounts
         // Fiat
         Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner);
         Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol);
+
+        Task<List<IUniOrder>> FindTradableUniOrdersAsync(string? catalog);
     }
 }

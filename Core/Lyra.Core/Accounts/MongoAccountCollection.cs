@@ -2341,7 +2341,7 @@ namespace Lyra.Core.Accounts
             return blks;
         }
 
-        private async Task<List<TransactionBlock>> FindTradableUniOrdersAsync(string catalog)
+        public async Task<List<IUniOrder>> FindTradableUniOrdersAsync(string? catalog)
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.Or(
@@ -2349,7 +2349,7 @@ namespace Lyra.Core.Accounts
                 filter.Eq("UOStatus", UniOrderStatus.Partial)
                 );
 
-            if(catalog != "All")
+            if(catalog != null && catalog != "All")
             {
                 var type = catalog switch
                 {
@@ -2364,7 +2364,7 @@ namespace Lyra.Core.Accounts
             var q = await _snapshots
                 .FindAsync(filterDefination);
 
-            return q.ToList();
+            return q.ToList().Cast<IUniOrder>().ToList();
         }
 
         public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync()
@@ -2382,7 +2382,7 @@ namespace Lyra.Core.Accounts
 
             return new Dictionary<string, List<TransactionBlock>>
             {
-                { "orders", ords },
+                { "orders", ords.Cast<TransactionBlock>().ToList() },
                 { "daos", daos },
             };
         }

@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Lyra.Core.Utils;
+using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
@@ -227,6 +228,15 @@ namespace Lyra.Core.Decentralize
                                     {
                                         cs.RemoveLockerDTO(lckdto.reqhash);
                                         cs._log.LogWarning($"remove locker for wf exit {lckdto.reqhash}.");
+                                    }
+                                    else
+                                    {
+                                        // check wf error
+                                        var lc = wf.Result.Data as LyraContext;
+                                        if(lc.State == WFState.Error)
+                                        {
+                                            cs._log.LogWarning($"WF error for {lc.Send.Hash}.");
+                                        }
                                     }
                                 }
                                 else
