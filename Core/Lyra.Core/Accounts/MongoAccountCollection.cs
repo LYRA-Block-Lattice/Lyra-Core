@@ -2446,13 +2446,6 @@ namespace Lyra.Core.Accounts
             }
 
             // use mongodb Lookup to query _snapshots on (TransactionBlock as IUniOrder).Order.daoId == TransactionBlock.AccountID
-            var q = _snapshots
-                .Aggregate()
-                .Match(filterDefination)
-                .Lookup(_snapshotsCollectionName, "Order.daoId", "AccountID", "DaoInfo")
-                .Unwind("DaoInfo")
-                .ToList();
-
             var q2 = await _snapshots
                 .Aggregate()
                 .Match(filterDefination)
@@ -2462,31 +2455,6 @@ namespace Lyra.Core.Accounts
                 .ToListAsync();
 
             return q2;
-            //var q1 = _snapshots
-            //    .Aggregate()
-            //    .Match(filterDefination)
-            //    .Lookup(
-            //        _snapshotsCollectionName,
-            //        "Order.daoId",
-            //        "AccountID",
-            //        "Dao"
-            //        )
-            //                    .Project(x => new OrderDaoCombo
-            //                    {
-            //                        offering = .ToString(),
-            //                        daoName = x["Dao"]["Name"].ToString(),
-            //                    });
-
-            ////.Project(
-            ////    Builders<BsonDocument>.Projection
-            ////        .Exclude("_id")
-            ////        .Include("Order")
-            ////        .Include("Dao[0]")                         
-            ////);
-
-            //var qx = q1.ToList();
-
-            //return qx.Cast<object>().ToList();
         }
 
         public class OrderDaoCombo

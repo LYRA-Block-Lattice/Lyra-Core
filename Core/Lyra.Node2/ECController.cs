@@ -46,6 +46,11 @@ namespace Noded
             return Ok(blk);
         }
 
+        /// <summary>
+        /// find order for catalog.
+        /// </summary>
+        /// <param name="catalog"></param>
+        /// <returns></returns>
         [Route("Orders")]
         [HttpGet]
         [ApiExplorerSettings(GroupName = "v2")]
