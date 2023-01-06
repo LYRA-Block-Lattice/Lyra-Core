@@ -89,15 +89,15 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"Staking wallet: {PosWallet.AccountId}");
                 PosWallet.SetVoteFor(PosWallet.AccountId);
 
-                var blcokcount = await _store.GetBlockCountAsync();
-                if (blcokcount > 0 && networkId == "devnet") // not genesis
-                {
-                    try
-                    {
-                        await PosWallet.SyncAsync(null);
-                    }
-                    catch { }
-                }                
+                //var blcokcount = await _store.GetBlockCountAsync();
+                //if (blcokcount > 0 && networkId == "devnet") // not genesis
+                //{
+                //    try
+                //    {
+                //        await PosWallet.SyncAsync(null);
+                //    }
+                //    catch { }
+                //}                
 
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
                 Dag = new DagSystem(_hostEnv, _store, _lyraEventContext, PosWallet, localNode);

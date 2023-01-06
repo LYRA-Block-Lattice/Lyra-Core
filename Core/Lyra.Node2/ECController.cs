@@ -59,6 +59,7 @@ namespace Noded
 
             var result = JsonConvert.SerializeObject(blks);
             return Content(result, "application/json");
+            //return Ok(blks);
         }
 
         ////GET: api/Node/5

@@ -15,6 +15,12 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
+        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore] //add this one
+        [BsonIgnoreIfNull]
+        [BsonId]
+        public BsonValue ID { get; set; }
+        
         /// <summary>
         /// a tag indicate that the signature is created by current leader, not the private key owner.
         /// </summary>

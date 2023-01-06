@@ -8,6 +8,7 @@ using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using MongoDB.Bson;
 using static Lyra.Core.Accounts.MongoAccountCollection;
 
 namespace Lyra.Core.Accounts
@@ -164,6 +165,6 @@ namespace Lyra.Core.Accounts
         Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner);
         Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol);
 
-        Task<List<IUniOrder>> FindTradableUniOrdersAsync(string? catalog);
+        Task<List<BsonDocument>> FindTradableUniOrdersAsync(string? catalog);
     }
 }

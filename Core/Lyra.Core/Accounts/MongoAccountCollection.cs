@@ -2341,52 +2341,6 @@ namespace Lyra.Core.Accounts
             return blks;
         }
 
-        public async Task<List<IUniOrder>> FindTradableUniOrdersAsync(string? catalog)
-        {
-            var filter = Builders<TransactionBlock>.Filter;
-            var filterDefination = filter.Or(
-                filter.Eq("UOStatus", UniOrderStatus.Open),
-                filter.Eq("UOStatus", UniOrderStatus.Partial)
-                );
-
-            if(catalog != null && catalog != "All")
-            {
-                var type = catalog switch
-                {
-                    "Token" => HoldTypes.Token,
-                    "NFT" => HoldTypes.NFT,
-                    "Fiat" => HoldTypes.Fiat,
-                    _ => HoldTypes.TOT,
-                };
-
-                filterDefination = filter.And(filterDefination, filter.Eq("Order.offerby", type));
-            }
-            var q = await _snapshots
-                .FindAsync(filterDefination);
-
-            return q.ToList().Cast<IUniOrder>().ToList();
-        }
-
-        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync()
-        {
-            var ords = await FindTradableUniOrdersAsync("ALL");
-            var daoIds = ords.Cast<IUniOrder>()
-                .Select(a => a.Order.daoId)
-                .Distinct()
-                .ToList();
-
-            var daos = _snapshots
-                .AsQueryable()
-                .Where(a => daoIds.Contains(a.AccountID))
-                .ToList();
-
-            return new Dictionary<string, List<TransactionBlock>>
-            {
-                { "orders", ords.Cast<TransactionBlock>().ToList() },
-                { "daos", daos },
-            };
-        }
-
         public async Task<List<TransactionBlock>> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
         {
             var filter = Builders<TransactionBlock>.Filter;
@@ -2463,6 +2417,102 @@ namespace Lyra.Core.Accounts
                     blks.Add(b);
             }
             return blks;
+        }
+
+        /// <summary>
+        /// find current tradable orders. 
+        /// </summary>
+        /// <param name="catalog">null or 'All' for all catalog, 'Token', 'Fiat' or so for other catalogs.</param>
+        /// <returns>a mix of order and dao. user should treat them separately.</returns>
+        public async Task<List<BsonDocument>> FindTradableUniOrdersAsync(string? catalog)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Or(
+                filter.Eq("UOStatus", UniOrderStatus.Open),
+                filter.Eq("UOStatus", UniOrderStatus.Partial)
+                );
+
+            if (catalog != null && catalog != "All")
+            {
+                var type = catalog switch
+                {
+                    "Token" => HoldTypes.Token,
+                    "NFT" => HoldTypes.NFT,
+                    "Fiat" => HoldTypes.Fiat,
+                    _ => HoldTypes.TOT,
+                };
+
+                filterDefination = filter.And(filterDefination, filter.Eq("Order.offerby", type));
+            }
+
+            // use mongodb Lookup to query _snapshots on (TransactionBlock as IUniOrder).Order.daoId == TransactionBlock.AccountID
+            var q = _snapshots
+                .Aggregate()
+                .Match(filterDefination)
+                .Lookup(_snapshotsCollectionName, "Order.daoId", "AccountID", "DaoInfo")
+                .Unwind("DaoInfo")
+                .ToList();
+
+            var q2 = await _snapshots
+                .Aggregate()
+                .Match(filterDefination)
+                .Lookup(_snapshotsCollectionName, "Order.daoId", "AccountID", "DaoInfo")
+                .Unwind("DaoInfo")
+                .Project("{AccountID: 1, OwnerAccountId: 1, Order: 1, UOStatus: 1, DaoName: '$DaoInfo.Name'}")
+                .ToListAsync();
+
+            return q2;
+            //var q1 = _snapshots
+            //    .Aggregate()
+            //    .Match(filterDefination)
+            //    .Lookup(
+            //        _snapshotsCollectionName,
+            //        "Order.daoId",
+            //        "AccountID",
+            //        "Dao"
+            //        )
+            //                    .Project(x => new OrderDaoCombo
+            //                    {
+            //                        offering = .ToString(),
+            //                        daoName = x["Dao"]["Name"].ToString(),
+            //                    });
+
+            ////.Project(
+            ////    Builders<BsonDocument>.Projection
+            ////        .Exclude("_id")
+            ////        .Include("Order")
+            ////        .Include("Dao[0]")                         
+            ////);
+
+            //var qx = q1.ToList();
+
+            //return qx.Cast<object>().ToList();
+        }
+
+        public class OrderDaoCombo
+        {
+            public string offering { get; set; }
+            public string daoName { get; set; }
+    }
+
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync()
+        {
+            var ords = await FindTradableUniOrdersAsync("ALL");
+            var daoIds = ords.Cast<IUniOrder>()
+                .Select(a => a.Order.daoId)
+                .Distinct()
+                .ToList();
+
+            var daos = _snapshots
+                .AsQueryable()
+                .Where(a => daoIds.Contains(a.AccountID))
+                .ToList();
+
+            return new Dictionary<string, List<TransactionBlock>>
+            {
+                { "orders", ords.Cast<TransactionBlock>().ToList() },
+                { "daos", daos },
+            };
         }
 
         private async Task<List<TransactionBlock>> FindTradableUniOrdersAsync()

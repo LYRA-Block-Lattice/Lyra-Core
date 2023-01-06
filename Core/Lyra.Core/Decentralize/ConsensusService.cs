@@ -1347,7 +1347,7 @@ namespace Lyra.Core.Decentralize
                 else
                     _myIpAddress = $"{host}:{epport}";
 
-                _log.LogInformation($"Using API endpoint: {_myIpAddress}");
+                _log.LogInformation($"My IP, Using API endpoint: {_myIpAddress}");
             }
 
             if (_myIpAddress == null)
