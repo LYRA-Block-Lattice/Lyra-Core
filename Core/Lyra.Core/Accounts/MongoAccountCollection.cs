@@ -2424,7 +2424,7 @@ namespace Lyra.Core.Accounts
         /// </summary>
         /// <param name="catalog">null or 'All' for all catalog, 'Token', 'Fiat' or so for other catalogs.</param>
         /// <returns>a mix of order and dao. user should treat them separately.</returns>
-        public async Task<List<BsonDocument>> FindTradableUniOrdersAsync(string? catalog)
+        public async Task<List<object>> FindTradableUniOrdersAsync(string? catalog)
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.Or(
@@ -2452,9 +2452,10 @@ namespace Lyra.Core.Accounts
                 .Lookup(_snapshotsCollectionName, "Order.daoId", "AccountID", "DaoInfo")
                 .Unwind("DaoInfo")
                 .Project("{AccountID: 1, OwnerAccountId: 1, Order: 1, UOStatus: 1, DaoName: '$DaoInfo.Name'}")
+
                 .ToListAsync();
 
-            return q2;
+            return q2.ConvertAll(BsonTypeMapper.MapToDotNetValue);
         }
 
         public class OrderDaoCombo
