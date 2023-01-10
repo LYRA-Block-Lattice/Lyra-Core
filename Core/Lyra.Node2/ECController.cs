@@ -67,6 +67,26 @@ namespace Noded
             //return Ok(blks);
         }
 
+        /// <summary>
+        /// get order by id
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [Route("Order")]
+        [HttpGet]
+        [ApiExplorerSettings(GroupName = "v2")]
+        public async Task<IActionResult> GetUniOrderByIdAsync(string orderId)
+        {
+            var blks = await NodeService.Dag.Storage.GetUniOrderByIdAsync(orderId);
+            if (blks == null)
+            {
+                return NotFound($"Order not found for id {orderId}.");
+            }
+
+            var result = JsonConvert.SerializeObject(blks);
+            return Content(result, "application/json");
+        }
+
         ////GET: api/Node/5
         //[ApiExplorerSettings(GroupName = "v2")]
         //[HttpGet("{id}", Name = "Get")]

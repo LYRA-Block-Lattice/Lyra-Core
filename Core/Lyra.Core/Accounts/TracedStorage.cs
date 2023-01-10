@@ -55,7 +55,8 @@ namespace Lyra.Core.Accounts
         public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.TrackAsync(() => _store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
 
         // v2
-        public async Task<List<object>> FindTradableUniOrdersAsync(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrdersAsync(catalog), StopWatcher.GetCurrentMethod());
+        public async Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrdersAsync(catalog), StopWatcher.GetCurrentMethod());
+        public async Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId) => await StopWatcher.TrackAsync(() => _store.GetUniOrderByIdAsync(orderId), StopWatcher.GetCurrentMethod());
 
         public Task UpdateStatsAsync()
         {

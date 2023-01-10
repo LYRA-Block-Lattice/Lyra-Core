@@ -656,7 +656,7 @@ namespace Lyra.Core.Accounts
             return result as TransactionBlock;
         }
 
-        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker)
+        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string? Hash, string Ticker)
         {
             //TokenGenesisBlock result = null;
             if (!string.IsNullOrEmpty(Hash))
@@ -2420,11 +2420,34 @@ namespace Lyra.Core.Accounts
         }
 
         /// <summary>
+        /// get order details
+        /// </summary>
+        /// <param name="orderId">the AccountID of order</param>
+        /// <returns>3 blocks in list: order's latest block, offering token genesis, biding token genesis</returns>
+        public async Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId)
+        {
+            var latest = await FindLatestBlockAsync(orderId) as TransactionBlock;
+            if(latest != null && latest is IUniOrder orderBlock)
+            {
+                var offeringGens = await FindTokenGenesisBlockAsync(null, orderBlock.Order.offering);
+                var bidingGens = await FindTokenGenesisBlockAsync(null, orderBlock.Order.biding);
+
+                var blks = new List<TransactionBlock>()
+                {
+                    latest as TransactionBlock, offeringGens, bidingGens
+                };
+                return blks;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// find current tradable orders. 
         /// </summary>
         /// <param name="catalog">null or 'All' for all catalog, 'Token', 'Fiat' or so for other catalogs.</param>
         /// <returns>a mix of order and dao. user should treat them separately.</returns>
-        public async Task<List<object>> FindTradableUniOrdersAsync(string? catalog)
+        public async Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog)
         {
             var filter = Builders<TransactionBlock>.Filter;
             var filterDefination = filter.Or(
@@ -2455,7 +2478,59 @@ namespace Lyra.Core.Accounts
 
                 .ToListAsync();
 
-            return q2.ConvertAll(BsonTypeMapper.MapToDotNetValue);
+            var arrDict = q2.ConvertAll(BsonTypeMapper.MapToDotNetValue);
+            var arrDict2 = arrDict.Select(a => (a as Dictionary<string, object>)).ToList();
+
+            var dictuids = new Dictionary<string, (long total, long finished)>();
+            foreach(var dict in arrDict2)
+            {
+                var userid = dict["OwnerAccountId"].ToString();
+
+                if (dictuids.ContainsKey(userid))
+                {
+                    dict.Add("Total", dictuids[userid].total);
+                    dict.Add("Finished", dictuids[userid].finished);
+
+                    continue;
+                }
+                
+                var filterDefinationTotal = filter.And(
+                    filter.Exists("UOStatus"),
+                    filter.Or(
+                        filter.Eq("OwnerAccountId", userid),
+                        filter.Eq("Trade.orderOwnerId", userid)
+                        )
+                    );
+
+                var filterDefinationFinished = filter.And(
+                    filter.Eq("UOStatus", UniTradeStatus.Closed),
+                    filter.Or(
+                        filter.Eq("OwnerAccountId", userid),
+                        filter.Eq("Trade.orderOwnerId", userid)
+                        )
+                    );
+
+                var total = _snapshots
+                    .Aggregate()
+                    .Match(filterDefinationTotal)
+                    .Count()
+                    .Single()
+                    .Count;
+
+                var finished = _snapshots
+                    .Aggregate()
+                    .Match(filterDefinationFinished)
+                    .Count()
+                    .Single()
+                    .Count;
+
+                dict.Add("Total", total);
+                dict.Add("Finished", finished);
+
+                dictuids.Add(userid, (total, finished));
+            }
+
+            return arrDict2;
         }
 
         public class OrderDaoCombo
