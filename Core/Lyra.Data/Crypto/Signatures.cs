@@ -31,8 +31,8 @@ namespace Lyra.Data.Crypto
         public static bool ValidatePublicKey(string PublicKey) => _signr.ValidatePublicKey(PublicKey);
         public static bool ValidatePrivateKey(string PrivateKey) => _signr.ValidatePrivateKey(PrivateKey);
 
-        public static bool VerifyAccountSignature(string message, string accountId, string signature)
-            => _signr.VerifyAccountSignature(message, accountId, signature);
+        public static bool VerifyAccountSignature(string message, string accountId, string signature, string signatureType = "p1393")
+            => _signr.VerifyAccountSignature(message, accountId, signature, signatureType);
 
         public static string GetSignature(string privateKey, string message, string AccountId)
             => _signr.GetSignature(privateKey, message, AccountId);
