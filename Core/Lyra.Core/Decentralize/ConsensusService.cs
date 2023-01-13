@@ -366,7 +366,8 @@ namespace Lyra.Core.Decentralize
                             //}
                         }
                     }
-                    //_log.LogInformation($"SignedMessageRelay {signedMsg.Signature.Shorten()} exited.");
+                    else
+                        _log.LogInformation($"SignedMessageRelay {signedMsg.Signature.Shorten()} exited.");
                 }
                 catch (Exception ex)
                 {

@@ -73,7 +73,10 @@ namespace Lyra.Node2
             services.AddMvc();
             services.AddControllers();
             services.AddEndpointsApiExplorer();
-            services.AddSignalR();
+            services.AddSignalR(o =>
+            {
+                o.EnableDetailedErrors = true;
+            });
 
             // workflow need this
             BsonClassMap.RegisterClassMap<LyraContext>(cm =>
@@ -212,12 +215,11 @@ namespace Lyra.Node2
                 //app.UseHsts();
             }
 
-            app.UseCors(builder =>
-                builder
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                );
+            app.UseCors(x => x
+                                .AllowAnyMethod()
+                                .AllowAnyHeader()
+                                .SetIsOriginAllowed(origin => true) // allow any origin
+                                .AllowCredentials()); // allow credentials
 
             var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
             loggerFactory.AddFile(logPath + "noded-{Date}.txt");

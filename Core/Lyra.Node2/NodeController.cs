@@ -834,7 +834,9 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             var blocks = await (_node as NodeAPI).FindTokensForAccountAsync(accountId, q, cat);
-            var ret = blocks.Select(a =>
+            if (blocks != null)
+            {
+                var ret = blocks.Select(a =>
                 new
                 {
                     Token = a.Ticker,
@@ -842,7 +844,10 @@ namespace LyraLexWeb2
                     IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
                     Name = a.Custom1 ?? a.Ticker,   // NFT's name
                 });
-            return new JsonResult(ret);
+                return new JsonResult(ret);
+            }
+            else
+                return NotFound();
         }
 
         [HttpGet]
@@ -851,6 +856,9 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             var blocks = await (_node as NodeAPI).FindTokensAsync(q, cat);
+            if (blocks == null)
+                return NotFound();
+
             var ret = blocks.Select(a =>
                 new
                 {

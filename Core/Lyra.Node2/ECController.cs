@@ -29,6 +29,23 @@ namespace Noded
         }
 
         /// <summary>
+        /// Find last service hash
+        /// </summary>
+        /// <returns>Hash</returns>
+        [Route("ServiceHash")]
+        [HttpGet]
+        [ApiExplorerSettings(GroupName = "v2")]
+        public async Task<IActionResult> LastServiceHashAsync()
+        {
+            var blk = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
+            if (blk == null)
+            {
+                return NotFound("Block not found.");
+            }
+            return Ok(blk.Hash);
+        }
+
+        /// <summary>
         /// Find block by hash
         /// </summary>
         /// <param name="hash">the SHA256 hash of block</param>

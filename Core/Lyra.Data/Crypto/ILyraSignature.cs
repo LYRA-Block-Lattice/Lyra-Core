@@ -1,4 +1,5 @@
 using Lyra.Core.API;
+using Lyra.Data.Utils;
 using Neo.Wallets;
 using System;
 using System.Diagnostics;
@@ -17,7 +18,7 @@ namespace Lyra.Data.Crypto
 
         bool ValidatePrivateKey(string PrivateKey);
 
-        bool VerifyAccountSignature(string message, string accountId, string signature);
+        bool VerifyAccountSignature(string message, string accountId, string signature, string signatureType = "p1393");
 
         string GetSignature(string privateKey, string message, string AccountId);
 
@@ -65,9 +66,16 @@ namespace Lyra.Data.Crypto
             return NativeSignatures.ValidatePublicKey(PublicKey);
         }
 
-        public bool VerifyAccountSignature(string message, string accountId, string signature)
+        public bool VerifyAccountSignature(string message, string accountId, string signature, string signatureType = "p1393")
         {
-            return NativeSignatures.VerifyAccountSignature(message, accountId, signature);
+            if (signatureType == "der")
+            {
+                var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(signature.StringToByteArray());
+                var sign2 = Base58Encoding.Encode(dotnetsignBuff);
+                return NativeSignatures.VerifyAccountSignature(message, accountId, sign2);
+            }
+            else
+                return NativeSignatures.VerifyAccountSignature(message, accountId, signature);
         }
     }
 
@@ -108,9 +116,16 @@ namespace Lyra.Data.Crypto
             return PortableSignatures.ValidatePublicKey(PublicKey);
         }
 
-        public bool VerifyAccountSignature(string message, string accountId, string signature)
+        public bool VerifyAccountSignature(string message, string accountId, string signature, string signatureType = "p1393")
         {
-            return PortableSignatures.VerifyAccountSignature(message, accountId, signature);
+            if (signatureType == "der")
+            {
+                var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(signature.StringToByteArray());
+                var sign2 = Base58Encoding.Encode(dotnetsignBuff);
+                return PortableSignatures.VerifyAccountSignature(message, accountId, sign2);
+            }
+            else
+                return PortableSignatures.VerifyAccountSignature(message, accountId, signature);
         }
     }
 }
