@@ -36,7 +36,7 @@ namespace Lyra.Node
 
         }
 
-        private KeylessWallet CreateWallet(string accountId)
+        private async Task<KeylessWallet> CreateWalletAsync(string accountId)
         {
             var klWallet = new KeylessWallet(accountId, async (msg) =>
             {
@@ -63,6 +63,9 @@ namespace Lyra.Node
                     return null;
                 }
             }, LyraNodeConfig.GetNetworkId());
+
+            await klWallet.InitAsync();
+            
             return klWallet;
         }
 
@@ -150,7 +153,7 @@ namespace Lyra.Node
         [JsonRpcMethod("Receive")]
         public async Task<BalanceResult> ReceiveAsync(string accountId)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.SyncAsync();
             if (result == APIResultCodes.Success)
@@ -166,7 +169,7 @@ namespace Lyra.Node
         [JsonRpcMethod("Send")]
         public async Task<SendResult> SendAsync(string accountId, decimal amount, string destAccount, string ticker)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
             if (result.Successful())
@@ -190,7 +193,7 @@ namespace Lyra.Node
         [JsonRpcMethod("Token")]
         public async Task<BalanceResult> TokenAsync(string accountId, string name, string domain, decimal supply)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.CreateTokenAsync(name, domain,
                 "", 8, supply, true, "", "", "", ContractTypes.Cryptocurrency, null);
@@ -265,7 +268,7 @@ namespace Lyra.Node
         [JsonRpcMethod("CreatePool")]
         public async Task<PoolInfo> CreatePoolAsync(string accountId, string token0, string token1)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.CreateLiquidatePoolAsync(token0, token1);
             if (result.ResultCode == APIResultCodes.Success)
@@ -306,7 +309,7 @@ namespace Lyra.Node
         [JsonRpcMethod("AddLiquidaty")]
         public async Task<PoolInfo> AddLiquidatyAsync(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var oldPool = await PoolAsync(token0, token1);
             var result = await klWallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
@@ -336,7 +339,7 @@ namespace Lyra.Node
         [JsonRpcMethod("RemoveLiquidaty")]
         public async Task<BalanceResult> RemoveLiquidatyAsync(string accountId, string token0, string token1)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var oldPool = await PoolAsync(token0, token1);
             var result = await klWallet.RemoveLiquidateFromPoolAsync(token0, token1);
@@ -368,7 +371,7 @@ namespace Lyra.Node
         [JsonRpcMethod("Swap")]
         public async Task<BalanceResult> SwapAsync(string accountId, string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var oldPool = await PoolAsync(token0, token1);
             var result = await klWallet.SwapTokenAsync(token0, token1, tokenToSwap, amountToSwap, amountToGet);
@@ -467,7 +470,7 @@ namespace Lyra.Node
         [JsonRpcMethod("CreateProfitingAccount")]
         public async Task<ProfitInfo> CreateProfitingAccountAsync(string accountId, string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.CreateProfitingAccountAsync(Name, ptype, shareRito, maxVoter);
             if (result.ResultCode == APIResultCodes.Success)
@@ -494,7 +497,7 @@ namespace Lyra.Node
         [JsonRpcMethod("CreateDividends")]
         public async Task<SimpleResult> CreateDividendsAsync(string accountId, string profitingAccountId)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.CreateDividendsAsync(profitingAccountId);
             if (result.ResultCode == APIResultCodes.Success)
@@ -514,7 +517,7 @@ namespace Lyra.Node
         [JsonRpcMethod("CreateStakingAccount")]
         public async Task<StakingInfo> CreateStakingAccountAsync(string accountId, string Name, string voteFor, int daysToStake, bool compoundMode)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.CreateStakingAccountAsync(Name, voteFor, daysToStake, compoundMode);
             if (result.ResultCode == APIResultCodes.Success)
@@ -544,7 +547,7 @@ namespace Lyra.Node
         [JsonRpcMethod("AddStaking")]
         public async Task<SimpleResult> AddStakingAsync(string accountId, string stakingAccountId, decimal amount)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.AddStakingAsync(stakingAccountId, amount);
             if (result.ResultCode == APIResultCodes.Success)
@@ -564,7 +567,7 @@ namespace Lyra.Node
         [JsonRpcMethod("UnStaking")]
         public async Task<SimpleResult> UnStakingAsync(string accountId, string stakingAccountId)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.UnStakingAsync(stakingAccountId);
             if (result.ResultCode == APIResultCodes.Success)
@@ -584,7 +587,7 @@ namespace Lyra.Node
         [JsonRpcMethod("GetStaking")]
         public async Task<StakingInfo> GetStakingAsync(string accountId, string stakingAccountId)
         {
-            var klWallet = CreateWallet(accountId);
+            var klWallet = await CreateWalletAsync(accountId);
 
             var result = await klWallet.GetStakingAsync(stakingAccountId);
             if (result != null)
@@ -625,16 +628,16 @@ namespace Lyra.Node
         }
 
         [JsonRpcMethod("CreateOrder")]
-        public async Task<string?> CreateOrderAsync(string accountId, string json)
+        public async Task<string?> CreateOrderAsync(string accountId, string order)
         {
             try
             {
-                var wallet = CreateWallet(accountId);
-                var argsObj = JObject.Parse(json);
+                var klWallet = await CreateWalletAsync(accountId);
+                var argsObj = JObject.Parse(order);
                 var argsDict = argsObj.ToObject<Dictionary<string, string>>();
                 if (argsDict != null)
                 {
-                    var order = new UniOrder
+                    var orderObj = new UniOrder
                     {
                         daoId = argsDict["daoid"],
                         dealerId = argsDict["dealerid"],
@@ -651,7 +654,12 @@ namespace Lyra.Node
                         limitMax = decimal.Parse(argsDict["limitmax"]),
                     };
 
-                    var ret = await wallet.CreateUniOrderAsync(order);
+                    var ret = await klWallet.CreateUniOrderAsync(orderObj);
+                    if(!ret.Successful()) return returnError(ret.ResultMessage);
+
+                    // wait for complete
+                    klWallet.WaitForWorkflow(ret.TxHash, 20000);
+
                     return returnApiResult(ret, ret.TxHash);
                 }
                 else

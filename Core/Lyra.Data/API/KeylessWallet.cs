@@ -20,6 +20,10 @@ namespace Lyra.Data.API
         private Func<string, Task<string>> _signer;
         private string _networkId;
 
+        public override string AccountId => _accountId;
+        public override string PrivateKey => throw new InvalidOperationException("This is keyless wallet.");
+        public override string NetworkId => _networkId;
+
         public KeylessWallet(string accountId, Func<string, Task<string>> signer, string networkId)
         {
             _accountId = accountId;

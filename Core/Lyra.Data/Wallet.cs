@@ -21,6 +21,7 @@ using Lyra.Data.API.WorkFlow.UniMarket;
 using Org.BouncyCastle.Asn1.X509;
 using static Microsoft.VisualStudio.Threading.SingleThreadedSynchronizationContext;
 using Lyra.Data.API.ABI;
+using Microsoft.VisualStudio.Threading;
 
 namespace Lyra.Core.Accounts
 {
@@ -30,11 +31,11 @@ namespace Lyra.Core.Accounts
     public class Wallet
     {
         public string AccountName { get; }
-        public string PrivateKey => _store.PrivateKey;
+        public virtual string PrivateKey => _store.PrivateKey;
 
-        public string AccountId => _store.AccountId;
+        public virtual string AccountId => _store.AccountId;
 
-        public string NetworkId => _store.NetworkId;
+        public virtual string NetworkId => _store.NetworkId;
 
         private string? _newVoteFor;
         public void SetVoteFor(string voteTarget)
@@ -209,6 +210,11 @@ namespace Lyra.Core.Accounts
 
             return _workflowEnds.WaitOne(timeout);
         }
+        
+        public virtual Task InitAsync()
+        {
+            return SyncServiceChainAsync();
+        }
 
         protected virtual Task InitBlockAsync(Block block, Block prevBlock)
         {
@@ -287,7 +293,7 @@ namespace Lyra.Core.Accounts
                 throw new Exception("Error get Token names: " + result.ResultCode.ToString());
         }
 
-        private async Task<APIResultCodes> SyncServiceChainAsync()
+        protected async Task<APIResultCodes> SyncServiceChainAsync()
         {
             try
             {
@@ -846,7 +852,8 @@ namespace Lyra.Core.Accounts
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
             sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = (sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() - fee).ToBalanceLong();
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
+            await InitBlockAsync(sendBlock, previousBlock);
+            //sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
             if (!sendBlock.VerifyHash())
                 throw new Exception("Send Block hash verify failed.");
 
@@ -947,7 +954,8 @@ namespace Lyra.Core.Accounts
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)) && balance.Value > 0)
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
+            await InitBlockAsync(sendBlock, previousBlock);
+            //sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -1062,7 +1070,8 @@ namespace Lyra.Core.Accounts
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)))
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
+            await InitBlockAsync(sendBlock, previousBlock);
+            //sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
@@ -1371,7 +1380,9 @@ namespace Lyra.Core.Accounts
             {
                 openReceiveBlock.Balances.Add(chg.Key, chg.Value.ToBalanceLong());
             }
-            openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId);
+
+            await InitBlockAsync(openReceiveBlock, null);
+            //openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
@@ -1601,7 +1612,8 @@ namespace Lyra.Core.Accounts
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
-            receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+            await InitBlockAsync(receiveBlock, latestBlock);
+            //receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
                 throw new Exception("ValidateTransaction failed");
@@ -1769,7 +1781,8 @@ namespace Lyra.Core.Accounts
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+            await InitBlockAsync(tokenBlock, latestBlock);
+            //tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
@@ -1845,7 +1858,8 @@ namespace Lyra.Core.Accounts
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+            await InitBlockAsync(tokenBlock, latestBlock);
+            //tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             var result = await _rpcClient.CreateTokenAsync(tokenBlock);
 
@@ -1925,7 +1939,8 @@ namespace Lyra.Core.Accounts
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+            await InitBlockAsync(tokenBlock, latestBlock);
+            //tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             var result = await _rpcClient.CreateTokenAsync(tokenBlock);
 
