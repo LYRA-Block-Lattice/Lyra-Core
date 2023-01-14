@@ -51,7 +51,7 @@ namespace Lyra.Core.Accounts
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
         //private RPCClient _rpcClient = null;
         private readonly IAccountDatabase _store;
-        private ILyraAPI? _rpcClient = null;
+        protected ILyraAPI? _rpcClient = null;
         public ILyraAPI? RPC => _rpcClient;
 
         // to receive living events
@@ -70,7 +70,8 @@ namespace Lyra.Core.Accounts
         public bool AccountAlreadyImported = false;
 
         private TransactionBlock _lastSyncBlock;
-
+        public TransactionBlock LastBlock => _lastSyncBlock;
+        
         public decimal BaseBalance
         {
             get
@@ -83,6 +84,14 @@ namespace Lyra.Core.Accounts
         }
 
         public bool NoConsole { get => _noConsole; set => _noConsole = value; }
+
+        public Wallet()
+        {
+            _store = null;
+            _eventClient = null;
+            _workflowKey = string.Empty;
+            _workflowRefund = false;
+        }
 
         protected Wallet(IAccountDatabase storage, string name, ILyraAPI? rpcClient = null)
         {
@@ -199,6 +208,12 @@ namespace Lyra.Core.Accounts
             _workflowKey = txHash;
 
             return _workflowEnds.WaitOne(timeout);
+        }
+
+        protected virtual Task InitBlockAsync(Block block, Block prevBlock)
+        {
+            block.InitializeBlock(prevBlock, PrivateKey, AccountId);
+            return Task.CompletedTask;
         }
 
         // one-time "manual" sync up with the node 

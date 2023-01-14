@@ -59,7 +59,7 @@ namespace Lyra.Node
                 {
                     return null;
                 }
-            }, _node, _trans);
+            }, LyraNodeConfig.GetNetworkId());
             return klWallet;
         }
 
@@ -122,7 +122,7 @@ namespace Lyra.Node
         {
             var klWallet = CreateWallet(accountId);
 
-            var result = await klWallet.ReceiveAsync();
+            var result = await klWallet.SyncAsync();
             if(result == APIResultCodes.Success)
             {
                 return await BalanceAsync(accountId);
@@ -139,7 +139,7 @@ namespace Lyra.Node
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
-            if (result == APIResultCodes.Success)
+            if (result.Successful())
             {
                 return await BalanceAsync(accountId);
             }

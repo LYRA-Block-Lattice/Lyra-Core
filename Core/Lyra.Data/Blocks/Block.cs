@@ -117,6 +117,9 @@ namespace Lyra.Core.Blocks
             Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
 
+            if (string.IsNullOrWhiteSpace(Hash))
+                Hash = CalculateHash();
+
             Sign(PrivateKey, AccountId);
 
             //File.AppendAllText(@"c:\tmp\hash.txt", $"Sign Block {Hash} New txt: {GetHashInput()}\n");
@@ -147,6 +150,7 @@ namespace Lyra.Core.Blocks
 
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
+            
             Signature = await signr(Hash);
             //File.AppendAllText(@"c:\tmp\hash.txt", $"Sign Block {Hash} New txt: {GetHashInput()}\n");
         }

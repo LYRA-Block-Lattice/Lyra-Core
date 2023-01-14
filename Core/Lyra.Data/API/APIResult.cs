@@ -73,6 +73,11 @@ namespace Lyra.Core.API
         {
             return !(left == right);
         }
+
+        public override string ToString()
+        {
+            return ResultMessage;
+        }
     }
 
     public class SimpleJsonAPIResult : APIResult
