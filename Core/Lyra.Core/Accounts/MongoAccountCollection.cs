@@ -2528,12 +2528,17 @@ namespace Lyra.Core.Accounts
                     .Single()
                     .Count;
 
-                var finished = _snapshots
+                // finished may be empty
+                var finishedx = _snapshots
                     .Aggregate()
                     .Match(filterDefinationFinished)
-                    .Count()
-                    .Single()
-                    .Count;
+                    .Count();
+
+                var finished = 0L;
+                if (finishedx.Any())
+                {
+                    finished = finishedx.Single().Count;
+                }
 
                 dict.Add("Total", total);
                 dict.Add("Finished", finished);
