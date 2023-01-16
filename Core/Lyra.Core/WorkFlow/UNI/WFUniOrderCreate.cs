@@ -146,10 +146,10 @@ namespace Lyra.Core.WorkFlow
             //    return APIResultCodes.CollateralNotEnough;
 
             // dir, priceType
-            var total = order.price * order.amount;
+            //var total = order.price * order.amount;
             // limit
             if (order.limitMin <= 0 || order.limitMax < order.limitMin
-                || order.limitMax > total)
+                || order.limitMax > order.amount)
                 return APIResultCodes.InvalidArgument;
 
             return APIResultCodes.Success;

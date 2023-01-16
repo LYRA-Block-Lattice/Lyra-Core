@@ -411,6 +411,7 @@ namespace Lyra.Core.WorkFlow
                 return null;
             }                
 
+            // bug: receive error, but execute here. should not happen. 
             Console.WriteLine($"{desc.Action} step: {index}/{operations.Length} {operations[index].Method.Name}");
 
             return await operations[index](sys, context);

@@ -30,10 +30,13 @@ namespace Lyra.Data.API
             _signer = signer;
             _networkId = networkId;
 
+            // try always use localhost
+            var port = networkId == "mainnet" ? 5504 : 4504;
             _rpcClient = LyraRestClient.Create(networkId,
-                Environment.OSVersion.Platform.ToString(),
-                "JsonServer", "1.0"
-            );
+                                Environment.OSVersion.Platform.ToString(),
+                                "JsonServer", "1.0",
+                                $"https://localhost:{port}/api/Node/"
+                            );
         }
 
         //public async Task<Dictionary<string, long>> GetBalanceAsync()
