@@ -492,14 +492,14 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string? Signature)
         {
             var result = new NonFungibleListAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return result;
+            //}
 
             try
             {
@@ -525,7 +525,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string? Signature)
         {
             var result = new BlockAPIResult();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -874,7 +874,7 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string? Signature)
         {
             NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
             //if (!await VerifyClientAsync(AccountId, Signature))

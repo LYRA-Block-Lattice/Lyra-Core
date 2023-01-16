@@ -262,14 +262,14 @@ namespace Lyra.Core.Accounts
             return blockResult.ResultCode;
         }
 
-        public string SignAPICall()
-        {
-            return Signatures.GetSignature(PrivateKey, SyncHash, AccountId);
-        }
+        //public string SignAPICall()
+        //{
+        //    return Signatures.GetSignature(PrivateKey, SyncHash, AccountId);
+        //}
 
         public async Task<TokenGenesisBlock> GetTokenGenesisBlockAsync(string TokenCode)
         {
-            var res = await _rpcClient.GetTokenGenesisBlockAsync(AccountId, TokenCode, SignAPICall());
+            var res = await _rpcClient.GetTokenGenesisBlockAsync(AccountId, TokenCode, null);
             if (res?.ResultCode == APIResultCodes.Success)
                 return res.GetBlock() as TokenGenesisBlock;
             else
@@ -286,7 +286,7 @@ namespace Lyra.Core.Accounts
             if (_rpcClient == null)
                 return new List<string>();
 
-            var result = await _rpcClient.GetTokenNamesAsync(AccountId, SignAPICall(), keyword);
+            var result = await _rpcClient.GetTokenNamesAsync(AccountId, null, keyword);
             if (result.ResultCode == APIResultCodes.Success)
                 return result.Entities;
             else
@@ -338,7 +338,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> GetPendingRecvAsync()
         {
-            var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
+            var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, null);
             return lookup_result.Successful();
         }
 
@@ -346,7 +346,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
+                var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, null);
                 int max_counter = 0;
 
                 if (lookup_result == null)
@@ -362,7 +362,7 @@ namespace Lyra.Core.Accounts
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
+                    lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, null);
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -610,7 +610,7 @@ namespace Lyra.Core.Accounts
         // returns a list of all NFT instances owned by the account
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync()
         {
-            var res = await _rpcClient.GetNonFungibleTokensAsync(AccountId, SignAPICall());
+            var res = await _rpcClient.GetNonFungibleTokensAsync(AccountId, null);
             if (res != null && res.Successful())
                 return res.GetList();
             else
@@ -699,7 +699,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> GetBlockByHashAsync(string Hash)
         {
-            var blockResult = await _rpcClient.GetBlockByHashAsync(AccountId, Hash, SignAPICall());
+            var blockResult = await _rpcClient.GetBlockByHashAsync(AccountId, Hash, null);
             if (blockResult.ResultCode == APIResultCodes.Success)
                 return blockResult.GetBlock() as TransactionBlock;
             else
@@ -1951,7 +1951,7 @@ namespace Lyra.Core.Accounts
 
         private async Task<string?[]> GetProperTokenNameAsync(string[] tokenNames)
         {
-            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlockAsync(AccountId, a, SignAPICall()));
+            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlockAsync(AccountId, a, null));
             return result.Select(a => a.GetBlock() as TokenGenesisBlock)
                 .Select(b => b?.Ticker)
                 .OrderBy(a => a)

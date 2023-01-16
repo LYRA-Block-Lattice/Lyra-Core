@@ -62,7 +62,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetBlocksByRelatedTxAsync(string hash);
 
         Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature);
-        Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature);
+        Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string? Signature);
         Task<NewFeesAPIResult> LookForNewFeesAsync(string AccountId, string Signature);
 
         Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature);

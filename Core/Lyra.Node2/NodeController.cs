@@ -209,7 +209,7 @@ namespace LyraLexWeb2
 
         [Route("GetNonFungibleTokens")]
         [HttpGet]
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string? Signature)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetNonFungibleTokensAsync(AccountId, Signature);
@@ -335,7 +335,7 @@ namespace LyraLexWeb2
 
         [Route("LookForNewTransfer2")]
         [HttpGet]
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string? Signature)
         {
             if (!CheckServiceStatus()) return null;
             return await _node.LookForNewTransfer2Async(AccountId, Signature);
