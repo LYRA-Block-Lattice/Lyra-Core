@@ -62,6 +62,7 @@ namespace Lyra.Core.WorkFlow
 
         private async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In DefaultReceiveAsync");
             var desc = GetDescription();
             return desc.RecvVia switch
             {
@@ -73,16 +74,19 @@ namespace Lyra.Core.WorkFlow
 
         public virtual async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In NormalReceiveAsync");
             return await DefaultReceiveAsync(sys, context);
         }
 
         public virtual async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In RefundReceiveAsync");
             return await DefaultReceiveAsync(sys, context);
         }
 
         public virtual async Task<SendTransferBlock?> RefundSendAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In RefundSendAsync");
             var desc = GetDescription();
             string? srcAccount = null;
             if(desc.RecvVia == BrokerRecvType.GuildRecv)
