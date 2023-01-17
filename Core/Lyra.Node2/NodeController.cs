@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 using Noded.Services;
+using OpenTelemetry.Trace;
 
 namespace LyraLexWeb2
 {
@@ -824,6 +825,40 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             return await _node.GetUniTradeStatsForUsersAsync(req);
+        }
+
+        /// <summary>
+        /// get order by id
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [Route("GetUniOrderById")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderId)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetUniOrderByIdAsync(orderId);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetUniOrderByIdAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
         }
         #endregion
 

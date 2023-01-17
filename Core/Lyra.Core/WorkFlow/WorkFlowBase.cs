@@ -45,18 +45,22 @@ namespace Lyra.Core.WorkFlow
         // for workflow that steps depends on the send block.
         public virtual Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In GetProceduresAsync");
             return Task.FromResult(GetDescription().Steps);
         }
         public virtual async Task<TransactionBlock> MainProcAsync(DagSystem sys, LyraContext context)
-        {            
+        {
+            Console.WriteLine("In MainProcAsync");
             return await BrokerOpsAsync(sys, context) ?? await ExtraOpsAsync(sys, context, context.Send.Hash);
         }
         public virtual async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In BrokerOpsAsync");
             return await OneByOneAsync(sys, context, await GetProceduresAsync(sys, context));
         }
         public virtual Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, LyraContext context, string hash)
         {
+            Console.WriteLine("In ExtraOpsAsync");
             return Task.FromResult((TransactionBlock)null);
         }
 
@@ -164,6 +168,7 @@ namespace Lyra.Core.WorkFlow
 
         public virtual async Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, LyraContext context)
         {
+            Console.WriteLine("In PreAuthAsync");
             List<string> lockedIDs = null;
             try
             {
@@ -205,6 +210,7 @@ namespace Lyra.Core.WorkFlow
 
         public static async Task<LockerDTO> GetLocketDTOAsync(DagSystem sys, TransactionBlock trans)
         {
+            Console.WriteLine("In GetLocketDTOAsync");
             var strs = new List<string>();
             string action = null;
             if (trans is SendTransferBlock send)
@@ -395,6 +401,7 @@ namespace Lyra.Core.WorkFlow
 
         public virtual async Task<List<string>> GetLockedAccountIdsAsync(DagSystem sys, TransactionBlock trans)
         {
+            Console.WriteLine("In GetLockedAccountIdsAsync");
             var dto = await GetLocketDTOAsync(sys, trans);
             return dto.lockedups;
         }
@@ -403,6 +410,7 @@ namespace Lyra.Core.WorkFlow
         protected async Task<TransactionBlock> OneByOneAsync(DagSystem sys, LyraContext context,
             params Func<DagSystem, LyraContext, Task<TransactionBlock>>[] operations)
         {
+            Console.WriteLine("In OneByOneAsync");
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var desc = GetDescription();

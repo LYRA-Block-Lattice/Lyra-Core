@@ -1063,6 +1063,15 @@ namespace Lyra.Core.API
             return PostAsync<SimpleJsonAPIResult>("GetUniTradeStatsForUsers", req);
         }
 
+        public async Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "orderid", orderid },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetUniOrderById", args);
+        }
         #endregion
 
         public async Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)

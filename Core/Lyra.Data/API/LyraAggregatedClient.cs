@@ -699,6 +699,11 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        public Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderid)
+        {
+            return SeedClient.GetUniOrderByIdAsync(orderid);
+        }
         #endregion
     }
 }

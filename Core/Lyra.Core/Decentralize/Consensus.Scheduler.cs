@@ -251,15 +251,15 @@ namespace Lyra.Core.Decentralize
                             }
 
                             cs._log.LogWarning($"Locker count: {cs._lockers.Count}");
-                            foreach(var lkr in cs._lockers)
-                            {
-                                // dump lockers
-                                cs._log.LogWarning($"{lkr.Key}:");
-                                foreach(var id in lkr.Value.lockedups)
-                                {
-                                    cs._log.LogWarning($"\t-> {id}");
-                                }
-                            }
+                            //foreach(var lkr in cs._lockers)
+                            //{
+                            //    // dump lockers
+                            //    cs._log.LogWarning($"{lkr.Key}:");
+                            //    foreach(var id in lkr.Value.lockedups)
+                            //    {
+                            //        cs._log.LogWarning($"\t-> {id}");
+                            //    }
+                            //}
                         }
                     }
                 }

@@ -134,6 +134,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
         Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);
         Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req);
+        Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderId);
 
         // json api, no we don't want add it to the interface.
         Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog);

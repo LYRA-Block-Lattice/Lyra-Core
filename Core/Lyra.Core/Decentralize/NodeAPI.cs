@@ -1768,6 +1768,11 @@ namespace Lyra.Core.Decentralize
         {
             throw new NotImplementedException();
         }
+
+        public Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderId)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
