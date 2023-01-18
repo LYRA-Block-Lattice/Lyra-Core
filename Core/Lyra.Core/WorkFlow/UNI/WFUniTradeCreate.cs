@@ -133,24 +133,36 @@ namespace Lyra.Core.WorkFlow
             if (string.IsNullOrWhiteSpace(order.dealerId))
                 return APIResultCodes.InvalidOrder;
 
+            // break code bellow into steps
             if (order.daoId != trade.daoId ||
                 order.dealerId != trade.dealerId ||
                 order.offerby != trade.offby ||
                 order.offering != trade.offering ||
                 order.bidby != trade.bidby ||
-                order.biding != trade.biding ||
+                order.biding != trade.biding
+                )
+                return APIResultCodes.InvalidTrade;
+
+            // break code bellow into steps
+            if (
                 order.price != trade.price ||
                 order.amount < trade.amount ||
-                orderblk.OwnerAccountId != trade.orderOwnerId ||
+                orderblk.OwnerAccountId != trade.orderOwnerId
+                //|| !order.payBy.Contains(trade.payVia)
+                )
+                return APIResultCodes.InvalidTrade;
+
+            // break code bellow into steps
+            if (
                 trade.amount > order.limitMax ||
                 trade.amount < order.limitMin ||
-                trade.amount != trade.price * trade.amount
+                trade.pay != Math.Round(trade.price * trade.amount, 8)
                 //|| !order.payBy.Contains(trade.payVia)
                 )
                 return APIResultCodes.InvalidTrade;
 
             // pay
-            if(trade.pay != Math.Round(trade.pay, 2))
+            if (trade.pay != Math.Round(trade.pay, 8))
                 return APIResultCodes.InvalidTradeAmount;
 
             var got = Math.Round(trade.pay / order.price, 8);
