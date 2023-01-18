@@ -17,6 +17,7 @@ using Newtonsoft.Json.Linq;
 using static Google.Protobuf.Reflection.FieldOptions.Types;
 using Humanizer;
 using Newtonsoft.Json;
+using System.Reactive;
 
 namespace Lyra.Node
 {
@@ -658,7 +659,55 @@ namespace Lyra.Node
                     if(!ret.Successful()) return returnError(ret.ResultMessage);
 
                     // wait for complete
-                    klWallet.WaitForWorkflow(ret.TxHash, 20000);
+                    klWallet.WaitForWorkflow(ret.TxHash, 30000);
+
+                    return returnApiResult(ret, ret.TxHash);
+                }
+                else
+                {
+                    throw new Exception("Invalid order data");
+                }
+            }
+            catch (Exception ex)
+            {
+                return returnError(ex.Message);
+            }
+        }
+
+        [JsonRpcMethod("CreateTrade")]
+        public async Task<string?> CreateTradeAsync(string accountId, string tradeJson)
+        {
+            try
+            {
+                var klWallet = await CreateWalletAsync(accountId);
+                var argsObj = JObject.Parse(tradeJson);
+                var argsDict = argsObj.ToObject<Dictionary<string, string>>();
+                if (argsDict != null)
+                {
+                    var tradeObj = new UniTrade
+                    {
+                        daoId = argsDict["daoId"],
+                        dealerId = argsDict["dealerId"],
+                        orderId = argsDict["orderId"],
+                        orderOwnerId = argsDict["orderOwnerId"],
+
+                        offby = LyraGlobal.GetHoldTypeFromTicker(argsDict["offby"]),
+                        offering = argsDict["offering"],
+                        bidby = LyraGlobal.GetHoldTypeFromTicker(argsDict["bidby"]),
+                        biding = argsDict["biding"],
+
+                        price = decimal.Parse(argsDict["price"]),
+                        cltamt = decimal.Parse(argsDict["cltamt"]),
+                        payVia = argsDict["payVia"],
+                        amount = decimal.Parse(argsDict["amount"]),
+                        pay = decimal.Parse(argsDict["pay"]),
+                    };
+
+                    var ret = await klWallet.CreateUniTradeAsync(tradeObj);
+                    if (!ret.Successful()) return returnError(ret.ResultMessage);
+
+                    // wait for complete
+                    klWallet.WaitForWorkflow(ret.TxHash, 30000);
 
                     return returnApiResult(ret, ret.TxHash);
                 }
