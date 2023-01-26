@@ -19,10 +19,12 @@ namespace Lyra.Data.API
     {
         public AcademyClient(string networkid)
         {
-            if (networkid == "devnet" || networkid == "xtest")
+            if (networkid == "xtest")
                 UrlBase = "https://localhost:7288/svc/";
             else if (networkid == "testnet")
                 UrlBase = "https://starttestnet.lyra.live/svc/";
+            else if(networkid == "devnet")
+                UrlBase = "https://startdevnet.lyra.live/svc/";
             else
                 UrlBase = "https://start.lyra.live/svc/";
         }

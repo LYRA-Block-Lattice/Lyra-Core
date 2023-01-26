@@ -18,6 +18,7 @@ using static Google.Protobuf.Reflection.FieldOptions.Types;
 using Humanizer;
 using Newtonsoft.Json;
 using System.Reactive;
+using Akka.Util;
 
 namespace Lyra.Node
 {
@@ -205,6 +206,79 @@ namespace Lyra.Node
             else
             {
                 throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("MintNFT")]
+        public async Task<BalanceResult> MintNFTAsync(string accountId, string name, string description, int supply, string metadataUrl)
+        {
+            var klWallet = await CreateWalletAsync(accountId);
+
+            var result = await klWallet.CreateNFTAsync(name, description, supply, metadataUrl);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await BlockBalanceAsync(accountId, klWallet.LastBlock);
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+        
+        [JsonRpcMethod("PrintFiat")]
+        public async Task<BalanceResult> PrintFiatAsync(string accountId, string ticker, long amount)
+        {
+            var klWallet = await CreateWalletAsync(accountId);
+
+            var result = await klWallet.PrintFiatAsync(ticker, amount);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await BlockBalanceAsync(accountId, klWallet.LastBlock);
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("CreateTOT")]
+        public async Task<string> CreateTotAsync(string accountId,
+                string type,
+                string name,
+                string description,
+                int supply,
+                string tradeSecretSignature
+            )
+        {
+            var wallet = await CreateWalletAsync(accountId);
+            var acac = new AcademyClient(LyraNodeConfig.GetNetworkId());
+
+            // try to sign the request
+            var lsb = await wallet.RPC.GetLastServiceBlockAsync();
+            var input = $"{wallet.AccountId}:{lsb.GetBlock().Hash}:{name}:{description}";
+            var signature = await wallet.SignMsg(input);
+            var totType = Enum.Parse<HoldTypes>(type);
+            var retJson = await acac.CreateTotMetaAsync(wallet.AccountId, signature, totType, name, description);
+            // the result format is compatible
+            var dynret = JsonConvert.DeserializeObject<dynamic>(retJson);
+
+            if (dynret.ret == "Success")
+            {
+                var metaUrl = dynret.result.ToString();
+                APIResult ctret = await wallet.CreateTOTAsync(totType, name, description, supply, metaUrl, tradeSecretSignature);
+                if (ctret.Successful())
+                {
+                    var totgen = wallet.GetLastSyncBlock() as TokenGenesisBlock;
+                    return returnApiResult(ctret, totgen.Ticker);
+                }
+                else
+                {
+                    throw new Exception($"{ctret.ResultCode}: {ctret.ResultMessage}");
+                }
+            }
+            else
+            {
+                throw new Exception(retJson);
             }
         }
 

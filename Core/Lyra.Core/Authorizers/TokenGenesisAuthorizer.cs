@@ -19,7 +19,7 @@ namespace Lyra.Core.Authorizers
         };
 
         private readonly List<string> _nftDomains = new List<string> {
-            "nft", "tot"
+            "nft", "tot", "svc"
         };
 
         public override BlockTypes GetBlockType()

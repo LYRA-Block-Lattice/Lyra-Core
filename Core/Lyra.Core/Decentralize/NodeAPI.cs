@@ -1754,6 +1754,27 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<SimpleJsonAPIResult> GetBalanceAsync(string accountId)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var stats = await NodeService.Dag.Storage.GetBalanceAsync(accountId);
+
+                result.JsonString = Json(stats);
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBalanceAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
         Task<string?> INodeAPI.FindTokensAsync(string? keyword, string? cat)
         {
             throw new NotImplementedException();

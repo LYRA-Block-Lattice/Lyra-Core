@@ -167,5 +167,8 @@ namespace Lyra.Core.Accounts
 
         Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog);
         Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId);
+
+        // v2
+        Task<List<BsonDocument>> GetBalanceAsync(string accountId);
     }
 }

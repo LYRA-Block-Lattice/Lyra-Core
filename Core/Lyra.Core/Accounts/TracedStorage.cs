@@ -398,6 +398,11 @@ namespace Lyra.Core.Accounts
             return StopWatcher.Track(() => _store.FindNFTGenesisSendAsync(accountId, ticker, serial), "FindNFTGenesisSendAsync");
         }
 
+        public Task<List<BsonDocument>> GetBalanceAsync(string accountId)
+        {
+            return StopWatcher.Track(() => _store.GetBalanceAsync(accountId), "GetBalanceAsync");
+        }
+
         #region Universal trade
         public Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId)
         {

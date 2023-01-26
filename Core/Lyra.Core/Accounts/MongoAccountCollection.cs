@@ -28,6 +28,7 @@ using Lyra.Data.API.ODR;
 using MongoDB.Driver.Linq;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using System.Collections;
+using Akka.Remote.Transport;
 
 namespace Lyra.Core.Accounts
 {
@@ -2791,6 +2792,52 @@ namespace Lyra.Core.Accounts
                     );
 
             return await q.FirstOrDefaultAsync();
+        }
+
+        public async Task<List<BsonDocument>> GetBalanceAsync(string accountId)
+        {
+            PipelineDefinition<TransactionBlock, BsonDocument> pipeline = new BsonDocument[]
+            {
+                new BsonDocument("$match",
+                new BsonDocument("AccountID", accountId)),
+                new BsonDocument("$unwind",
+                new BsonDocument("path", "$Balances")),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", "devnet_blocks" },
+                        { "localField", "Balances.k" },
+                        { "foreignField", "Ticker" },
+                        { "as", "result" }
+                    }),
+                new BsonDocument("$unwind",
+                new BsonDocument("path", "$result")),
+                new BsonDocument("$project",
+                new BsonDocument
+                    {
+                        { "_id", 0 },
+                        { "Author", "$result.AccountID" },
+                        { "Time", "$result.TimeStamp.DateTime" },
+                        { "Ticker", "$result.Ticker" },
+                        { "Balance",
+                new BsonDocument("$divide",
+                new BsonArray
+                            {
+                                "$Balances.v",
+                                LyraGlobal.TOKENSTORAGERITO
+                            }) },
+                        { "Domain", "$result.DomainName" },
+                        { "Desc", "$result.Description" },
+                        { "Name", "$result.Custom1" },
+                        { "Url", "$result.Custom2" }
+                    })
+            };
+
+            var q1 = _snapshots.Aggregate( pipeline);                
+
+            var x = await q1.ToListAsync();
+
+            return x;
         }
 
         public async Task FixDbRecordAsync()

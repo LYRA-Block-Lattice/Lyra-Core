@@ -1,10 +1,13 @@
 ﻿using Akka.Util;
+using Loyc.Collections;
 using Lyra.Core.API;
 using Lyra.Core.Decentralize;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Policy;
 using System.Threading.Tasks;
 
@@ -102,6 +105,22 @@ namespace Noded
 
             var result = JsonConvert.SerializeObject(blks);
             return Content(result, "application/json");
+        }
+
+        [Route("Balance")]
+        [HttpGet]
+        [ApiExplorerSettings(GroupName = "v2")]
+        public async Task<IActionResult> GetBalanceAsync(string accountId)
+        {
+            var blks = await NodeService.Dag.Storage.GetBalanceAsync(accountId);
+            if (blks == null || blks.Count == 0)
+            {
+                return NotFound($"Balance not found for id {accountId}.");
+            }
+
+            var objs = blks.Select(a => BsonTypeMapper.MapToDotNetValue(a))
+                .ToList();
+            return Content(JsonConvert.SerializeObject(objs), "application/json");
         }
 
         ////GET: api/Node/5

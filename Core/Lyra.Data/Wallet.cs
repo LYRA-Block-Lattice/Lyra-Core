@@ -167,6 +167,11 @@ namespace Lyra.Core.Accounts
             return wallet;
         }
 
+        public virtual Task<string> SignMsg(string msg)
+        {
+            return Task.FromResult(Signatures.GetSignature(PrivateKey, msg, AccountId));
+        }
+
         public async Task SetupEventsListenerAsync()
         {
             //var port = NetworkId == "mainnet" ? 5504 : 4504;
@@ -1893,6 +1898,7 @@ namespace Lyra.Core.Accounts
             {
                 HoldTypes.NFT => "nft",
                 HoldTypes.Fiat => "fiat",
+                HoldTypes.SVC => "svc",
                 _ => "tot"
             };
 

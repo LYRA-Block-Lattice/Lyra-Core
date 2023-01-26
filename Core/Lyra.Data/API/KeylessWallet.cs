@@ -52,6 +52,11 @@ namespace Lyra.Data.API
             return block.InitializeBlockAsync(prevBlock, _signer);
         }
 
+        public override async Task<string> SignMsg(string msg)
+        {
+            return await _signer(msg);
+        }
+
         //private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
         //{
         //    var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlockAsync(AccountId, a, null));
