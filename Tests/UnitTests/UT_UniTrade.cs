@@ -928,9 +928,9 @@ namespace UnitTests
                 cltamt = collateralCount,
                 payBy = new string[] { "Paypal" },
 
-                amount = 1,
-                limitMin = 200,
-                limitMax = 2000,
+                amount = 3,
+                limitMin = 1,
+                limitMax = 2,
             };
 
             var ret = await offeringWallet.CreateUniOrderAsync(order);
@@ -1013,9 +1013,20 @@ namespace UnitTests
 
             var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
-            Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret.GetBlock() as IUniOrder).UOStatus,
-                $"Order status not changed to Closed: {(ordfnlret.GetBlock() as IUniOrder).UOStatus}");
-            Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
+            var odrfnlblk = ordfnlret.GetBlock() as IUniOrder;
+
+            if(odrfnlblk.Order.amount == 0)
+            {
+                Assert.AreEqual(UniOrderStatus.Closed, odrfnlblk.UOStatus,
+                    $"Order status not changed to Closed: {odrfnlblk.UOStatus}");
+                Assert.AreEqual(0, (ordfnlret.GetBlock() as TransactionBlock).Balances["LYR"], "LYR not zero");
+            }
+            else
+            {
+                Assert.AreEqual(UniOrderStatus.Partial, odrfnlblk.UOStatus,
+                    $"Order status not changed to Partial: {odrfnlblk.UOStatus}");
+            }
+
 
             await test2Wallet.SyncAsync(null);
 
@@ -1052,7 +1063,7 @@ namespace UnitTests
                 Console.WriteLine($"Delisting order: {Unig.AccountID}");
                 var dlret = await offeringWallet.DelistUniOrderAsync(dao.AccountID, Unig.AccountID);
                 Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
-                await WaitWorkflow($"DelistUniOrderAsync");
+                await WaitWorkflow(dlret.TxHash, $"DelistUniOrderAsync");
 
                 var orddlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
                 Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
@@ -1066,7 +1077,7 @@ namespace UnitTests
                 var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
                 Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
-                await WaitWorkflow($"CloseUniOrderAsync");
+                await WaitWorkflow(closeret.TxHash, $"CloseUniOrderAsync");
                 var ordfnlret2 = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
                 Assert.IsTrue(ordfnlret2.Successful(), $"Can't get order latest block: {ordfnlret2.ResultCode}");
                 Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret2.GetBlock() as IUniOrder).UOStatus,
@@ -1258,6 +1269,11 @@ namespace UnitTests
                 Assert.AreEqual(1, ords.Count(), $"Order count not right: {ords.Count()}");
             //Assert.IsTrue((ords.First() as IUniOrder).Order.Equals(order), "Uni order not equal.");
 
+            // get a snapshot of the order
+            var odrblksnapshotret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+            var odrblksnapshot = odrblksnapshotret.As<IUniOrder>();
+            Assert.IsTrue(odrblksnapshot.Order.amount >= 1, "amount avaliable in order show >= 1");
+
             var fiatg = (await bidingWallet.RPC.GetTokenGenesisBlockAsync("", Unig.Order.biding, "")).As<TokenGenesisBlock>();
 
             var trade = new UniTrade
@@ -1295,6 +1311,8 @@ namespace UnitTests
             var Unis2 = Uniret2.GetBlocks();
             Assert.IsTrue(Unis2.Last() is IUniOrder, $"Uni block count not = 1.");
             var Uniorderx = Unis2.Last() as IUniOrder;
+
+            Assert.AreEqual(odrblksnapshot.Order.amount - 1, Uniorderx.Order.amount, $"Order amount {odrblksnapshot.Order.amount} remaining amount {Uniorderx.Order.amount} not right. state: {Uniorderx.UOStatus}");
 
             //if(direction == TradeDirection.Buy)
             //    Assert.IsTrue(0.9m == Uniorderx.Order.amount, "order not processed");

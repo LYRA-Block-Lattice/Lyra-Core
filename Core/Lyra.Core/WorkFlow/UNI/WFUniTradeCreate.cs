@@ -61,9 +61,9 @@ namespace Lyra.Core.WorkFlow
                     SendCryptoProductFromTradeToBuyerAsync,
                     SendCollateralFromDAOToBuyerAsync,
 
-                    // for seller
-                    SealOrderAsync, 
-                    SendCollateralToSellerAsync
+                    // for seller !! only when amount is 0
+                    //SealOrderAsync, 
+                    //SendCollateralToSellerAsync
                 });
             }
             //else if(IsBidToken && !IsOfferToken)
