@@ -76,13 +76,13 @@ namespace Noded
         [ApiExplorerSettings(GroupName = "v2")]
         public async Task<IActionResult> FindTradableUniOrdersAsync(string? catalog)
         {
-            var blks = await NodeService.Dag.Storage.FindTradableUniOrdersAsync(catalog);
+            var blks = await NodeService.Dag.Storage.FindTradableUniOrders2Async(catalog);
             if (blks == null)
             {
                 return NotFound($"Orders not found for catalog {catalog}.");
             }
 
-            var result = JsonConvert.SerializeObject(blks);
+            var result = JsonConvert.SerializeObject(BsonTypeMapper.MapToDotNetValue(blks));
             return Content(result, "application/json");
             //return Ok(blks);
         }

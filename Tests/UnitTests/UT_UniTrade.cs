@@ -32,7 +32,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestUniTradeAsync()
         {
-            var netid = "devnet";
+            var netid = "xtest";
             await SetupWallets(netid);
             if(netid != "xtest")
                 await SetupEventsListener();
@@ -1802,12 +1802,12 @@ namespace UnitTests
 
             // already tested other place
             // register user to dealer
-            //var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
-            //var lsb = await devnetLyra.GetLastServiceBlockAsync();
-            //var regret = await dealer.RegisterAsync(testWallet.AccountId,
-            //        "test", "Unit", "", "Test", "t@", "1111", "1111", "",
-            //        Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
-            //        "", "");
+            var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
+            var lsb = await devnetLyra.GetLastServiceBlockAsync();
+            var regret = await dealer.RegisterAsync(testWallet.AccountId,
+                    "test", "Unit", "", "Test", "t@", "1111", "1111", "",
+                    Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
+                    "", "");
             //Assert.IsTrue(regret.Successful());
 
             ResetAuthFail();

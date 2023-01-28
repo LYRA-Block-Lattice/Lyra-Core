@@ -765,9 +765,9 @@ namespace Lyra.Node
                         orderId = argsDict["orderId"],
                         orderOwnerId = argsDict["orderOwnerId"],
 
-                        offby = LyraGlobal.GetHoldTypeFromTicker(argsDict["offby"]),
+                        offby = Enum.Parse<HoldTypes>(argsDict["offby"]),
                         offering = argsDict["offering"],
-                        bidby = LyraGlobal.GetHoldTypeFromTicker(argsDict["bidby"]),
+                        bidby = Enum.Parse<HoldTypes>(argsDict["bidby"]),
                         biding = argsDict["biding"],
 
                         price = decimal.Parse(argsDict["price"]),

@@ -2454,6 +2454,159 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
+        public async Task<BsonDocument> FindTradableUniOrders2Async(string ? catalog)
+        {
+            var arr = new BsonDocument[]
+{
+    new BsonDocument("$facet",
+    new BsonDocument
+        {
+            { "OverStats",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("UOStatus",
+                new BsonDocument("$exists", true))),
+                new BsonDocument("$bucket",
+                new BsonDocument
+                    {
+                        { "groupBy", "$UOStatus" },
+                        { "boundaries",
+                new BsonArray
+                        {
+                            0,
+                            10,
+                            30,
+                            50
+                        } },
+                        { "output",
+                new BsonDocument("Count",
+                new BsonDocument("$sum", 1)) }
+                    })
+            } },
+            { "OwnerStats",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("UOStatus",
+                new BsonDocument("$exists", true))),
+                new BsonDocument("$group",
+                new BsonDocument
+                    {
+                        { "_id",
+                new BsonDocument
+                        {
+                            { "Owner", "$OwnerAccountId" },
+                            { "State", "$UOStatus" }
+                        } },
+                        { "Count",
+                new BsonDocument("$sum", 1) }
+                    })
+            } },
+            { "Daos",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("$or",
+                new BsonArray
+                        {
+                            new BsonDocument("UOStatus", 0),
+                            new BsonDocument("UOStatus", 10)
+                        })),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", "devnet_snapshots" },
+                        { "localField", "Order.daoId" },
+                        { "foreignField", "AccountID" },
+                        { "as", "DaoInfo" }
+                    }),
+                new BsonDocument("$group",
+                new BsonDocument
+                    {
+                        { "_id", "$DaoInfo.AccountID" },
+                        { "Info",
+                new BsonDocument("$first", "$DaoInfo") }
+                    })
+            } },
+            { "Orders",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("$or",
+                new BsonArray
+                        {
+                            new BsonDocument("UOStatus", 0),
+                            new BsonDocument("UOStatus", 10)
+                        })),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", "devnet_blocks" },
+                        { "localField", "Order.offering" },
+                        { "foreignField", "Ticker" },
+                        { "as", "OfferingGens" }
+                    }),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", "devnet_blocks" },
+                        { "localField", "Order.biding" },
+                        { "foreignField", "Ticker" },
+                        { "as", "BidingGens" }
+                    }),
+                new BsonDocument("$project",
+                new BsonDocument
+                    {
+                        { "AccountID", 1 },
+                        { "OwnerAccountId", 1 },
+                        { "Order", 1 },
+                        { "UOStatus", 1 },
+                         { "TimeStamp", 1 },
+                        { "OfferingCat",
+                new BsonDocument("$first", "$OfferingGens.DomainName") },
+                        { "OfferingName",
+                new BsonDocument("$first", "$OfferingGens.Custom1") },
+                        { "OfferingDesc",
+                new BsonDocument("$first", "$OfferingGens.Description") },
+                        { "OfferingUrl",
+                new BsonDocument("$first", "$OfferingGens.Custom2") },
+                        { "BidingCat",
+                new BsonDocument("$first", "$BidingGens.DomainName") },
+                        { "BidingName",
+                new BsonDocument("$first", "$BidingGens.Custom1") },
+                        { "BidingDesc",
+                new BsonDocument("$first", "$BidingGens.Description") },
+                        { "BidingUrl",
+                new BsonDocument("$first", "$BidingGens.Custom2") }
+                    })
+            } }
+        })
+};
+
+            if (catalog != null && catalog != "All")
+            {
+                var type = catalog switch
+                {
+                    "Token" => HoldTypes.Token,
+                    "NFT" => HoldTypes.NFT,
+                    "Fiat" => HoldTypes.Fiat,
+                    "Service" => HoldTypes.SVC,
+                    _ => HoldTypes.TOT,
+                };
+
+                arr = arr.Prepend(new BsonDocument("$match", new BsonDocument("Order.offerby", type))).ToArray();
+            }
+
+            PipelineDefinition<TransactionBlock, BsonDocument> pipeline = arr;
+
+            var q1 = _snapshots.Aggregate(pipeline);
+
+            var x = await q1.FirstOrDefaultAsync();
+
+            return x;
+        }
+
         /// <summary>
         /// find current tradable orders. 
         /// </summary>
@@ -2474,6 +2627,7 @@ namespace Lyra.Core.Accounts
                     "Token" => HoldTypes.Token,
                     "NFT" => HoldTypes.NFT,
                     "Fiat" => HoldTypes.Fiat,
+                    "Service" => HoldTypes.SVC,
                     _ => HoldTypes.TOT,
                 };
 

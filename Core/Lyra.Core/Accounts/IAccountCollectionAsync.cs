@@ -166,6 +166,7 @@ namespace Lyra.Core.Accounts
         Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol);
 
         Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog);
+        Task<BsonDocument> FindTradableUniOrders2Async(string? catalog);
         Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId);
 
         // v2

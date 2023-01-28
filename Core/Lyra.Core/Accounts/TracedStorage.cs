@@ -56,6 +56,7 @@ namespace Lyra.Core.Accounts
 
         // v2
         public async Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrdersAsync(catalog), StopWatcher.GetCurrentMethod());
+        public async Task<BsonDocument> FindTradableUniOrders2Async(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrders2Async(catalog), StopWatcher.GetCurrentMethod());
         public async Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId) => await StopWatcher.TrackAsync(() => _store.GetUniOrderByIdAsync(orderId), StopWatcher.GetCurrentMethod());
 
         public Task UpdateStatsAsync()
