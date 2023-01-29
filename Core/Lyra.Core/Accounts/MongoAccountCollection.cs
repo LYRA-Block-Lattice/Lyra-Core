@@ -2417,7 +2417,7 @@ namespace Lyra.Core.Accounts
         {
             var q = _blocks.OfType<UniOrderGenesisBlock>()
                 .Find(a => a.OwnerAccountId == accountId)
-                .SortByDescending(a => a.TimeStamp)
+                //.SortByDescending(a => a.TimeStamp)
                 .ToList();
 
             var blks = new List<TransactionBlock>();
@@ -2428,7 +2428,7 @@ namespace Lyra.Core.Accounts
                 if(b.Hash != x.Hash)
                     blks.Add(b);
             }
-            return blks;
+            return blks.OrderByDescending(a => a.TimeStamp).ToList();
         }
 
         /// <summary>

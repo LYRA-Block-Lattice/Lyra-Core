@@ -944,8 +944,8 @@ namespace UnitTests
 
             var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret.Successful(), $"Can't get Uni gensis block. {Uniret.ResultCode}");
-            var Unis = Uniret.GetBlocks();
-            Assert.IsTrue(Unis.First() is IUniOrder, $"Uni order gensis block not found.");
+            var uniOrders = Uniret.GetBlocks();
+            Assert.IsTrue(uniOrders.First() is IUniOrder, $"Uni order gensis block not found.");
 
             // test find tradable orders
             var tradableret = await offeringWallet.RPC.FindTradableUniAsync();
@@ -955,6 +955,9 @@ namespace UnitTests
                 Assert.AreEqual(1, tradableblks.Count(), $"Trade tradable block count is {tradableblks.Count()}");
             var firsttradable = tradableblks.First();
             Assert.IsTrue(firsttradable is IUniOrder fodr && fodr.Name == "no name");
+
+            var curOdrId = (firsttradable as IUniOrder).AccountID;
+            Console.WriteLine($"\n\nOrder ID is {curOdrId}\n\n");
 
             // then DAO treasure should not have the crypto
             var daoret3 = await offeringWallet.RPC.GetDaoByNameAsync(dao.Name);
@@ -973,15 +976,16 @@ namespace UnitTests
             //}
 
             // result is time reverse sorted
-            var Unig = Unis.First(a => a.BlockType == BlockTypes.UniOrderGenesis) as UniOrderGenesisBlock;
-            Assert.IsTrue(order.Equals(Unig.Order), "Uni order not equal.");
+            var curUniOrder = uniOrders.First(a => a.BlockType == BlockTypes.UniOrderGenesis) as UniOrderGenesisBlock;
+            Assert.IsTrue(order.Equals(curUniOrder.Order), "Uni order not equal.");
+            Assert.AreEqual(curOdrId, curUniOrder.AccountID);
 
             await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
-                dao.AccountID, Unig.AccountID);
+                dao.AccountID, curUniOrder.AccountID);
 
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
-            var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
+            var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, curUniOrder, collateralCount);
 
             bool hasOTC = false;
             if (LyraGlobal.GetOTCRequirementFromTicker(offeringGen.Ticker))
@@ -1006,12 +1010,12 @@ namespace UnitTests
             if(hasOTC)
             {
                 // trade is ok. now its time to close the order
-                var closeret2 = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
+                var closeret2 = await offeringWallet.CloseUniOrderAsync(dao.AccountID, curUniOrder.AccountID);
                 Assert.IsTrue(closeret2.Successful(), $"Unable to close order: {closeret2.ResultCode}");
                 await WaitWorkflow(closeret2.TxHash, $"CloseUniOrderAsync");
             }
 
-            var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+            var ordfnlret = await offeringWallet.RPC.GetLastBlockAsync(curUniOrder.AccountID);
             Assert.IsTrue(ordfnlret.Successful(), $"Can't get order latest block: {ordfnlret.ResultCode}");
             var odrfnlblk = ordfnlret.GetBlock() as IUniOrder;
 
@@ -1055,30 +1059,29 @@ namespace UnitTests
             //Assert.AreEqual(buyershouldget, test2Wallet.BaseBalance, $"Test2 got collateral wrong. should be {buyershouldget} but {test2Wallet.BaseBalance} diff {buyershouldget - test2Wallet.BaseBalance}");
 
             // delist the order (only when amount > 1)
-
-            var orderlatestblk = ordfnlret.GetBlock() as IUniOrder;
-
-            if(orderlatestblk.Order.amount > 0)
+            Assert.AreEqual(curOdrId, odrfnlblk.AccountID);
+            
+            if (odrfnlblk.Order.amount > 0)
             {
-                Console.WriteLine($"Delisting order: {Unig.AccountID}");
-                var dlret = await offeringWallet.DelistUniOrderAsync(dao.AccountID, Unig.AccountID);
+                Console.WriteLine($"Delisting order: {curUniOrder.AccountID}");
+                var dlret = await offeringWallet.DelistUniOrderAsync(dao.AccountID, curUniOrder.AccountID);
                 Assert.IsTrue(dlret.Successful(), $"Unable to delist order: {dlret.ResultCode}");
                 await WaitWorkflow(dlret.TxHash, $"DelistUniOrderAsync");
 
-                var orddlret = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+                var orddlret = await offeringWallet.RPC.GetLastBlockAsync(curUniOrder.AccountID);
                 Assert.IsTrue(orddlret.Successful(), $"Can't get order latest block: {orddlret.ResultCode}");
                 Assert.AreEqual(UniOrderStatus.Delist, (orddlret.GetBlock() as IUniOrder).UOStatus,
                     $"Order status not changed to Delisted");
             }
 
-            if(orderlatestblk.UOStatus != UniOrderStatus.Closed)
+            if(odrfnlblk.UOStatus != UniOrderStatus.Closed)
             {
                 //trade is ok.now its time to close the order
-                var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, Unig.AccountID);
+                var closeret = await offeringWallet.CloseUniOrderAsync(dao.AccountID, curUniOrder.AccountID);
                 Assert.IsTrue(closeret.Successful(), $"Unable to close order: {closeret.ResultCode}");
 
                 await WaitWorkflow(closeret.TxHash, $"CloseUniOrderAsync");
-                var ordfnlret2 = await offeringWallet.RPC.GetLastBlockAsync(Unig.AccountID);
+                var ordfnlret2 = await offeringWallet.RPC.GetLastBlockAsync(curUniOrder.AccountID);
                 Assert.IsTrue(ordfnlret2.Successful(), $"Can't get order latest block: {ordfnlret2.ResultCode}");
                 Assert.AreEqual(UniOrderStatus.Closed, (ordfnlret2.GetBlock() as IUniOrder).UOStatus,
                     $"Order status not changed to Closed: {(ordfnlret2.GetBlock() as IUniOrder).UOStatus}");
@@ -1114,7 +1117,7 @@ namespace UnitTests
             // dao should be kept
 
             await PrintBalancesForAsync(offeringWallet.AccountId, bidingWallet.AccountId,
-                dao.AccountID, Unig.AccountID, tradgen.AccountID);
+                dao.AccountID, curUniOrder.AccountID, tradgen.AccountID);
 
             await Task.Delay(100);
             Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
@@ -1299,6 +1302,7 @@ namespace UnitTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
             await WaitWorkflow(traderet.TxHash, $"CreateUniTradeAsync for sell");
+            await Task.Delay(1000); //maybe not needed
             //if(trade.biding.StartsWith("tether"))
             //{
             //    await Task.Delay(10000000);
@@ -1309,10 +1313,11 @@ namespace UnitTests
             var Uniret2 = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
             Assert.IsTrue(Uniret2.Successful(), $"Can't get Uni block. {Uniret2.ResultCode}");
             var Unis2 = Uniret2.GetBlocks();
-            Assert.IsTrue(Unis2.Last() is IUniOrder, $"Uni block count not = 1.");
-            var Uniorderx = Unis2.Last() as IUniOrder;
+            Assert.IsTrue(Unis2.First() is IUniOrder, $"Uni block count not = 1.");
+            var Uniorderx = Unis2.First() as IUniOrder;
 
-            Assert.AreEqual(odrblksnapshot.Order.amount - 1, Uniorderx.Order.amount, $"Order amount {odrblksnapshot.Order.amount} remaining amount {Uniorderx.Order.amount} not right. state: {Uniorderx.UOStatus}");
+            Assert.AreEqual(odrblksnapshot.AccountID, Uniorderx.AccountID, $"got the wrong order block!!!");
+            Assert.AreEqual(odrblksnapshot.Order.amount - 1, Uniorderx.Order.amount, $"Order {odrblksnapshot} height {(odrblksnapshot as Block).Height} amount {odrblksnapshot.Order.amount} remaining height {(Uniorderx as Block).Height} amount {Uniorderx.Order.amount} not right. state: {Uniorderx.UOStatus}");
 
             //if(direction == TradeDirection.Buy)
             //    Assert.IsTrue(0.9m == Uniorderx.Order.amount, "order not processed");
@@ -1771,7 +1776,7 @@ namespace UnitTests
 
         private async Task TestDealerAsync()
         {
-            var url = "https://dealer.devnet.lyra.live:7070";
+            var url = "https://dealerdevnet.lyra.live";
             dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
             var dealerAbi = new Wallet.LyraContractABI
             {
