@@ -81,7 +81,6 @@ namespace Lyra.Core.WorkFlow.Uni
                 .Where(a => a.UTStatus == UniTradeStatus.Closed)
                 .Sum(a => a.Trade.amount);
 
-
             // transaction fee
             totalFee += Math.Round(order.cltamt * daoforodr.SellerFeeRatio, 8);
             networkFee = order.cltamt * LyraGlobal.OfferingNetworkFeeRatio;
