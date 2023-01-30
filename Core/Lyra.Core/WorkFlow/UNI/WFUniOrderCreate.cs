@@ -99,10 +99,20 @@ namespace Lyra.Core.WorkFlow
             // verify crypto
             if(LyraGlobal.GetAccountTypeFromTicker(propGen.Ticker) != AccountTypes.TOT)
             {
-                if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
-                    chgs.Changes[propGen.Ticker] != order.amount ||
-                    chgs.Changes.Count != 2)
-                    return APIResultCodes.InvalidAmountToSend;
+                if(propGen.Ticker == "LYR") // selling LYR, special treat
+                {
+                    if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
+                        chgs.Changes[propGen.Ticker] != order.amount + order.cltamt + LyraGlobal.GetListingFeeFor() ||
+                        chgs.Changes.Count != 1)
+                        return APIResultCodes.InvalidAmountToSend;
+                }    
+                else
+                {
+                    if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
+                        chgs.Changes[propGen.Ticker] != order.amount ||
+                        chgs.Changes.Count != 2)
+                        return APIResultCodes.InvalidAmountToSend;
+                }
             }
 
             // check the price of order and collateral.
@@ -254,7 +264,14 @@ namespace Lyra.Core.WorkFlow
 
             Uniblock.Balances.Add(order.offering, order.amount.ToBalanceLong());
 
-            Uniblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
+            if(order.offering == "LYR")
+            {
+                Uniblock.Balances[LyraGlobal.OFFICIALTICKERCODE] += 2m.ToBalanceLong();   // for delist and close use later
+            }
+            else
+            {
+                Uniblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
+            }
 
             Uniblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 

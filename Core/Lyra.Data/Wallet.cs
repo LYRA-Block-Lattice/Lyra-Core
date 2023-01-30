@@ -2558,8 +2558,13 @@ namespace Lyra.Core.Accounts
             var amounts = new Dictionary<string, decimal>
             {
                 { LyraGlobal.OFFICIALTICKERCODE, LyraGlobal.GetListingFeeFor() + order.cltamt },
-                { order.offering, order.amount }
+                //{ order.offering, order.amount }
             };
+
+            if (order.offering == LyraGlobal.OFFICIALTICKERCODE)
+                amounts[order.offering] += order.amount;
+            else
+                amounts.Add(order.offering, order.amount);
 
             var result = await SendExAsync(order.daoId, amounts, tags);
             return result;

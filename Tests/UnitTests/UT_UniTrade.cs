@@ -58,7 +58,12 @@ namespace UnitTests
 
             // end
 
-
+            // try to sell LYR fot fiat/USD
+            Console.WriteLine("try to sell LYR fot fiat/USD");
+            _currentTestTask = "LYR2Tether";
+            var lyrgenret = await testWallet.RPC.GetTokenGenesisBlockAsync(testWallet.AccountId, "LYR", "");
+            var lyrgen = lyrgenret.As<LyraTokenGenesisBlock>();
+            await TestUniTradeAsync(dao, testWallet, lyrgen, test2Wallet, fiatUSD);
 
             await TestTradeMatrixAsync(netid, dao);
 
@@ -1136,8 +1141,18 @@ namespace UnitTests
             var offeringBalanceTokenOut = offeringWallet.GetLastSyncBlock().Balances[offeringGen.Ticker].ToBalanceDecimal();
             var bidingBalanceTokenOut = bidingWallet.GetLastSyncBlock().Balances.ContainsKey(offeringGen.Ticker) ?
                 bidingWallet.GetLastSyncBlock().Balances[offeringGen.Ticker].ToBalanceDecimal() : 0;
-            Assert.AreEqual(offeringBalanceTokenInput - 1, offeringBalanceTokenOut);
-            Assert.AreEqual(bidingBalanceTokenInput + 1, bidingBalanceTokenOut);
+
+            if(offeringGen.Ticker == "LYR")
+            {
+                var offShouldBe = offeringBalanceTokenInput - 1 - LyraGlobal.GetListingFeeFor();
+                Assert.AreEqual(offShouldBe, offeringBalanceTokenOut, $"delta: {offShouldBe- offeringBalanceTokenOut}, collateral: {collateralCount}");
+                Assert.AreEqual(bidingBalanceTokenInput + 1, bidingBalanceTokenOut);
+            }
+            else
+            {
+                Assert.AreEqual(offeringBalanceTokenInput - 1, offeringBalanceTokenOut);
+                Assert.AreEqual(bidingBalanceTokenInput + 1, bidingBalanceTokenOut);
+            }
 
             var daolatest2 = (await offeringWallet.RPC.GetLastBlockAsync(dao.AccountID)).As<TransactionBlock>();
             var daoBalanceOutput = daolatest2.Balances["LYR"].ToBalanceDecimal();

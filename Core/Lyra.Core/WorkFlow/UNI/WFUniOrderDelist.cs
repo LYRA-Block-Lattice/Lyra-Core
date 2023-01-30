@@ -79,7 +79,14 @@ namespace Lyra.Core.WorkFlow.Uni
                     var dict = lastblock.Balances.ToDecimalDict();
 
                     // send the amount of crypto to order owner
-                    dict[order.offering] = 0;
+                    if(order.offering == "LYR")
+                    {
+                        dict[order.offering] -= order.amount;
+                    }
+                    else
+                    {
+                        dict[order.offering] = 0;
+                    }                    
 
                     b.Balances = dict.ToLongDict();
 
