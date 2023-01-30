@@ -160,7 +160,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
 
-                    b.Balances[trade.Trade.offering] = 0;
+                    b.Balances[trade.Trade.offering] -= trade.Trade.amount.ToBalanceLong();
                 });
         }
 

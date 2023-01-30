@@ -69,6 +69,14 @@ namespace Lyra.Core.WorkFlow.Uni
             var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
             var order = (odrgen as IUniOrder).Order;
 
+            // about the calculation of fee.
+            // first we need fee paid by LYR. so we need the value of the token.
+            // but we don't know the value of token.
+            // but we know that the buyer/sell know the value.
+            // so we have the fee based on the recognize of buyer/seller.
+            // collateral by the seller/buyer rito, and calculate it by 100%.
+            // the 100% of value is maintained by both the seller and buyer. no more, no less.
+            
             // order owner's fee is calculated on order close.
             // trade owner's fee is calculated on trade close.
             // calculate fees

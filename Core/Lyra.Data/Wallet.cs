@@ -2584,7 +2584,17 @@ namespace Lyra.Core.Accounts
             };
 
             if(!LyraGlobal.GetOTCRequirementFromTicker(trade.biding))
-                amounts.Add(trade.biding, trade.amount);
+            {
+                if(trade.biding == "LYR")
+                {
+                    amounts[trade.biding] += trade.amount;
+                }
+                else
+                {
+                    amounts.Add(trade.biding, trade.amount);
+                }
+            }
+                
 
             var result = await SendExAsync(trade.daoId, amounts, tags);
             return result;

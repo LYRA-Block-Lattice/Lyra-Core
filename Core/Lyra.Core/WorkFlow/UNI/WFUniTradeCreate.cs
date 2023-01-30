@@ -181,11 +181,23 @@ namespace Lyra.Core.WorkFlow
 
             if(!LyraGlobal.GetOTCRequirementFromTicker(bidg.Ticker))
             {
-                if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
-                    chgs.Changes[bidg.Ticker] != trade.amount ||
-                        chgs.Changes.Count != 2)
+                if(bidg.Ticker == "LYR")
                 {
-                    return APIResultCodes.InvalidAmountToSend;
+                    if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
+                        chgs.Changes[bidg.Ticker] != trade.amount + trade.cltamt ||
+                            chgs.Changes.Count != 1)
+                    {
+                        return APIResultCodes.InvalidAmountToSend;
+                    }
+                }
+                else
+                {
+                    if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
+                        chgs.Changes[bidg.Ticker] != trade.amount ||
+                            chgs.Changes.Count != 2)
+                    {
+                        return APIResultCodes.InvalidAmountToSend;
+                    }
                 }
             }
 
@@ -369,7 +381,7 @@ namespace Lyra.Core.WorkFlow
 
                     b.DestinationAccountId = trade.OwnerAccountId;
 
-                    b.Balances[trade.Trade.offering] = 0;
+                    b.Balances[trade.Trade.offering] -= trade.Trade.amount.ToBalanceLong();
                 });
         }
 
