@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Core.Decentralize;
+using Loyc.Collections;
 
 namespace Lyra.Core.WorkFlow
 {
@@ -165,6 +166,9 @@ namespace Lyra.Core.WorkFlow
                 else
                     recvBalances.Add(chg.Key, chg.Value);
             }
+            // remove zero
+            var zeros = recvBalances.Where(a => a.Value == 0 && !txInfo.Changes.ContainsKey(a.Key)).Select(a => a.Key).ToList();
+            zeros.ForEach(a => recvBalances.Remove(a));
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
