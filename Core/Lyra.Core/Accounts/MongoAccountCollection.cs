@@ -2741,7 +2741,7 @@ namespace Lyra.Core.Accounts
             var q = await _snapshots
                 .FindAsync(filterDefination);
 
-            return q.ToList();
+            return q.ToList().OrderByDescending(a => a.TimeStamp).ToList();
         }
 
         public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync()
