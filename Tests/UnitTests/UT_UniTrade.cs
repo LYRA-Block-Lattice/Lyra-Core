@@ -57,8 +57,7 @@ namespace UnitTests
             // tmp zone for fast test
 
             // end
-
-            /*
+            
             // try to sell LYR for fiat/USD
             Console.WriteLine("try to sell LYR for fiat/USD");
             _currentTestTask = "LYR2Tether";
@@ -69,9 +68,9 @@ namespace UnitTests
             // try to sell fiat/USD for LYR
             Console.WriteLine("try to sell fiat/USD for LYR");
             _currentTestTask = "Tether2LYR";
-            await TestUniTradeAsync(dao, testWallet, fiatUSD, test2Wallet, lyrgen);*/
+            await TestUniTradeAsync(dao, testWallet, fiatUSD, test2Wallet, lyrgen);
 
-            await TestTradeMatrixAsync(netid, dao);
+            
 
             // tot
             var metaurl1 = await CreateTotMetaDataAsync(netid, testWallet, HoldTypes.TOT, "tot1", "test tot 1", null);
@@ -124,6 +123,8 @@ namespace UnitTests
             Console.WriteLine("Test tot to tot");
             _currentTestTask = "TOT2TOT";
             await TestUniTradeAsync(dao, testWallet, totg1, test2Wallet, totg2);
+
+            //await TestTradeMatrixAsync(netid, dao);
 
             _currentTestTask = "DAOCHG";
             //await TestChangeDAO();
@@ -952,8 +953,6 @@ namespace UnitTests
             await WaitWorkflow(ret.TxHash, $"CreateUniOrderAsync");
 
             var daoBalance = daoBalanceInput + collateralCount + 98;
-            if (offeringGen.Ticker == "LYR")
-                daoBalance += 3;
             await DaoTraeasureShouldBe(dao, daoBalance);
 
             var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
