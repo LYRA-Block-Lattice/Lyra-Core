@@ -5,7 +5,7 @@
         "NetworkId": "devnet",
         "Database": {
           "DatabaseName": "lyra",
-          "DBConnect": "mongodb://lexuser:alongpassword@127.0.0.1"
+          "DBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/lyra"
         },
         "Wallet": {
           "Name": "poswallet",

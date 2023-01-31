@@ -69,10 +69,10 @@ namespace Lyra.Data.Utils
         {
             DatabaseName = section.GetSection("DatabaseName").Value;
             var dbstr = section.GetSection("DBConnect").Value;
-            if (dbstr.EndsWith("/lyra"))    // old config ends with /lyra
-                dbstr = dbstr.Replace("/lyra", "");
-            if (dbstr.EndsWith("/"))        // prevent dummy error
-                dbstr = dbstr.TrimEnd('/');
+            //if (dbstr.EndsWith("/lyra"))    // old config ends with /lyra
+            //    dbstr = dbstr.Replace("/lyra", "");
+            //if (dbstr.EndsWith("/"))        // prevent dummy error
+            //    dbstr = dbstr.TrimEnd('/');
             DBConnect = dbstr;
         }
     }
