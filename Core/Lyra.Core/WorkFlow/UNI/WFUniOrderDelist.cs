@@ -27,8 +27,7 @@ namespace Lyra.Core.WorkFlow.Uni
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_UNI_ORDDELST,
-                RecvVia = BrokerRecvType.DaoRecv,
-                Steps = new [] { DelistOrderAsync }
+                RecvVia = BrokerRecvType.None
             };
         }
 
@@ -59,7 +58,7 @@ namespace Lyra.Core.WorkFlow.Uni
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> DelistOrderAsync(DagSystem sys, LyraContext context)
+        protected override async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var daoid = send.Tags["daoid"];
@@ -68,23 +67,30 @@ namespace Lyra.Core.WorkFlow.Uni
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
             var order = (lastblock as IUniOrder).Order;
 
-            return await TransactionOperateAsync(sys, send.Hash, lastblock,
-                () => lastblock.GenInc<UniOrderSendBlock>(),
-                () => context.State,
+            return await TransReceiveAsync<UniOrderRecvBlock>(sys, send.Hash, send, orderid, context.State, 
+                new WorkflowAuthResult { Result = APIResultCodes.Success },
                 (b) =>
                 {
-                        // send
-                    (b as SendTransferBlock).DestinationAccountId = (lastblock as IBrokerAccount).OwnerAccountId;
-
-                    var dict = lastblock.Balances.ToDecimalDict();
-
-                    // send the amount of crypto to order owner
-                    dict[order.offering] -= order.amount;            
-
-                    b.Balances = dict.ToLongDict();
-
                     (b as IUniOrder).UOStatus = UniOrderStatus.Delist;
                 });
+
+            //return await TransactionOperateAsync(sys, send.Hash, lastblock,
+            //    () => lastblock.GenInc<UniOrderRecvBlock>(),
+            //    () => context.State,
+            //    (b) =>
+            //    {
+            //            // send
+            //        (b as ReceiveTransferBlock).SourceHash = send.Hash;
+
+            //        var dict = lastblock.Balances.ToDecimalDict();
+
+            //        // send the amount of crypto to order owner
+            //        dict[order.offering] -= order.amount;            
+
+            //        b.Balances = dict.ToLongDict();
+
+            //        (b as IUniOrder).UOStatus = UniOrderStatus.Delist;
+            //    });
         }
     }
 }

@@ -64,7 +64,7 @@ namespace Lyra.Core.WorkFlow
             return Task.FromResult((TransactionBlock)null);
         }
 
-        private async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context)
+        protected virtual async Task<ReceiveTransferBlock?> DefaultReceiveAsync(DagSystem sys, LyraContext context)
         {
             Console.WriteLine("In DefaultReceiveAsync");
             var desc = GetDescription();
@@ -415,6 +415,9 @@ namespace Lyra.Core.WorkFlow
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var desc = GetDescription();
 
+            if (operations == null)
+                return null;
+
             var cnt = desc.RecvVia == BrokerRecvType.None;
             var index = blocks.Count - (cnt ? 0 : 1);
             if (index >= operations.Length)
@@ -506,7 +509,8 @@ namespace Lyra.Core.WorkFlow
             return TransReceiveAsync<T>(sys, context.Send.Hash, context.Send, context.Send.DestinationAccountId, context.State, context.AuthResult);
         }
 
-        protected async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState, WorkflowAuthResult authResult) where T : TransactionBlock
+        protected async Task<T> TransReceiveAsync<T>(DagSystem sys, string key, SendTransferBlock send, string recvAccountId, WFState wfState, 
+            WorkflowAuthResult authResult, Action<T> ChangeBlock = null) where T : TransactionBlock
         {
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
@@ -541,6 +545,8 @@ namespace Lyra.Core.WorkFlow
                     {
                         recv.AddTag("auth", authResult.Result.ToString());
                     }
+
+                    ChangeBlock?.Invoke(b);
                 });
         }
 
