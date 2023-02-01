@@ -1118,5 +1118,16 @@ namespace Lyra.Core.API
             else
                 throw new Exception("Web Api Failed.");
         }
+
+        public async Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "AccountId", AccountId },
+                { "height", height.ToString() }
+            };
+
+            return await GetAsync<BlockAPIResult>("FindBlockByHeight", args);
+        }
     }
 }

@@ -31,7 +31,7 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        public override Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context)
+        public override Task<Func<DagSystem, LyraContext, Task<TransactionBlock?>>[]> GetProceduresAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             if (send.Tags == null)
@@ -225,7 +225,7 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SendTokenFromOrderToTradeAsync(DagSystem sys, LyraContext context)
+        async Task<TransactionBlock?> SendTokenFromOrderToTradeAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
@@ -317,7 +317,7 @@ namespace Lyra.Core.WorkFlow
                         });
                 }*/
 
-        async Task<TransactionBlock> TradeGenesisReceiveAsync(DagSystem sys, LyraContext context)
+        async Task<TransactionBlock?> TradeGenesisReceiveAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
@@ -389,7 +389,7 @@ namespace Lyra.Core.WorkFlow
             return Uniblock;
         }
 
-        async Task<TransactionBlock> SendTokenFromDaoToTradeAsync(DagSystem sys, LyraContext context)
+        async Task<TransactionBlock?> SendTokenFromDaoToTradeAsync(DagSystem sys, LyraContext context)
         {
             var send = context.Send;
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
@@ -411,7 +411,7 @@ namespace Lyra.Core.WorkFlow
                 amounts, context.State);
         }
 
-        async Task<TransactionBlock> TradeReceiveTokenFromDaoAsync(DagSystem sys, LyraContext context)
+        async Task<TransactionBlock?> TradeReceiveTokenFromDaoAsync(DagSystem sys, LyraContext context)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(context.Send.Hash);
             var daosnd = blocks.Last() as DaoSendBlock;

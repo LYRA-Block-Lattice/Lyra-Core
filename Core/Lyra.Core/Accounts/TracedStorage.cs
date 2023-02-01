@@ -53,7 +53,7 @@ namespace Lyra.Core.Accounts
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.GetNonFungibleTokensAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.GetNonFungibleTokensAsync(AccountId);
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.FindUnsettledSendBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindUnsettledSendBlockAsync(AccountId);
         public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.TrackAsync(() => _store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
-
+        public async Task<Block> FindBlockByHeightAsync(string AccountId, long height) => await StopWatcher.TrackAsync(() => _store.FindBlockByHeightAsync(AccountId, height), StopWatcher.GetCurrentMethod());//_store.FindBlockByHeightAsync(AccountId, height);
         // v2
         public async Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrdersAsync(catalog), StopWatcher.GetCurrentMethod());
         public async Task<BsonDocument> FindTradableUniOrders2Async(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrders2Async(catalog), StopWatcher.GetCurrentMethod());

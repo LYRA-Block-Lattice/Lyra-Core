@@ -3,6 +3,7 @@ using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using Org.BouncyCastle.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -703,6 +704,11 @@ namespace Lyra.Data.API
         public Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderid)
         {
             return SeedClient.GetUniOrderByIdAsync(orderid);
+        }
+
+        public Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            return SeedClient.FindBlockByHeightAsync(AccountId, height);
         }
         #endregion
     }

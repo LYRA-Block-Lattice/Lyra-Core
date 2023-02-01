@@ -40,7 +40,9 @@ namespace Lyra.Core.WorkFlow.Uni
                     SealTradeAsync,
                     SendTokenFromTradeToOrderAsync,
                     OrderReceiveTokenFromTradeAsync,
-                    SendCollateralToBuyerAsync };
+                    SendCollateralToBuyerAsync
+            };
+            
             //}
             //else
             //{
@@ -195,6 +197,7 @@ namespace Lyra.Core.WorkFlow.Uni
             var tradeid = send.Tags["tradeid"];
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
+            var tradeblk = lastblock as IUniTrade;
 
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
 
@@ -211,10 +214,10 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     // balance
                     var oldbalance = b.Balances.ToDecimalDict();
-                    foreach(var key in b.Balances.Keys)
-                    {
-                        oldbalance[key] = 0;
-                    }
+
+                    oldbalance[tradeblk.Trade.offering] = 0;
+                    oldbalance["LYR"] -= tradeblk.OdrCltMmt.ToBalanceDecimal();
+                    
                     b.Balances = oldbalance.ToLongDict();
                 });
         }
@@ -275,6 +278,7 @@ namespace Lyra.Core.WorkFlow.Uni
 
                     // balance
                     var oldbalance = b.Balances.ToDecimalDict();
+                    oldbalance[tradeblk.Trade.biding] -= tradeblk.Trade.pay;
                     oldbalance["LYR"] -= tradeblk.Trade.cltamt;
                     b.Balances = oldbalance.ToLongDict();
                 });

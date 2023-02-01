@@ -140,6 +140,7 @@ namespace Lyra.Core.API
         Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog);
         Task<string?> FindTokensAsync(string? keyword, string? cat);
         Task<string?> FindDaosAsync(string? keyword);
+        Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height);
     }
 
     public interface INodeTransactionAPI

@@ -607,14 +607,14 @@ namespace Lyra.Core.Accounts
             return Task.FromResult(blk);
         }
 
-        //public async Task<Block> FindBlockByHeightAsync(string AccountId, long height)
-        //{
-        //    var ftr = Builders<Block>.Filter;
-        //    var def = ftr.And(ftr.Eq("AccountID", AccountId), ftr.Eq("Height", height));
-        //    var blk = await _blocks.Find(def)
-        //        .FirstOrDefaultAsync();
-        //    return blk;
-        //}
+        public async Task<Block> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            var ftr = Builders<Block>.Filter;
+            var def = ftr.And(ftr.Eq("AccountID", AccountId), ftr.Eq("Height", height));
+            var blk = await _blocks.Find(def)
+                .FirstOrDefaultAsync();
+            return blk;
+        }
 
         public Task<Block> FindLatestBlockAsync(string AccountId)
         {

@@ -1794,6 +1794,11 @@ namespace Lyra.Core.Decentralize
         {
             throw new NotImplementedException();
         }
+
+        public Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
