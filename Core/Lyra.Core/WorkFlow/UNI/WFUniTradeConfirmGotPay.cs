@@ -26,8 +26,9 @@ namespace Lyra.Core.WorkFlow.Uni
                 RecvVia = BrokerRecvType.None,
                 Steps = new[] { 
                     ChangeStateToBidReceivedAsync, 
-                    SendCryptoProductFromTradeToBuyerAsync, 
-                    SendCollateralFromDAOToTradeOwnerAsync
+                    SendPropsFromTradeToBuyerAsync, 
+                    SendPropsFromTradeToSellerAsync,
+                    SendFeesToDaoAsync
                 }
             };
         }
@@ -141,7 +142,7 @@ namespace Lyra.Core.WorkFlow.Uni
             return offerIsOk && bidIsOk;
         }
 
-        protected async Task<TransactionBlock?> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
+        protected async Task<TransactionBlock?> SendPropsFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
         {
             if (!await CheckTradeDone(sys, context))
                 return null;
@@ -156,15 +157,36 @@ namespace Lyra.Core.WorkFlow.Uni
                 {
                     var trade = b as IUniTrade;
 
-                    trade.UTStatus = UniTradeStatus.Closed;
-
                     (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
 
                     b.Balances[trade.Trade.offering] -= trade.Trade.amount.ToBalanceLong();
+                    b.Balances["LYR"] -= trade.Trade.cltamt.ToBalanceLong();
                 });
         }
 
-        protected async Task<TransactionBlock?> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, LyraContext context)
+        protected async Task<TransactionBlock?> SendPropsFromTradeToSellerAsync(DagSystem sys, LyraContext context)
+        {
+            if (!await CheckTradeDone(sys, context))
+                return null;
+
+            var sendBlock = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<UniTradeSendBlock>(),
+                () => context.State,
+                (b) =>
+                {
+                    var trade = b as IUniTrade;
+
+                    (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
+
+                    b.Balances[trade.Trade.biding] -= trade.Trade.pay.ToBalanceLong();
+                    b.Balances["LYR"] -= trade.OdrCltMmt;
+                });
+        }
+
+        protected async Task<TransactionBlock?> SendPropsFromTradeToSellerAsyncx(DagSystem sys, LyraContext context)
         {
             if (!await CheckTradeDone(sys, context))
                 return null;
@@ -195,7 +217,7 @@ namespace Lyra.Core.WorkFlow.Uni
             //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
-                () => daolastblock.GenInc<DaoSendBlock>(),
+                () => daolastblock.GenInc<UniTradeSendBlock>(),
                 () => context.State,
                 (b) =>
                 {
@@ -211,6 +233,11 @@ namespace Lyra.Core.WorkFlow.Uni
                     oldbalance[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
                     b.Balances = oldbalance.ToLongDict();
                 });
+        }
+
+        protected async Task<TransactionBlock?> SendFeesToDaoAsync(DagSystem sys, LyraContext context)
+        {
+            throw new NotImplementedException();
         }
 
         protected async Task<TransactionBlock?> ChangeStateToBidReceivedAsync(DagSystem sys, LyraContext context)

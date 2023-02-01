@@ -2583,18 +2583,14 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, trade.cltamt },
             };
 
-            if(!LyraGlobal.GetOTCRequirementFromTicker(trade.biding))
+            if (trade.biding == "LYR")
             {
-                if(trade.biding == "LYR")
-                {
-                    amounts[trade.biding] += trade.amount;
-                }
-                else
-                {
-                    amounts.Add(trade.biding, trade.amount);
-                }
+                amounts[trade.biding] += trade.pay;
             }
-                
+            else
+            {
+                amounts.Add(trade.biding, trade.pay);
+            }
 
             var result = await SendExAsync(trade.daoId, amounts, tags);
             return result;

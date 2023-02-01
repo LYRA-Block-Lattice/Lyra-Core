@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
+using System.Text;
 using System.Threading.Tasks;
 using static Akka.Streams.Attributes;
 
@@ -952,7 +953,7 @@ namespace UnitTests
             //return;
             await WaitWorkflow(ret.TxHash, $"CreateUniOrderAsync");
 
-            var daoBalance = daoBalanceInput + collateralCount + 100; // listing fee to the DAO
+            var daoBalance = daoBalanceInput + 100; // listing fee to the DAO
             await DaoTraeasureShouldBe(dao, daoBalance);
 
             var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);
@@ -1167,7 +1168,7 @@ namespace UnitTests
             //Assert.AreEqual(daoBalanceShouldBe, daoBalanceOutput, $"Dao treasure balance is not right, diff: {daoBalanceOutput - daoBalanceShouldBe} dao addr: {daolatest2.AccountID}");
         }
 
-        private async Task ConfirmOTCAsync(UniTradeGenesisBlock tradgen, bool IsBid, Wallet fromWallet, Wallet toWallet)
+        private async Task ConfirmOTCAsync(IUniTrade tradeLatest, bool IsBid, Wallet fromWallet, Wallet toWallet)
         {
             //await CancelUniTrade(test2Wallet, tradgen);
             //await test2Wallet.SyncAsync(null);
@@ -1176,7 +1177,7 @@ namespace UnitTests
 
             //tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, Unig, collateralCount);
             // cancel one
-            var tradeQueryRet2 = await testWallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            var tradeQueryRet2 = await testWallet.RPC.GetLastBlockAsync(tradeLatest.AccountID);
             Assert.IsTrue(tradeQueryRet2.Successful(), $"Can't query trade via GetLastBlockAsync: {tradeQueryRet2.ResultCode}");
             var tradlast = tradeQueryRet2.GetBlock() as IUniTrade;
             Assert.IsTrue(tradlast.Delivery != null);
@@ -1189,16 +1190,16 @@ namespace UnitTests
             {
                 Catalog = IsBid ? PoDCatalog.BidSent : PoDCatalog.OfferSent,
                 Owner = wlt.AccountId,
-                Carrier = tradgen.Trade.payVia,
+                Carrier = tradeLatest.Trade.payVia,
                 TrackingTag = "A000000000",
             };
 
-            AuthorizationAPIResult payindret = await wlt.UniSendProofOfDiliveryAsync(tradgen.AccountID, pod1);
+            AuthorizationAPIResult payindret = await wlt.UniSendProofOfDiliveryAsync(tradeLatest.AccountID, pod1);
             Assert.IsTrue(payindret.Successful(), $"Pay sent indicator error: {payindret.ResultCode}");
 
             await WaitWorkflow(payindret.TxHash, $"UniSendProofOfDiliveryAsync");
             // status changed to BuyerPaid
-            var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            var trdlatest = await test2Wallet.RPC.GetLastBlockAsync(tradeLatest.AccountID);
             Assert.IsTrue(trdlatest.Successful(), $"Can't get trade latest block: {trdlatest.ResultCode}");
             Assert.AreEqual(UniTradeStatus.Processing, (trdlatest.GetBlock() as IUniTrade).UTStatus,
                 $"Trade statust not changed to Delivering");
@@ -1220,13 +1221,13 @@ namespace UnitTests
                 TrackingTag = pod1.TrackingTag
             };
 
-            var gotpayret = await wlt2.UniConfirmProofOfDiliveryAsync(tradgen.AccountID, pod2);
+            var gotpayret = await wlt2.UniConfirmProofOfDiliveryAsync(tradeLatest.AccountID, pod2);
             Assert.IsTrue(gotpayret.Successful(), $"Got Payment indicator error: {payindret.ResultCode}");
 
             await WaitWorkflow(gotpayret.TxHash, $"UniConfirmProofOfDiliveryAsync");
 
             // status
-            var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradgen.AccountID);
+            var trdlatest2 = await test2Wallet.RPC.GetLastBlockAsync(tradeLatest.AccountID);
             Assert.IsTrue(trdlatest2.Successful(), $"Can't get trade latest block: {trdlatest2.ResultCode}");
 
             tradlast = trdlatest2.GetBlock() as IUniTrade;
@@ -1282,7 +1283,7 @@ namespace UnitTests
             Assert.AreEqual(UniTradeStatus.Canceled, tradelst.UTStatus, "not close trade properly");
         }
 
-        private async Task<UniTradeGenesisBlock> CreateUniTradeAsync(IDao dao, Wallet offeringWallet, Wallet bidingWallet, UniOrderGenesisBlock Unig, 
+        private async Task<IUniTrade> CreateUniTradeAsync(IDao dao, Wallet offeringWallet, Wallet bidingWallet, UniOrderGenesisBlock Unig, 
             int callateralCount)
         {
             Console.WriteLine("Calling CreateUniTradeAsync");
@@ -1325,7 +1326,7 @@ namespace UnitTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(traderet.TxHash), "No TxHash for trade create.");
 
             await WaitWorkflow(traderet.TxHash, $"CreateUniTradeAsync for sell");
-            await Task.Delay(1000); //maybe not needed
+            //await Task.Delay(1000); //maybe not needed
             //if(trade.biding.StartsWith("tether"))
             //{
             //    await Task.Delay(10000000);
@@ -1338,10 +1339,10 @@ namespace UnitTests
             var Unis2 = Uniret2.GetBlocks();
             Assert.IsTrue(Unis2.First() is IUniOrder, $"Uni block count not = 1.");
             var Uniorderx = Unis2.First() as IUniOrder;
-
+            
             Assert.AreEqual(odrblksnapshot.AccountID, Uniorderx.AccountID, $"got the wrong order block!!!");
             Assert.AreEqual(odrblksnapshot.Order.amount - 1, Uniorderx.Order.amount, $"Order {odrblksnapshot} height {(odrblksnapshot as Block).Height} amount {odrblksnapshot.Order.amount} remaining height {(Uniorderx as Block).Height} amount {Uniorderx.Order.amount} not right. state: {Uniorderx.UOStatus}");
-
+            
             //if(direction == TradeDirection.Buy)
             //    Assert.IsTrue(0.9m == Uniorderx.Order.amount, "order not processed");
             //Assert.AreEqual(0.9m, Uniorderx.Order.amount, "order not processed");
@@ -1350,9 +1351,18 @@ namespace UnitTests
             var related = await bidingWallet.RPC.GetBlocksByRelatedTxAsync(traderet.TxHash);
             Assert.IsTrue(related.Successful(), $"Can't get rleated tx for trade genesis: {related.ResultCode}");
             var blks = related.GetBlocks();
-            var tradgen = blks.LastOrDefault(a => a is UniTradeGenesisBlock) as UniTradeGenesisBlock;
-            Assert.IsNotNull(tradgen, $"Can't get trade genesis: blks count: {blks.Count()}");
-            Assert.AreEqual(trade, tradgen.Trade);
+            var tradgenLast = blks.LastOrDefault() as IUniTrade;
+            Assert.IsNotNull(tradgenLast, $"Can't get trade genesis: blks count: {blks.Count()}");
+            Assert.AreEqual(trade, tradgenLast.Trade);
+
+            // order's collateral should be
+            var rito = trade.amount / ((IUniOrder)odrblksnapshot).Order.amount;
+            var odrcltamtShouldBe = Math.Round(((IUniOrder)odrblksnapshot).Order.cltamt * rito, 8);
+            Assert.AreEqual(odrcltamtShouldBe, tradgenLast.OdrCltMmt.ToBalanceDecimal(), $"OdrCltMmt in trade gen is not right!");
+            // and with proper offering/biding token.
+            
+            Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.offering] >= 1, $"offering not right.");
+            Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.biding] >= 2000, $"biding not right.");
 
             var tradeStatusShouldBe = UniTradeStatus.Open;
             bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);
@@ -1367,7 +1377,7 @@ namespace UnitTests
             Assert.IsTrue(tradeQueryRet.Successful(), $"Can't query trade via FindUniTradeAsync: {tradeQueryRet.ResultCode}");
             var tradeQueryResultBlocks = tradeQueryRet.GetBlocks();
             Assert.IsTrue(tradeQueryResultBlocks.Count() >= 1);
-            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks
+            Assert.AreEqual(tradgenLast.AccountID, (tradeQueryResultBlocks
                 .OrderBy(a => a.TimeStamp)
                 .Last() as TransactionBlock).AccountID);
 
@@ -1375,7 +1385,7 @@ namespace UnitTests
             Assert.IsTrue(tradeQueryRet2.Successful(), $"Can't query trade via FindUniTradeAsync: {tradeQueryRet2.ResultCode}");
             var tradeQueryResultBlocks2 = tradeQueryRet2.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks2.Count());
-            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks2
+            Assert.AreEqual(tradgenLast.AccountID, (tradeQueryResultBlocks2
                 .OrderBy(a => a.TimeStamp)
                 .Last() as TransactionBlock).AccountID);
 
@@ -1383,9 +1393,9 @@ namespace UnitTests
             Assert.IsTrue(tradeQueryRet3.Successful(), $"Can't query trade via FindUniTradeByStatusAsync: {tradeQueryRet3.ResultCode}");
             var tradeQueryResultBlocks3 = tradeQueryRet3.GetBlocks();
             //Assert.AreEqual(1, tradeQueryResultBlocks3.Count());
-            Assert.AreEqual(tradgen.AccountID, (tradeQueryResultBlocks3.Last() as TransactionBlock).AccountID, $"In {_currentTestTask} create trade");
+            Assert.AreEqual(tradgenLast.AccountID, (tradeQueryResultBlocks3.Last() as TransactionBlock).AccountID, $"In {_currentTestTask} create trade");
 
-            return tradgen;
+            return tradgenLast;
         }
 
         private async Task<string> TestUniTradeDispute()

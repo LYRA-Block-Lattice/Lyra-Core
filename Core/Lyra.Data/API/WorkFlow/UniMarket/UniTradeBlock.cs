@@ -108,6 +108,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     public interface IUniTrade : IBrokerAccount
     {
         UniTrade Trade { get; set; }
+        long OdrCltMmt { get; set; }
         DeliveryStatus Delivery { get; set; }
         UniTradeStatus UTStatus { get; set; }
     }
@@ -115,6 +116,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     [BsonIgnoreExtraElements]
     public class UniTradeRecvBlock : BrokerAccountRecv, IUniTrade
     {
+        public long OdrCltMmt { get; set; }
         public UniTrade Trade { get; set; } = null!;
         public DeliveryStatus Delivery { get; set; } = null!;
         public UniTradeStatus UTStatus { get; set; }
@@ -131,6 +133,8 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
             return base.AuthCompare(ob) &&
                 UTStatus == ob.UTStatus &&
+                OdrCltMmt == ob.OdrCltMmt &&
+                Delivery?.HashSrc == ob.Delivery?.HashSrc &&
                     Trade.Equals(ob.Trade);
         }
 
@@ -139,6 +143,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData(this) + "|";
             extraData += $"{UTStatus}|";
+            extraData += $"{OdrCltMmt}|";
             extraData += $"{Delivery.HashSrc}|";
             return extraData;
         }
@@ -148,6 +153,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string result = base.Print();
             result += $"{Trade}\n";
             result += $"Status: {UTStatus}\n";
+            result += $"Oder Collateral Amont: {OdrCltMmt}\n";
             result += Delivery.ToString();
             return result;
         }
@@ -156,6 +162,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
     [BsonIgnoreExtraElements]
     public class UniTradeSendBlock : BrokerAccountSend, IUniTrade
     {
+        public long OdrCltMmt { get; set; }
         public UniTrade Trade { get; set; } = null!;
         public DeliveryStatus Delivery { get; set; } = null!;
         public UniTradeStatus UTStatus { get; set; }
@@ -172,6 +179,8 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
             return base.AuthCompare(ob) &&
                 UTStatus == ob.UTStatus &&
+                OdrCltMmt == ob.OdrCltMmt &&
+                Delivery?.HashSrc == ob.Delivery?.HashSrc &&
                     Trade.Equals(ob.Trade);
         }
 
@@ -180,6 +189,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string extraData = base.GetExtraData();
             extraData += Trade.GetExtraData(this) + "|";
             extraData += $"{UTStatus}|";
+            extraData += $"{OdrCltMmt}|";
             extraData += $"{Delivery.HashSrc}|";
             return extraData;
         }
@@ -189,6 +199,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string result = base.Print();
             result += $"{Trade}\n";
             result += $"Status: {UTStatus}\n";
+            result += $"Oder Collateral Amont: {OdrCltMmt}\n";
             result += Delivery.ToString();
             return result;
         }

@@ -1,4 +1,5 @@
 ﻿using Converto;
+using Loyc.Collections;
 using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
@@ -55,6 +56,11 @@ namespace Lyra.Core.WorkFlow
                 return Task.FromResult(new[] {
                     SendTokenFromOrderToTradeAsync,
                     TradeGenesisReceiveAsync,
+
+                    // send buyer's collateral and toke from dao to the trade
+                    // so the trade has 4 properties: offering, biding, collateral of seller, collateral of buyer.
+                    SendTokenFromDaoToTradeAsync,
+                    TradeReceiveTokenFromDaoAsync,
                                         
                     // bellow auto trade
                     // for buyer
@@ -84,6 +90,9 @@ namespace Lyra.Core.WorkFlow
                 return Task.FromResult(new[] {
                     SendTokenFromOrderToTradeAsync,
                     TradeGenesisReceiveAsync,
+
+                    SendTokenFromDaoToTradeAsync,
+                    TradeReceiveTokenFromDaoAsync,
                 });
             }
 
@@ -239,17 +248,27 @@ namespace Lyra.Core.WorkFlow
 
                     // IUniTrade
                     var nextOdr = b as IUniOrder;
+                    // send collateral with the rito of token
+                    // basically we devide token with collateral by the same rito.
+                    var rito = trade.amount / ((IUniOrder)lastblock).Order.amount;
+
                     nextOdr.Order = nextOdr.Order.With(new
                     {
                         amount = ((IUniOrder)lastblock).Order.amount - trade.amount,
+                        cltamt = Math.Round(((IUniOrder)lastblock).Order.cltamt * (1 - rito), 8)
                     });
 
-                    nextOdr.UOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
-                        UniOrderStatus.Closed : UniOrderStatus.Partial;
+                    if (((IUniOrder)lastblock).UOStatus == UniOrderStatus.Open)
+                        nextOdr.UOStatus = UniOrderStatus.Partial;
+
+                    // don't set to close. it will be set to close when the trade is closed.
+                    //nextOdr.UOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
+                    //    UniOrderStatus.Closed : UniOrderStatus.Partial;
 
                     // calculate balance
                     var dict = lastblock.Balances.ToDecimalDict();
                     dict[trade.offering] -= trade.amount;
+                    dict[LyraGlobal.OFFICIALTICKERCODE] -= Math.Round(((IUniOrder)lastblock).Order.cltamt * rito, 8);
                     b.Balances = dict.ToLongDict();
                 });
         }
@@ -303,6 +322,7 @@ namespace Lyra.Core.WorkFlow
         {
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var odrsnd = blocks.Last() as UniOrderSendBlock;
 
             var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
             var keyStr = $"{send.Hash.Substring(0, 16)},{trade.offering},{send.AccountID}";
@@ -322,7 +342,7 @@ namespace Lyra.Core.WorkFlow
                 Balances = new Dictionary<string, long>(),
 
                 // receive
-                SourceHash = (blocks.Last() as TransactionBlock).Hash,
+                SourceHash = odrsnd.Hash,
 
                 // broker
                 Name = "no name",
@@ -331,7 +351,8 @@ namespace Lyra.Core.WorkFlow
 
                 // Uni
                 Trade = trade,
-                Delivery = new DeliveryStatus()
+                Delivery = new DeliveryStatus(),
+                UTStatus = UniTradeStatus.Open,
             };
 
             //string wfstr;
@@ -348,15 +369,55 @@ namespace Lyra.Core.WorkFlow
             //    Uniblock.UTStatus = UniTradeStatus.Open;
             //    wfstr = WFState.Finished.ToString();
             //}
-            // TODO: change workflow in other way
+            // TODO: change workflow in other way          
+            var odrSendPrev = await sys.Storage.FindBlockByHashAsync(odrsnd.PreviousHash) as TransactionBlock;
+            var chgs = odrsnd.GetBalanceChanges(odrSendPrev);
 
-            Uniblock.Balances.Add(trade.offering, trade.amount.ToBalanceLong());
+            foreach(var chg in chgs.Changes)
+            {
+                Uniblock.Balances.Add(chg.Key, chg.Value.ToBalanceLong());
+            }
+
+            // set order collateral amount
+            var rito = trade.amount / ((IUniOrder)odrSendPrev).Order.amount;
+            (Uniblock as UniTradeGenesisBlock).OdrCltMmt = Math.Round(((IUniOrder)odrSendPrev).Order.cltamt * rito, 8).ToBalanceLong();
+
             Uniblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             Uniblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            Console.WriteLine($"trade genesis hash input: {Uniblock.GetHashInput()}");
+            //Console.WriteLine($"trade genesis hash input: {Uniblock.GetHashInput()}");
             return Uniblock;
+        }
+
+        async Task<TransactionBlock> SendTokenFromDaoToTradeAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
+            var trade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var tradgen = blocks.Last() as UniTradeGenesisBlock;
+
+            var amounts = new Dictionary<string, decimal> { { trade.biding, trade.pay } };
+            if(trade.biding == "LYR")
+            {
+                amounts["LYR"] += trade.cltamt;
+            }
+            else
+            {
+                amounts.Add("LYR", trade.cltamt);
+            }
+
+            return await TransSendAsync<DaoSendBlock>(sys, context.Send.Hash, trade.daoId, tradgen.AccountID,
+                amounts, context.State);
+        }
+
+        async Task<TransactionBlock> TradeReceiveTokenFromDaoAsync(DagSystem sys, LyraContext context)
+        {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(context.Send.Hash);
+            var daosnd = blocks.Last() as DaoSendBlock;
+
+            return await TransReceiveAsync<UniTradeRecvBlock>(sys, context.Send.Hash, daosnd, daosnd.DestinationAccountId, context.State, null);
         }
 
         protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
@@ -364,6 +425,7 @@ namespace Lyra.Core.WorkFlow
             var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var lastblock = blocks.LastOrDefault() as TransactionBlock;
+
 
             //var trade = (lastblock as IUniTrade).Trade;
             //bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);
@@ -434,18 +496,18 @@ namespace Lyra.Core.WorkFlow
                 });
         }
 
-        protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, LyraContext context)
-        {
-            var send = context.Send;
-            var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            return await SealUniOrderAsync(sys, context, send.Hash, unitrade.orderId);
-        }
+        //protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, LyraContext context)
+        //{
+        //    var send = context.Send;
+        //    var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+        //    return await SealUniOrderAsync(sys, context, send.Hash, unitrade.orderId);
+        //}
 
-        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context)
-        {
-            var send = context.Send;
-            var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
-            return await SendCollateralToSellerAsync(sys, context, send.Hash, unitrade.orderId);
-        }
+        //protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context)
+        //{
+        //    var send = context.Send;
+        //    var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
+        //    return await SendCollateralToSellerAsync(sys, context, send.Hash, unitrade.orderId);
+        //}
     }
 }

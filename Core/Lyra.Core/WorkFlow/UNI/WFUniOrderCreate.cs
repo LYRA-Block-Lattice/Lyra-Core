@@ -187,7 +187,7 @@ namespace Lyra.Core.WorkFlow
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, order.cltamt);
             }
             return await TransSendAsync<DaoSendBlock>(sys, context.Send.Hash, order.daoId, AccountId,
-                new Dictionary<string, decimal> { { order.offering, order.amount } }, context.State);
+                amounts, context.State);
         }
 
         async Task<TransactionBlock?> CreateOrderGenesisAsync(DagSystem sys, LyraContext context)
