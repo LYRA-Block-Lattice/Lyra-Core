@@ -1952,7 +1952,9 @@ namespace Lyra.Core.Decentralize
         public void OnWorkflowTerminated(string key, bool authSuccess, bool hasError)
         {
             // we assume 
-            Console.WriteLine($"OnWorkflowTerminated: {key} Auth: {authSuccess} Error: {hasError}");
+            Console.WriteLine($"{DateTime.Now:mm:ss.ff} OnWorkflowTerminated: {key} Auth: {authSuccess} Error: {hasError}");
+
+            OnWorkflowFinished?.Invoke(key, authSuccess);
         }
 
         public async Task Worker_OnConsensusSuccessAsync(Block block, ConsensusResult? result, bool localIsGood)

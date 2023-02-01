@@ -373,8 +373,10 @@ namespace UnitTests
                 .Callback(async () => { ahr = await api.GetSyncHeightAsync(); })
                 .ReturnsAsync(() => ahr);
 
+            //mock.Setup(x => x.GetLastServiceBlockAsync())
+            //    .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
             mock.Setup(x => x.GetLastServiceBlockAsync())
-                .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
+                .Returns(() => Task.FromResult(BlockAPIResult.Create(svcGen)));
             mock.Setup(x => x.GetLastConsolidationBlockAsync())
                 .Returns(() => Task.FromResult(api.GetLastConsolidationBlockAsync()).Result);
             mock.Setup(x => x.GetBlockByIndexAsync(It.IsAny<string>(), It.IsAny<long>()))
@@ -540,7 +542,6 @@ namespace UnitTests
 
             Console.WriteLine($"\n{_currentTestTask} Waiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 
-            _workflowEnds.Reset();
             var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 30000 : 10000);
             
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
@@ -572,6 +573,9 @@ namespace UnitTests
             Assert.IsTrue(blk1.Tags.ContainsKey("auth"), "wf first block not contains auth tag.");
             var wfresult = Enum.Parse<APIResultCodes>(blk1.Tags["auth"]);
             Assert.IsTrue(wfresult == expected, $"{_currentTestTask} workflow result not expected: {wfresult}");
+
+            _workflowEnds.Reset();
+            Console.WriteLine($"Workflow ({DateTime.Now:mm:ss.ff}) {_currentTestTask} ended.");
             return wfresult;
         }
 

@@ -117,23 +117,23 @@ namespace Lyra.Core.WorkFlow
             }
 
             // check the price of order and collateral.
-            var uri = new Uri(new Uri((dlr as IDealer).Endpoint), "/api/dealer/");
-            var dealer = new DealerClient(uri);
+            //var uri = new Uri(new Uri((dlr as IDealer).Endpoint), "/api/dealer/");
+            //var dealer = new DealerClient(uri);
 
-            // verify user registered on dealer
-            bool userOk = false;
-            try
-            {
-                var user = await dealer.GetUserByAccountIdAsync(send.AccountID);
-                if (user.Successful())
-                {
-                    var stats = JsonConvert.DeserializeObject<UserStats>(user.JsonString);
-                    userOk = !string.IsNullOrEmpty(stats.UserName);
-                }
-            }catch { }
+            //// verify user registered on dealer
+            //bool userOk = false;
+            //try
+            //{
+            //    var user = await dealer.GetUserByAccountIdAsync(send.AccountID);
+            //    if (user.Successful())
+            //    {
+            //        var stats = JsonConvert.DeserializeObject<UserStats>(user.JsonString);
+            //        userOk = !string.IsNullOrEmpty(stats.UserName);
+            //    }
+            //}catch { }
 
-            if (!userOk)
-                return APIResultCodes.NotRegisteredToDealer;
+            //if (!userOk)
+            //    return APIResultCodes.NotRegisteredToDealer;
             /*
             var prices = await dealer.GetPricesAsync();
             var tokenSymbol = propGen.Ticker.Split('/')[1];

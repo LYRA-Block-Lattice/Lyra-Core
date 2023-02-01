@@ -124,7 +124,7 @@ namespace UnitTests
             _currentTestTask = "TOT2TOT";
             await TestUniTradeAsync(dao, testWallet, totg1, test2Wallet, totg2);
 
-            //await TestTradeMatrixAsync(netid, dao);
+            await TestTradeMatrixAsync(netid, dao);
 
             _currentTestTask = "DAOCHG";
             //await TestChangeDAO();
@@ -1848,12 +1848,12 @@ namespace UnitTests
 
             // already tested other place
             // register user to dealer
-            var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
-            var lsb = await devnetLyra.GetLastServiceBlockAsync();
-            var regret = await dealer.RegisterAsync(testWallet.AccountId,
-                    "test", "Unit", "", "Test", "t@", "1111", "1111", "",
-                    Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
-                    "", "");
+            //var devnetLyra = LyraRestClient.Create("devnet", "", "", "");
+            //var lsb = await devnetLyra.GetLastServiceBlockAsync();
+            //var regret = await dealer.RegisterAsync(testWallet.AccountId,
+            //        "test", "Unit", "", "Test", "t@", "1111", "1111", "",
+            //        Signatures.GetSignature(testWallet.PrivateKey, (lsb.GetBlock().Hash), testWallet.AccountId),
+            //        "", "");
             //Assert.IsTrue(regret.Successful());
 
             ResetAuthFail();
