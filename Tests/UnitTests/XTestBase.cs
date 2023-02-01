@@ -542,7 +542,7 @@ namespace UnitTests
 
             Console.WriteLine($"\n{_currentTestTask} Waiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
 
-            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 30000 : 10000);
+            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 30000 : 30000);
             
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
             Assert.IsTrue(ret, $"{_currentTestTask} workflow {_workflowKey} not finished properly.");

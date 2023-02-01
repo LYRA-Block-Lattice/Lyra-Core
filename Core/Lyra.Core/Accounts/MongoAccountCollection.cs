@@ -72,7 +72,7 @@ namespace Lyra.Core.Accounts
             _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // reset db every time for unit test.
-            if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
+            if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
             {
                 if (GetClient() == null)
                     return;
