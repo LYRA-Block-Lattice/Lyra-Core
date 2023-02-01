@@ -952,7 +952,7 @@ namespace UnitTests
             //return;
             await WaitWorkflow(ret.TxHash, $"CreateUniOrderAsync");
 
-            var daoBalance = daoBalanceInput + collateralCount + 98;
+            var daoBalance = daoBalanceInput + collateralCount + 100; // listing fee to the DAO
             await DaoTraeasureShouldBe(dao, daoBalance);
 
             var Uniret = await offeringWallet.RPC.GetUniOrdersByOwnerAsync(offeringWallet.AccountId);

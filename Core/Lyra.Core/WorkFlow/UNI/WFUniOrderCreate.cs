@@ -110,6 +110,7 @@ namespace Lyra.Core.WorkFlow
                 {
                     if (!chgs.Changes.ContainsKey(propGen.Ticker) ||
                         chgs.Changes[propGen.Ticker] != order.amount ||
+                        chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != order.cltamt + LyraGlobal.GetListingFeeFor() ||
                         chgs.Changes.Count != 2)
                         return APIResultCodes.InvalidAmountToSend;
                 }
@@ -169,59 +170,24 @@ namespace Lyra.Core.WorkFlow
         {
             var send = context.Send;
             var order = JsonConvert.DeserializeObject<UniOrder>(send.Tags["data"]);
-
+            
             var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoId) as TransactionBlock;
-
+            
             // TODO: add some randomness, like leaders's some property.
             var keyStr = $"{send.Hash.Substring(0, 16)},{order.offering},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendToOrderBlock = new DaoSendBlock
+            var amounts = new Dictionary<string, decimal> { { order.offering, order.amount } };
+            if (order.offering == LyraGlobal.OFFICIALTICKERCODE)
             {
-                // block
-                ServiceHash = sb.Hash,
-
-                // trans
-                Fee = 0,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                AccountID = lastblock.AccountID,
-
-                // send
-                DestinationAccountId = AccountId,
-
-                // broker
-                Name = ((IBrokerAccount)lastblock).Name,
-                OwnerAccountId = ((IBrokerAccount)lastblock).OwnerAccountId,
-                RelatedTx = send.Hash,
-
-                // profiting
-                PType = ((IProfiting)lastblock).PType,
-                ShareRito = ((IProfiting)lastblock).ShareRito,
-                Seats = ((IProfiting)lastblock).Seats,
-
-                // dao
-                SellerFeeRatio = ((IDao)lastblock).SellerFeeRatio,
-                BuyerFeeRatio = ((IDao)lastblock).BuyerFeeRatio,
-                SellerPar = ((IDao)lastblock).SellerPar,
-                BuyerPar = ((IDao)lastblock).BuyerPar,
-                Description = ((IDao)lastblock).Description,
-                Treasure = ((IDao)lastblock).Treasure.ToDecimalDict().ToLongDict(),
-            };
-            
-            // calculate balance
-            var dict = lastblock.Balances.ToDecimalDict();
-
-            dict[order.offering] -= order.amount;
-
-            dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
-            sendToOrderBlock.Balances = dict.ToLongDict();
-
-            sendToOrderBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
-
-            sendToOrderBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return sendToOrderBlock;
+                amounts[LyraGlobal.OFFICIALTICKERCODE] += order.cltamt;
+            }
+            else
+            {
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, order.cltamt);
+            }
+            return await TransSendAsync<DaoSendBlock>(sys, context.Send.Hash, order.daoId, AccountId,
+                new Dictionary<string, decimal> { { order.offering, order.amount } }, context.State);
         }
 
         async Task<TransactionBlock?> CreateOrderGenesisAsync(DagSystem sys, LyraContext context)
@@ -260,16 +226,17 @@ namespace Lyra.Core.WorkFlow
                 UOStatus = UniOrderStatus.Open,
             };
 
-            Uniblock.Balances.Add(order.offering, order.amount.ToBalanceLong());
-
-            if(order.offering == "LYR")
+            var amounts = new Dictionary<string, decimal> { { order.offering, order.amount } };
+            if (order.offering == LyraGlobal.OFFICIALTICKERCODE)
             {
-                Uniblock.Balances[LyraGlobal.OFFICIALTICKERCODE] += 2m.ToBalanceLong();   // for delist and close use later
+                amounts[LyraGlobal.OFFICIALTICKERCODE] += order.cltamt;
             }
             else
             {
-                Uniblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, order.cltamt);
             }
+
+            Uniblock.Balances = amounts.ToLongDict();
 
             Uniblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
