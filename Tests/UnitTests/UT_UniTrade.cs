@@ -937,7 +937,7 @@ namespace UnitTests
                 offering = offeringGen.Ticker,
                 bidby = LyraGlobal.GetHoldTypeFromTicker(bidingGen.Ticker),
                 biding = bidingGen.Ticker,
-                price = 2000,
+                price = 2,
                 cltamt = collateralCount,
                 payBy = new string[] { "Paypal" },
 
@@ -1313,12 +1313,12 @@ namespace UnitTests
                 offering = Unig.Order.offering,
                 bidby = LyraGlobal.GetHoldTypeFromTicker(fiatg.Ticker),
                 biding = fiatg.Ticker,
-                price = 2000,
+                price = 2,
                 
                 cltamt = callateralCount,
                 payVia = "Paypal",
                 amount = 1,
-                pay = 2000,
+                pay = 2,
             };
 
             var traderet = await bidingWallet.CreateUniTradeAsync(trade);
@@ -1361,8 +1361,17 @@ namespace UnitTests
             Assert.AreEqual(odrcltamtShouldBe, tradgenLast.OdrCltMmt.ToBalanceDecimal(), $"OdrCltMmt in trade gen is not right!");
             // and with proper offering/biding token.
             
-            Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.offering] >= 1, $"offering not right.");
-            Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.biding] >= 2000, $"biding not right.");
+            if(tradgenLast.UTStatus == UniTradeStatus.Open)
+            {
+                Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.offering] >= 1, $"offering not right.");
+                Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.biding] >= 2000, $"biding not right.");
+            }
+            else if(tradgenLast.UTStatus == UniTradeStatus.Closed)
+            {
+                //Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.offering] >= 1, $"offering not right.");
+                //Assert.IsTrue((tradgenLast as TransactionBlock).Balances[Unig.Order.biding] >= 2000, $"biding not right.");
+            }
+
 
             var tradeStatusShouldBe = UniTradeStatus.Open;
             bool IsBidToken = !LyraGlobal.GetOTCRequirementFromTicker(trade.biding);

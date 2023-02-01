@@ -171,5 +171,7 @@ namespace Lyra.Core.Accounts
 
         // v2
         Task<List<BsonDocument>> GetBalanceAsync(string accountId);
+
+        Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time);
     }
 }

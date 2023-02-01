@@ -64,12 +64,9 @@ namespace Lyra.Core.WorkFlow
                                         
                     // bellow auto trade
                     // for buyer
-                    SendCryptoProductFromTradeToBuyerAsync,
-                    SendCollateralFromDAOToBuyerAsync,
-
-                    // for seller !! only when amount is 0
-                    //SealOrderAsync, 
-                    //SendCollateralToSellerAsync
+                    SendPropsFromTradeToBuyerAsync,
+                    SendPropsFromTradeToSellerAsync,
+                    SendFeesToDaoAsync
                 });
             }
             //else if(IsBidToken && !IsOfferToken)
@@ -193,7 +190,7 @@ namespace Lyra.Core.WorkFlow
                 if(bidg.Ticker == "LYR")
                 {
                     if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
-                        chgs.Changes[bidg.Ticker] != trade.amount + trade.cltamt ||
+                        chgs.Changes[bidg.Ticker] != trade.pay + trade.cltamt ||
                             chgs.Changes.Count != 1)
                     {
                         return APIResultCodes.InvalidAmountToSend;
@@ -202,7 +199,8 @@ namespace Lyra.Core.WorkFlow
                 else
                 {
                     if (!chgs.Changes.ContainsKey(bidg.Ticker) ||
-                        chgs.Changes[bidg.Ticker] != trade.amount ||
+                        chgs.Changes[bidg.Ticker] != trade.pay ||
+                        chgs.Changes["LYR"] != trade.cltamt ||
                             chgs.Changes.Count != 2)
                     {
                         return APIResultCodes.InvalidAmountToSend;
@@ -237,6 +235,7 @@ namespace Lyra.Core.WorkFlow
 
             var keyStr = $"{send.Hash.Substring(0, 16)},{trade.offering},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
+            context.Env.Add("tradeid", AccountId);
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),
@@ -509,5 +508,99 @@ namespace Lyra.Core.WorkFlow
         //    var unitrade = JsonConvert.DeserializeObject<UniTrade>(send.Tags["data"]);
         //    return await SendCollateralToSellerAsync(sys, context, send.Hash, unitrade.orderId);
         //}
+
+        // copied from '... GotPay'
+        protected async Task<TransactionBlock?> SendPropsFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
+        {
+            var sendBlock = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(context.Env["tradeid"]) as TransactionBlock;
+
+            // calculate fees
+            var (sf, bf, snf, bnf) = await CalculateFeesAsync(sys, context);
+
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<UniTradeSendBlock>(),
+                () => context.State,
+                (b) =>
+                {
+                    var trade = b as IUniTrade;
+
+                    (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
+
+                    b.Balances[trade.Trade.offering] -= trade.Trade.amount.ToBalanceLong();
+                    b.Balances["LYR"] -= (trade.Trade.cltamt - bf - bnf).ToBalanceLong();
+                });
+        }
+
+        protected async Task<TransactionBlock?> SendPropsFromTradeToSellerAsync(DagSystem sys, LyraContext context)
+        {
+            var sendBlock = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(context.Env["tradeid"]) as TransactionBlock;
+
+            // calculate fees
+            var (sf, bf, snf, bnf) = await CalculateFeesAsync(sys, context);
+
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<UniTradeSendBlock>(),
+                () => context.State,
+                (b) =>
+                {
+                    var trade = b as IUniTrade;
+
+                    (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
+
+                    b.Balances[trade.Trade.biding] -= trade.Trade.pay.ToBalanceLong();
+                    b.Balances["LYR"] -= (trade.OdrCltMmt.ToBalanceDecimal() - sf - snf).ToBalanceLong();
+                });
+        }
+
+        protected async Task<(decimal sellerFee, decimal buyerFee, decimal sellerNetworkFee, decimal buyerNetworkFee)> CalculateFeesAsync(DagSystem sys, LyraContext context)
+        {
+            //var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+            //var trade = (tradelatest as IUniTrade).Trade;
+            var trade = JsonConvert.DeserializeObject<UniTrade>(context.Send.Tags["data"]);
+
+            // find dao by the time when order created.
+            // first find order genesis block
+            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as UniOrderGenesisBlock;
+            var sndHash = odrgen.RelatedTx;
+            var odrCreateSend = await sys.Storage.FindBlockByHashAsync(sndHash) as SendTransferBlock;
+
+            var daoforodr = await sys.Storage.FindLatestBlockByTimeAsync(trade.daoId, odrCreateSend.TimeStamp) as IDao;
+
+            // buyer fee calculated as LYR
+            var buyerFee = Math.Round(daoforodr.BuyerFeeRatio * trade.cltamt / (daoforodr.BuyerPar / 100), 8);
+            var sellerFee = Math.Round(daoforodr.SellerFeeRatio * trade.cltamt / (daoforodr.SellerPar / 100), 8);
+            var buyerNetworkFee = Math.Round(LyraGlobal.BidingNetworkFeeRatio * trade.cltamt / (daoforodr.BuyerPar / 100), 8);
+            var sellerNetworkFee = Math.Round(LyraGlobal.OfferingNetworkFeeRatio * trade.cltamt / (daoforodr.SellerPar / 100), 8);
+
+            return (sellerFee, buyerFee, sellerNetworkFee, buyerNetworkFee);
+        }
+
+        protected async Task<TransactionBlock?> SendFeesToDaoAsync(DagSystem sys, LyraContext context)
+        {
+            var sendBlock = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(context.Env["tradeid"]) as TransactionBlock;
+
+            // calculate fees
+            var (sf, bf, snf, bnf) = await CalculateFeesAsync(sys, context);
+
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<UniTradeSendBlock>(),
+                () => context.State,
+                (b) =>
+                {
+                    // pay network fees
+                    b.FeeType = AuthorizationFeeTypes.Dynamic;
+                    b.Fee = snf + bnf;
+
+                    var trade = b as IUniTrade;
+
+                    trade.UTStatus = UniTradeStatus.Closed;
+                    (b as SendTransferBlock).DestinationAccountId = trade.Trade.daoId;
+
+                    b.Balances["LYR"] = 0;
+                });
+        }
     }
 }

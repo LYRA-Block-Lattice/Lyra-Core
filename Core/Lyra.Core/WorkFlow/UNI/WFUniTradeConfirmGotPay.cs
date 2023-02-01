@@ -126,7 +126,6 @@ namespace Lyra.Core.WorkFlow.Uni
                 bidIsOk = true;
             }
 
-
             bool offerIsOk;
             if (LyraGlobal.GetOTCRequirementFromTicker(trade.Trade.offering))
             {
@@ -149,7 +148,10 @@ namespace Lyra.Core.WorkFlow.Uni
 
             var sendBlock = context.Send;
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
-            
+
+            // calculate fees
+            var (sf, bf, snf, bnf) = await CalculateFeesAsync(sys, context);
+
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
                 () => lastblock.GenInc<UniTradeSendBlock>(),
                 () => context.State,
@@ -160,7 +162,7 @@ namespace Lyra.Core.WorkFlow.Uni
                     (b as SendTransferBlock).DestinationAccountId = trade.OwnerAccountId;
 
                     b.Balances[trade.Trade.offering] -= trade.Trade.amount.ToBalanceLong();
-                    b.Balances["LYR"] -= trade.Trade.cltamt.ToBalanceLong();
+                    b.Balances["LYR"] -= (trade.Trade.cltamt - bf - bnf).ToBalanceLong();
                 });
         }
 
@@ -172,6 +174,9 @@ namespace Lyra.Core.WorkFlow.Uni
             var sendBlock = context.Send;
             var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
+            // calculate fees
+            var (sf, bf, snf, bnf) = await CalculateFeesAsync(sys, context);
+            
             return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
                 () => lastblock.GenInc<UniTradeSendBlock>(),
                 () => context.State,
@@ -182,62 +187,61 @@ namespace Lyra.Core.WorkFlow.Uni
                     (b as SendTransferBlock).DestinationAccountId = trade.Trade.orderOwnerId;
 
                     b.Balances[trade.Trade.biding] -= trade.Trade.pay.ToBalanceLong();
-                    b.Balances["LYR"] -= trade.OdrCltMmt;
+                    b.Balances["LYR"] -= (trade.OdrCltMmt.ToBalanceDecimal() - sf - snf).ToBalanceLong();
                 });
         }
 
-        protected async Task<TransactionBlock?> SendPropsFromTradeToSellerAsyncx(DagSystem sys, LyraContext context)
+        protected async Task<(decimal sellerFee, decimal buyerFee, decimal sellerNetworkFee, decimal buyerNetworkFee)> CalculateFeesAsync(DagSystem sys, LyraContext context)
         {
-            if (!await CheckTradeDone(sys, context))
-                return null;
-
             var send = context.Send;
             var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
             var trade = (tradelatest as IUniTrade).Trade;
-            var daolastblock = await sys.Storage.FindLatestBlockAsync(trade.daoId) as TransactionBlock;
 
-            // get dao for order genesis
-            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as ReceiveTransferBlock;
-            var daoforodr = await sys.Storage.FindBlockByHashAsync(odrgen.SourceHash) as IDao;
+            // find dao by the time when order created.
+            // first find order genesis block
+            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as UniOrderGenesisBlock;
+            var sndHash = odrgen.RelatedTx;
+            var odrCreateSend = await sys.Storage.FindBlockByHashAsync(sndHash) as SendTransferBlock;
+
+            var daoforodr = await sys.Storage.FindLatestBlockByTimeAsync(trade.daoId, odrCreateSend.TimeStamp) as IDao;
 
             // buyer fee calculated as LYR
-            var totalAmount = trade.amount;
-            decimal totalFee = 0;
-            decimal networkFee = 0;
-            var order = (odrgen as IUniOrder).Order;
-            // transaction fee
+            var buyerFee = Math.Round(daoforodr.BuyerFeeRatio * trade.cltamt / (daoforodr.BuyerPar / 100), 8);
+            var sellerFee = Math.Round(daoforodr.SellerFeeRatio * trade.cltamt / (daoforodr.SellerPar / 100), 8);
+            var buyerNetworkFee = Math.Round(LyraGlobal.BidingNetworkFeeRatio * trade.cltamt / (daoforodr.BuyerPar / 100), 8);
+            var sellerNetworkFee = Math.Round(LyraGlobal.OfferingNetworkFeeRatio * trade.cltamt / (daoforodr.SellerPar / 100), 8);
 
-            totalFee += Math.Round(trade.cltamt * daoforodr.BuyerFeeRatio, 8);
-            networkFee = Math.Round(trade.cltamt * LyraGlobal.BidingNetworkFeeRatio, 8);
-
-            Console.WriteLine($"buyer pay svc fee {totalFee} and net fee {networkFee}");
-
-            var amountToSeller = trade.cltamt - totalFee;
-            //Console.WriteLine($"collateral: {trade.collateral} txfee: {totalFee} netfee: {networkFee} remains: {trade.collateral - totalFee - networkFee} cost: {totalFee + networkFee }");
-
-            return await TransactionOperateAsync(sys, send.Hash, daolastblock,
-                () => daolastblock.GenInc<UniTradeSendBlock>(),
-                () => context.State,
-                (b) =>
-                {
-                    // block
-                    b.Fee = networkFee;
-                    b.FeeType = AuthorizationFeeTypes.Dynamic;
-
-                    // recv
-                    (b as SendTransferBlock).DestinationAccountId = (tradelatest as IUniTrade).OwnerAccountId;
-
-                    // balance
-                    var oldbalance = b.Balances.ToDecimalDict();
-                    oldbalance[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
-                    b.Balances = oldbalance.ToLongDict();
-                });
+            return (sellerFee, buyerFee, sellerNetworkFee, buyerNetworkFee);
         }
 
         protected async Task<TransactionBlock?> SendFeesToDaoAsync(DagSystem sys, LyraContext context)
         {
-            throw new NotImplementedException();
+            if (!await CheckTradeDone(sys, context))
+                return null;
+
+            var sendBlock = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+
+            // calculate fees
+            var (sf, bf, snf, bnf) = await CalculateFeesAsync(sys, context);
+            
+            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+                () => lastblock.GenInc<UniTradeSendBlock>(),
+                () => context.State,
+                (b) =>
+                {
+                    // pay network fees
+                    b.FeeType = AuthorizationFeeTypes.Dynamic;
+                    b.Fee = snf + bnf;
+                    
+                    var trade = b as IUniTrade;
+
+                    trade.UTStatus = UniTradeStatus.Closed;
+                    (b as SendTransferBlock).DestinationAccountId = trade.Trade.daoId;
+
+                    b.Balances["LYR"] = 0;
+                });
         }
 
         protected async Task<TransactionBlock?> ChangeStateToBidReceivedAsync(DagSystem sys, LyraContext context)

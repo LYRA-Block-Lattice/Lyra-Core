@@ -404,6 +404,11 @@ namespace Lyra.Core.Accounts
             return StopWatcher.Track(() => _store.GetBalanceAsync(accountId), "GetBalanceAsync");
         }
 
+        public Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time)
+        {
+            return StopWatcher.Track(() => _store.FindLatestBlockByTimeAsync(accountId, time), "FindLatestBlockByTimeAsync");
+        }
+
         #region Universal trade
         public Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId)
         {

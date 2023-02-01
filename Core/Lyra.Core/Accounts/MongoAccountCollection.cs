@@ -2994,6 +2994,22 @@ namespace Lyra.Core.Accounts
             return x;
         }
 
+        public async Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.And(
+                filter.Eq("AccountID", accountId),
+                filter.Lte("TimeStamp", time)
+                );
+
+            var q = _blocks
+                .Find(filterDefination)
+                .SortByDescending(a => a.TimeStamp)
+                .Limit(1);
+
+            return await q.FirstOrDefaultAsync();
+        }
+
         public async Task FixDbRecordAsync()
         {
             //var filter = Builders<Block>.Filter;

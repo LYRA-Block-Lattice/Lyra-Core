@@ -202,6 +202,7 @@ namespace Lyra.Core.WorkFlow
 
         public int Count { get; set; }
         public int ViewChangeReqCount { get; set; }
+        public Dictionary<string, string> Env { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// private data, shared across all steps of the workflow.
