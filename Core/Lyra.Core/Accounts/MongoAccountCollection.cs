@@ -2516,7 +2516,7 @@ namespace Lyra.Core.Accounts
                 new BsonDocument("$lookup",
                 new BsonDocument
                     {
-                        { "from", "devnet_snapshots" },
+                        { "from", _networkId + "_snapshots" },
                         { "localField", "Order.daoId" },
                         { "foreignField", "AccountID" },
                         { "as", "DaoInfo" }
@@ -2542,7 +2542,7 @@ namespace Lyra.Core.Accounts
                 new BsonDocument("$lookup",
                 new BsonDocument
                     {
-                        { "from", "devnet_blocks" },
+                        { "from", _networkId + "_blocks" },
                         { "localField", "Order.offering" },
                         { "foreignField", "Ticker" },
                         { "as", "OfferingGens" }
@@ -2550,7 +2550,7 @@ namespace Lyra.Core.Accounts
                 new BsonDocument("$lookup",
                 new BsonDocument
                     {
-                        { "from", "devnet_blocks" },
+                        { "from", _networkId + "_blocks" },
                         { "localField", "Order.biding" },
                         { "foreignField", "Ticker" },
                         { "as", "BidingGens" }
@@ -2959,7 +2959,7 @@ namespace Lyra.Core.Accounts
                 new BsonDocument("$lookup",
                 new BsonDocument
                     {
-                        { "from", "devnet_blocks" },
+                        { "from", _networkId + "_blocks" },
                         { "localField", "Balances.k" },
                         { "foreignField", "Ticker" },
                         { "as", "result" }

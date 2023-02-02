@@ -41,6 +41,10 @@ namespace Lyra.Core.WorkFlow.DAO
             if (dao == null)
                 return APIResultCodes.InvalidDAO;
 
+            // Lyra guild is special, so we can not join it
+            if (send.Tags["daoid"] == LyraGlobal.GUILDACCOUNTID)
+                return APIResultCodes.InvalidDAO;
+
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
             if (txInfo.Changes.Count != 1 || !txInfo.Changes.ContainsKey("LYR"))
                 return APIResultCodes.InvalidToken;
