@@ -116,10 +116,32 @@ namespace Lyra.Core.Decentralize
             else
                 localState.lastVerifiedConsHeight = 0;
 
+            LocalDbSyncState.Save(localState);
+
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
                 return false;
 
+            // first verify current data
+            
+
+            // a new algorithm. we have the latest cons' hash. so sync from current height to that height,
+            // verify hash at final stage. if wrong, delete all blocks.
+            //for(var height = localState.lastVerifiedConsHeight; height <= lastCons.Height; height++)
+            //{
+            //   var ret = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
+            //    if(!ret)
+            //    {
+            //        _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
+            //        localState.lastVerifiedConsHeight = height - 1;
+            //        LocalDbSyncState.Save(localState);
+            //        return false;
+            //    }
+            //}
+
+            //return true;
+            
+            
             bool IsSuccess;
             while (true)
             {
@@ -188,7 +210,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            return IsSuccess;
+            return IsSuccess; 
         }
 
         private async Task<bool> SyncAllUnConsolidatedBlocks(ConsolidationBlock myLastCons, ILyraAPI client)
@@ -348,6 +370,85 @@ namespace Lyra.Core.Decentralize
                     await Task.Delay(1000);
                 }
             }
+        }
+
+        /// <summary>
+        /// sync consblock and all it's contained blocks. (previous cons -> this cons.)
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="consBlock"></param>
+        /// <returns></returns>
+        private async Task<bool> SyncAndVerifyConsolidationBlock2Async(ILyraAPI safeClient, ILyraAPI fastClient, long height)
+        {
+            _log.LogInformation($"Sync and verify consolidation block height height");
+
+            var blksreq = await fastClient.GetBlocksInConsByHeightAsync(height);
+            if (blksreq.ResultCode != APIResultCodes.Success)
+                return false;
+
+            var blocks = blksreq.GetBlocks()
+                .OrderBy(a => a.TimeStamp)
+                .ToArray();
+            if (!blocks.Any())
+                return true;
+            
+            var consBlock = blocks.Last() as ConsolidationBlock;
+
+            var mt = new MerkleTree();
+            for (int i = 0; i < blocks.Length - 1; i++)
+            {
+                var hash1 = blocks[i].Hash;
+                if (hash1 != consBlock.blockHashes[i])
+                    return false;
+                
+                mt.AppendLeaf(MerkleHash.Create(hash1));
+            }
+
+            var merkelTreeHash = mt.BuildTree().ToString();
+            if (consBlock.MerkelTreeHash != merkelTreeHash)
+            {
+                _log.LogWarning($"SyncAndVerifyConsolidationBlock: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
+                return false;
+            }
+
+            // make sure no extra blocks here
+            if (consBlock.Height > 1)
+            {
+                //var prevConsHash = consBlock.blockHashes.First();
+                //var prevConsResult = await fastClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
+                //if (prevConsResult.ResultCode != APIResultCodes.Success)
+                //{
+                //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
+                //    return false;
+                //}
+
+                //var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
+                //if (prevConsBlock == null)
+                //{
+                //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsBlock: null");
+                //    return false;
+                //}
+
+                var prevConsBlock = blocks.First() as ConsolidationBlock;
+                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(prevConsBlock.TimeStamp, consBlock.TimeStamp);
+                var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
+                foreach (var extraBlock in q)
+                {
+                    await _sys.Storage.RemoveBlockAsync(extraBlock);
+                }
+            }
+
+            for (int i = 0; i < blocks.Length - 1; i++)
+            {
+                _log.LogInformation($"Sync block {blocks[i].Hash}");
+                var ret = await _sys.Storage.AddBlockAsync(blocks[i]);
+                if(!ret)
+                {
+                    _log.LogWarning($"SyncAndVerifyConsolidationBlock: AddBlockAsync failed: {blocks[i].Hash}");
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
