@@ -930,6 +930,40 @@ namespace Lyra.Core.Accounts
             //return block;
         }
 
+        public async Task<List<Block>> GetBlocksInConsByHeightAsync(long height)
+        {
+            var cons = await FindConsolidationBlockByIndexAsync(height);
+            if (cons == null)
+                return new List<Block>();
+
+            // all blocks, append with the consolidation block
+            PipelineDefinition<Block, BsonDocument> pipeline = new BsonDocument[]
+            {
+                new BsonDocument("$match",
+                new BsonDocument("Hash", cons.Hash)),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", _networkId + "_blocks" },
+                        { "localField", "blockHashes" },
+                        { "foreignField", "Hash" },
+                        { "as", "blks" }
+                    }),
+                new BsonDocument("$unwind",
+                new BsonDocument("path", "$blks")),
+                new BsonDocument("$replaceRoot",
+                new BsonDocument("newRoot", "$blks"))
+            };
+
+            var q1 = _blocks.Aggregate(pipeline);
+
+            var x = await q1.ToListAsync();
+
+            return x.Select(a => BsonSerializer.Deserialize<Block>(a))           
+                .Append(cons)
+                .ToList();
+        }
+
         public async Task<Block> FindBlockByHashAsync(string AccountId, string hash)
         {
             var builder = Builders<Block>.Filter;

@@ -1129,5 +1129,15 @@ namespace Lyra.Core.API
 
             return await GetAsync<BlockAPIResult>("FindBlockByHeight", args);
         }
+
+        public async Task<MultiBlockAPIResult> GetBlocksInConsByHeightAsync(long height)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "height", height.ToString() },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetBlocksInConsByHeight", args);
+        }
     }
 }

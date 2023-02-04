@@ -20,6 +20,7 @@ using Lyra.Data.Crypto;
 using Lyra.Data.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
+using System.Security.Policy;
 
 namespace Lyra.Core.Decentralize
 {
@@ -1798,6 +1799,33 @@ namespace Lyra.Core.Decentralize
         public Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<MultiBlockAPIResult> GetBlocksInConsByHeightAsync(long height)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetBlocksInConsByHeightAsync(height);
+                if (blocks == null || blocks.Count == 0)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                    return result;
+                }
+
+                result.SetBlocks(blocks.ToArray());
+                result.ResultCode = APIResultCodes.Success;
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBlocksInConsByHeightAsync(height): " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
         }
         #endregion
     }
