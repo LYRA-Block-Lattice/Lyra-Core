@@ -940,9 +940,9 @@ namespace Lyra.Core.Accounts
             PipelineDefinition<Block, BsonDocument> pipeline = new BsonDocument[]
             {
                 new BsonDocument("$match",
-                new BsonDocument("Hash", cons.Hash)),
+                    new BsonDocument("Hash", cons.Hash)),
                 new BsonDocument("$lookup",
-                new BsonDocument
+                    new BsonDocument
                     {
                         { "from", _networkId + "_blocks" },
                         { "localField", "blockHashes" },
@@ -950,9 +950,10 @@ namespace Lyra.Core.Accounts
                         { "as", "blks" }
                     }),
                 new BsonDocument("$unwind",
-                new BsonDocument("path", "$blks")),
+                    new BsonDocument("path", "$blks")),
                 new BsonDocument("$replaceRoot",
-                new BsonDocument("newRoot", "$blks"))
+                    new BsonDocument("newRoot", "$blks")),
+                new BsonDocument("$sort", new BsonDocument("TimeStamp", 1))
             };
 
             var q1 = _blocks.Aggregate(pipeline);

@@ -137,7 +137,7 @@ namespace Lyra.Core.Decentralize
                 w.Restart();
                 _log.LogInformation($"Sync and verify chunk {height}, estimate finish in {TimeSpan.FromMilliseconds((totalms / count) * (lastCons.Height - height)).Humanize()}");
 
-                var ret = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
+                (var ret, var latestHeight) = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
                 if (!ret)
                 {
                     _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
@@ -153,7 +153,10 @@ namespace Lyra.Core.Decentralize
                 //}
                 w.Stop();
                 totalms += w.ElapsedMilliseconds;
-                count++;
+                
+                count+= latestHeight - height;
+
+                height = latestHeight;
             }
 
             return await DBCCAsync();
@@ -389,13 +392,77 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        private async Task<bool> SyncOneChunk(List<Block> blocks)
+        {
+            var consBlock = blocks.Last() as ConsolidationBlock;
+
+            var mt = new MerkleTree();
+            for (int i = 0; i < blocks.Count - 1; i++)
+            {
+                var hash1 = blocks[i].Hash;
+                if (hash1 != consBlock.blockHashes[i])
+                    return false;
+
+                mt.AppendLeaf(MerkleHash.Create(hash1));
+            }
+
+            var merkelTreeHash = mt.BuildTree().ToString();
+            if (consBlock.MerkelTreeHash != merkelTreeHash)
+            {
+                _log.LogWarning($"SyncAndVerifyConsolidationBlock2: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
+                return false;
+            }
+
+            // make sure no extra blocks here
+            if (consBlock.Height > 1)
+            {
+                //var prevConsHash = consBlock.blockHashes.First();
+                //var prevConsResult = await fastClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
+                //if (prevConsResult.ResultCode != APIResultCodes.Success)
+                //{
+                //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
+                //    return false;
+                //}
+
+                //var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
+                //if (prevConsBlock == null)
+                //{
+                //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsBlock: null");
+                //    return false;
+                //}
+
+                var prevConsBlock = blocks.First() as ConsolidationBlock;
+                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(prevConsBlock.TimeStamp, consBlock.TimeStamp);
+                var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
+                foreach (var extraBlock in q)
+                {
+                    await _sys.Storage.RemoveBlockAsync(extraBlock);
+                }
+            }
+
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                if (null == await _sys.Storage.FindBlockByHashAsync(blocks[i].Hash))
+                {
+                    //_log.LogInformation($"Sync block {blocks[i].Hash}");
+                    var ret = await _sys.Storage.AddBlockAsync(blocks[i]);
+                    if (!ret)
+                    {
+                        _log.LogWarning($"SyncAndVerifyConsolidationBlock2: AddBlockAsync failed: {blocks[i].Hash}");
+                    }
+                }
+            }
+
+            return true;
+        }
+
         /// <summary>
         /// sync consblock and all it's contained blocks. (previous cons -> this cons.)
         /// </summary>
         /// <param name="client"></param>
         /// <param name="consBlock"></param>
         /// <returns></returns>
-        private async Task<bool> SyncAndVerifyConsolidationBlock2Async(ILyraAPI safeClient, ILyraAPI fastClient, long height)
+        private async Task<(bool, long latestHeight)> SyncAndVerifyConsolidationBlock2Async(ILyraAPI safeClient, ILyraAPI fastClient, long height)
         {
             _log.LogInformation($"Sync and verify consolidation block height height");
 
@@ -403,79 +470,41 @@ namespace Lyra.Core.Decentralize
             {
                 var blksreq = await fastClient.GetMultipleConsByHeightAsync(height, 100);
                 if (blksreq.ResultCode != APIResultCodes.Success)
-                    return false;
+                    return (false, 0);
 
                 var blocks = blksreq.GetBlocks()
                     .OrderBy(a => a.TimeStamp)
                     .ToArray();
                 if (!blocks.Any())
-                    return true;
+                    return (true, 0);
 
-                var consBlock = blocks.Last() as ConsolidationBlock;
-
-                var mt = new MerkleTree();
-                for (int i = 0; i < blocks.Length - 1; i++)
+                // pickup consolidation blocks one by one
+                var lastPos = 0;
+                for(var pos = lastPos; pos < blocks.Length; pos++)
                 {
-                    var hash1 = blocks[i].Hash;
-                    if (hash1 != consBlock.blockHashes[i])
-                        return false;
+                    if (blocks[pos].BlockType != BlockTypes.Consolidation)
+                        continue;
 
-                    mt.AppendLeaf(MerkleHash.Create(hash1));
-                }
+                    if (pos == 0)
+                        continue;
+                    
+                    var consPos = pos;
+                    var slice = blocks[lastPos..(consPos - lastPos + 1)];
 
-                var merkelTreeHash = mt.BuildTree().ToString();
-                if (consBlock.MerkelTreeHash != merkelTreeHash)
-                {
-                    _log.LogWarning($"SyncAndVerifyConsolidationBlock2: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
-                    return false;
-                }
+                    var ret = await SyncOneChunk(slice.ToList());
 
-                // make sure no extra blocks here
-                if (consBlock.Height > 1)
-                {
-                    //var prevConsHash = consBlock.blockHashes.First();
-                    //var prevConsResult = await fastClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
-                    //if (prevConsResult.ResultCode != APIResultCodes.Success)
-                    //{
-                    //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
-                    //    return false;
-                    //}
+                    if (!ret)
+                        return (false, 0);
 
-                    //var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
-                    //if (prevConsBlock == null)
-                    //{
-                    //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsBlock: null");
-                    //    return false;
-                    //}
+                    lastPos = pos;
+                }             
 
-                    var prevConsBlock = blocks.First() as ConsolidationBlock;
-                    var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(prevConsBlock.TimeStamp, consBlock.TimeStamp);
-                    var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
-                    foreach (var extraBlock in q)
-                    {
-                        await _sys.Storage.RemoveBlockAsync(extraBlock);
-                    }
-                }
-
-                for (int i = 0; i < blocks.Length; i++)
-                {
-                    if (null == await _sys.Storage.FindBlockByHashAsync(blocks[i].Hash))
-                    {
-                        //_log.LogInformation($"Sync block {blocks[i].Hash}");
-                        var ret = await _sys.Storage.AddBlockAsync(blocks[i]);
-                        if (!ret)
-                        {
-                            _log.LogWarning($"SyncAndVerifyConsolidationBlock2: AddBlockAsync failed: {blocks[i].Hash}");
-                        }
-                    }
-                }
-
-                return true;
+                return (true, blocks[lastPos].Height);
             }
             catch (Exception ex)
             {
                 _log.LogError($"Sync and verify consolidation block 2 height {height} Error! {ex}");
-                return false;
+                return (false, 0);
             }
         }
 
