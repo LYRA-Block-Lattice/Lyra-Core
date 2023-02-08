@@ -55,12 +55,16 @@ namespace Lyra.Core.Authorizers
                     if (node != null && Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
                     {
                         if (!block.Authorizers.ContainsKey(voter))
+                        {
+                            sys.Log($"svc block not include voter {voter}");
                             return APIResultCodes.InvalidAuthorizerInServiceBlock;
+                        }                            
                     }
                 }
 
                 if(block.Authorizers.Keys.Any(a => !board.AllVoters.Contains(a)))
                 {
+                    sys.Log($"svc block has extra voter {block.Authorizers.Keys.FirstOrDefault(a => !board.AllVoters.Contains(a))}");
                     return APIResultCodes.InvalidAuthorizerInServiceBlock;
                 }
 

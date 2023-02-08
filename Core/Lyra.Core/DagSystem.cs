@@ -150,6 +150,11 @@ namespace Lyra
                 _log.LogError($"In NewBlockGenerated: {e}");
             }
         }
+
+        public void Log(string message)
+        {
+            _log.LogInformation(message);
+        }
     }
 
     public class Transaction
