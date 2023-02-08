@@ -242,7 +242,13 @@ namespace Lyra.Core.WorkFlow.PFT
 
             var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
                 .OrderBy(a => a.TimeStamp)
-                .Last() as TransactionBlock;
+                .LastOrDefault() as TransactionBlock;
+
+            if(lastProfitingBlock == null)
+            {
+                // ops!
+                return null;
+            }
             var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
 
             // don't distribute < 1LYR
