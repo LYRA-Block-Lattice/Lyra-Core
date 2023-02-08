@@ -489,7 +489,7 @@ namespace Lyra.Core.Decentralize
                         continue;
                     
                     var consPos = pos;
-                    var slice = blocks[lastPos..(consPos - lastPos + 1)];
+                    var slice = blocks[lastPos..consPos];
 
                     var ret = await SyncOneChunk(slice.ToList());
 
