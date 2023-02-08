@@ -86,7 +86,7 @@ namespace Lyra.Core.Decentralize
             if (localDbState.totalBlockCount == 0)
             {
                 LocalDbSyncState.Remove();
-            }                
+            }
             else
             {
                 var oldState = LocalDbSyncState.Load();
@@ -166,10 +166,10 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     var remoteConsQuery = await consensusClient.GetConsolidationBlocksAsync(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
-                    if(remoteConsQuery.ResultCode == APIResultCodes.Success)
+                    if (remoteConsQuery.ResultCode == APIResultCodes.Success)
                     {
                         var remoteConsBlocks = remoteConsQuery.GetBlocks();
-                        if(remoteConsBlocks.Any())
+                        if (remoteConsBlocks.Any())
                         {
                             foreach (var block in remoteConsBlocks)
                             {
@@ -207,7 +207,7 @@ namespace Lyra.Core.Decentralize
                             }
                         }
                     }
-                    else if(remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
+                    else if (remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
                     {
                         _log.LogWarning("Got inconsistant result from network. retry later.");
                         throw new Exception("Failed to sync. reason: " + remoteConsQuery.ResultCode);
@@ -227,7 +227,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            return IsSuccess; 
+            return IsSuccess;
         }
 
         private async Task<bool> SyncAllUnConsolidatedBlocks(ConsolidationBlock myLastCons, ILyraAPI client)
@@ -333,7 +333,7 @@ namespace Lyra.Core.Decentralize
                         //    if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
                         //        agg.ReBase(true);
                         //}
-                        
+
                         continue;
                     }
 
@@ -358,7 +358,7 @@ namespace Lyra.Core.Decentralize
                         {
                             emptySyncTimes = 0;
                             continue;
-                        }                            
+                        }
                         else
                         {
                             emptySyncTimes++;
@@ -368,7 +368,7 @@ namespace Lyra.Core.Decentralize
                             else
                             {
                                 _log.LogInformation("Waiting for any new changes ...");
-                                await Task.Delay(5000);                                
+                                await Task.Delay(5000);
                             }
                         }
                     }
@@ -381,7 +381,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation("Engaging Sync partial success. continue...");
                     await Task.Delay(1000);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _log.LogInformation($"Engaging Sync failed with error \"{ex.Message}\". continue...");
                     await Task.Delay(1000);
@@ -399,9 +399,11 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Sync and verify consolidation block height height");
 
-            var blksreq = await fastClient.GetMultipleConsByHeightAsync(height, 100);
-            if (blksreq.ResultCode != APIResultCodes.Success)
-                return false;
+            try
+            {
+                var blksreq = await fastClient.GetMultipleConsByHeightAsync(height, 100);
+                if (blksreq.ResultCode != APIResultCodes.Success)
+                    return false;
 
                 var blocks = blksreq.GetBlocks()
                     .OrderBy(a => a.TimeStamp)
@@ -457,7 +459,7 @@ namespace Lyra.Core.Decentralize
 
                 for (int i = 0; i < blocks.Length; i++)
                 {
-                    if(null == await _sys.Storage.FindBlockByHashAsync(blocks[i].Hash))
+                    if (null == await _sys.Storage.FindBlockByHashAsync(blocks[i].Hash))
                     {
                         //_log.LogInformation($"Sync block {blocks[i].Hash}");
                         var ret = await _sys.Storage.AddBlockAsync(blocks[i]);
@@ -470,7 +472,7 @@ namespace Lyra.Core.Decentralize
 
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _log.LogError($"Sync and verify consolidation block 2 height {height} Error! {ex}");
                 return false;
@@ -487,7 +489,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
-            foreach(var hash in consBlock.blockHashes)
+            foreach (var hash in consBlock.blockHashes)
             {
                 if (!await SyncOneBlockAsync(fastClient, hash))
                     return false;
@@ -504,7 +506,7 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogWarning($"SyncAndVerifyConsolidationBlock: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
                 return false;
-            }                
+            }
 
             // make sure no extra blocks here
             if (consBlock.Height > 1)
@@ -515,7 +517,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
                     return false;
-                }                    
+                }
 
                 var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
                 if (prevConsBlock == null)
@@ -583,7 +585,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> SyncOneBlockAsync(ILyraAPI client, string hash)
         {
-            if(null != await _sys.Storage.FindBlockByHashAsync(hash))
+            if (null != await _sys.Storage.FindBlockByHashAsync(hash))
             {
                 return true;
             }
@@ -611,16 +613,16 @@ namespace Lyra.Core.Decentralize
                 else
                 {
                     _log.LogWarning($"Error SyncOneBlockAsync: block null? {block is null}");
-                    if(!(block is null))
+                    if (!(block is null))
                         _log.LogWarning($"Error SyncOneBlockAsync: block VerifyHash? {block.VerifyHash()}");
                     return false;
-                }                    
+                }
             }
             else
             {
                 _log.LogWarning($"Error SyncOneBlockAsync: remote return: {remoteBlock.ResultCode}");
                 return false;
-            }                
+            }
         }
 
         public async Task GenesisAsync()
@@ -644,7 +646,7 @@ namespace Lyra.Core.Decentralize
 
             await Task.Delay(2000);
             var gg = await GuildGenesisAsync();
-            await SendBlockToConsensusAndWaitResultAsync(gg);            
+            await SendBlockToConsensusAndWaitResultAsync(gg);
 
             await Task.Delay(-1000 * LyraGlobal.CONSOLIDATIONDELAY);        // because cons block has a time shift.
             await Task.Delay(2000);
@@ -722,7 +724,7 @@ namespace Lyra.Core.Decentralize
             return svcBlock;
         }
 
-        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen, 
+        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen,
             PoolFactoryBlock pf, TransactionBlock gg)
         {
             var consBlock = new ConsolidationBlock
@@ -795,7 +797,7 @@ namespace Lyra.Core.Decentralize
 
             // wait for all nodes ready
             // for unit test
-            if(_localNode == null)      // unit test code
+            if (_localNode == null)      // unit test code
             {
                 svcGenesis.Authorizers = new Dictionary<string, string>();
                 foreach (var pn in ProtocolSettings.Default.StandbyValidators)
@@ -885,7 +887,7 @@ namespace Lyra.Core.Decentralize
                     var hoststr = hostAddrStr.Contains(":") ? hostAddrStr : $"{hostAddrStr}:{peerPort}";
                     var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{hoststr}/api/Node/");
                     _ = client.GetPoolAsync("a", "b");
-                }     
+                }
             }
         }
 
@@ -962,13 +964,13 @@ namespace Lyra.Core.Decentralize
 
                 var statex = await CreateAuthringStateAsync(msg, true);
 
-                if(statex.result != APIResultCodes.Success || statex.state == null)
+                if (statex.result != APIResultCodes.Success || statex.state == null)
                 {
                     _log.LogWarning($"Failed to CreateAuthringStateAsync: {statex.result}");
                 }
 
                 var submitret = await SubmitToConsensusAsync(statex.state);
-                if(!submitret)
+                if (!submitret)
                 {
                     _log.LogWarning($"Failed to SubmitToConsensusAsync.");
                 }
@@ -989,7 +991,7 @@ namespace Lyra.Core.Decentralize
             };
 
             var statex = await CreateAuthringStateAsync(msg, true);
-            if(statex.result == APIResultCodes.Success)
+            if (statex.result == APIResultCodes.Success)
             {
                 var state = statex.state;
                 var sent = await SubmitToConsensusAsync(statex.state);
@@ -1014,77 +1016,77 @@ namespace Lyra.Core.Decentralize
         {
             //_log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
 
-/*            if (msg.Block is TransactionBlock trans)
-            {
-                // check if a block is generated from workflow which has locked several chains.
-                bool InWFOK = false;
-                if (trans is IBrokerAccount brkr && IsRequestLocked(brkr.RelatedTx))
-                {
-                    if(IsRequestLocked(brkr.RelatedTx))
-                    {
-                        InWFOK = true;
-
-                        // add the new block to locker dto
-                        var lockdto = GetLockerDTOFromReq(brkr.RelatedTx);
-                        lockdto.seqhashes.Add(trans.Hash);
-
-                        if (lockdto.lockedups.Contains(trans.AccountID))
+            /*            if (msg.Block is TransactionBlock trans)
                         {
-                            // then should be ok
-                            
-                            
-                            // cascading lock? no.
-                            //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
-                        }
-                        else
-                        {
-                            lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
-                        }
-                    }
-                }
-                else if(trans is IPool pool)
-                {
-                    if (IsRequestLocked(pool.RelatedTx))
-                    {
-                        InWFOK = true;
+                            // check if a block is generated from workflow which has locked several chains.
+                            bool InWFOK = false;
+                            if (trans is IBrokerAccount brkr && IsRequestLocked(brkr.RelatedTx))
+                            {
+                                if(IsRequestLocked(brkr.RelatedTx))
+                                {
+                                    InWFOK = true;
 
-                        // add the new block to locker dto
-                        var lockdto = GetLockerDTOFromReq(pool.RelatedTx);
-                        lockdto.seqhashes.Add(trans.Hash);
+                                    // add the new block to locker dto
+                                    var lockdto = GetLockerDTOFromReq(brkr.RelatedTx);
+                                    lockdto.seqhashes.Add(trans.Hash);
 
-                        if (lockdto.lockedups.Contains(trans.AccountID))
-                        {
-                            // then should be ok
+                                    if (lockdto.lockedups.Contains(trans.AccountID))
+                                    {
+                                        // then should be ok
 
 
-                            // cascading lock? no.
-                            //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
-                        }
-                        else
-                        {
-                            lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
-                        }
-                    }
-                }
+                                        // cascading lock? no.
+                                        //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
+                                    }
+                                    else
+                                    {
+                                        lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
+                                    }
+                                }
+                            }
+                            else if(trans is IPool pool)
+                            {
+                                if (IsRequestLocked(pool.RelatedTx))
+                                {
+                                    InWFOK = true;
 
-                if (!InWFOK)
-                {
-                    // check locker here
-                    var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, trans);
-                    foreach (var str in lockdto.lockedups)
-                    {
-                        if (IsAccountLocked(str))
-                        {
-                            // some account was locked!
-                            _log.LogWarning($"Resource is locked: {str}");
-                            return (APIResultCodes.ResourceIsBusy, null);
-                        }
-                    }
+                                    // add the new block to locker dto
+                                    var lockdto = GetLockerDTOFromReq(pool.RelatedTx);
+                                    lockdto.seqhashes.Add(trans.Hash);
 
-                    //Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
-                    AddLockerDTO(lockdto);
-                }
-            }*/
+                                    if (lockdto.lockedups.Contains(trans.AccountID))
+                                    {
+                                        // then should be ok
+
+
+                                        // cascading lock? no.
+                                        //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
+                                    }
+                                    else
+                                    {
+                                        lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
+                                    }
+                                }
+                            }
+
+                            if (!InWFOK)
+                            {
+                                // check locker here
+                                var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, trans);
+                                foreach (var str in lockdto.lockedups)
+                                {
+                                    if (IsAccountLocked(str))
+                                    {
+                                        // some account was locked!
+                                        _log.LogWarning($"Resource is locked: {str}");
+                                        return (APIResultCodes.ResourceIsBusy, null);
+                                    }
+                                }
+
+                                //Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
+                                AddLockerDTO(lockdto);
+                            }
+                        }*/
 
             AuthState state;
             if (msg.Block is ServiceBlock sb)
@@ -1105,9 +1107,9 @@ namespace Lyra.Core.Decentralize
             state.IsSourceValid = sourceValid;
 
             // tmp code to create guild genesis
-            if(msg.Block is SendTransferBlock send && send.DestinationAccountId == LyraGlobal.GUILDACCOUNTID)
+            if (msg.Block is SendTransferBlock send && send.DestinationAccountId == LyraGlobal.GUILDACCOUNTID)
             {
-                if(! await _sys.Storage.AccountExistsAsync(LyraGlobal.GUILDACCOUNTID))
+                if (!await _sys.Storage.AccountExistsAsync(LyraGlobal.GUILDACCOUNTID))
                 {
                     if (Board.CurrentLeader == _sys.PosWallet.AccountId)
                     {
