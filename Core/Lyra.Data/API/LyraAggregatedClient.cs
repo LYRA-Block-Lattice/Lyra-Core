@@ -711,9 +711,9 @@ namespace Lyra.Data.API
             return SeedClient.FindBlockByHeightAsync(AccountId, height);
         }
 
-        public Task<MultiBlockAPIResult> GetBlocksInConsByHeightAsync(long height)
+        public Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
         {
-            return SeedClient.GetBlocksInConsByHeightAsync(height);
+            return SeedClient.GetMultipleConsByHeightAsync(height, count);
         }
         #endregion
     }

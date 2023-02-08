@@ -1801,13 +1801,13 @@ namespace Lyra.Core.Decentralize
             throw new NotImplementedException();
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksInConsByHeightAsync(long height)
+        public async Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
         {
             var result = new MultiBlockAPIResult();
 
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetBlocksInConsByHeightAsync(height);
+                var blocks = await NodeService.Dag.Storage.GetMultipleConsByHeightAsync(height, count);
                 if (blocks == null || blocks.Count == 0)
                 {
                     result.ResultCode = APIResultCodes.BlockNotFound;
@@ -1820,7 +1820,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in GetBlocksInConsByHeightAsync(height): " + e.Message);
+                Console.WriteLine("Exception in GetMultipleConsByHeightAsync(height, count): " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }

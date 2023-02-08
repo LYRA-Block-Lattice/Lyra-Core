@@ -930,7 +930,7 @@ namespace Lyra.Core.Accounts
             //return block;
         }
 
-        public async Task<List<Block>> GetBlocksInConsByHeightAsync(long height)
+        private async Task<List<Block>> GetBlocksInConsByHeightAsync(long height)
         {
             var cons = await FindConsolidationBlockByIndexAsync(height);
             if (cons == null)
@@ -963,6 +963,28 @@ namespace Lyra.Core.Accounts
                 .Append(cons)
                 .ToList();
         }
+        public async Task<List<Block>> GetMultipleConsByHeightAsync(long height, int count)
+        {
+            var list = new List<Block>();
+            int total = 0;
+            int max = (count < 1 || count > 100) ? 100 : count;
+            for(var i = 0; i < max; i++)
+            {
+                var blklist = await GetBlocksInConsByHeightAsync(height + i);
+                if (!blklist.Any())
+                    break;
+
+                if (list.Count == 0)
+                    list.AddRange(blklist);
+                else
+                    list.AddRange(blklist.Skip(1));
+
+                if (list.Count >= max)
+                    break;
+            }
+            return list;
+        }
+
 
         public async Task<Block> FindBlockByHashAsync(string AccountId, string hash)
         {

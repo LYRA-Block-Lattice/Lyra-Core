@@ -53,7 +53,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetLastBlockAsync(string AccountId);
         Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index);
         Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index);
-        Task<MultiBlockAPIResult> GetBlocksInConsByHeightAsync(long height);
+        Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count);
 
         // Retrives a block by its hash
         Task<BlockAPIResult> GetBlockByHashAsync(string? AccountId, string Hash, string? Signature);

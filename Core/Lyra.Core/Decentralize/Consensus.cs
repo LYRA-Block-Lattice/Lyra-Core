@@ -397,11 +397,11 @@ namespace Lyra.Core.Decentralize
         /// <returns></returns>
         private async Task<bool> SyncAndVerifyConsolidationBlock2Async(ILyraAPI safeClient, ILyraAPI fastClient, long height)
         {
-            try
-            {
-                var blksreq = await fastClient.GetBlocksInConsByHeightAsync(height);
-                if (blksreq.ResultCode != APIResultCodes.Success)
-                    return false;
+            _log.LogInformation($"Sync and verify consolidation block height height");
+
+            var blksreq = await fastClient.GetMultipleConsByHeightAsync(height, 100);
+            if (blksreq.ResultCode != APIResultCodes.Success)
+                return false;
 
                 var blocks = blksreq.GetBlocks()
                     .OrderBy(a => a.TimeStamp)

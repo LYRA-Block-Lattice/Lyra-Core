@@ -208,12 +208,12 @@ namespace LyraLexWeb2
             return await _node.GetBlocksByRelatedTxAsync(Hash);
         }
 
-        [Route("GetBlocksInConsByHeight")]
+        [Route("GetMultipleConsByHeight")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetBlocksInConsByHeightAsync(long height)
+        public async Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.GetBlocksInConsByHeightAsync(height);
+            return await _node.GetMultipleConsByHeightAsync(height, count);
         }
 
         [Route("GetNonFungibleTokens")]
