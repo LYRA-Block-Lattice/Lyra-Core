@@ -124,43 +124,47 @@ namespace Lyra.Core.Decentralize
             if (lastCons == null)
                 return false;
 
-            // first verify current data
 
-
-            //a new algorithm.we have the latest cons' hash. so sync from current height to that height,
-            // verify hash at final stage. if wrong, delete all blocks.
-            var w = Stopwatch.StartNew();
-            long count = 1;
-            long totalms = 1000;        // assume default 1 second for one cons block
-            for (var height = localState.lastVerifiedConsHeight == 0 ? 1 : localState.lastVerifiedConsHeight; height <= lastCons.Height; height++)
+            // TODO: with two steps config upgrade to full support
+            if(Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
             {
-                w.Restart();
-                _log.LogInformation($"Sync and verify chunk {height}, estimate finish in {TimeSpan.FromMilliseconds((totalms / count) * (lastCons.Height - height)).Humanize()}");
+                // first verify current data
 
-                (var ret, var latestHeight) = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
-                if (!ret)
+
+                //a new algorithm.we have the latest cons' hash. so sync from current height to that height,
+                // verify hash at final stage. if wrong, delete all blocks.
+                var w = Stopwatch.StartNew();
+                long count = 1;
+                long totalms = 1000;        // assume default 1 second for one cons block
+                for (var height = localState.lastVerifiedConsHeight == 0 ? 1 : localState.lastVerifiedConsHeight; height <= lastCons.Height; height++)
                 {
-                    _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
-                    localState.lastVerifiedConsHeight = height - 1;
-                    LocalDbSyncState.Save(localState);
-                    return false;
+                    w.Restart();
+                    _log.LogInformation($"Sync and verify chunk {height}, estimate finish in {TimeSpan.FromMilliseconds((totalms / count) * (lastCons.Height - height)).Humanize()}");
+
+                    (var ret, var latestHeight) = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
+                    if (!ret)
+                    {
+                        _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
+                        localState.lastVerifiedConsHeight = height - 1;
+                        LocalDbSyncState.Save(localState);
+                        return false;
+                    }
+                    //else  don't. let a dbcc run.
+                    //{
+                    //    localState.lastVerifiedConsHeight = height;
+                    //    LocalDbSyncState.Save(localState);
+                    //    return true;
+                    //}
+                    w.Stop();
+                    totalms += w.ElapsedMilliseconds;
+
+                    count += latestHeight - height;
+
+                    height = latestHeight;
                 }
-                //else  don't. let a dbcc run.
-                //{
-                //    localState.lastVerifiedConsHeight = height;
-                //    LocalDbSyncState.Save(localState);
-                //    return true;
-                //}
-                w.Stop();
-                totalms += w.ElapsedMilliseconds;
-                
-                count+= latestHeight - height;
 
-                height = latestHeight;
-            }
-
-            return await DBCCAsync();
-
+                return await DBCCAsync();
+            }           
 
             bool IsSuccess;
             while (true)
@@ -473,7 +477,6 @@ namespace Lyra.Core.Decentralize
                     return (false, 0);
 
                 var blocks = blksreq.GetBlocks()
-                    .OrderBy(a => a.TimeStamp)
                     .ToArray();
                 if (!blocks.Any())
                     return (true, 0);

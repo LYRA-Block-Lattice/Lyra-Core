@@ -742,5 +742,6 @@ namespace Lyra.Core.Blocks
         APIIsObsolete,
         TotTransferNotAllowed,
         InvalidProofOfDelivery,
+        InvalidFeeRito,
     }
 }

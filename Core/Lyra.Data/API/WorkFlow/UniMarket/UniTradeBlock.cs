@@ -1,4 +1,5 @@
 ﻿using Humanizer;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
@@ -153,7 +154,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string result = base.Print();
             result += $"{Trade}\n";
             result += $"Status: {UTStatus}\n";
-            result += $"Oder Collateral Amont: {OdrCltMmt}\n";
+            result += $"Order Collateral Amont: {OdrCltMmt.ToBalanceDecimal()}\n";
             result += Delivery.ToString();
             return result;
         }
@@ -199,7 +200,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             string result = base.Print();
             result += $"{Trade}\n";
             result += $"Status: {UTStatus}\n";
-            result += $"Oder Collateral Amont: {OdrCltMmt}\n";
+            result += $"Order Collateral Amont: {OdrCltMmt.ToBalanceDecimal()}\n";
             result += Delivery.ToString();
             return result;
         }
