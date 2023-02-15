@@ -89,12 +89,40 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidAmount;
 
             // verify collateral
-            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+            // eqprice * amount = total value of order
+            // total value * (dao fee + network fee) = total fee
+            // total fee + total value * dao par = collateral, prepay the fees
+            // listing fee + send fee + collateral = total send LYR
 
-            var chgs = send.GetBalanceChanges(last);
-            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
-                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.cltamt)
+            // for buyer, the same
+            // key input: total send LYR, collateral, dao rito.
+
+            if (order.eqprice < 0.00000001m || order.eqprice * order.amount < 0.00000001m)
+                return APIResultCodes.InvalidPrice;
+
+            var totalOrderValue = order.eqprice * order.amount;
+            (var tradeFee, var networkFee) = UniTradeFees.CalculateSellerFees(order.eqprice, order.amount, (dao as IDao).SellerFeeRatio);
+            var totalFee = tradeFee + networkFee;
+            var totalCollateral = totalOrderValue * ((dao as IDao).SellerPar / 100m) + totalFee;
+            if (order.cltamt != totalCollateral)
                 return APIResultCodes.InvalidCollateral;
+
+            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+            
+            var chgs = send.GetBalanceChanges(last);
+
+            if(order.offering == LyraGlobal.OFFICIALTICKERCODE)
+            {
+                if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                    chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != order.amount + order.cltamt + LyraGlobal.GetListingFeeFor())
+                    return APIResultCodes.InvalidCollateral;
+            }
+            else
+            {
+                if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                    chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != order.cltamt + LyraGlobal.GetListingFeeFor())
+                    return APIResultCodes.InvalidCollateral;
+            }
 
             // verify crypto
             if(LyraGlobal.GetAccountTypeFromTicker(propGen.Ticker) != AccountTypes.TOT)

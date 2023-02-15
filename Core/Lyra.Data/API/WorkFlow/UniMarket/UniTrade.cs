@@ -37,6 +37,12 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public decimal price { get; set; }
 
         /// <summary>
+        /// the equivalent price of offering properties count in LYR.
+        /// fees are calculated by this value.
+        /// </summary>
+        public decimal eqprice { get; set; }
+
+        /// <summary>
         /// always crypto
         /// </summary>
         public decimal amount { get; set; }
@@ -69,7 +75,8 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
                 bidby == ob.bidby &&
                 biding == ob.biding &&
                 price == ob.price &&
-                amount== ob.amount &&
+                eqprice == ob.eqprice &&
+                amount == ob.amount &&
                 cltamt== ob.cltamt &&
                 pay == ob.pay &&
                 payVia == ob.payVia;
@@ -78,7 +85,9 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public override int GetHashCode()
         {
             return HashCode.Combine(HashCode.Combine(daoId, dealerId, orderId, orderOwnerId, offby, offering),
-                HashCode.Combine(bidby, biding, price, amount, cltamt, payVia, dealerId));
+                HashCode.Combine(bidby, biding, price, amount, cltamt, payVia, dealerId),
+                HashCode.Combine(eqprice)
+                );
         }
 
         public string GetExtraData(Block block)
@@ -97,6 +106,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += $"{cltamt.ToBalanceLong()}|";
             extraData += $"{pay.ToBalanceLong()}|";
             extraData += $"{payVia}|";
+
+            if (block.Version >= 10)
+                extraData += $"{eqprice.ToBalanceLong()}|";
+
             return extraData;
         }
 
@@ -112,6 +125,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"Money Type: {bidby}\n";
             result += $"Money Ticker: {biding}\n";
             result += $"Price: {price}\n";
+            result += $"Equivlent price in LYR: {eqprice}\n";
             result += $"Amount: {amount}\n";
             result += $"Buyer Collateral: {cltamt} {LyraGlobal.OFFICIALTICKERCODE}\n";
             result += $"Pay: {pay} {bidby}";

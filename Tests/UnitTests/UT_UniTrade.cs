@@ -308,7 +308,7 @@ namespace UnitTests
             var daochkret = await testWallet.RPC.GetDaoByNameAsync(daoName);
             if (!daochkret.Successful())
             {
-                var dcret = await ownerWallet.CreateDAOAsync(daoName, daoDesc, 1, 0.00001m, 0.001m, 10, 120, 130);
+                var dcret = await ownerWallet.CreateDAOAsync(daoName, daoDesc, 1, 0.01m, 0.001m, 10, 120, 130);
                 Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
                 await WaitWorkflow(dcret.TxHash, "CreateDAOAsync");
             }
@@ -886,20 +886,27 @@ namespace UnitTests
                 default: break;
             }
 
+            decimal eqprice = 100m;
+            decimal amount = 3m;
+            var totalOrderValue = amount * eqprice;
+            (var tradeFee, var networkFee) = UniTradeFees.CalculateSellerFees(eqprice, amount, (dao as IDao).SellerFeeRatio);
+            var totalFee = tradeFee + networkFee;
+            var totalCollateral = totalOrderValue * ((dao as IDao).SellerPar / 100m) + totalFee;
+
             // calculate fees
             await offeringWallet.SyncAsync();            
             var offeringBalanceInput = offeringWallet.BaseBalance;
             await bidingWallet.SyncAsync();
             var bidingBalanceInput = bidingWallet.BaseBalance;
             // after trading, the balance should be
-            var collateralCount = 100_000;
-            var offeringBalanceShouldBe = offeringBalanceInput 
+
+            var offeringBalanceShouldBe = offeringBalanceInput
                 - offeringCost       // sending fee
                 - LyraGlobal.GetListingFeeFor()
-                - collateralCount * (LyraGlobal.OfferingNetworkFeeRatio + dao.SellerFeeRatio);
+                - totalCollateral;
             var bidingBalanceShouldBe = bidingBalanceInput
                 - bidingCost         // sending fee
-                - collateralCount * (LyraGlobal.BidingNetworkFeeRatio + dao.BuyerFeeRatio);
+                - totalCollateral;
             long offeringBalanceTokenInputLong;
             offeringWallet.GetLastSyncBlock().Balances.TryGetValue(offeringGen.Ticker, out offeringBalanceTokenInputLong);
             var offeringBalanceTokenInput = offeringBalanceTokenInputLong.ToBalanceDecimal();
@@ -910,8 +917,7 @@ namespace UnitTests
             var daoBalanceInput = daolatest.Balances.ContainsKey("LYR") ? daolatest.Balances["LYR"].ToBalanceDecimal() : 0;
             var daoBalanceShouldBe = daoBalanceInput
                 + LyraGlobal.GetListingFeeFor()
-                + collateralCount * dao.SellerFeeRatio
-                + collateralCount * dao.BuyerFeeRatio
+                + totalFee
                 - daoCost         // a send
                 ;
 
@@ -938,10 +944,11 @@ namespace UnitTests
                 bidby = LyraGlobal.GetHoldTypeFromTicker(bidingGen.Ticker),
                 biding = bidingGen.Ticker,
                 price = 2,
-                cltamt = collateralCount,
+                eqprice = eqprice,
+                cltamt = totalCollateral,
                 payBy = new string[] { "Paypal" },
 
-                amount = 5,
+                amount = amount,
                 limitMin = 1,
                 limitMax = 3,
             };
@@ -999,7 +1006,7 @@ namespace UnitTests
 
             await test2Wallet.SyncAsync(null);
             var test2balance = test2Wallet.BaseBalance;
-            var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, curUniOrder, collateralCount);
+            var tradgen = await CreateUniTradeAsync(dao, testWallet, test2Wallet, curUniOrder);
 
             bool hasOTC = false;
             if (LyraGlobal.GetOTCRequirementFromTicker(offeringGen.Ticker))
@@ -1050,7 +1057,7 @@ namespace UnitTests
 
             // buyer fee calculated as LYR
             var totalAmount = tradgen.Trade.amount;
-            decimal totalFee = 0;
+            //decimal totalFee = 0;
             var trade = tradgen.Trade;
             // transaction fee
 
@@ -1310,8 +1317,7 @@ namespace UnitTests
             Assert.AreEqual(UniTradeStatus.Canceled, tradelst.UTStatus, "not close trade properly");
         }
 
-        private async Task<IUniTrade> CreateUniTradeAsync(IDao dao, Wallet offeringWallet, Wallet bidingWallet, UniOrderGenesisBlock Unig, 
-            int callateralCount)
+        private async Task<IUniTrade> CreateUniTradeAsync(IDao dao, Wallet offeringWallet, Wallet bidingWallet, UniOrderGenesisBlock Unig)
         {
             Console.WriteLine("Calling CreateUniTradeAsync");
             var dao1 = dao as TransactionBlock;
@@ -1328,6 +1334,12 @@ namespace UnitTests
             var odrblksnapshot = odrblksnapshotret.As<IUniOrder>();
             Assert.IsTrue(odrblksnapshot.Order.amount >= 1, "amount avaliable in order show >= 1");
 
+            decimal amount = 1;
+            var totalTradeValue = Unig.Order.eqprice * amount;
+            (var tradeFee, var networkFee) = UniTradeFees.CalculateSellerFees(Unig.Order.eqprice, amount, (dao as IDao).BuyerFeeRatio);
+            var totalFee = tradeFee + networkFee;
+            var totalCollateral = totalTradeValue * ((dao as IDao).BuyerPar / 100m) + totalFee;
+
             var fiatg = (await bidingWallet.RPC.GetTokenGenesisBlockAsync("", Unig.Order.biding, "")).As<TokenGenesisBlock>();
 
             var trade = new UniTrade
@@ -1340,11 +1352,12 @@ namespace UnitTests
                 offering = Unig.Order.offering,
                 bidby = LyraGlobal.GetHoldTypeFromTicker(fiatg.Ticker),
                 biding = fiatg.Ticker,
-                price = 2,
+                price = Unig.Order.price,
+                eqprice = Unig.Order.eqprice,
                 
-                cltamt = callateralCount,
+                cltamt = totalCollateral,
                 payVia = "Paypal",
-                amount = 1,
+                amount = amount,
                 pay = 2,
             };
 
@@ -1486,6 +1499,7 @@ namespace UnitTests
                 //fiatPrice = prices[fiat.ToLower()],
                 //priceType = PriceType.Fixed,
                 //price = 2000,
+                //eqprice = 0.01m,
                 //amount = 2,
                 //collateral = 180000000,
                 //collateralPrice = prices["LYR"],

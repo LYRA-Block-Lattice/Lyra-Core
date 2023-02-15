@@ -152,6 +152,7 @@ namespace Lyra.Core.WorkFlow
             // break code bellow into steps
             if (
                 order.price != trade.price ||
+                order.eqprice != trade.eqprice ||
                 order.amount < trade.amount ||
                 orderblk.OwnerAccountId != trade.orderOwnerId
                 //|| !order.payBy.Contains(trade.payVia)
@@ -176,12 +177,28 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidTradeAmount;
 
             // verify collateral
-            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-
-            var chgs = send.GetBalanceChanges(last);
-            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
-                chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < trade.cltamt)
+            var totalTradeValue = trade.eqprice * trade.amount;
+            (var tradeFee, var networkFee) = UniTradeFees.CalculateSellerFees(trade.eqprice, trade.amount, (dao as IDao).BuyerFeeRatio);
+            var totalFee = tradeFee + networkFee;
+            var totalCollateral = totalTradeValue * ((dao as IDao).BuyerPar / 100m) + totalFee;
+            if (trade.cltamt != totalCollateral)
                 return APIResultCodes.InvalidCollateral;
+
+            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+            var chgs = send.GetBalanceChanges(last);
+
+            if(trade.biding == LyraGlobal.OFFICIALTICKERCODE)
+            {
+                if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                    chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != trade.amount + trade.cltamt + send.Fee)
+                    return APIResultCodes.InvalidCollateral;
+            }
+            else
+            {
+                if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                    chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != trade.cltamt)
+                    return APIResultCodes.InvalidCollateral;
+            }
 
             var bidg = await sys.Storage.FindTokenGenesisBlockAsync("", trade.biding);
 
@@ -495,6 +512,23 @@ namespace Lyra.Core.WorkFlow
                 });
         }
 
+        public static async Task<(decimal sellerFee, decimal buyerFee, decimal sellerNetworkFee, decimal buyerNetworkFee)> CalculateFeesAsync(DagSystem sys, LyraContext context)
+        {
+            //var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+            //var trade = (tradelatest as IUniTrade).Trade;
+            var trade = JsonConvert.DeserializeObject<UniTrade>(context.Send.Tags["data"]);
+
+            // find dao by the time when order created.
+            // first find order genesis block
+            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as UniOrderGenesisBlock;
+            var sndHash = odrgen.RelatedTx;
+            var odrCreateSend = await sys.Storage.FindBlockByHashAsync(sndHash) as SendTransferBlock;
+
+            var daoforodr = await sys.Storage.FindLatestBlockByTimeAsync(trade.daoId, odrCreateSend.TimeStamp) as IDao;
+
+            return UniTradeFees.CalculateFees(daoforodr, trade);
+        }
+
         //protected async Task<TransactionBlock> SealOrderAsync(DagSystem sys, LyraContext context)
         //{
         //    var send = context.Send;
@@ -552,29 +586,6 @@ namespace Lyra.Core.WorkFlow
                     b.Balances[trade.Trade.biding] -= trade.Trade.pay.ToBalanceLong();
                     b.Balances["LYR"] -= (trade.OdrCltMmt.ToBalanceDecimal() - sf - snf).ToBalanceLong();
                 });
-        }
-
-        protected async Task<(decimal sellerFee, decimal buyerFee, decimal sellerNetworkFee, decimal buyerNetworkFee)> CalculateFeesAsync(DagSystem sys, LyraContext context)
-        {
-            //var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
-            //var trade = (tradelatest as IUniTrade).Trade;
-            var trade = JsonConvert.DeserializeObject<UniTrade>(context.Send.Tags["data"]);
-
-            // find dao by the time when order created.
-            // first find order genesis block
-            var odrgen = await sys.Storage.FindFirstBlockAsync(trade.orderId) as UniOrderGenesisBlock;
-            var sndHash = odrgen.RelatedTx;
-            var odrCreateSend = await sys.Storage.FindBlockByHashAsync(sndHash) as SendTransferBlock;
-
-            var daoforodr = await sys.Storage.FindLatestBlockByTimeAsync(trade.daoId, odrCreateSend.TimeStamp) as IDao;
-
-            // buyer fee calculated as LYR
-            var buyerFee = Math.Round(daoforodr.BuyerFeeRatio * trade.cltamt / (daoforodr.BuyerPar / 100), 8);
-            var sellerFee = Math.Round(daoforodr.SellerFeeRatio * trade.cltamt / (daoforodr.SellerPar / 100), 8);
-            var buyerNetworkFee = Math.Round(LyraGlobal.BidingNetworkFeeRatio * trade.cltamt / (daoforodr.BuyerPar / 100), 8);
-            var sellerNetworkFee = Math.Round(LyraGlobal.OfferingNetworkFeeRatio * trade.cltamt / (daoforodr.SellerPar / 100), 8);
-
-            return (sellerFee, buyerFee, sellerNetworkFee, buyerNetworkFee);
         }
 
         protected async Task<TransactionBlock?> SendFeesToDaoAsync(DagSystem sys, LyraContext context)

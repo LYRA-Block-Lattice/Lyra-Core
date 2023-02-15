@@ -182,6 +182,7 @@ namespace UnitTests.Uni
                 biding = fiat,
                 bidby = HoldTypes.Fiat,
                 price = 2,
+                eqprice = 0.01m,
                 cltamt = collt,
                 payBy = new string[] { "Paypal" },
 

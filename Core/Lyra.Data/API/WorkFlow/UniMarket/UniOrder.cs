@@ -45,6 +45,12 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public decimal price { get; set; }
 
         /// <summary>
+        /// the equivalent price of offering properties count in LYR.
+        /// fees are calculated by this value.
+        /// </summary>
+        public decimal eqprice { get; set; }
+
+        /// <summary>
         /// always crypto
         /// </summary>
         public decimal amount { get; set; }
@@ -64,6 +70,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         /// <summary>
         /// the amount of collateral, always be LYR token
+        /// including dao fees, network fees, and collateral for offering properties.
         /// </summary>
         public decimal cltamt { get; set; }
 
@@ -91,6 +98,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
                 amount == ob.amount &&
                 cltamt == ob.cltamt &&
                 price == ob.price &&
+                eqprice == ob.eqprice &&
                 limitMin == ob.limitMin &&
                 limitMax == ob.limitMax &&
                 payBy.SequenceEqual(ob.payBy);
@@ -99,7 +107,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
         public override int GetHashCode()
         {
             return HashCode.Combine(HashCode.Combine(daoId, dealerId, offerby, offering, bidby, biding),
-                HashCode.Combine(price, amount, cltamt, limitMin, limitMax, payBy));
+                HashCode.Combine(price, amount, cltamt, limitMin, limitMax, payBy, eqprice));
         }
 
         public string GetExtraData(Block parent)
@@ -118,6 +126,10 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             extraData += $"{limitMin}|";
             extraData += $"{limitMax}|";
             extraData += $"{string.Join(",", payBy)}|";
+
+            if(parent.Version >= 10)
+                extraData += $"{eqprice.ToBalanceLong()}|";
+
             return extraData;
         }
 
@@ -131,6 +143,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
             result += $"Money Type: {bidby}\n";
             result += $"Money Ticker: {biding}\n";
             result += $"Price: {price}\n";
+            result += $"Equivlent price in LYR: {eqprice}\n";
             result += $"Amount: {amount}\n";
             result += $"Seller Collateral: {cltamt}\n";
             result += $"limitMin: {limitMin}\n";
