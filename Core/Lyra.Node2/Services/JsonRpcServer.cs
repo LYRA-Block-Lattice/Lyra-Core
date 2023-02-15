@@ -748,6 +748,27 @@ namespace Lyra.Node
             }
         }
 
+        [JsonRpcMethod("DelistOrder")]
+        public async Task<string?> DelistOrderAsync(string accountId, string daoId, string orderId)
+        {
+            try
+            {
+                var klWallet = await CreateWalletAsync(accountId);
+
+                var ret = await klWallet.DelistUniOrderAsync(daoId, orderId);
+                if (!ret.Successful()) return returnError(ret.ResultMessage);
+
+                // wait for complete
+                klWallet.WaitForWorkflow(ret.TxHash, 30000);
+
+                return returnApiResult(ret, ret.TxHash);
+            }
+            catch (Exception ex)
+            {
+                return returnError(ex.Message);
+            }
+        }
+
         [JsonRpcMethod("CreateTrade")]
         public async Task<string?> CreateTradeAsync(string accountId, string tradeJson)
         {

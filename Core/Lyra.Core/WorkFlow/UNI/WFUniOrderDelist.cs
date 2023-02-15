@@ -37,6 +37,7 @@ namespace Lyra.Core.WorkFlow.Uni
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("daoid") ||                                            
                 !send.Tags.ContainsKey("orderid") ||
+                string.IsNullOrWhiteSpace(send.Tags["daoid"]) ||
                 string.IsNullOrWhiteSpace(send.Tags["orderid"])
                 )
                 return APIResultCodes.InvalidBlockTags;
