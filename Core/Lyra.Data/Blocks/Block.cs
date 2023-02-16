@@ -744,5 +744,6 @@ namespace Lyra.Core.Blocks
         InvalidProofOfDelivery,
         InvalidFeeRito,
         InvalidPrice,
+        DuplicateBlock,
     }
 }

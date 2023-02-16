@@ -46,6 +46,15 @@ namespace Lyra.Core.Authorizers
 
         public async Task<AuthResult> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block
         {
+            // dupcheck first
+            if(await sys.Storage.DupCheckAsync(tblock))
+                return new AuthResult
+                {
+                    Result = APIResultCodes.DuplicateBlock,
+                    Signature = null,
+                    LockedIDs = null,
+                };
+
             var result = await AuthorizeImplAsync(sys, tblock);
 
             if (APIResultCodes.Success == result)

@@ -1673,6 +1673,35 @@ namespace Lyra.Core.Accounts
                 new ReplaceOptions { IsUpsert = true });
         }
 
+        public async Task<bool> DupCheckAsync(Block block)
+        {
+            // make it one step operation
+            FilterDefinition<Block> query;
+            if (block is TransactionBlock tx)
+            {
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),
+                        filter.And(
+                            filter.Eq("AccountID", tx.AccountID),
+                            filter.Eq("Height", block.Height))
+                        );
+            }
+            else
+            {
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),
+                        filter.And(
+                            filter.Eq("BlockType", block.BlockType),
+                            filter.Eq("Height", block.Height))
+                        );
+            }
+
+            var results = await _blocks.FindAsync(query);
+            return results.Any();
+        }
+
         public async Task<bool> AddBlockAsync(Block block)
         {
             // make it one step operation

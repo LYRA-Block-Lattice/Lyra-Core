@@ -31,6 +31,7 @@ namespace Lyra.Core.Accounts
         Task<Block> FindBlockByHeightAsync(string AccountId, long height);
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
         Task<List<Block>> GetMultipleConsByHeightAsync(long height, int count);
+        Task<bool> DupCheckAsync(Block block);
 
         // DAO and OTC
         Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly);
