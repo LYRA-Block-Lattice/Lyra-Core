@@ -126,7 +126,7 @@ namespace Lyra.Core.Decentralize
 
 
             // TODO: with two steps config upgrade to full support
-            if(Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
+            if(Settings.Default.LyraNode.Lyra.NetworkId == "devnet" || Settings.Default.LyraNode.Lyra.NetworkId == "testnet")
             {
                 // first verify current data
 
@@ -468,7 +468,7 @@ namespace Lyra.Core.Decentralize
         /// <returns></returns>
         private async Task<(bool, long latestHeight)> SyncAndVerifyConsolidationBlock2Async(ILyraAPI safeClient, ILyraAPI fastClient, long height)
         {
-            _log.LogInformation($"Sync and verify consolidation block height height");
+            //_log.LogInformation($"Sync and verify consolidation block height height");
 
             try
             {

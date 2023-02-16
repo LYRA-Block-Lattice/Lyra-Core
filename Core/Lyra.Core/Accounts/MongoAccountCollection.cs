@@ -1675,22 +1675,43 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            // in unit test maybe null
-            _log?.LogInformation($"AddBlockAsync: {block.BlockType} {block.Height} {block.Hash}");
-
-            if (FindBlockByHash(block.Hash) != null)
+            // make it one step operation
+            FilterDefinition<Block> query;
+            if (block is TransactionBlock tx)
             {
-                _log.LogWarning($"AccountCollection=>AddBlock: Block with such Hash already exists! {block.BlockType}, {block.Hash}");
-                return false;
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),
+                        filter.And(
+                            filter.Eq("AccountID", tx.AccountID),
+                            filter.Eq("Height", block.Height))
+                        );
+            }
+            else
+            {
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),                    
+                        filter.And(
+                            filter.Eq("BlockType", block.BlockType),
+                            filter.Eq("Height", block.Height))
+                        );
             }
 
-            var tx = block as TransactionBlock;
-            if (tx != null)
+            var exists = _blocks.Find(query);
+            if(exists.Any())
             {
-                var curNdx = FindBlockByIndex(tx.AccountID, tx.Height);
-                if (curNdx != null)
+                // hack: testnet db error, dup service block height 8896
+                if(_networkId == "testnet" && block.BlockType == BlockTypes.Service && block.Height <= 8896)
                 {
-                    _log.LogWarning($"AccountCollection=>AddBlock: Block with such Index already exists! {block.BlockType}, {block.Hash} {tx.AccountID} {tx.Height} existing: {curNdx.Hash}");
+                    // no action, just add it.
+                    _log.LogWarning($"AccountCollection=>AddBlock: Service {block.Height} dup tolerant");
+                }
+                else
+                {
+                    var blk = exists.FirstOrDefault();
+                    _log.LogWarning($"AccountCollection=>AddBlock: Block exists! {block.BlockType}, {block.Hash}");
+                    _log.LogWarning($"AccountCollection=>AddBlock: Existing one: {blk.BlockType}, {blk.Hash}, {blk.Signature}");
                     return false;
                 }
             }
@@ -1699,8 +1720,8 @@ namespace Lyra.Core.Accounts
             {
                 _blocks.InsertOne(block);
 
-                if(tx != null)
-                    await UpdateSnapshotAsync(tx);
+                if(block is TransactionBlock t)
+                    await UpdateSnapshotAsync(t);
 
                 return true;
             }
