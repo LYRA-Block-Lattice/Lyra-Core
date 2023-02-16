@@ -135,13 +135,13 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override string? ToString()
         {
-            string? result = base.ToString();
+            string? result = "";// base.ToString();
             result += $"DAO ID: {daoId}\n";
             result += $"Dealer ID: {dealerId}\n";
-            result += $"Property Type: {offerby}\n";
-            result += $"Property Ticker: {offering}\n";
-            result += $"Money Type: {bidby}\n";
-            result += $"Money Ticker: {biding}\n";
+            result += $"Offering Type: {offerby}\n";
+            result += $"Offering Ticker: {offering}\n";
+            result += $"Biding Type: {bidby}\n";
+            result += $"Biding Ticker: {biding}\n";
             result += $"Price: {price}\n";
             result += $"Equivlent price in LYR: {eqprice}\n";
             result += $"Amount: {amount}\n";

@@ -29,6 +29,7 @@ using MongoDB.Driver.Linq;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using System.Collections;
 using Akka.Remote.Transport;
+using System.Reflection.Metadata;
 
 namespace Lyra.Core.Accounts
 {
@@ -2657,11 +2658,19 @@ namespace Lyra.Core.Accounts
 
             PipelineDefinition<TransactionBlock, BsonDocument> pipeline = arr;
 
-            var q1 = _snapshots.Aggregate(pipeline);
+            try
+            {
+                var q1 = _snapshots.Aggregate(pipeline);
 
-            var x = await q1.FirstOrDefaultAsync();
+                var x = await q1.FirstOrDefaultAsync();
 
-            return x;
+                return x;
+            }
+            catch(Exception ex)
+            {
+                // when no tradable error, there is a exception
+                return BsonDocument.Parse("{}");
+            }
         }
 
         /// <summary>

@@ -115,7 +115,7 @@ namespace Lyra.Data.API.WorkFlow.UniMarket
 
         public override string ToString()
         {
-            string result = base.ToString();
+            string result = "";// base.ToString();
             result += $"DAO ID: {daoId}\n";
             result += $"Dealer ID: {dealerId}\n";
             result += $"Order ID: {orderId}\n";
