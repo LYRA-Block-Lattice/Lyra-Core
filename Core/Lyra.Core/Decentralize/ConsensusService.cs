@@ -323,20 +323,20 @@ namespace Lyra.Core.Decentralize
                             //    await OnNextConsensusMessageAsync(msg);
                             //});
 
-/*                            BlockTypes bt = BlockTypes.Null;
-                            if (signedMsg is AuthorizingMsg au)
-                            {
-                                bt = au.Block.BlockType;
-                            }
-                            else if (signedMsg is BlockConsensusMessage bcm)
-                            {
-                                if (_activeConsensus.ContainsKey(bcm.BlockHash))
-                                {
-                                    var bx = _activeConsensus[bcm.BlockHash];
-                                    if (bx.State != null && bx.State.InputMsg != null)
-                                        bt = bx.State.InputMsg.Block.BlockType;
-                                }
-                            }*/
+                            /*                            BlockTypes bt = BlockTypes.Null;
+                                                        if (signedMsg is AuthorizingMsg au)
+                                                        {
+                                                            bt = au.Block.BlockType;
+                                                        }
+                                                        else if (signedMsg is BlockConsensusMessage bcm)
+                                                        {
+                                                            if (_activeConsensus.ContainsKey(bcm.BlockHash))
+                                                            {
+                                                                var bx = _activeConsensus[bcm.BlockHash];
+                                                                if (bx.State != null && bx.State.InputMsg != null)
+                                                                    bt = bx.State.InputMsg.Block.BlockType;
+                                                            }
+                                                        }*/
 
                             //// not needed anymore
                             //// seeds take resp to forward heatbeat, once
@@ -484,7 +484,7 @@ namespace Lyra.Core.Decentralize
             //    return client1;
             //}
 
-            var useSeedOnly = false;
+            var useSeedOnly = true;
             var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId, Board);
             return client;
         }
@@ -798,7 +798,7 @@ namespace Lyra.Core.Decentralize
 
                             if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
-                                _log.LogInformation("Invalid Sync State.");
+                                _log.LogInformation($"Invalid Sync State: {networkStatus.ResultMessage}");
                                 //if(client is LyraAggregatedClient agg)
                                 //{
                                 //    agg.ReBase(true);   // look for seeds
