@@ -119,7 +119,15 @@ namespace Lyra.Core.WorkFlow.Uni
             return await TransSendAsync<UniOrderSendBlock>(sys, context.Send.Hash, orderid,
                 daoid,
                 new Dictionary<string, decimal> { { LyraGlobal.OFFICIALTICKERCODE, totalFee } },
-                context.State
+                context.State,
+                (b) =>
+                {
+                    // after fees, order empty. so close it.
+                    if (b.Balances[LyraGlobal.OFFICIALTICKERCODE] == totalFee)
+                    {
+                        (b as IUniOrder).UOStatus = UniOrderStatus.Closed;
+                    }                    
+                }
                 );
         }
 
@@ -127,6 +135,10 @@ namespace Lyra.Core.WorkFlow.Uni
         {
             var orderid = context.Send.Tags["orderid"];
             var lastblock = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
+
+            // check if order is already empty
+            if (lastblock.Balances[LyraGlobal.OFFICIALTICKERCODE] == 0)
+                return null;
 
             var blockNext = await TransactionOperateAsync(sys, context.Send.Hash, lastblock,
                 () => lastblock.GenInc<UniOrderSendBlock>(),

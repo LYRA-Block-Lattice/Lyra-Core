@@ -552,7 +552,7 @@ namespace Lyra.Core.WorkFlow
 
         protected async Task<T> TransSendAsync<T>(DagSystem sys, string key, string srcAccountId, string dstAccountId,
             Dictionary<string, decimal> amounts,
-            WFState wfState) where T : TransactionBlock
+            WFState wfState, Action<T> ChangeBlock = null) where T : TransactionBlock
         {
             // check exists
             var prevBlock = await sys.Storage.FindLatestBlockAsync(srcAccountId) as TransactionBlock;
