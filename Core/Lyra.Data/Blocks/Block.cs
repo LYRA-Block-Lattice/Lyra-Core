@@ -229,7 +229,7 @@ namespace Lyra.Core.Blocks
                 // debug only
                 if(!Directory.Exists("c:\\tmp"))
                     Directory.CreateDirectory("c:\\tmp");   
-                File.AppendAllText("c:\\tmp\\GetHashInput.txt", $"{this.BlockType} {this.Height}\njson\n\n");
+                File.AppendAllText("c:\\tmp\\GetHashInput.txt", $"{this.BlockType} {this.Height}\n{json}\n\n");
 
                 return json;
             }
