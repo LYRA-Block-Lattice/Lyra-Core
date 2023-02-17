@@ -709,7 +709,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    _log.LogError($"Genesis send {amount} failed to accountId: {accId}");
+                    _log.LogError($"Genesis send {amount} failed to accountId: {accId} {sendResult.ResultCode}");
                 }
             }
         }
