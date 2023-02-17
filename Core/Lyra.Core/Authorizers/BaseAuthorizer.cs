@@ -48,12 +48,16 @@ namespace Lyra.Core.Authorizers
         {
             // dupcheck first
             if(await sys.Storage.DupCheckAsync(tblock))
+            {
+                if(tblock is TransactionBlock tx)
+                    Console.WriteLine($"Dup block detected. Height: {tx.Height} for {tx.AccountID}");
                 return new AuthResult
                 {
                     Result = APIResultCodes.DuplicateBlock,
                     Signature = null,
                     LockedIDs = null,
                 };
+            }
 
             var result = await AuthorizeImplAsync(sys, tblock);
 

@@ -699,7 +699,7 @@ namespace Lyra.Core.Decentralize
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = CreateSafeClient();
+                var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "");
                 await gensWallet.SyncAsync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.SendAsync(amount, accId);
