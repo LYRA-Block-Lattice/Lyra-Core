@@ -31,7 +31,7 @@ namespace Lyra.Core.API
         public const int CONSOLIDATIONDELAY = -60;      // one minute delay for consolidate blocks
 
         public const int ProtocolVersion = 4;
-        public const int DatabaseVersion = 10;       // inc every time block format changed
+        public const int DatabaseVersion = 11;       // inc every time block format changed
 
         public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("3.3.1.0");
         public readonly static Version NODE_VERSION = typeof(LyraGlobal).Assembly.GetName().Version;

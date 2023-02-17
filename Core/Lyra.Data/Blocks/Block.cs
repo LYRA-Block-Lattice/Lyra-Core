@@ -196,6 +196,11 @@ namespace Lyra.Core.Blocks
 
         public override string GetHashInput()
         {
+            if(Version > 10)
+            {
+                return JsonConvert.SerializeObject(this);
+            }
+            else
             return Height.ToString() + "|" +
                              DateTimeToString(TimeStamp) + "|" +
                              this.Version + "|" +
