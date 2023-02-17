@@ -228,6 +228,12 @@ namespace Lyra.Core.Blocks
                     StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                     DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ",
                 };
+
+                if(this is TransactionBlock tx)
+                {
+                    tx.Balances = tx.Balances.OrderBy(obj => obj.Key).ToDictionary(obj => obj.Key, obj => obj.Value);
+                }
+
                 var json = JsonConvert.SerializeObject(this, settings);
 
                 // debug only
