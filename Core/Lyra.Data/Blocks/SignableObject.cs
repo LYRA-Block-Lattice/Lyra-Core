@@ -13,6 +13,8 @@ namespace Lyra.Core.Blocks
 {
     abstract public class SignableObject : IEquatable<SignableObject>
     {
+
+        [JsonIgnore]
         public string? Hash { get; set; }
 
         public string? Signature { get; set; }
