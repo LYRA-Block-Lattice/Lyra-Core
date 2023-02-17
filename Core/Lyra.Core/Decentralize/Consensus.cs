@@ -697,11 +697,12 @@ namespace Lyra.Core.Decentralize
             Wallet.Create(memStore, "tmp", "", Settings.Default.LyraNode.Lyra.NetworkId, _sys.PosWallet.PrivateKey);
             var gensWallet = Wallet.Open(memStore, "tmp", "");
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
+            var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "");
+            await gensWallet.SyncAsync(client);
+            var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
+
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "");
-                await gensWallet.SyncAsync(client);
-                var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.SendAsync(amount, accId);
                 if (sendResult.ResultCode == APIResultCodes.Success)
                 {

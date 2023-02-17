@@ -26,6 +26,7 @@ using Microsoft.Extensions.Logging;
 using Noded.Services;
 using OpenTelemetry.Trace;
 using Lyra.Data.Utils;
+using System.Text;
 
 namespace LyraLexWeb2
 {
@@ -452,17 +453,25 @@ namespace LyraLexWeb2
             return await _trans.SendTransferAsync(sendBlock);
         }
 
+        // this is used for React to submit block. the signature is in DER format
         [Route("SendTransfer2")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransfer2Async(SendTransferBlock sendBlock)
         {
             if (!CheckServiceStatus()) return null;
+            //Console.WriteLine($"{Convert.ToHexString(Encoding.Unicode.GetBytes(sendBlock.GetHashInput()))}");
+            //Console.WriteLine($"react hash: {sendBlock.Hash} dotnet hash: {sendBlock.CalculateHash()}");
+
             var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(sendBlock.Signature.StringToByteArray());
             var dotnetsign = Base58Encoding.Encode(dotnetsignBuff);
+
+            //Console.WriteLine($"old signature: {sendBlock.Signature} new signature: {dotnetsign}");
+
             sendBlock.Signature = dotnetsign;
 
             if(!sendBlock.VerifySignature(sendBlock.AccountID))
             {
+                Console.WriteLine($"Failed block hash: {sendBlock.Hash} input is: " + sendBlock.GetHashInput());
                 return new AuthorizationAPIResult()
                 {
                     ResultCode = APIResultCodes.BlockSignatureValidationFailed,
