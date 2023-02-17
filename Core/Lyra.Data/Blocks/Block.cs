@@ -220,7 +220,7 @@ namespace Lyra.Core.Blocks
         {
             if(Version > 10)
             {
-                var settings = new JsonSerializerSettings { ContractResolver = new CustomResolver(new List<string> { "Hash" }) };
+                var settings = new JsonSerializerSettings { ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }) };
                 var json = JsonConvert.SerializeObject(this, settings);
                 return json;
             }
