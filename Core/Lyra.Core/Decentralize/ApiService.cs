@@ -214,7 +214,7 @@ namespace Lyra.Core.Decentralize
         //            SourceHash = source,
         //            Fee = 0,
         //            FeeType = AuthorizationFeeTypes.NoFee,
-        //            Balances = new Dictionary<string, long>()
+        //            Balances = new SortedDictionary<string, long>()
         //        };
         //        receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToBalanceLong());
         //        receiveBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
@@ -232,7 +232,7 @@ namespace Lyra.Core.Decentralize
         //            SourceHash = source,
         //            Fee = 0,
         //            FeeType = AuthorizationFeeTypes.NoFee,
-        //            Balances = new Dictionary<string, long>()
+        //            Balances = new SortedDictionary<string, long>()
         //        };
 
         //        decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToBalanceLong();

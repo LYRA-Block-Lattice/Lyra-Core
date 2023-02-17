@@ -26,7 +26,7 @@ namespace Lyra.Data.API.WorkFlow
         /// percentage, 0% ~ 1000%, convert to 0 ~ 10 in decimal
         /// </summary>
         public int BuyerPar { get; set; }
-        public Dictionary<string, long> Treasure { get; set; }
+        public SortedDictionary<string, long> Treasure { get; set; }
         public string Description { get; set; }    // dao configuration record hash, in other db collection
     }
 
@@ -46,7 +46,7 @@ namespace Lyra.Data.API.WorkFlow
         public string Description { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Treasure { get; set; }
+        public SortedDictionary<string, long> Treasure { get; set; }
 
         protected override BlockTypes GetBlockType()
         {
@@ -156,7 +156,7 @@ namespace Lyra.Data.API.WorkFlow
         public string Description { get; set; }
 
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Treasure { get; set; }
+        public SortedDictionary<string, long> Treasure { get; set; }
 
         protected override BlockTypes GetBlockType()
         {

@@ -92,7 +92,7 @@ namespace Lyra.Core.WorkFlow.FAT
 
                 // transaction
                 AccountID = last.AccountID,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = lastfiat.Name,

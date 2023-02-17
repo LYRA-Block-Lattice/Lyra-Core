@@ -93,7 +93,7 @@ namespace Lyra.Core.WorkFlow
 
                 // transaction
                 AccountID = AccountId,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = symbol + (String.IsNullOrEmpty(provider) ? "" : $" via {provider}"),
@@ -183,7 +183,7 @@ namespace Lyra.Core.WorkFlow
 
                 // transaction
                 AccountID = last.AccountID,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = lastdex.Name,
@@ -285,7 +285,7 @@ namespace Lyra.Core.WorkFlow
 
                 // transaction
                 AccountID = last.AccountID,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = lastdex.Name,
@@ -386,7 +386,7 @@ namespace Lyra.Core.WorkFlow
 
                 // transaction
                 AccountID = last.AccountID,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = lastdex.Name,
@@ -490,7 +490,7 @@ namespace Lyra.Core.WorkFlow
 
                 // transaction
                 AccountID = last.AccountID,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = lastdex.Name,

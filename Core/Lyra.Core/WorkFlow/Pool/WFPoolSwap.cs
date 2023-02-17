@@ -130,7 +130,7 @@ namespace Lyra.Core.WorkFlow.Pool
                 VoteFor = null,
                 ServiceHash = lsb.Hash,
                 SourceHash = sendBlock.Hash,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
@@ -151,7 +151,7 @@ namespace Lyra.Core.WorkFlow.Pool
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
             PoolGenesisBlock poolGenesis = await sys.Storage.FindFirstBlockAsync(latestPoolBlock.AccountID) as PoolGenesisBlock;
 
-            var depositBalance = new Dictionary<string, decimal>();
+            var depositBalance = new SortedDictionary<string, decimal>();
             if (latestPoolBlock.Balances.Any())
             {
                 var lastBalance = latestPoolBlock.Balances.ToDecimalDict();
@@ -208,7 +208,7 @@ namespace Lyra.Core.WorkFlow.Pool
                 AccountID = send.DestinationAccountId,
                 ServiceHash = lsb.Hash,
                 DestinationAccountId = send.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Tags = null,
                 Fee = cfg.PayToAuthorizer,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

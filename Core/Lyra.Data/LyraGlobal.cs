@@ -214,6 +214,16 @@ namespace Lyra.Core.API
             return dict.ToDictionary(k => k.Key, k => k.Value.ToBalanceLong());
         }
 
+        public static SortedDictionary<string, decimal> ToDecimalDict(this SortedDictionary<string, long> dict)
+        {
+            return new SortedDictionary<string, decimal>(dict.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal()));
+        }
+
+        public static SortedDictionary<string, long> ToLongDict(this SortedDictionary<string, decimal> dict)
+        {
+            return new SortedDictionary<string, long>(dict.ToDictionary(k => k.Key, k => k.Value.ToBalanceLong()));
+        }
+
         public static long ToRitoLong(this decimal currency)
         {
             return (long)Math.Round(currency * (decimal) Math.Pow(10, LyraGlobal.RITOPRECISION));
@@ -232,6 +242,16 @@ namespace Lyra.Core.API
         public static Dictionary<string, long> ToRitoLongDict(this Dictionary<string, decimal> dict)
         {
             return dict.ToDictionary(k => k.Key, k => k.Value.ToRitoLong());
+        }
+
+        public static SortedDictionary<string, decimal> ToRitoDecimalDict(this SortedDictionary<string, long> dict)
+        {
+            return new SortedDictionary<string, decimal>(dict.ToDictionary(k => k.Key, k => k.Value.ToRitoDecimal()));
+        }
+
+        public static SortedDictionary<string, long> ToRitoLongDict(this SortedDictionary<string, decimal> dict)
+        {
+            return new SortedDictionary<string, long>(dict.ToDictionary(k => k.Key, k => k.Value.ToRitoLong()));
         }
     }
 }

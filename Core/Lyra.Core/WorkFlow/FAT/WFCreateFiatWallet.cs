@@ -96,7 +96,7 @@ namespace Lyra.Core.WorkFlow.FAT
                 // transaction
                 AccountType = AccountTypes.Fiat,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = $"Fiat wallet for {arg.symbol}",

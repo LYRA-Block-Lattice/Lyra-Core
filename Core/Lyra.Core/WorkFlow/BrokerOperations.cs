@@ -90,7 +90,7 @@ namespace Lyra.Core.WorkFlow
                 VoteFor = null,
                 ServiceHash = lsb.Hash,
                 SourceHash = sendBlock.Hash,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Fee = Math.Round(txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE], 8, MidpointRounding.ToZero),
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.FullFee,
@@ -130,7 +130,7 @@ namespace Lyra.Core.WorkFlow
                 // transaction
                 AccountID = sendBlock.DestinationAccountId,                
                 SourceHash = sendBlock.Hash,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
@@ -197,7 +197,7 @@ namespace Lyra.Core.WorkFlow
                 // transaction
                 AccountID = sendBlock.DestinationAccountId,
                 SourceHash = sendBlock.Hash,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,

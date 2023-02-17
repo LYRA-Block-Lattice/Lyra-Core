@@ -207,7 +207,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
         //    // transaction
         //    nextblock.AccountID = sendBlock.DestinationAccountId;
-        //    nextblock.Balances = new Dictionary<string, long>();
+        //    nextblock.Balances = new SortedDictionary<string, long>();
         //    nextblock.Fee = 0;
         //    nextblock.FeeCode = LyraGlobal.OFFICIALTICKERCODE;
         //    nextblock.FeeType = AuthorizationFeeTypes.NoFee;

@@ -83,7 +83,7 @@ namespace Lyra.Core.Blocks
 
         // this is the number of atomic units; it must be divided by the number of digits after the digital point for specific currency
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Balances { get; set; }
+        public SortedDictionary<string, long> Balances { get; set; }
 
         public decimal Fee { get; set; } // the amount of transfer fee paid to the authorizers for processing transfer
 
@@ -125,7 +125,7 @@ namespace Lyra.Core.Blocks
                 ;
         }
 
-        private bool CompareBalances(Dictionary<string, long>? otherBalance)
+        private bool CompareBalances(SortedDictionary<string, long>? otherBalance)
         {
             if (Balances.Count != otherBalance?.Count)
                 return false;
@@ -266,7 +266,7 @@ namespace Lyra.Core.Blocks
             return sb.ToString();
         }
 
-        protected string DictToStr<TKey, TValue>(Dictionary<TKey, TValue> dict)
+        protected string DictToStr<TKey, TValue>(SortedDictionary<TKey, TValue> dict)
         {
             if (dict == null)
                 return "";

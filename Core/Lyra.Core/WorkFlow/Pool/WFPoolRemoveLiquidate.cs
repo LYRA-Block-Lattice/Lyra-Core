@@ -66,7 +66,7 @@ namespace Lyra.Core.WorkFlow.Pool
                 AccountID = poolId,
                 ServiceHash = lsb.Hash,
                 DestinationAccountId = send.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Tags = null,
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

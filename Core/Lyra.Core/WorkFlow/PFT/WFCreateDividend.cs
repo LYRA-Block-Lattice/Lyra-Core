@@ -78,8 +78,8 @@ namespace Lyra.Core.WorkFlow.PFT
                 //SourceHash = feesEndSb.Hash,      // no source like all genesis. set source to svc block vaoliate the rule.
                 ServiceBlockStartHeight = usf.ServiceBlockStartHeight,
                 ServiceBlockEndHeight = usf.ServiceBlockEndHeight,
-                Balances = latestBlock.Balances.ToDictionary(entry => entry.Key,
-                                           entry => entry.Value),
+                Balances = new SortedDictionary<string, long>(latestBlock.Balances.ToDictionary(entry => entry.Key,
+                                           entry => entry.Value)),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -174,7 +174,7 @@ namespace Lyra.Core.WorkFlow.PFT
             var pftNext = new ProfitingBlock
             {
                 AccountID = lastPft.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = lastPft.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -343,7 +343,7 @@ namespace Lyra.Core.WorkFlow.PFT
                 Name = ((IBrokerAccount)lastPft).Name,
                 OwnerAccountId = ((IBrokerAccount)lastPft).OwnerAccountId,
                 AccountID = lastPft.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = lastPft.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,

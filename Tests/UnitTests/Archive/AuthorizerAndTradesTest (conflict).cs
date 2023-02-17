@@ -641,7 +641,7 @@
 //                AccountID = AccountId2,
 //                ServiceHash = string.Empty,
 //                SourceHash = _ExecuteTradeOrderBlock.Hash,
-//                Balances = new Dictionary<string, decimal>()
+//                Balances = new SortedDictionary<string, decimal>()
 //            };
 
 //            _ReceiveTransferBlockAcc2.Balances.Add(_TradeBlock.BuyTokenCode, _TradeBlock.BuyAmount);
@@ -674,7 +674,7 @@
 //                AccountID = AccountId1,
 //                ServiceHash = string.Empty,
 //                SourceHash = _TradeBlock.Hash,
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 //                FeeType = AuthorizationFeeTypes.NoFee
 //            };
 
@@ -710,7 +710,7 @@
 //            {
 //                AccountID = AccountId1,
 //                DestinationAccountId = AccountId2,
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 //                TradeId = trade.Hash,
 //                TradeOrderId = trade.TradeOrderId,
 //                SellTokenCode = "Custom.USD",
@@ -871,7 +871,7 @@
 //                //CustomFee = 0,
 //                //CustomFeeAccountId = string.Empty,
 //                AccountID = AccountId1,
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 //                ServiceHash = string.Empty
 
 //            };
@@ -900,7 +900,7 @@
 //                Precision = 0,
 //                IsFinalSupply = true,
 //                AccountID = AccountId1,
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 //                ServiceHash = string.Empty,
 //                Fee = TokenGenerationFee,
 //                FeeType = AuthorizationFeeTypes.Regular,
@@ -935,7 +935,7 @@
 //                AccountID = AccountId1,
 //                ServiceHash = string.Empty,
 //                DestinationAccountId = AccountId2,
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 //                //PaymentID = string.Empty,
 //                Fee = TransferFee,
 //                FeeType = AuthorizationFeeTypes.Regular,
@@ -969,7 +969,7 @@
 //                SourceHash = _SendTransferBlock.Hash,
 //                Fee = 0,
 //                FeeType = AuthorizationFeeTypes.NoFee,
-//                Balances = new Dictionary<string, decimal>()
+//                Balances = new SortedDictionary<string, decimal>()
 //            };
 
 //            openReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount);
@@ -1018,7 +1018,7 @@
 //                AccountID = AccountId1,
 //                ServiceHash = string.Empty,
 //                DestinationAccountId = string.Empty, // we are sending to nowhere
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 //                //PaymentID = string.Empty,
 //                Fee = 0, // We don't pay fees for placing orders
 //                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -1088,7 +1088,7 @@
 //                AccountID = AccountId2,
 //                ServiceHash = string.Empty,
 //                DestinationAccountId = string.Empty, // we are sending to nowhere
-//                Balances = new Dictionary<string, decimal>(),
+//                Balances = new SortedDictionary<string, decimal>(),
 
 //                Fee = 0, // We don't pay fees for placing orders
 //                FeeCode = LyraGlobal.OFFICIALTICKERCODE,

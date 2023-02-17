@@ -208,7 +208,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 // transaction
                 AccountType = AccountTypes.Voting,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // recv
                 SourceHash = null,

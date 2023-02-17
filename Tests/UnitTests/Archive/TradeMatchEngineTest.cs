@@ -301,7 +301,7 @@ namespace Lyra.Node.Test
             {
                 AccountID = order.AccountID,
                 ServiceHash = string.Empty,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 TradeOrderId = order.Hash
             };
 

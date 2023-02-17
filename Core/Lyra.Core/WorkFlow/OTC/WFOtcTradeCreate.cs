@@ -287,7 +287,7 @@ namespace Lyra.Core.WorkFlow
                 // transaction
                 AccountType = AccountTypes.OTC,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // receive
                 SourceHash = (blocks.Last() as TransactionBlock).Hash,

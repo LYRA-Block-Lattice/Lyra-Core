@@ -17,7 +17,7 @@ namespace UnitTests.Swap
             var Y = 20000m;  // dai
 
             var fakeBlock = new SendTransferBlock();
-            fakeBlock.Balances = new Dictionary<string, long>();
+            fakeBlock.Balances = new SortedDictionary<string, long>();
             fakeBlock.Balances.Add("LYR", X.ToBalanceLong());
             fakeBlock.Balances.Add("DAI", Y.ToBalanceLong());
 

@@ -697,7 +697,7 @@ namespace Lyra.Node.Test
                 AccountID = AccountId2,
                 ServiceHash = string.Empty,
                 SourceHash = _ExecuteTradeOrderBlock.Hash,
-                Balances = new Dictionary<string, decimal>()
+                Balances = new SortedDictionary<string, decimal>()
             };
 
             _ReceiveTransferBlockAcc2.Balances.Add(_TradeBlock.BuyTokenCode, _TradeBlock.BuyAmount);
@@ -730,7 +730,7 @@ namespace Lyra.Node.Test
                 AccountID = AccountId1,
                 ServiceHash = string.Empty,
                 SourceHash = _TradeBlock.Hash,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 FeeType = AuthorizationFeeTypes.NoFee
             };
 
@@ -766,7 +766,7 @@ namespace Lyra.Node.Test
             {
                 AccountID = AccountId1,
                 DestinationAccountId = AccountId2,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 TradeId = trade.Hash,
                 TradeOrderId = trade.TradeOrderId,
                 SellTokenCode = "Custom.USD",
@@ -941,7 +941,7 @@ namespace Lyra.Node.Test
                 //CustomFee = 0,
                 //CustomFeeAccountId = string.Empty,
                 AccountID = AccountId1,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 RenewalDate = DateTime.MaxValue,
 
             };
@@ -970,7 +970,7 @@ namespace Lyra.Node.Test
                 Precision = 0,
                 IsFinalSupply = true,
                 AccountID = AccountId1,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 ServiceHash = string.Empty,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
@@ -1006,7 +1006,7 @@ namespace Lyra.Node.Test
                 AccountID = AccountId1,
                 ServiceHash = string.Empty,
                 DestinationAccountId = AccountId2,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 //PaymentID = string.Empty,
                 Fee = TransferFee,
                 FeeType = AuthorizationFeeTypes.Regular,
@@ -1040,7 +1040,7 @@ namespace Lyra.Node.Test
                 SourceHash = _SendTransferBlock.Hash,
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                Balances = new Dictionary<string, decimal>()
+                Balances = new SortedDictionary<string, decimal>()
             };
 
             openReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount);
@@ -1062,7 +1062,7 @@ namespace Lyra.Node.Test
                 SourceHash = _SendTransferBlock.Hash,
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                Balances = new Dictionary<string, decimal>()
+                Balances = new SortedDictionary<string, decimal>()
             };
 
             openReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount);
@@ -1083,7 +1083,7 @@ namespace Lyra.Node.Test
                 SourceHash = _SendTransferBlock.Hash,
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                Balances = new Dictionary<string, decimal>()
+                Balances = new SortedDictionary<string, decimal>()
             };
 
             ReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount * 2);
@@ -1132,7 +1132,7 @@ namespace Lyra.Node.Test
                 AccountID = AccountId1,
                 ServiceHash = string.Empty,
                 DestinationAccountId = string.Empty, // we are sending to nowhere
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 //PaymentID = string.Empty,
                 Fee = 0, // We don't pay fees for placing orders
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -1202,7 +1202,7 @@ namespace Lyra.Node.Test
                 AccountID = AccountId2,
                 ServiceHash = string.Empty,
                 DestinationAccountId = string.Empty, // we are sending to nowhere
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
 
                 Fee = 0, // We don't pay fees for placing orders
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

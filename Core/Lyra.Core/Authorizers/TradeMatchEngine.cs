@@ -108,7 +108,7 @@ namespace Lyra.Core.Authorizers
                     //decimal real_buy_amount = trade.BuyAmount / (decimal)Math.Pow(10, buy_token_precision);
                     //trade.SellAmount = (long)(real_price * real_buy_amount * (decimal)Math.Pow(10, sell_token_precision));
                     trade.SellAmount = order.TradeAmount * sellorder.Price;
-                    trade.Balances = new Dictionary<string, long>();
+                    trade.Balances = new SortedDictionary<string, long>();
 
                     trade.DestinationAccountId = sellorder.AccountID;
                     trade.TradeOrderId = sellorder.Hash;

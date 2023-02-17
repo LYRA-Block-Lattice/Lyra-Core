@@ -95,7 +95,7 @@ namespace Lyra.Core.WorkFlow.DLR
                 // transaction
                 AccountType = AccountTypes.Server,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = arg.Name,

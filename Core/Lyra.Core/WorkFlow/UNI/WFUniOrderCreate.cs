@@ -239,7 +239,7 @@ namespace Lyra.Core.WorkFlow
                 // transaction
                 AccountType = LyraGlobal.GetAccountTypeFromTicker(order.offering),
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // recv
                 SourceHash = (blocks.Last() as TransactionBlock).Hash,
@@ -254,7 +254,7 @@ namespace Lyra.Core.WorkFlow
                 UOStatus = UniOrderStatus.Open,
             };
 
-            var amounts = new Dictionary<string, decimal> { { order.offering, order.amount } };
+            var amounts = new SortedDictionary<string, decimal> { { order.offering, order.amount } };
             if (order.offering == LyraGlobal.OFFICIALTICKERCODE)
             {
                 amounts[LyraGlobal.OFFICIALTICKERCODE] += order.cltamt;

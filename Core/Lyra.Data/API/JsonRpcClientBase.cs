@@ -59,18 +59,18 @@ namespace Lyra.Core.API
         public string token0 { get; set; }
         public string token1 { get; set; }
 
-        public Dictionary<string, decimal> balance { get; set; }
+        public SortedDictionary<string, decimal> balance { get; set; }
     }
     public class BalanceResult
     {
-        public Dictionary<string, decimal> balance { get; set; }
+        public SortedDictionary<string, decimal> balance { get; set; }
         public long height { get; set; }
         public bool unreceived { get; set; }
     }
 
     public class SendResult
     {
-        public Dictionary<string, decimal> balance { get; set; }
+        public SortedDictionary<string, decimal> balance { get; set; }
         public long height { get; set; }
         public bool unreceived { get; set; }
         public string txHash { get; set; }

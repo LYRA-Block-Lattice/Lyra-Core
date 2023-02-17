@@ -112,7 +112,7 @@ namespace Lyra.Core.WorkFlow.Pool
                 Height = 1,
                 AccountType = AccountTypes.Pool,
                 AccountID = AccountId,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,

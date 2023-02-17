@@ -15,8 +15,8 @@ namespace Lyra.Data.API
         public string SendHash { get; set; }
         public string RecvAccountId { get; set; }
         public string RecvHash { get; set; }
-        public Dictionary<string, long> Changes { get; set; }
-        public Dictionary<string, long> Balances { get; set; }
+        public SortedDictionary<string, long> Changes { get; set; }
+        public SortedDictionary<string, long> Balances { get; set; }
 
         public override bool Equals(object obj)
         {
@@ -33,8 +33,8 @@ namespace Lyra.Data.API
                    SendHash == other.SendHash &&
                    RecvAccountId == other.RecvAccountId &&
                    RecvHash == other.RecvHash &&
-                   EqualityComparer<Dictionary<string, long>>.Default.Equals(Changes, other.Changes) &&
-                   EqualityComparer<Dictionary<string, long>>.Default.Equals(Balances, other.Balances);
+                   EqualityComparer<SortedDictionary<string, long>>.Default.Equals(Changes, other.Changes) &&
+                   EqualityComparer<SortedDictionary<string, long>>.Default.Equals(Balances, other.Balances);
         }
 
         public override int GetHashCode()

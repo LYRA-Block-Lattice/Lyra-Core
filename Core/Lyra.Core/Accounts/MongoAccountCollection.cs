@@ -1866,7 +1866,7 @@ namespace Lyra.Core.Accounts
 
             // convert it into tx desc
             List<TransactionDescription> transactions = new List<TransactionDescription>();
-            Dictionary<string, long> oldBalance = null;
+            SortedDictionary<string, long> oldBalance = null;
 
             // fill oldBalance if there is previous block
             if(txes.Count > 0 && txes.First().Height > 1)
@@ -1934,7 +1934,7 @@ namespace Lyra.Core.Accounts
                 }
                 else
                 {
-                    tx.Changes = new Dictionary<string, long>();
+                    tx.Changes = new SortedDictionary<string, long>();
                     foreach (var kvp in block.Balances)
                     {
                         long oldValue = 0;

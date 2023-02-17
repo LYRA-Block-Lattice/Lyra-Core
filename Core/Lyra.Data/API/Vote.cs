@@ -22,7 +22,7 @@ namespace Lyra.Data.API
     public class Voter
     {
         public string AccountId { get; set; }
-        public Dictionary<string, long> Balance2 { get; set; }
+        public SortedDictionary<string, long> Balance2 { get; set; }
         public string VoteFor { get; set; }
 
         public Decimal LYR => Balance2.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? Balance2[LyraGlobal.OFFICIALTICKERCODE] : 0;

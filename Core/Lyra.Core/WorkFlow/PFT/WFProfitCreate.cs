@@ -105,7 +105,7 @@ namespace Lyra.Core.WorkFlow.PFT
                 OwnerAccountId = send.AccountID,
                 AccountType = AccountTypes.Profiting,
                 AccountID = AccountId,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 ServiceHash = sb.Hash,
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

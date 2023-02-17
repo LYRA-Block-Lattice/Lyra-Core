@@ -699,7 +699,7 @@ namespace Lyra.Core.Decentralize
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = CreateSafeClient();
+                var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "");
                 await gensWallet.SyncAsync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.SendAsync(amount, accId);
@@ -798,7 +798,7 @@ namespace Lyra.Core.Decentralize
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = _sys.PosWallet.AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = svcGen.Hash,
                 ServiceHash = svcGen.Hash,
                 Fee = svcGen.TokenGenerationFee,
@@ -876,7 +876,7 @@ namespace Lyra.Core.Decentralize
                 Height = 1,
                 AccountType = AccountTypes.PoolFactory,
                 AccountID = PoolFactoryBlock.FactoryAccount,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -947,7 +947,7 @@ namespace Lyra.Core.Decentralize
                 // transaction
                 AccountType = AccountTypes.Guild,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = name,
@@ -963,7 +963,7 @@ namespace Lyra.Core.Decentralize
                 Description = desc,
                 SellerPar = sellerPar,
                 BuyerPar = buyerPar,
-                Treasure = new Dictionary<string, long>(),
+                Treasure = new SortedDictionary<string, long>(),
             };
 
             guildgen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());

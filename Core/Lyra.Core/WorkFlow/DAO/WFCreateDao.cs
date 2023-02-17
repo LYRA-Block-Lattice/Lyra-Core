@@ -57,7 +57,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 // transaction
                 AccountType = AccountTypes.DAO,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // broker
                 Name = name,
@@ -75,7 +75,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 Description = desc,
                 SellerPar = sellerPar,
                 BuyerPar = buyerPar,
-                Treasure = new Dictionary<string, long>(),
+                Treasure = new SortedDictionary<string, long>(),
             };
 
             daogen.AddTag(Block.MANAGEDTAG, context.State.ToString());

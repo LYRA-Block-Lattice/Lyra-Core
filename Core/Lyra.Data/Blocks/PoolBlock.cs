@@ -10,7 +10,7 @@ namespace Lyra.Core.Blocks
 {
     public interface IPool
     {
-        Dictionary<string, long> Shares { get; set; }
+        SortedDictionary<string, long> Shares { get; set; }
         public string RelatedTx { get; set; }
     }
     /// <summary>
@@ -29,7 +29,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public SortedDictionary<string, long> Shares { get; set; }
 
         public override bool AuthCompare(Block other)
         {
@@ -73,7 +73,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public SortedDictionary<string, long> Shares { get; set; }
 
         public override bool AuthCompare(Block other)
         {
@@ -84,7 +84,7 @@ namespace Lyra.Core.Blocks
                 RelatedTx == ob.RelatedTx;
         }
 
-        private bool CompareShares(Dictionary<string, long> otherShares)
+        private bool CompareShares(SortedDictionary<string, long> otherShares)
         {
             if (Shares == null && otherShares == null)
                 return true;
@@ -134,7 +134,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public SortedDictionary<string, long> Shares { get; set; }
 
         public override bool AuthCompare(Block other)
         {
@@ -145,7 +145,7 @@ namespace Lyra.Core.Blocks
                 RelatedTx == ob.RelatedTx;
         }
 
-        private bool CompareShares(Dictionary<string, long> otherShares)
+        private bool CompareShares(SortedDictionary<string, long> otherShares)
         {
             if (Shares == null && otherShares == null)
                 return true;
@@ -211,7 +211,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public SortedDictionary<string, long> Shares { get; set; }
 
         public override bool AuthCompare(Block other)
         {
@@ -222,7 +222,7 @@ namespace Lyra.Core.Blocks
                 RelatedTx == ob.RelatedTx;
         }
 
-        private bool CompareShares(Dictionary<string, long> otherShares)
+        private bool CompareShares(SortedDictionary<string, long> otherShares)
         {
             if (Shares == null && otherShares == null)
                 return true;
@@ -268,7 +268,7 @@ namespace Lyra.Core.Blocks
         public string Token0 { get; set; }
         public string Token1 { get; set; }
         public string RelatedTx { get; set; }
-        public Dictionary<string, long> Shares { get; set; }
+        public SortedDictionary<string, long> Shares { get; set; }
 
         protected override BlockTypes GetBlockType()
         {
@@ -288,7 +288,7 @@ namespace Lyra.Core.Blocks
                 Token1 == ob.Token1;
         }
 
-        private bool CompareShares(Dictionary<string, long> otherShares)
+        private bool CompareShares(SortedDictionary<string, long> otherShares)
         {
             if (Shares == null && otherShares == null)
                 return true;

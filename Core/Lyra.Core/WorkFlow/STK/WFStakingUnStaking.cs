@@ -82,7 +82,7 @@ namespace Lyra.Core.WorkFlow.STK
                 Name = (lastStk as IBrokerAccount).Name,
                 OwnerAccountId = (lastStk as IBrokerAccount).OwnerAccountId,
                 AccountID = lastStk.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = lastStk.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,

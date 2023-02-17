@@ -280,7 +280,7 @@ namespace Lyra.Node.Test
                 SourceHash = _SendTransferBlock.Hash,
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                Balances = new Dictionary<string, decimal>()
+                Balances = new SortedDictionary<string, decimal>()
             };
 
             _OpenAccount2Block.Balances.Add("Custom.DISC", 50);
@@ -325,7 +325,7 @@ namespace Lyra.Node.Test
                 Precision = 2,
                 IsFinalSupply = false,
                 AccountID = AccountId1,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 ServiceHash = string.Empty,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
@@ -360,7 +360,7 @@ namespace Lyra.Node.Test
                 AccountID = AccountId1,
                 ServiceHash = string.Empty,
                 DestinationAccountId = AccountId2,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new SortedDictionary<string, decimal>(),
                 Fee = TransferFee,
                 FeeType = AuthorizationFeeTypes.Regular,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE

@@ -36,7 +36,7 @@ namespace Lyra.Data.API
             _signer = (hash) => Task.FromResult(Signatures.GetSignature(_signingPrivateKey, hash, _signingAccountId));
         }
 
-        public async Task<Dictionary<string, long>> GetBalanceAsync()
+        public async Task<SortedDictionary<string, long>> GetBalanceAsync()
         {
             var lastTx = await GetLatestBlockAsync();
             if (lastTx == null)
@@ -121,7 +121,7 @@ namespace Lyra.Data.API
                 VoteFor = null,
                 ServiceHash = lastServiceBlock.Hash,
                 DestinationAccountId = destAccount,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 //PaymentID = string.Empty,
                 Fee = fee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -182,7 +182,7 @@ namespace Lyra.Data.API
                 VoteFor = null,
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -229,7 +229,7 @@ namespace Lyra.Data.API
                 AccountID = _accountId,
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

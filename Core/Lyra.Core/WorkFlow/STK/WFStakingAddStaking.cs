@@ -96,7 +96,7 @@ namespace Lyra.Core.WorkFlow.STK
                 OwnerAccountId = ((IBrokerAccount)lastStk).OwnerAccountId,
                 //AccountType = ((IOpeningBlock)lastStk).AccountType,
                 AccountID = lastStk.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = lastStk.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,

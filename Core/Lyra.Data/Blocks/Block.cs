@@ -170,7 +170,7 @@ namespace Lyra.Core.Blocks
                 JsonConvert.SerializeObject(Tags) == JsonConvert.SerializeObject(other.Tags);
         }
 
-        protected bool CompareDict<T>(Dictionary<string, T> self, Dictionary<string, T> other)
+        protected bool CompareDict<T>(SortedDictionary<string, T> self, SortedDictionary<string, T> other)
         {
             if (self == null && other == null)
                 return true;
@@ -228,11 +228,6 @@ namespace Lyra.Core.Blocks
                     StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                     DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ",
                 };
-
-                if(this is TransactionBlock tx)
-                {
-                    tx.Balances = tx.Balances.OrderBy(obj => obj.Key).ToDictionary(obj => obj.Key, obj => obj.Value);
-                }
 
                 var json = JsonConvert.SerializeObject(this, settings);
 

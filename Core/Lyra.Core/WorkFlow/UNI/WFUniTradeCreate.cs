@@ -355,7 +355,7 @@ namespace Lyra.Core.WorkFlow
                 // transaction
                 AccountType = LyraGlobal.GetAccountTypeFromTicker(trade.offering),
                 AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
 
                 // receive
                 SourceHash = odrsnd.Hash,

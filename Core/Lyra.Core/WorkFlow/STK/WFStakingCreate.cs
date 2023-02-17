@@ -109,7 +109,7 @@ namespace Lyra.Core.WorkFlow.STK
                 OwnerAccountId = send.AccountID,
                 AccountType = AccountTypes.Staking,
                 AccountID = AccountId,        // in fact we not use this account.
-                Balances = new Dictionary<string, long>(),
+                Balances = new SortedDictionary<string, long>(),
                 PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
