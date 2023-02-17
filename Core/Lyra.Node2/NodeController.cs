@@ -15,6 +15,7 @@ using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using Lyra.Data.Crypto;
 using Lyra.Node2;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 using Noded.Services;
 using OpenTelemetry.Trace;
+using Lyra.Data.Utils;
 
 namespace LyraLexWeb2
 {
@@ -447,6 +449,17 @@ namespace LyraLexWeb2
         public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock sendBlock)
         {
             if (! CheckServiceStatus()) return null;
+            return await _trans.SendTransferAsync(sendBlock);
+        }
+
+        [Route("SendTransfer2")]
+        [HttpPost]
+        public async Task<AuthorizationAPIResult> SendTransfer2Async(SendTransferBlock sendBlock)
+        {
+            if (!CheckServiceStatus()) return null;
+            var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(sendBlock.Signature.StringToByteArray());
+            var dotnetsign = Base58Encoding.Encode(dotnetsignBuff);
+            sendBlock.Signature = dotnetsign;
             return await _trans.SendTransferAsync(sendBlock);
         }
 

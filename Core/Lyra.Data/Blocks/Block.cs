@@ -212,7 +212,9 @@ namespace Lyra.Core.Blocks
                 IList<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
 
                 // Return only the properties that are not in the exclude list
-                return properties.Where(p => !_excludedProperties.Contains(p.PropertyName)).ToList();
+                return properties.Where(p => !_excludedProperties.Contains(p.PropertyName))
+                    .OrderBy(p => p.PropertyName)
+                    .ToList();
             }
         }
 
