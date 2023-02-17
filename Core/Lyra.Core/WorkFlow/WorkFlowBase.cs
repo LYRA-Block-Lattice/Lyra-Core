@@ -106,6 +106,10 @@ namespace Lyra.Core.WorkFlow
                 throw new NotImplementedException($"Should override RefundSendAsync about in WF {desc.Action}");
 
             var last1 = await sys.Storage.FindLatestBlockAsync(srcAccount) as TransactionBlock;
+
+            if (last1 == null)
+                return null;
+            
             var last2 = await sys.Storage.FindBlockByHashAsync(last1.PreviousHash) as TransactionBlock;
             var chgs = last1.GetBalanceChanges(last2);
 
