@@ -216,6 +216,7 @@ namespace Lyra.Core.Blocks
             }
         }
 
+        private static readonly object fileLock = new object();
         public override string GetHashInput()
         {
             if(Version > 10)
@@ -228,9 +229,10 @@ namespace Lyra.Core.Blocks
                 var json = JsonConvert.SerializeObject(this, settings);
 
                 // debug only
-                if(!Directory.Exists("c:\\tmp"))
-                    Directory.CreateDirectory("c:\\tmp");   
-                File.AppendAllText("c:\\tmp\\GetHashInput.txt", $"{this.BlockType} {this.Height}\n{json}\n\n");
+                //if(!Directory.Exists("c:\\tmp"))
+                //    Directory.CreateDirectory("c:\\tmp");   
+                lock(fileLock)
+                    File.AppendAllText("c:\\tmp\\GetHashInput.txt", $"{this.BlockType} {this.Height}\n{json}\n\n");
 
                 return json;
             }
