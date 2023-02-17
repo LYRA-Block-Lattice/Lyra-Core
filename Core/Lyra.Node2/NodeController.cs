@@ -460,6 +460,15 @@ namespace LyraLexWeb2
             var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(sendBlock.Signature.StringToByteArray());
             var dotnetsign = Base58Encoding.Encode(dotnetsignBuff);
             sendBlock.Signature = dotnetsign;
+
+            if(!sendBlock.VerifySignature(sendBlock.AccountID))
+            {
+                return new AuthorizationAPIResult()
+                {
+                    ResultCode = APIResultCodes.BlockSignatureValidationFailed,
+                };
+            }
+
             return await _trans.SendTransferAsync(sendBlock);
         }
 
