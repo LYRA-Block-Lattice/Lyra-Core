@@ -223,6 +223,7 @@ namespace Lyra.Core.Blocks
                 var settings = new JsonSerializerSettings { 
                     ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }),
                     StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+                    DateFormatString = "yyyy-MM-ddTH:mm:ss.fffZ",
                 };
                 var json = JsonConvert.SerializeObject(this, settings);
 
