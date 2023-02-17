@@ -30,6 +30,7 @@ using Lyra.Data.API.WorkFlow.UniMarket;
 using System.Collections;
 using Akka.Remote.Transport;
 using System.Reflection.Metadata;
+using System.IO;
 
 namespace Lyra.Core.Accounts
 {
@@ -75,6 +76,8 @@ namespace Lyra.Core.Accounts
             // reset db every time for unit test.
             if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
             {
+                if(File.Exists("c:\\tmp\\GetHashInput.txt"))
+                    File.Delete("c:\\tmp\\GetHashInput.txt");
                 if (GetClient() == null)
                     return;
 
