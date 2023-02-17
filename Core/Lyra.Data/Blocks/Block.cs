@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Converto;
 using Lyra.Core.API;
@@ -9,6 +10,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace Lyra.Core.Blocks
 {
@@ -194,11 +196,33 @@ namespace Lyra.Core.Blocks
             return true;
         }
 
+        public class CustomResolver : DefaultContractResolver
+        {
+            // Define a list of fields to exclude
+            private readonly List<string> _excludedProperties;
+
+            public CustomResolver(List<string> excludedProperties)
+            {
+                _excludedProperties = excludedProperties;
+            }
+
+            protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+            {
+                // Get all the properties
+                IList<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
+
+                // Return only the properties that are not in the exclude list
+                return properties.Where(p => !_excludedProperties.Contains(p.PropertyName)).ToList();
+            }
+        }
+
         public override string GetHashInput()
         {
             if(Version > 10)
             {
-                return JsonConvert.SerializeObject(this);
+                var settings = new JsonSerializerSettings { ContractResolver = new CustomResolver(new List<string> { "Hash" }) };
+                var json = JsonConvert.SerializeObject(this, settings);
+                return json;
             }
             else
             return Height.ToString() + "|" +
