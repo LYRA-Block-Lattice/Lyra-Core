@@ -220,8 +220,17 @@ namespace Lyra.Core.Blocks
         {
             if(Version > 10)
             {
-                var settings = new JsonSerializerSettings { ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }) };
+                var settings = new JsonSerializerSettings { 
+                    ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }),
+                    StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+                };
                 var json = JsonConvert.SerializeObject(this, settings);
+
+                // debug only
+                if(!Directory.Exists("c:\\tmp"))
+                    Directory.CreateDirectory("c:\\tmp");   
+                File.AppendAllText("c:\\tmp\\GetHashInput.txt", $"{this.BlockType} {this.Height}\njson\n\n");
+
                 return json;
             }
             else
