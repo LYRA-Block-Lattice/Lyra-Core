@@ -83,7 +83,6 @@ namespace Lyra.Core.Blocks
         public string AccountID { get; set; }
 
         // this is the number of atomic units; it must be divided by the number of digits after the digital point for specific currency
-        [JsonConverter(typeof(SortedDictionaryConverter<string, long>))]
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Balances { get; set; }
 
