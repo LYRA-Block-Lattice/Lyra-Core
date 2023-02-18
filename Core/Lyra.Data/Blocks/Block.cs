@@ -287,11 +287,6 @@ namespace Lyra.Core.Blocks
                     Converters= new List<JsonConverter> { new DecimalJsonConverter() },                    
                 };
 
-                if (this is TransactionBlock tx)
-                {
-                    tx.Balances = tx.Balances.OrderBy(obj => obj.Key).ToDictionary(obj => obj.Key, obj => obj.Value);
-                }
-
                 var json = JsonConvert.SerializeObject(this, settings);
 
                 // debug only

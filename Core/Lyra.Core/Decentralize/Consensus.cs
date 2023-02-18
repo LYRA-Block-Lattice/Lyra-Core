@@ -825,7 +825,8 @@ namespace Lyra.Core.Decentralize
                 TransferFee = 1,           //zero for genesis. back to normal when genesis done
                 TokenGenerationFee = 10000,
                 TradeFee = 0.1m,
-                FeesGenerated = 0
+                FeesGenerated = 0,
+                ServiceHash = null
             };
 
             // wait for all nodes ready

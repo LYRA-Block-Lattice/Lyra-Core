@@ -522,6 +522,9 @@ namespace Lyra.Core.WorkFlow
                 return null;
 
             var prevBlock = await sys.Storage.FindLatestBlockAsync(recvAccountId) as TransactionBlock;
+            if (prevBlock == null)
+                return null;
+
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
 
             return await TransactionOperateAsync<T>(sys, key, prevBlock,
