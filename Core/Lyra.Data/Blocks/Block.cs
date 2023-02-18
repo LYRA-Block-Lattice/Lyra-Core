@@ -199,30 +199,6 @@ namespace Lyra.Core.Blocks
             return true;
         }
 
-        public class CustomResolver : DefaultContractResolver
-        {
-            // Define a list of fields to exclude
-            private readonly List<string> _excludedProperties;
-
-            public CustomResolver(List<string> excludedProperties)
-            {
-                _excludedProperties = excludedProperties;
-            }
-
-            protected override IList<Newtonsoft.Json.Serialization.JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
-            {
-                // Get all the properties
-                IList<Newtonsoft.Json.Serialization.JsonProperty> properties = base.CreateProperties(type, memberSerialization);
-
-                // Return only the properties that are not in the exclude list
-                return properties.Where(p => !_excludedProperties.Contains(p.PropertyName))
-                    .OrderBy(p => p.PropertyName)
-                    .ToList();
-            }
-        }
-
-
-
         private static readonly object fileLock = new object();
         public override string GetHashInput()
         {
