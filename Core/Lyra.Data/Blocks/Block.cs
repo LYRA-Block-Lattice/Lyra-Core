@@ -260,8 +260,7 @@ namespace Lyra.Core.Blocks
             {
                 if (value is decimal decimalValue)
                 {
-                    int precision = (Decimal.GetBits(decimalValue)[3] >> 16) & 0x000000FF;
-                    return precision == 0;
+                    return decimalValue == Math.Truncate(decimalValue);
                 }
                 else if (value is float floatValue)
                 {
