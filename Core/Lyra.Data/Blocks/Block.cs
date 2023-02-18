@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Converto;
 using Lyra.Core.API;
@@ -206,15 +207,33 @@ namespace Lyra.Core.Blocks
                 _excludedProperties = excludedProperties;
             }
 
-            protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+            protected override IList<Newtonsoft.Json.Serialization.JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
             {
                 // Get all the properties
-                IList<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
+                IList<Newtonsoft.Json.Serialization.JsonProperty> properties = base.CreateProperties(type, memberSerialization);
 
                 // Return only the properties that are not in the exclude list
                 return properties.Where(p => !_excludedProperties.Contains(p.PropertyName))
                     .OrderBy(p => p.PropertyName)
                     .ToList();
+            }
+        }
+
+        public class CustomDecimalConverter : JsonConverter<decimal>
+        {
+            public override void WriteJson(JsonWriter writer, decimal value, Newtonsoft.Json.JsonSerializer serializer)
+            {
+                writer.WriteRawValue(value.ToString("g"));
+            }
+
+            public override decimal ReadJson(JsonReader reader, Type objectType, decimal existingValue, bool hasExistingValue, Newtonsoft.Json.JsonSerializer serializer)
+            {
+                if (reader.Value == null)
+                {
+                    return 0m;
+                }
+
+                return Convert.ToDecimal(reader.Value);
             }
         }
 
@@ -227,9 +246,10 @@ namespace Lyra.Core.Blocks
                     ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }),
                     StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                     DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ",
+                    Converters= new List<JsonConverter> { new CustomDecimalConverter() },                    
                 };
 
-                if(this is TransactionBlock tx)
+                if (this is TransactionBlock tx)
                 {
                     tx.Balances = tx.Balances.OrderBy(obj => obj.Key).ToDictionary(obj => obj.Key, obj => obj.Value);
                 }

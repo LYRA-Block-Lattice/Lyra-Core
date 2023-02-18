@@ -449,6 +449,8 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock sendBlock)
         {
+            Console.WriteLine($"react hash: {sendBlock.Hash} dotnet hash: {sendBlock.CalculateHash()}");
+
             if (! CheckServiceStatus()) return null;
             return await _trans.SendTransferAsync(sendBlock);
         }
