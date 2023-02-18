@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,53 +20,27 @@ namespace Lyra.Data.Utils
                 ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }),
                 StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                 DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ",
-                Converters = new List<JsonConverter> { new DecimalJsonConverter(), new SortedDictionaryConverter<string, long>() },
+                Converters = new List<JsonConverter> { new DecimalJsonConverter(), new BlockDictionaryConverter() },
             };
 
             Settings = settings;
         }
     }
 
-    public class SortedDictionaryConverter<TKey, TValue> : JsonConverter
+    public class BlockDictionaryConverter : JsonConverter<Dictionary<string, long>>
     {
-        public override bool CanConvert(Type objectType)
+        public override Dictionary<string, long>? ReadJson(JsonReader reader, Type objectType, Dictionary<string, long>? existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            return objectType == typeof(IDictionary<TKey, TValue>);
+            throw new NotImplementedException();
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, Dictionary<string, long>? value, JsonSerializer serializer)
         {
-            var result = new Dictionary<TKey, TValue>();
-
-            // Read the JSON object
-            while (reader.Read())
-            {
-                if (reader.TokenType == JsonToken.EndObject)
-                {
-                    break;
-                }
-
-                if (reader.TokenType == JsonToken.PropertyName)
-                {
-                    var key = (TKey)Convert.ChangeType(reader.Value, typeof(TKey));
-                    reader.Read();
-                    var value = (TValue)serializer.Deserialize(reader, typeof(TValue));
-                    result.Add(key, value);
-                }
-            }
-
-            return result;
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var dictionary = (IDictionary<TKey, TValue>)value;
-
             writer.WriteStartObject();
-            foreach (var key in dictionary.Keys.OrderBy(k => k.ToString()))
+            foreach (var key in value.Keys.OrderBy(a => a))
             {
-                writer.WritePropertyName(key.ToString());
-                serializer.Serialize(writer, dictionary[key]);
+                writer.WritePropertyName(key);
+                serializer.Serialize(writer, value[key]);
             }
             writer.WriteEndObject();
         }
