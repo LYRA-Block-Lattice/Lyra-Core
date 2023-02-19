@@ -179,7 +179,7 @@ namespace Lyra.Core.Authorizers
             var result = block.VerifySignature(verifyAgainst);
             if (!result)
             {
-                _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID}");
+                _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID} input: {blockt.GetHashInput()}");
                 return APIResultCodes.BlockSignatureValidationFailed;
             }
 
