@@ -144,6 +144,7 @@ namespace Lyra.Core.Authorizers
                 // find the actual amount of transaction 
                 BalanceChanges sendTransaction;
                 if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
+                    || block.BlockType == BlockTypes.TokenGenesis
                     || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
                     || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting
                     || block.BlockType == BlockTypes.ReceiveAsFee
