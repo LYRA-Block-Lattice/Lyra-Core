@@ -120,7 +120,6 @@ namespace Lyra.Core.API
                 "tot" => HoldTypes.TOT,
                 "nft" => HoldTypes.NFT,
                 "svc" => HoldTypes.SVC,
-                //"sku" => HoldTypes.SKU,
                 "fiat" => HoldTypes.Fiat,
                 _ => HoldTypes.Token,
             };

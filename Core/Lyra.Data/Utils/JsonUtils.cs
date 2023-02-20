@@ -21,7 +21,7 @@ namespace Lyra.Data.Utils
                 ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }),
                 StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                 DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ",
-                Converters = new List<JsonConverter> { new DecimalJsonConverter(), new BlockDictionaryConverter() },
+                Converters = new List<JsonConverter> { new DecimalJsonConverter(), new BlockDictionaryConverter(), new BlockTagsConverter() },
             };
 
             Settings = settings;
@@ -58,6 +58,25 @@ namespace Lyra.Data.Utils
         }
 
         public override void WriteJson(JsonWriter writer, Dictionary<string, long>? value, JsonSerializer serializer)
+        {
+            writer.WriteStartObject();
+            foreach (var key in value.Keys.OrderBy(a => a, StringComparer.Ordinal))
+            {
+                writer.WritePropertyName(key);
+                serializer.Serialize(writer, value[key]);
+            }
+            writer.WriteEndObject();
+        }
+    }
+
+    public class BlockTagsConverter : JsonConverter<Dictionary<string, string>>
+    {
+        public override Dictionary<string, string>? ReadJson(JsonReader reader, Type objectType, Dictionary<string, string>? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void WriteJson(JsonWriter writer, Dictionary<string, string>? value, JsonSerializer serializer)
         {
             writer.WriteStartObject();
             foreach (var key in value.Keys.OrderBy(a => a, StringComparer.Ordinal))
