@@ -178,7 +178,7 @@ namespace Lyra.Core.WorkFlow
 
             // verify collateral
             var totalTradeValue = trade.eqprice * trade.amount;
-            (var tradeFee, var networkFee) = UniTradeFees.CalculateSellerFees(trade.eqprice, trade.amount, (dao as IDao).BuyerFeeRatio);
+            (var tradeFee, var networkFee) = UniTradeFees.CalculateBuyerFees(trade.eqprice, trade.amount, (dao as IDao).BuyerFeeRatio);
             var totalFee = tradeFee + networkFee;
             var totalCollateral = totalTradeValue * ((dao as IDao).BuyerPar / 100m) + totalFee;
             if (trade.cltamt != totalCollateral)
