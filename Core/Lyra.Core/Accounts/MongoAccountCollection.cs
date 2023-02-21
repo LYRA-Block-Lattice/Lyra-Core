@@ -2894,9 +2894,15 @@ namespace Lyra.Core.Accounts
                     filter.Eq("Trade.orderOwnerId", accountId)
                     )
                 );
+            var sort = Builders<TransactionBlock>.Sort.Descending("TimeStamp");
+            var options = new FindOptions<TransactionBlock>
+            {
+                Sort = sort
+            };
 
             var q = await _snapshots
-                .FindAsync(filterDefination);
+                .FindAsync(filterDefination, options)                
+                ;
 
             return q.ToList();
         }
