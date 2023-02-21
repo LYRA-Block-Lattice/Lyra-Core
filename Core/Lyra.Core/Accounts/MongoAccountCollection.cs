@@ -2558,7 +2558,7 @@ namespace Lyra.Core.Accounts
 
                 var blks = new List<TransactionBlock>()
                 {
-                    latest as TransactionBlock, offeringGens, bidingGens, daoOnTheTime
+                    latest as TransactionBlock, offeringGens, bidingGens, daoOnTheTime as TransactionBlock
                 };
                 return blks;
             }
@@ -3114,7 +3114,7 @@ namespace Lyra.Core.Accounts
             return x;
         }
 
-        public async Task<TransactionBlock> FindLatestBlockByTimeAsync(string accountId, DateTime time)
+        public async Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time)
         {
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.And(
@@ -3127,9 +3127,7 @@ namespace Lyra.Core.Accounts
                 .SortByDescending(a => a.TimeStamp)
                 .Limit(1);
 
-#pragma warning disable CS8603 // Possible null reference return.
-            return await q.FirstOrDefaultAsync() as TransactionBlock;   // has account id, it must be a transaction block
-#pragma warning restore CS8603 // Possible null reference return.
+            return await q.FirstOrDefaultAsync();   // has account id, it must be a transaction block
         }
 
         public async Task FixDbRecordAsync()
