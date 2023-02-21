@@ -1336,7 +1336,7 @@ namespace UnitTests
 
             decimal amount = 1;
             var totalTradeValue = Unig.Order.eqprice * amount;
-            (var tradeFee, var networkFee) = UniTradeFees.CalculateSellerFees(Unig.Order.eqprice, amount, (dao as IDao).BuyerFeeRatio);
+            (var tradeFee, var networkFee) = UniTradeFees.CalculateBuyerFees(Unig.Order.eqprice, amount, (dao as IDao).BuyerFeeRatio);
             var totalFee = tradeFee + networkFee;
             var totalCollateral = totalTradeValue * ((dao as IDao).BuyerPar / 100m) + totalFee;
 

@@ -268,14 +268,22 @@ namespace Lyra.Core.WorkFlow
                     // basically we devide token with collateral by the same rito.
                     var rito = trade.amount / ((IUniOrder)lastblock).Order.amount;
 
+                    var curamt = ((IUniOrder)lastblock).Order.amount - trade.amount;
+                    var curcolt = Math.Round(((IUniOrder)lastblock).Order.cltamt * (1 - rito), 8);
                     nextOdr.Order = nextOdr.Order.With(new
                     {
-                        amount = ((IUniOrder)lastblock).Order.amount - trade.amount,
-                        cltamt = Math.Round(((IUniOrder)lastblock).Order.cltamt * (1 - rito), 8)
+                        amount = curamt,
+                        cltamt = curcolt,
+                        limitMax = Math.Min(((IUniOrder)lastblock).Order.limitMax, curamt)
                     });
 
                     if (((IUniOrder)lastblock).UOStatus == UniOrderStatus.Open)
-                        nextOdr.UOStatus = UniOrderStatus.Partial;
+                    {
+                        if (((IUniOrder)lastblock).Order.limitMin > curamt)  // too few amount avaliable
+                            nextOdr.UOStatus = UniOrderStatus.Delist;
+                        else
+                            nextOdr.UOStatus = UniOrderStatus.Partial;
+                    }                        
 
                     // don't set to close. it will be set to close when the trade is closed.
                     //nextOdr.UOStatus = ((IUniOrder)lastblock).Order.amount - trade.amount == 0 ?
