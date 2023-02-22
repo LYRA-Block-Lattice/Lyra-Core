@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using Lyra.Core.Blocks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static Lyra.Core.Blocks.Block;
@@ -21,12 +23,16 @@ namespace Lyra.Data.Utils
                 ContractResolver = new CustomResolver(new List<string> { "Hash", "Signature" }),
                 StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
                 DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ",
+                NullValueHandling = NullValueHandling.Ignore,  // so for new db version, keep the newly added fields default null.
+                
                 Converters = new List<JsonConverter> { new DecimalJsonConverter(), new BlockDictionaryConverter(), new BlockTagsConverter() },
             };
 
             Settings = settings;
         }
     }
+
+    // per db ver, exclude newly add fields for lower db version
 
     public class CustomResolver : DefaultContractResolver
     {
@@ -40,12 +46,39 @@ namespace Lyra.Data.Utils
 
         protected override IList<Newtonsoft.Json.Serialization.JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
         {
+            //// type is block. block has a version.
+            //// if block's version < current version, there is a exclution fields list.
+            //// so for block's ver (exclude) to current ver (include), call block to get the exclution list.
+            //if (type.IsSubclassOf(typeof(Block)))
+            //{
+            //    var currentType = type;
+            //    while (currentType != null)
+            //    {
+            //        // get the static method with the given name from the current type
+            //        MethodInfo method = currentType.GetMethod("FieldsAddedForVer", BindingFlags.Static | BindingFlags.Public);
+            //        if (method != null)
+            //        {
+            //            // invoke the static method
+            //            var list = method.Invoke(null, null);
+            //        }
+            //        currentType = currentType.BaseType;
+            //    }
+
+            //    MethodInfo methodInfo = type.GetMethod("FieldsAddedForVer", BindingFlags.Public | BindingFlags.Static);
+
+            //    if (methodInfo != null)
+            //    {
+            //        methodInfo.Invoke(null, null);
+            //    }
+            //    var exclude = Block.FieldsAddedForVer(type, Block.DatabaseVersion);
+            //}
+
             // Get all the properties
             IList<Newtonsoft.Json.Serialization.JsonProperty> properties = base.CreateProperties(type, memberSerialization);
 
             // Return only the properties that are not in the exclude list
             return properties.Where(p => !_excludedProperties.Contains(p.PropertyName))
-                .OrderBy(p => p.PropertyName)
+                .OrderBy(p => p.PropertyName, StringComparer.Ordinal)
                 .ToList();
         }
     }

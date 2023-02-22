@@ -74,6 +74,17 @@ namespace Lyra.Core.Blocks
             return t;
         }
 
+        /// <summary>
+        /// when we add new field to the block, we need to exclude the new field for lower db version.
+        /// all derived class should first get base list, then add their own.
+        /// </summary>
+        /// <param name="dbVersion"></param>
+        /// <returns></returns>
+        //public static List<string> FieldsAddedForVer(int dbVersion)
+        //{
+        //    return new List<string>();
+        //}
+
         public virtual T GenInc<T>() where T : Block
         {
             var x = Activator.CreateInstance<T>();
