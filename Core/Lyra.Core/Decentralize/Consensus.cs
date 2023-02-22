@@ -697,8 +697,8 @@ namespace Lyra.Core.Decentralize
             Wallet.Create(memStore, "tmp", "", Settings.Default.LyraNode.Lyra.NetworkId, _sys.PosWallet.PrivateKey);
             var gensWallet = Wallet.Open(memStore, "tmp", "");
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
-            var port = gensWallet.NetworkId == "mainnet" ? 5505 : 4505;
-            var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "", $"http://localhost:{port}/api/Node/");
+            var port = gensWallet.NetworkId == "mainnet" ? 5504 : 4504;
+            var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "", $"https://localhost:{port}/api/Node/");
             await gensWallet.SyncAsync(client);
             var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
 
