@@ -948,25 +948,25 @@ namespace LyraLexWeb2
 
         [HttpGet]
         [Route("FindDaos")]
-        public async Task<IActionResult> FindDaosAsync(string? q)
+        public async Task<MultiBlockAPIResult> FindDaosAsync(string? q)
         {
             if (!CheckServiceStatus()) return null;
             var blocks = await (_node as NodeAPI).FindDaosAsync(q);
             var ret = blocks
                 .Where(a => a.Name != "Lyra Guild");     // important.
-                //.Select(a =>
-                //new
-                //{
-                //    a.Name,
-                //    DaoId = a.AccountID,
-                //    a.Seats,
-                //    a.ShareRito,
-                //    a.SellerPar,
-                //    a.SellerFeeRatio,
-                //    a.BuyerPar,
-                //    a.BuyerFeeRatio,
-                //});
-            return new JsonResult(ret);
+                                                         //.Select(a =>
+                                                         //new
+                                                         //{
+                                                         //    a.Name,
+                                                         //    DaoId = a.AccountID,
+                                                         //    a.Seats,
+                                                         //    a.ShareRito,
+                                                         //    a.SellerPar,
+                                                         //    a.SellerFeeRatio,
+                                                         //    a.BuyerPar,
+                                                         //    a.BuyerFeeRatio,
+                                                         //});
+            return new MultiBlockAPIResult(ret.ToArray());
         }
 
         //[HttpPost]
