@@ -40,5 +40,10 @@ namespace Lyra.Data.API.ODR
 
             data = JsonConvert.SerializeObject(obj);
         }
+
+        public override string ToString()
+        {
+            return $"Type: {pptype} Content: {Deserialize().ToString()}";
+        }
     }
 }

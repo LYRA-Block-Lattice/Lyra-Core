@@ -126,10 +126,14 @@ namespace Lyra.Core.WorkFlow.DAO
                     var dao = b as IDao;
                     foreach(var chg in change.settings)
                     {
-                        if(chg.Key == "ShareRito")
+                        if (chg.Key == "ShareRito")
                             dao.ShareRito = decimal.Parse(chg.Value);
                         else if (chg.Key == "Seats")
                             dao.Seats = int.Parse(chg.Value);
+                        else if (chg.Key == "SellerFeeRatio")
+                            dao.SellerFeeRatio = decimal.Parse(chg.Value);
+                        else if (chg.Key == "BuyerFeeRatio")
+                            dao.BuyerFeeRatio = decimal.Parse(chg.Value);
                         else if (chg.Key == "SellerPar")
                             dao.SellerPar = int.Parse(chg.Value);
                         else if (chg.Key == "BuyerPar")
