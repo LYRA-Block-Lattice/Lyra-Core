@@ -222,8 +222,8 @@ namespace Lyra.Core.Authorizers
             if (daoBlock == null)
                 return APIResultCodes.InvalidBlockType;
 
-            if (daoBlock.BuyerFeeRatio < 0.0001m || daoBlock.SellerFeeRatio < 0.0001m)
-                return APIResultCodes.InvalidFeeRito;
+            //if (daoBlock.BuyerFeeRatio < 0.0001m || daoBlock.SellerFeeRatio < 0.0001m)
+            //    return APIResultCodes.InvalidFeeRito;
 
             return APIResultCodes.Success;
         }
