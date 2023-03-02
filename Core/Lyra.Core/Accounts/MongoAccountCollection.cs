@@ -746,59 +746,37 @@ namespace Lyra.Core.Accounts
         }
         public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog)
         {
-            var regexFilter = Regex.Escape(keyword);
             var builder = Builders<TokenGenesisBlock>.Filter;
 
             FilterDefinition<TokenGenesisBlock> filter;
-            if (catalog == "TOT")
+            if (catalog == "TOT" || catalog == "tot")
             {
-                filter = builder.And(
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/"));
+            }
+            if (catalog == "Service" || catalog == "svc")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"));
+            }
+            else if (catalog == "Fiat" || catalog == "fiat")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/"));
+            }
+            else if (catalog == "NFT" || catalog == "nft")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/")
+            );
+            }
+            else if (catalog == "Token" || catalog == "token" || string.IsNullOrWhiteSpace(catalog))
+            {
+                filter = builder.Not(
                     builder.Or(
-                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
-                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
-                        ),
-                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/")),
                         builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/")),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/")),
                         builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"))
                         )
-                    );
-            }
-            else if (catalog == "Fiat")
-            {
-                filter = builder.And(
-                    builder.Or(
-                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
-                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
-                        ),
-                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/"))
-                    );
-            }
-            else if (catalog == "NFT")
-            {
-                filter = builder.And(
-                    builder.Or(
-                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
-                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
-                        ),
-                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/"))
-                    );
-            }
-            else if (catalog == "Token")
-            {
-                filter = builder.And(
-                    builder.Or(
-                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
-                        builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
-                        ),
-                    builder.Not(
-                        builder.Or(
-                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/")),
-                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/")),
-                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/")),
-                            builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"))
-                            )
-                        )
-                    );
+
+                );
             }
             else
             {
@@ -809,8 +787,23 @@ namespace Lyra.Core.Accounts
                 //    );
             }
 
+            FilterDefinition<TokenGenesisBlock> finalFilter;
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                finalFilter = filter;
+            }
+            else
+            {
+                var regexFilter = new BsonRegularExpression($"/{Regex.Escape(keyword)}/i");
+                finalFilter =
+                    builder.And(filter,
+                                builder.Or(builder.Regex(u => u.Ticker, regexFilter),
+                                            builder.Regex(u => u.Custom1, regexFilter))
+                                );
+            }
+
             var genResult = await _blocks.OfType<TokenGenesisBlock>()
-                .Find(filter)
+                .Find(finalFilter)
                 .Limit(200)
                 .ToListAsync();
 
