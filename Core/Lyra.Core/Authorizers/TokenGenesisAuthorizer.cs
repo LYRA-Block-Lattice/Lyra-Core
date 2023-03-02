@@ -71,7 +71,7 @@ namespace Lyra.Core.Authorizers
                 if (string.IsNullOrWhiteSpace(block.DomainName))
                     return APIResultCodes.EmptyDomainName;
 
-                bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
+                bool tokenIssuerIsSeed0 = (block.AccountID == ProtocolSettings.Default.StandbyValidators[0]);
                 if (!tokenIssuerIsSeed0 && block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
                 {
                     if (!_nftDomains.Contains(block.DomainName) && block.DomainName.Length < 4)
