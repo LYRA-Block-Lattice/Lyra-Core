@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Accounts
+namespace Lyra.Data.API
 {
     public class InMemWallet
     {

@@ -1,7 +1,6 @@
 using Akka.Actor;
 using Akka.IO;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Neo.IO;
 using System;
@@ -32,7 +31,7 @@ namespace Neo.Network.P2P
 
         private static readonly IActorRef tcp_manager = Context.System.Tcp();
         private IActorRef tcp_listener;
-        private IWebHost ws_host;
+        //private IWebHost ws_host;
         private ICancelable timer;
         protected ActorSelection Connections => Context.ActorSelection("connection_*");
 
@@ -306,7 +305,7 @@ namespace Neo.Network.P2P
         protected override void PostStop()
         {
             timer.CancelIfNotNull();
-            ws_host?.Dispose();
+            //ws_host?.Dispose();
             tcp_listener?.Tell(Tcp.Unbind.Instance);
             base.PostStop();
         }

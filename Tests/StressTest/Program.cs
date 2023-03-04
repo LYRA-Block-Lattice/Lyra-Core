@@ -11,6 +11,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Threading.Tasks;
+using Lyra.Data.API;
 
 namespace StressTest
 {

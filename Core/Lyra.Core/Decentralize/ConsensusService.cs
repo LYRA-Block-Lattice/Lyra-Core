@@ -118,7 +118,7 @@ namespace Lyra.Core.Decentralize
         public void SetHostEnv(IHostEnv env) { _hostEnv = env; }
         //ConcurrentDictionary<string, string> _workFlows;
 
-        private readonly IHubContext<LyraEventHub, ILyraEvent> _hubContext;
+        //private readonly IHubContext<LyraEventHub, ILyraEvent> _hubContext;
 
         public static ConsensusService Singleton { get; private set; }
 
@@ -127,12 +127,12 @@ namespace Lyra.Core.Decentralize
         ActionBlock<(SendTransferBlock, ConsensusResult?)> SendReqs;
         ActionBlock<(TransactionBlock, ConsensusResult?)> MgmtReqs;
 
-        public ConsensusService(DagSystem sys, IHostEnv hostEnv, IHubContext<LyraEventHub, ILyraEvent> hubContext, IActorRef localNode, IActorRef blockchain)
+        public ConsensusService(DagSystem sys, IHostEnv hostEnv, /*IHubContext<LyraEventHub, ILyraEvent> hubContext, */IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
             _currentView = sys.Storage.GetCurrentView();
             _hostEnv = hostEnv;
-            _hubContext = hubContext;
+            //_hubContext = hubContext;
             _localNode = localNode;
             //_blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
@@ -1832,9 +1832,9 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"ConsolidationBlock was submited. ");
         }
 
-        public static Props Props(DagSystem sys, IHostEnv hostEnv, IHubContext<LyraEventHub, ILyraEvent> hubContext, IActorRef localNode, IActorRef blockchain)
+        public static Props Props(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
-            return Akka.Actor.Props.Create(() => new ConsensusService(sys, hostEnv, hubContext, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
+            return Akka.Actor.Props.Create(() => new ConsensusService(sys, hostEnv, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
         }
 
         public bool IsBlockInQueue(Block block)
@@ -1945,8 +1945,9 @@ namespace Lyra.Core.Decentralize
 
         public async Task FireSignalrWorkflowEventAsync(WorkflowEvent wfevent)
         {
-            if(_hubContext != null)
-                await _hubContext.Clients.All.OnEvent(new EventContainer(wfevent));
+            await _hostEnv.FireEventAsync(new EventContainer(wfevent));
+            //if (_hubContext != null)
+            //    await _hubContext.Clients.All.OnEvent();
         }
 
         public void OnWorkflowTerminated(string key, bool authSuccess, bool hasError)
@@ -1984,9 +1985,9 @@ namespace Lyra.Core.Decentralize
             }
 
             // consequence procedures
-            if (_hubContext != null)     // for unit test
+            if (_hostEnv != null)     // for unit test
             {
-                await _hubContext.Clients.All.OnEvent(new EventContainer(
+                await _hostEnv.FireEventAsync(new EventContainer(
                     new ConsensusEvent
                     {
                         BlockAPIResult = BlockAPIResult.Create(block),
@@ -1994,7 +1995,7 @@ namespace Lyra.Core.Decentralize
                     }));
             }
 
-            if(result != ConsensusResult.Uncertain)
+            if (result != ConsensusResult.Uncertain)
                 _successBlockCount++;
 
             //_log.LogInformation($"Worker_OnConsensusSuccess {block.Hash.Shorten()} {block.BlockType} {block.Height} result: {result} local is good: {localIsGood}");

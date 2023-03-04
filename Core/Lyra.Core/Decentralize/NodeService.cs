@@ -29,14 +29,13 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
         IHostEnv _hostEnv;
         IAccountCollectionAsync _store;
-        IHubContext<LyraEventHub, ILyraEvent> _lyraEventContext { get; }
+        //IHubContext<LyraEventHub, ILyraEvent> _lyraEventContext { get; }
 
         public string Leader { get; private set; }
 
         public static DagSystem Dag;
 
-        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv, IAccountCollectionAsync store,
-            IHubContext<LyraEventHub, ILyraEvent> lyraEventContext)
+        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv, IAccountCollectionAsync store)
         {
             //if (Instance == null)
             //    Instance = this;
@@ -46,7 +45,6 @@ namespace Lyra.Core.Decentralize
             _log = logger;
             _hostEnv = hostEnv;
             _store = store;
-            _lyraEventContext = lyraEventContext;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -100,7 +98,7 @@ namespace Lyra.Core.Decentralize
                 //}                
 
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
-                Dag = new DagSystem(_hostEnv, _store, _lyraEventContext, PosWallet, localNode);
+                Dag = new DagSystem(_hostEnv, _store, PosWallet, localNode);
                 _ = Task.Run(async () => await Dag.StartAsync()).ConfigureAwait(false);
                 await Task.Delay(30000);
             }

@@ -35,7 +35,7 @@ namespace UnitTests
             var keypair = Signatures.GenerateWallet();
             posWallet = UT_Wallet.Restore(keypair.privateKey);
             var store = new MongoAccountCollection("mongodb://127.0.0.1/xunit", "xunit");
-            TheDagSystem = new DagSystem(null, store, null, posWallet, fakeP2P);
+            TheDagSystem = new DagSystem(null, store, posWallet, fakeP2P);
         }
     }
 }
