@@ -21,7 +21,7 @@ namespace Noded.Services
         public string GetThumbPrint()
         {
             var ksi = Startup.App.ApplicationServices.GetService(typeof(IServer));
-#if NET6_0
+#if NET7_0
             var type = typeof(KestrelServer).Assembly.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl");
 
             PropertyInfo kesprop =
