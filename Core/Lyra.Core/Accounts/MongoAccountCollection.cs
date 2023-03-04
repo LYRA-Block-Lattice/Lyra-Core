@@ -1973,16 +1973,16 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
+        public async Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var builder = Builders<Block>.Filter;
             var filter = builder.And(builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lt("TimeStamp.Ticks", endTime.Ticks));
-            var q = _blocks.Find(filter)
+            var q = await _blocks.Find(filter)
                 .SortBy(o => o.TimeStamp)
-                .Project(a => a.Hash)
-                .ToList();
+                //.Project(a => a.Hash)
+                .ToListAsync();
 
-            return Task.FromResult(q);
+            return q.Select(a => a.Hash).ToList();
 
             //var options = new FindOptions<Block, BsonDocument>
             //{
