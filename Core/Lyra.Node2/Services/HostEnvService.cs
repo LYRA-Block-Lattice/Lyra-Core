@@ -11,12 +11,18 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using WorkflowCore.Interface;
+using ZstdSharp.Unsafe;
 
 namespace Noded.Services
 {
     public class HostEnvService : IHostEnv
     {
         private readonly IHubContext<LyraEventHub, ILyraEvent> _hubContext;
+
+        public HostEnvService(IHubContext<LyraEventHub, ILyraEvent> hubContext)
+        {
+            _hubContext = hubContext;
+        }
 
         public string GetThumbPrint()
         {

@@ -44,9 +44,10 @@ namespace UnitTests
             _host = workflowHost;
         }
 
-        public async Task FireEventAsync(EventContainer ec)
+        public Task FireEventAsync(EventContainer ec)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
+            //throw new NotImplementedException();
             //await _hubContext.Clients.All.OnEvent(ec);
         }
     }
