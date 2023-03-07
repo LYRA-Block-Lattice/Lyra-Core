@@ -437,7 +437,7 @@ namespace Lyra.Core.Decentralize
             //    return client1;
             //}
 
-            var useSeedOnly = false;
+            var useSeedOnly = true;
             var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, useSeedOnly, _sys.PosWallet.AccountId, Board);
             return client;
         }

@@ -147,9 +147,10 @@ namespace Lyra.Data.API
         {
             var results = await WhenAllOrExceptionAsync(taskss);
 
-            int expectedCount = (int)Math.Round((decimal)taskss.Count / 2);// LyraGlobal.GetMajority(taskss.Count);
-            //if (_seedsOnly)    // seed stage
-            //    expectedCount = 2;
+            int expectedCount = _networkId == "devnet" ? 3 : LyraGlobal.GetMajority(19);
+            //int expectedCount = (int)Math.Round((decimal)taskss.Count / 2);// LyraGlobal.GetMajority(taskss.Count);
+            if (_seedsOnly)    // seed stage
+                expectedCount = 2;
 
             //if (_networkId == "testnet" && !_seedsOnly)
             //    expectedCount = 7;
