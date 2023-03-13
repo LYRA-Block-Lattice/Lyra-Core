@@ -21,12 +21,14 @@ namespace Lyra.Core.WorkFlow.STK
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_STK_CRSTK,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
             var chgs = block.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
@@ -81,9 +83,10 @@ namespace Lyra.Core.WorkFlow.STK
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
-            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var send = context.Send;
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(context.Send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is StakingGenesis);
             if (pgen != null)
                 return null;
@@ -123,7 +126,7 @@ namespace Lyra.Core.WorkFlow.STK
 
             stkGenesis.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
 
-            stkGenesis.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            stkGenesis.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             stkGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

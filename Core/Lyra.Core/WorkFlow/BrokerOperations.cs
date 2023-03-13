@@ -14,24 +14,64 @@ using System.Text;
 using System.Threading.Tasks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Core.Decentralize;
+using Loyc.Collections;
 
 namespace Lyra.Core.WorkFlow
 {
     public class BrokerOperations
     {
-        public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, Task<ReceiveTransferBlock>>> ReceiveViaCallback 
-                => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, Task<ReceiveTransferBlock>>>
-                {
-                    { BrokerRecvType.PFRecv, ReceivePoolFactoryFeeAsync },
-                    { BrokerRecvType.DaoRecv, ReceiveDaoFeeAsync },
-                    { BrokerRecvType.TradeRecv, ReceiveTradeFeeAsync },
-                    { BrokerRecvType.None, ReceiveNoneAsync },
-                };
+        //public static Dictionary<BrokerRecvType, Func<DagSystem, LyraContext, Task<ReceiveTransferBlock>>> ReceiveViaCallback 
+        //        => new Dictionary<BrokerRecvType, Func<DagSystem, LyraContext, Task<ReceiveTransferBlock>>>
+        //        {
+        //            { BrokerRecvType.GuildRecv, ReceiveGuildFeeAsync },
+        //            { BrokerRecvType.PFRecv, ReceivePoolFactoryFeeAsync },
+        //            { BrokerRecvType.DaoRecv, ReceiveDaoFeeAsync },
+        //            { BrokerRecvType.TradeRecv, ReceiveTradeFeeAsync },
+        //            { BrokerRecvType.None, ReceiveNoneAsync },
+        //        };
+
+        //public static Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>> RefundViaCallback
+        //        => new Dictionary<BrokerRecvType, Func<DagSystem, SendTransferBlock, WorkflowAuthResult, Task<SendTransferBlock>>>
+        //        {
+        //            { BrokerRecvType.GuildRecv, RefundGuildFeeAsync },
+        //            { BrokerRecvType.PFRecv, RefundPoolFactoryFeeAsync },
+        //            { BrokerRecvType.DaoRecv, RefundDaoFeeAsync },
+        //            { BrokerRecvType.TradeRecv, RefundTradeFeeAsync },
+        //            { BrokerRecvType.None, RefundNoneAsync },
+        //        };
+
+        public static async Task<ReceiveTransferBlock> ReceiveGuildFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static async Task<SendTransferBlock> RefundGuildFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static async Task<SendTransferBlock> RefundPoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<SendTransferBlock> RefundDaoFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<SendTransferBlock> RefundTradeFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<SendTransferBlock> RefundNoneAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
+        {
+            throw new NotImplementedException();
+        }
 
         // every method must check if the operation has been done.
         // if has been done, return null.
-        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, LyraContext context)
         {
+            var sendBlock = context.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
             if (recv != null)
@@ -56,7 +96,7 @@ namespace Lyra.Core.WorkFlow
                 FeeType = AuthorizationFeeTypes.FullFee,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Init.ToString());
+            receiveBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
@@ -70,7 +110,7 @@ namespace Lyra.Core.WorkFlow
             return receiveBlock;
         }
 
-        public static async Task<ReceiveTransferBlock> ReceiveDaoFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static async Task<ReceiveTransferBlock> ReceiveDaoFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
         {
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
@@ -114,7 +154,8 @@ namespace Lyra.Core.WorkFlow
                 Description = ((IDao)lastblock).Description,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Init.ToString());
+            receiveBlock.AddTag(Block.MANAGEDTAG, authResult.Result == APIResultCodes.Success ?
+                WFState.Running.ToString() : WFState.Refund.ToString());
 
             var latestBalances = lastblock.Balances.ToDecimalDict();
             var recvBalances = lastblock.Balances.ToDecimalDict();
@@ -125,6 +166,9 @@ namespace Lyra.Core.WorkFlow
                 else
                     recvBalances.Add(chg.Key, chg.Value);
             }
+            // remove zero
+            var zeros = recvBalances.Where(a => a.Value == 0 && !txInfo.Changes.ContainsKey(a.Key)).Select(a => a.Key).ToList();
+            zeros.ForEach(a => recvBalances.Remove(a));
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
@@ -133,7 +177,7 @@ namespace Lyra.Core.WorkFlow
             return receiveBlock;
         }
 
-        public static async Task<ReceiveTransferBlock> ReceiveTradeFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static async Task<ReceiveTransferBlock> ReceiveTradeFeeAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
         {
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
@@ -167,7 +211,8 @@ namespace Lyra.Core.WorkFlow
                 Trade = ((IOtcTrade)lastblock).Trade,
             };
 
-            receiveBlock.AddTag(Block.MANAGEDTAG, WFState.Init.ToString());
+            receiveBlock.AddTag(Block.MANAGEDTAG, authResult.Result == APIResultCodes.Success ?
+                WFState.Running.ToString() : WFState.Refund.ToString());
 
             var latestBalances = lastblock.Balances.ToDecimalDict();
             var recvBalances = lastblock.Balances.ToDecimalDict();
@@ -186,7 +231,7 @@ namespace Lyra.Core.WorkFlow
             return receiveBlock;
         }
 
-        public static Task<ReceiveTransferBlock> ReceiveNoneAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static Task<ReceiveTransferBlock> ReceiveNoneAsync(DagSystem sys, SendTransferBlock sendBlock, WorkflowAuthResult authResult)
         {
             return Task.FromResult<ReceiveTransferBlock>(null);
         }

@@ -50,4 +50,22 @@ namespace Lyra.Core.Authorizers
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "VOTVoteAuthorizer->BrokerAccountRecvAuthorizer");
         }
     }
+
+    public class VOTRefundAuthorizer : BrokerAccountSendAuthorizer
+    {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.VotingRefund;
+        }
+
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            if (!(tblock is VotingRefundBlock))
+                return APIResultCodes.InvalidBlockType;
+
+            var block = tblock as VotingRefundBlock;
+
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "VOTRefundAuthorizer->BrokerAccountRecvAuthorizer");
+        }
+    }
 }

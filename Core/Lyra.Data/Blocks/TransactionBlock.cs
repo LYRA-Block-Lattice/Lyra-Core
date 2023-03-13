@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Lyra.Core.API;
+using Lyra.Data.Utils;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using Newtonsoft.Json;
@@ -110,24 +111,24 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string? VoteFor { get; set; }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as TransactionBlock;
 
             return base.AuthCompare(ob) &&
-                CompareBalances(ob.Balances) &&
-                AccountID == ob.AccountID &&
-                Fee == ob.Fee &&
-                FeeCode == ob.FeeCode &&
-                FeeType == ob.FeeType &&
-                NonFungibleToken == ob.NonFungibleToken &&
-                VoteFor == ob.VoteFor
+                CompareBalances(ob?.Balances) &&
+                AccountID == ob?.AccountID &&
+                Fee == ob?.Fee &&
+                FeeCode == ob?.FeeCode &&
+                FeeType == ob?.FeeType &&
+                NonFungibleToken == ob?.NonFungibleToken &&
+                VoteFor == ob?.VoteFor
                 ;
         }
 
-        private bool CompareBalances(Dictionary<string, long> otherBalance)
+        private bool CompareBalances(Dictionary<string, long>? otherBalance)
         {
-            if (Balances.Count != otherBalance.Count)
+            if (Balances.Count != otherBalance?.Count)
                 return false;
 
             foreach (var kvp in Balances)
@@ -206,7 +207,7 @@ namespace Lyra.Core.Blocks
         // This method compares this and previous blocks and returns the delta, which is the actual transaction represented by the block.
         // the trans amount is always positive, and it counts for the fee if transacting main currency, 
         // so the actual implementation will be different for send and receive blocks
-        public virtual TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        public virtual TransactionInfoEx? GetTransaction(TransactionBlock previousBlock)
         {
             throw new NotImplementedException();
         }
@@ -250,20 +251,27 @@ namespace Lyra.Core.Blocks
             return sb.ToString();
         }
 
-        private string BalanceToReadString()
+        public string BalanceToReadString()
         {
             var sb = new StringBuilder();
             foreach (var kvp in Balances)
             {
+                if (kvp.Value == 0)
+                    continue;
+
                 if (sb.Length > 0)
                     sb.Append(", ");
-                sb.Append($"{kvp.Key}:{kvp.Value.ToBalanceDecimal()}");
+
+                sb.Append($"{kvp.Key}: {kvp.Value.ToBalanceDecimal()}");
             }
             return sb.ToString();
         }
 
         protected string DictToStr<TKey, TValue>(Dictionary<TKey, TValue> dict)
         {
+            if (dict == null)
+                return "";
+
             var sb = new StringBuilder();
             foreach (var kvp in dict)
             {

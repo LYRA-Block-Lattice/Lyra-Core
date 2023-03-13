@@ -181,6 +181,24 @@ namespace Lyra.Core.Blocks
     }
 
     [BsonIgnoreExtraElements]
+    public class PoolRefundReceiveBlock : PoolSwapInBlock
+    {
+        protected override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolRefundRecv;
+        }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class PoolRefundSendBlock : PoolSwapOutBlock
+    {
+        protected override BlockTypes GetBlockType()
+        {
+            return BlockTypes.PoolRefundSend;
+        }
+    }
+
+    [BsonIgnoreExtraElements]
     public class PoolSwapOutBlock : SendTransferBlock, IPool
     {
         public string RelatedTx { get; set; }

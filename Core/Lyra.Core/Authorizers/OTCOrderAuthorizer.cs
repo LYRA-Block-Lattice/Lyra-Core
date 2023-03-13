@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
@@ -60,7 +61,7 @@ namespace Lyra.Core.Authorizers
             //if (block.AccountID != AccountId)
             //    return APIResultCodes.InvalidAccountId;
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoAuthorizer->BrokerAccountRecvAuthorizer");
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "OTCOrderRecvAuthorizer->BrokerAccountRecvAuthorizer");
         }
     }
 
@@ -90,11 +91,11 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            if (relTx == null || relTx.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
             {
                 // verify its pf or dao
                 var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
-                if (daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                if (daog == null && relTx.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                     return APIResultCodes.InvalidServiceRequest;
             }
 
@@ -113,7 +114,7 @@ namespace Lyra.Core.Authorizers
             //if (block.AccountID != AccountId)
             //    return APIResultCodes.InvalidAccountId;
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoAuthorizer->BrokerAccountRecvAuthorizer");
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "OTCOrderSendAuthorizer->BrokerAccountRecvAuthorizer");
         }
     }
 
@@ -136,7 +137,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidAccountType;
             }
 
-            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoGenesisAuthorizer->DaoAuthorizer");
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "OTCOrderGenesisAuthorizer->DaoAuthorizer");
         }
     }
 }

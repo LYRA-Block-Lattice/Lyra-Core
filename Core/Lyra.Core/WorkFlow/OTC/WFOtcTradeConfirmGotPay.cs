@@ -30,8 +30,9 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags == null)
                 throw new ArgumentNullException();
 
@@ -74,13 +75,14 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, SendTransferBlock sendBlock)
+        protected async Task<TransactionBlock?> SendCryptoProductFromTradeToBuyerAsync(DagSystem sys, LyraContext context)
         {
-            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            var send = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
-            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     var trade = b as IOtcTrade;
@@ -96,8 +98,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock?> SendCollateralFromDAOToTradeOwnerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradelatest = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
             var trade = (tradelatest as IOtcTrade).Trade;
@@ -129,7 +132,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // block
@@ -146,19 +149,30 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
-            var lastblock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
 
-            return await TransactionOperateAsync(sys, sendBlock.Hash, lastblock,
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
+            var lastblock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+
+            return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeRecvBlock>(),
-                () => WFState.Init,
+                () => context.State,
                 (b) =>
                 {
                     // recv
-                    (b as ReceiveTransferBlock).SourceHash = sendBlock.Hash;
+                    (b as ReceiveTransferBlock).SourceHash = send.Hash;
 
-                    var txInfo = sendBlock.GetBalanceChanges(sys.Storage.FindBlockByHash(sendBlock.PreviousHash) as TransactionBlock);
+                    var txInfo = send.GetBalanceChanges(sys.Storage.FindBlockByHash(send.PreviousHash) as TransactionBlock);
 
                     var recvBalances = b.Balances.ToDecimalDict();
                     foreach (var chg in txInfo.Changes)

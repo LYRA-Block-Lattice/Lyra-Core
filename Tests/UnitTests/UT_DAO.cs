@@ -56,7 +56,7 @@ namespace UnitTests
             var dcret = await genesisWallet.CreateDAOAsync(name, desc, 1, 0.01m, 0.005m, 10, 120, 120);
             Assert.IsTrue(dcret.Successful(), $"failed to create DAO: {dcret.ResultCode}");
 
-            await WaitWorkflow("CreateDAOAsync");
+            await WaitWorkflow(dcret.TxHash, "CreateDAOAsync");
 
             var nodesdaoret = await genesisWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(nodesdaoret.Successful(), $"can't get dao: {nodesdaoret.ResultCode}");
@@ -445,26 +445,26 @@ namespace UnitTests
 
         private async Task TestOTCTradeAsync(TradeDirection direction)
         {
-            var crypto = "tether/BTC";
-            bool firstTime = true;
+            var crypto = "tether/ETH";
+            bool firstTime = false;
 
             await testWallet.SyncAsync(null);
-            //if(!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
-            //{
-            //    // init. create token to sell
-            //    var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
-            //            "", "", ContractTypes.Cryptocurrency, null);
-            //    Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
+            if (!testWallet.GetLastSyncBlock().Balances.ContainsKey(crypto))
+            {
+                // init. create token to sell
+                var tokenGenesisResult = await testWallet.CreateTokenAsync("ETH", "tether", "", 8, 100000, false, testWallet.AccountId,
+                        "", "", ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(tokenGenesisResult.Successful(), $"test otc token genesis failed: {tokenGenesisResult.ResultCode} for {testWallet.AccountId}");
 
-            //    await WaitBlock("CreateTokenAsync");
+                await WaitBlock("CreateTokenAsync");
 
-            //    await testWallet.SyncAsync(null);
+                await testWallet.SyncAsync(null);
 
-            //    await testWallet.SendAsync(100, test2PublicKey, crypto);
-            //    await test2Wallet.SyncAsync(null);
+                await testWallet.SendAsync(100, test2PublicKey, crypto);
+                await test2Wallet.SyncAsync(null);
 
-            //    firstTime = true;
-            //}
+                firstTime = true;
+            }
 
             var testbalance = testWallet.BaseBalance;
 
@@ -547,7 +547,7 @@ namespace UnitTests
             await CheckDAO(name, desc);
 
             // test find tradable orders
-            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            var tradableret = await testWallet.RPC.FindTradableOrdersAsync();
             Assert.IsTrue(tradableret.Successful(), "Unable to find tradable.");
             var tradableblks = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, tradableblks.Count(), $"Trade {direction} tradable block count is {tradableblks.Count()}");
@@ -711,18 +711,18 @@ namespace UnitTests
             await WaitBlock("CancelOTCTradeAsync");
             Assert.IsTrue(cloret.Successful());
 
-            Assert.AreEqual(3, _lastAuthResult.LockedIDs.Count, "ID not locked properly");
+            Assert.AreEqual(4, _lastAuthResult.LockedIDs.Count, "ID not locked properly");
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.daoId));
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.Trade.orderId));
             Assert.IsTrue(_lastAuthResult.LockedIDs.Contains(tradgen.AccountID));
 
             // try lock it
             var cloret2 = await test2Wallet.CancelOTCTradeAsync(tradgen.Trade.daoId, tradgen.Trade.orderId, tradgen.AccountID);
-            await WaitBlock("CancelOTCTradeAsync 2");
+            //await WaitBlock("CancelOTCTradeAsync 2");
             Assert.AreEqual(APIResultCodes.ResourceIsBusy, cloret2.ResultCode, $"Not locked properly: {cloret2.ResultCode}");
 
             await WaitBlock("CancelOTCTradeAsync");
-            await WaitWorkflow("CancelOTCTradeAsync", false);
+            //await WaitWorkflow("CancelOTCTradeAsync", false);
 
             ResetAuthFail();
 
@@ -738,7 +738,7 @@ namespace UnitTests
         private async Task<OtcTradeGenesisBlock> CreateOTCTradeAsync(TransactionBlock dao1, OTCOrderGenesisBlock otcg, TradeDirection direction)
         {
             // here comes a buyer, he who want to buy 1 BTC.
-            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            var tradableret = await testWallet.RPC.FindTradableOrdersAsync();
             Assert.IsTrue(tradableret.Successful(), $"Can't find tradableorders: {tradableret.ResultCode}: {tradableret.ResultMessage}");
             var ords = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, ords.Count(), "Order count not right");
@@ -894,7 +894,7 @@ namespace UnitTests
             Assert.IsTrue(order.Equals(otcg.Order), "OTC order not equal.");
 
             // here comes a buyer, he who want to buy 1 BTC.
-            var tradableret = await testWallet.RPC.FindTradableOtcAsync();
+            var tradableret = await testWallet.RPC.FindTradableOrdersAsync();
             Assert.IsTrue(tradableret.Successful(), $"Can't find tradableorders: {tradableret.ResultCode}: {tradableret.ResultMessage}");
             var ords = tradableret.GetBlocks("orders");
             Assert.AreEqual(1, ords.Count(), "Order count not right");
@@ -1045,7 +1045,8 @@ namespace UnitTests
             var crpftret = await genesisWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 0.5m, 50);
             Assert.IsTrue(crpftret.Successful());
-            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            var pftblocks = await genesisWallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+            var pftblock = pftblocks.FirstOrDefault();
             Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
 
             Console.WriteLine("Generate dividends");
@@ -1060,7 +1061,8 @@ namespace UnitTests
             var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 30, true);
             Assert.IsTrue(crstkret.Successful());
 
-            var stkblock = crstkret.GetBlock() as StakingBlock;
+            var stks = await w.GetBrokerAccountsAsync<StakingGenesis>();
+            var stkblock = stks.FirstOrDefault();
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
             await WaitWorkflow($"CreateStakingAccountAsync {stkblock.RelatedTx}");
 
@@ -1101,7 +1103,8 @@ namespace UnitTests
             var crpftret = await testWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
                 shareRito, 50);
             Assert.IsTrue(crpftret.Successful(), $"Can't create profiting: {crpftret.ResultCode}");
-            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            var pfts = await testWallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+            var pftblock = pfts.FirstOrDefault();
             Assert.IsTrue(pftblock.OwnerAccountId == testWallet.AccountId);
 
             Console.WriteLine("Staking 1");
@@ -1227,7 +1230,7 @@ namespace UnitTests
             // we temp disable the dealer creation.
             var ret = await testWallet.ServiceRequestAsync(dealerAbi);
             Assert.IsTrue(ret.Successful(), $"unable to create dealer: {ret.ResultCode}");
-            await WaitWorkflow($"Create Dealer");
+            await WaitWorkflow(ret.TxHash, $"Create Dealer");
 
             var ret2 = await testWallet.ServiceRequestAsync(dealerAbi);
             Assert.IsTrue(!ret2.Successful(), $"should not to create dealer: {ret2.ResultCode}");

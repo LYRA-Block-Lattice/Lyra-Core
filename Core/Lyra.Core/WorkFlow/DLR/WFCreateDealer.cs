@@ -15,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.WorkFlow.DAO
+namespace Lyra.Core.WorkFlow.DLR
 {
     [LyraWorkFlow]
     public class WFCreateDealer : WorkFlowBase
@@ -25,13 +25,14 @@ namespace Lyra.Core.WorkFlow.DAO
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DLR_CREATE,
-                RecvVia = BrokerRecvType.PFRecv,
-                Steps = new[] { GenesisAsync }
+                RecvVia = BrokerRecvType.GuildRecv,
+                Steps = new[] { DealerGenesisAsync }
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (
                 send.Tags.ContainsKey("objType") && send.Tags["objType"] == nameof(DealerCreateArgument) &&
                 send.Tags.ContainsKey("data") && !string.IsNullOrWhiteSpace(send.Tags["data"]) &&                
@@ -68,8 +69,9 @@ namespace Lyra.Core.WorkFlow.DAO
                 return APIResultCodes.InvalidTagParameters;
         }
 
-        public async Task<TransactionBlock> GenesisAsync(DagSystem sys, SendTransferBlock send)
+        public async Task<TransactionBlock?> DealerGenesisAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var arg = JsonConvert.DeserializeObject<DealerCreateArgument>(send.Tags["data"]);
 
             // create a semi random account for pool.
@@ -105,7 +107,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 Description = arg.Description,
             };
 
-            daogen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            daogen.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             daogen.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

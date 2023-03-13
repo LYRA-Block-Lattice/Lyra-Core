@@ -31,8 +31,11 @@ namespace Lyra.Core.Blocks
             //    Console.WriteLine($"Debug Hash Record: {record}");
             using (var sha = SHA256.Create())
             {
-                byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
+                var buff = Encoding.Unicode.GetBytes(record);
+                byte[] hash_bytes = sha.ComputeHash(buff);
                 string hash = Base58Encoding.Encode(hash_bytes);
+
+                //Console.WriteLine($"{buff.Length} -> {hash_bytes.Length}: {hash}");
 
                 // debug only, temp code
                 //if (record.Contains("OTCOrderSend"))

@@ -19,6 +19,8 @@ using Lyra.Data.Utils;
 using Lyra.Data.Crypto;
 using Lyra.Data.Blocks;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
+using System.Security.Policy;
 
 namespace Lyra.Core.Decentralize
 {
@@ -227,6 +229,19 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
+        {
+            return await NodeService.Dag.Storage.FindTokensForAccountAsync(accountId, keyword, catalog);
+        }
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string? keyword, string catalog)
+        {
+            return await NodeService.Dag.Storage.FindTokensAsync(keyword, catalog);
+        }
+        public async Task<List<DaoGenesisBlock>> FindDaosAsync(string? keyword)
+        {
+            return await NodeService.Dag.Storage.FindDaosAsync(keyword);
+        }
+
         public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)
         {
             var result = new AccountHeightAPIResult();
@@ -359,6 +374,10 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public Task<BlockAPIResult> GetBlockByHashAsync(string Hash)
+        {
+            return GetBlockByHashAsync("", Hash, "");
+        }
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string? Signature)
         {
             var result = new BlockAPIResult();
@@ -474,14 +493,14 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string? Signature)
         {
             var result = new NonFungibleListAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return result;
+            //}
 
             try
             {
@@ -507,7 +526,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string? Signature)
         {
             var result = new BlockAPIResult();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -856,7 +875,7 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string? Signature)
         {
             NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -1177,7 +1196,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag?.Storage.FindDexWalletAsync(owner, symbol, provider);
+                var block = await NodeService.Dag.Storage.FindDexWalletAsync(owner, symbol, provider);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -1190,6 +1209,58 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in FindDexWalletAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetAllFiatWalletsAsync(owner);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                    return result;
+                }
+
+                result.SetBlocks(blocks.ToArray());
+                result.ResultCode = APIResultCodes.Success;
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetAllFiatWalletsAsync(Hash): " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+        public async Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.FindFiatWalletAsync(owner, symbol);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindFiatWalletAsync: " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
@@ -1277,13 +1348,13 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        public async Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
             var result = new ContainerAPIResult();
 
             try
             {
-                var dict = await NodeService.Dag.Storage.FindTradableOtcAsync();
+                var dict = await NodeService.Dag.Storage.FindTradableOrdersAsync();
                 foreach (var kvp in dict)
                     result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToArray());
 
@@ -1291,7 +1362,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in FindTradableOtcAsync: " + e.Message);
+                Console.WriteLine("Exception in FindTradableOrdersAsync: " + e.Message);
                 result.ResultCode = APIResultCodes.StorageAPIFailure;
                 result.ResultMessage = e.ToString();
             }
@@ -1531,5 +1602,231 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        #region Universal Trade
+        public async Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetUniOrdersByOwnerAsync(accountId);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetUniOrdersByOwnerAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindUniTradeForOrderAsync(orderid);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindUniTradeForOrderAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            var result = new ContainerAPIResult();
+
+            try
+            {
+                var dict = await NodeService.Dag.Storage.FindTradableUniAsync();
+                foreach (var kvp in dict)
+                    result.AddBlocks(kvp.Key, kvp.Value.Cast<Block>().ToArray());
+
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindTradableUniAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindUniTradeAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.FindUniTradeByStatusAsync(daoid, status, page, pageSize);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindUniTradeByStatusAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var stats = await NodeService.Dag.Storage.GetUniTradeStatsForUsersAsync(req.AccountIDs);
+
+                result.JsonString = Json(stats);
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetUniTradeStatsForUsersAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        public async Task<SimpleJsonAPIResult> GetBalanceAsync(string accountId)
+        {
+            var result = new SimpleJsonAPIResult();
+
+            try
+            {
+                var stats = await NodeService.Dag.Storage.GetBalanceAsync(accountId);
+
+                result.JsonString = Json(stats);
+                result.ResultCode = APIResultCodes.Success;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBalanceAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
+        Task<string?> INodeAPI.FindTokensAsync(string? keyword, string? cat)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<string?> INodeAPI.FindDaosAsync(string? keyword)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<string?> INodeAPI.FindTokensForAccountAsync(string accountId, string keyword, string catalog)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetMultipleConsByHeightAsync(height, count);
+                if (blocks == null || blocks.Count == 0)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                    return result;
+                }
+
+                result.SetBlocks(blocks.ToArray());
+                result.ResultCode = APIResultCodes.Success;
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetMultipleConsByHeightAsync(height, count): " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+        #endregion
     }
 }

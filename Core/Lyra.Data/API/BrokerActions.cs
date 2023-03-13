@@ -26,9 +26,13 @@ namespace Lyra.Data.API
         public const string BRK_DEX_DPOREQ = "DPOREQ";
         public const string BRK_DEX_MINT = "MINT";
         public const string BRK_DEX_GETTKN = "GETTKN";
-
         public const string BRK_DEX_PUTTKN = "PUTTKN";
         public const string BRK_DEX_WDWREQ = "WDWREQ";
+
+        // Fiat
+        public const string BRK_FIAT_CRACT = "FATCRACT";
+        public const string BRK_FIAT_PRINT = "FATPRNT";
+        public const string BRK_FIAT_GET = "FATGET";
 
         // DAO
         public const string BRK_DAO_CRDAO = "CRDAO";
@@ -58,5 +62,18 @@ namespace Lyra.Data.API
         // Dealer
         public const string BRK_DLR_CREATE = "DLRCRT";
         public const string BRK_DLR_UPDATE = "DLRUPD";
+
+        // Universal Order/Trade
+        public const string BRK_UNI_CRODR = "UCRODR";
+        public const string BRK_UNI_CRTRD = "UCRTRD";
+        public const string BRK_UNI_TRDPAYSENT = "UTRDPAYSNT";
+        public const string BRK_UNI_TRDPAYGOT = "UTRDPAYGOT";
+        public const string BRK_UNI_ORDDELST = "UORDDELST";
+        public const string BRK_UNI_ORDCLOSE = "UORDCLOSE";
+        public const string BRK_UNI_TRDCANCEL = "UTRDCANCEL";
+
+        // Universal Dispute
+        public const string BRK_UNI_CRDPT = "UORDCRDPT";
+        public const string BRK_UNI_RSLDPT = "UORDRSLDPT";
     }
 }

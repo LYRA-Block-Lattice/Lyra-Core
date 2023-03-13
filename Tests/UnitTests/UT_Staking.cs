@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Akka.Util;
+using FluentAssertions;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Authorizers;
@@ -41,7 +42,7 @@ namespace UnitTests
             return Signatures.GetSignature(testPrivateKey, lsb.GetBlock().Hash, testPublicKey);
         }
 
-        public Wallet Restore(string privateKey)
+        public async Task<Wallet> RestoreAsync(string privateKey)
         {
             client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
@@ -49,7 +50,10 @@ namespace UnitTests
             try
             {
                 Wallet.Create(memStor, "tmpAcct", "", networkId, privateKey);
-                return Wallet.Open(memStor, "tmpAcct", "");
+                var w = Wallet.Open(memStor, "tmpAcct", "");
+
+                await w.SetupEventsListenerAsync();
+                return w;
             }
             catch (Exception)
             {
@@ -65,12 +69,12 @@ namespace UnitTests
                 await semaphore.WaitAsync();
 
                 // sync wallet first
-                var w1 = Restore(testPrivateKey);
+                var w1 = await RestoreAsync(testPrivateKey);
                 var syncResult = await w1.SyncAsync(client);
                 Assert.IsTrue(syncResult == APIResultCodes.Success);
 
                 var (pvt, pub) = Signatures.GenerateWallet();
-                var wx = Restore(pvt);
+                var wx = await RestoreAsync(pvt);
                 await w1.SendAsync(500, wx.AccountId);
                 await Task.Delay(1000);
                 await wx.SyncAsync(client);
@@ -79,8 +83,9 @@ namespace UnitTests
                 // test create profiting account
                 var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking * 2);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
-
-                var pgen = result.GetBlock() as ProfitingBlock;
+                Assert.IsTrue(wx.WaitForWorkflow(result.TxHash));
+                var pfts = await wx.GetBrokerAccountsAsync<ProfitingGenesis>();
+                var pgen = pfts.FirstOrDefault();
                 Assert.IsNotNull(pgen);
 
                 Console.WriteLine($"Profit account: {pgen.AccountID}");
@@ -91,7 +96,7 @@ namespace UnitTests
                 for (int i = 0; i < totalStaking; i++)
                 {
                     var (pvtx, pubx) = Signatures.GenerateWallet();
-                    var stkx = Restore(pvtx);
+                    var stkx = await RestoreAsync(pvtx);
                     stkWallets1.Add(stkx);   
 
                     await w1.SendAsync(30m, stkx.AccountId);
@@ -100,18 +105,21 @@ namespace UnitTests
                     // test create staking account
                     var result2 = await stkx.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 1000, true);
                     Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
+                    Assert.IsTrue(stkx.WaitForWorkflow(result2.TxHash));
 
-                    var stkgen = result2.GetBlock() as StakingBlock;
+                    var stks = await stkx.GetBrokerAccountsAsync<StakingGenesis>();
+                    var stkgen = stks.FirstOrDefault();
                     Assert.IsNotNull(stkgen);
 
                     // test add staking
                     var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
                     Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
+                    Assert.IsTrue(stkx.WaitForWorkflow(result3.TxHash));
                 }
                 for (int i = 0; i < totalStaking; i++)
                 {
                     var (pvtx, pubx) = Signatures.GenerateWallet();
-                    var stkx = Restore(pvtx);
+                    var stkx = await RestoreAsync(pvtx);
                     stkWallets2.Add(stkx);
 
                     await w1.SendAsync(30m, stkx.AccountId);
@@ -120,22 +128,24 @@ namespace UnitTests
                     // test create staking account
                     var result2 = await stkx.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 1000, false);
                     Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
+                    Assert.IsTrue(stkx.WaitForWorkflow(result2.TxHash));
 
-                    var stkgen = result2.GetBlock() as StakingBlock;
+                    var stks = await stkx.GetBrokerAccountsAsync<StakingGenesis>();
+                    var stkgen = stks.FirstOrDefault();
                     Assert.IsNotNull(stkgen);
 
                     // test add staking
                     var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
                     Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
+                    Assert.IsTrue(stkx.WaitForWorkflow(result3.TxHash));
                 }
                 stopwatch.Stop();
-                await Task.Delay(5000);
 
                 Console.WriteLine($"create staking uses {stopwatch.ElapsedMilliseconds} ms");
                 await w1.SendAsync(200, pgen.AccountID);
                 var dvdret = await wx.CreateDividendsAsync(pgen.AccountID);
                 Assert.IsTrue(dvdret.Successful(), $"Create dividens failed: {dvdret.ResultCode}");
-                await Task.Delay(20000);
+                Assert.IsTrue(wx.WaitForWorkflow(dvdret.TxHash, 30000));
 
                 foreach (var stkx in stkWallets1)
                 {

@@ -32,6 +32,9 @@ namespace Lyra.Core.Authorizers
             BlockTypes.OTCTradeGenesis,
             BlockTypes.VoteGenesis,
             BlockTypes.DealerGenesis,
+            BlockTypes.UniOrderGenesis,
+            BlockTypes.UniTradeGenesis,
+            BlockTypes.FiatWalletGenesis,
         };
 
         
@@ -50,7 +53,11 @@ namespace Lyra.Core.Authorizers
             //{
             //    return APIResultCodes.Success;
             //}
-            
+
+            // fiat token never be in wallet.
+            //if (block is not TokenGenesisBlock)
+            //    return APIResultCodes.InvalidBalance;
+
             if (block is IOpeningBlock)
             {
                 if (block.Height != 1)
@@ -107,7 +114,7 @@ namespace Lyra.Core.Authorizers
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
         {
-            if (block.AccountID == PoolFactoryBlock.FactoryAccount
+            if (block.AccountID == LyraGlobal.GUILDACCOUNTID
                 || block is IPool
                 || block is IProfiting
                 || block is IBrokerAccount)
@@ -137,6 +144,7 @@ namespace Lyra.Core.Authorizers
                 // find the actual amount of transaction 
                 BalanceChanges sendTransaction;
                 if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
+                    //|| block.BlockType == BlockTypes.TokenGenesis // NO!! genesis don't have a source block.
                     || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
                     || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting
                     || block.BlockType == BlockTypes.ReceiveAsFee
@@ -147,6 +155,10 @@ namespace Lyra.Core.Authorizers
                     || block.BlockType == BlockTypes.OTCTradeRecv
                     || block.BlockType == BlockTypes.OTCTradeResolutionRecv
                     || block.BlockType == BlockTypes.Voting
+                    || block.BlockType == BlockTypes.UniOrderRecv
+                    || block.BlockType == BlockTypes.UniTradeRecv
+                    || block is BrokerAccountRecv
+                    || block.BlockType == BlockTypes.PoolRefundRecv
                     )  // temp code. should use getbalancechanges
                 {
                     if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)

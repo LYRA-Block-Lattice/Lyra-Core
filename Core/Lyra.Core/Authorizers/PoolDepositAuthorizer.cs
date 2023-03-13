@@ -41,10 +41,17 @@ namespace Lyra.Core.Authorizers
 
                 // the rito must be preserved for every deposition
                 //var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
-                foreach (var oldBalance in lastBalance)
+
+                foreach (var chg in txInfo.Changes)
                 {
-                    depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
+                    var oldBalance = lastBalance[chg.Key];
+                    depositBalance.Add(chg.Key, oldBalance + txInfo.Changes[chg.Key]);
                 }
+
+                //foreach (var oldBalance in lastBalance)
+                //{
+                //    depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
+                //}
 
                 var prevBalance = lastBalance[poolGenesis.Token0];
                 var curBalance = depositBalance[poolGenesis.Token0];

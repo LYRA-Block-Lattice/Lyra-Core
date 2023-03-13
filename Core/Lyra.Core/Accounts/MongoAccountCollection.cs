@@ -26,6 +26,11 @@ using Neo;
 using Newtonsoft.Json;
 using Lyra.Data.API.ODR;
 using MongoDB.Driver.Linq;
+using Lyra.Data.API.WorkFlow.UniMarket;
+using System.Collections;
+using Akka.Remote.Transport;
+using System.Reflection.Metadata;
+using System.IO;
 
 namespace Lyra.Core.Accounts
 {
@@ -71,6 +76,8 @@ namespace Lyra.Core.Accounts
             // reset db every time for unit test.
             if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
             {
+                if(File.Exists("c:\\tmp\\GetHashInput.txt"))
+                    File.Delete("c:\\tmp\\GetHashInput.txt");
                 if (GetClient() == null)
                     return;
 
@@ -88,6 +95,7 @@ namespace Lyra.Core.Accounts
             }
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Utc, BsonType.Document));
+            BsonSerializer.RegisterSerializer(new EnumSerializer<PoDCatalog>(BsonType.String));
 
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {
@@ -176,7 +184,7 @@ namespace Lyra.Core.Accounts
 
             _ = Task.Run(async () =>
             {
-                Console.WriteLine("ensure mongodb index...");
+                //Console.WriteLine("ensure mongodb index...");
 
                 try
                 {
@@ -222,6 +230,11 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_snapshots, "OOStatus", false);
                     await CreateIndexes(_snapshots, "OTStatus", false);
                     await CreateIndexes(_snapshots, "Treasure", false);
+                    await CreateIndexes(_snapshots, "UOStatus", false);
+                    await CreateIndexes(_snapshots, "UTStatus", false);
+
+                    // Uni Order/Trade
+
 
                     await SnapshotAllAsync();
                 }
@@ -363,6 +376,10 @@ namespace Lyra.Core.Accounts
                     {
                         continue;
                     }
+                    else if (blk is FiatPrintBlock)
+                    {
+                        continue;
+                    }
                     else
                     {
                         _log.LogCritical($"Unprocessed block type: {blk.BlockType} Height: {blk.Height}");
@@ -452,6 +469,8 @@ namespace Lyra.Core.Accounts
             //var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
             //var result = await _blocks.FindAsync(filter, options);
             //return await result.AnyAsync();
+
+            // max 18ms avg 0.68
             var q = _blocks.OfType<TransactionBlock>()
                 .AsQueryable()
                 .Where(a => a.AccountID == AccountId)
@@ -642,7 +661,7 @@ namespace Lyra.Core.Accounts
             return result as TransactionBlock;
         }
 
-        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker)
+        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string? Hash, string Ticker)
         {
             //TokenGenesisBlock result = null;
             if (!string.IsNullOrEmpty(Hash))
@@ -670,6 +689,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
         {
+            // LJc... is a bot which created a lot of spam tokens
             //.Where(x => x.AccountID != "LJcP9ztmYqzjbSRsr2sKZ44pSkhqdtUp5g8YbgPQbxNPNf9FuQ93K1FQUSXYxcofZqgV8qgzWYXArjR9w9VPGBbENcS1Z3") // filter out trash token
             var builder = Builders<TokenGenesisBlock>.Filter;
             var filterDefinition =
@@ -686,6 +706,133 @@ namespace Lyra.Core.Accounts
             else
             {
                 return result.ToList().Where(a => a.Ticker.Contains(keyword)).ToList();
+            }
+        }
+        public async Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
+        {
+            var block = FindLatestBlock(accountId);
+            if (block == null || block is not TransactionBlock tx)
+                return null;
+
+            var genss = new List<TokenGenesisBlock>();
+            foreach(var b in tx.Balances.Where(a => a.Value > 0))   //  not need. we need 0 balance for fiat, etc.
+            {
+                if (catalog == "Fiat" && !b.Key.StartsWith("fiat/"))
+                    continue;
+
+                if(catalog == "TOT" && !(b.Key.StartsWith("tot/") || b.Key.StartsWith("svc/")))
+                    continue;
+
+                if(catalog == "NFT" && !b.Key.StartsWith("nft/"))
+                    continue;
+
+                if (catalog == "Token" && (b.Key.StartsWith("nft/") ||
+                    b.Key.StartsWith("fiat/") ||
+                    b.Key.StartsWith("tot/") ||
+                    b.Key.StartsWith("svc/")
+                    ))
+                    continue;
+
+                var gens = await FindTokenGenesisBlockAsync(null, b.Key);
+
+                if (gens != null && (b.Key.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1
+                    || gens.Custom1?.IndexOf(keyword, 0, StringComparison.OrdinalIgnoreCase) != -1))
+                {
+                    genss.Add(gens);
+                }                
+            }
+
+            return genss;
+        }
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog)
+        {
+            var builder = Builders<TokenGenesisBlock>.Filter;
+
+            FilterDefinition<TokenGenesisBlock> filter;
+            if (catalog == "TOT" || catalog == "tot")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/"));
+            }
+            if (catalog == "Service" || catalog == "svc")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"));
+            }
+            else if (catalog == "Fiat" || catalog == "fiat")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/"));
+            }
+            else if (catalog == "NFT" || catalog == "nft")
+            {
+                filter = builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/")
+            );
+            }
+            else if (catalog == "Token" || catalog == "token" || string.IsNullOrWhiteSpace(catalog))
+            {
+                filter = builder.Not(
+                    builder.Or(
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^fiat/")),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^tot/")),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^nft/")),
+                        builder.Regex(u => u.Ticker, new BsonRegularExpression("/^svc/"))
+                        )
+
+                );
+            }
+            else
+            {
+                throw new InvalidOperationException("Unknown token catalog.");
+                //filter = builder.Or(
+                //    builder.Regex(u => u.Ticker, new BsonRegularExpression("/" + regexFilter + "/i")),
+                //    builder.Regex(u => u.Custom1, new BsonRegularExpression("/" + regexFilter + "/i"))
+                //    );
+            }
+
+            FilterDefinition<TokenGenesisBlock> finalFilter;
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                finalFilter = filter;
+            }
+            else
+            {
+                var regexFilter = new BsonRegularExpression($"/{Regex.Escape(keyword)}/i");
+                finalFilter =
+                    builder.And(filter,
+                                builder.Or(builder.Regex(u => u.Ticker, regexFilter),
+                                            builder.Regex(u => u.Custom1, regexFilter))
+                                );
+            }
+
+            var genResult = await _blocks.OfType<TokenGenesisBlock>()
+                .Find(finalFilter)
+                .Limit(200)
+                .ToListAsync();
+
+            return genResult;
+        }
+
+        public async Task<List<DaoGenesisBlock>> FindDaosAsync(string keyword)
+        {
+            if(string.IsNullOrWhiteSpace(keyword))
+            {
+                var genResult = await _blocks.OfType<DaoGenesisBlock>()
+                    .Find(FilterDefinition<DaoGenesisBlock>.Empty)
+                    .Limit(200)
+                    .ToListAsync();
+                return genResult;
+            }
+            else
+            {
+                var regexFilter = Regex.Escape(keyword);
+                var builder = Builders<DaoGenesisBlock>.Filter;
+
+                FilterDefinition<DaoGenesisBlock> filter = builder.Regex(u => u.Name, new BsonRegularExpression("/" + regexFilter + "/i"));
+
+                var genResult = await _blocks.OfType<DaoGenesisBlock>()
+                    .Find(filter)
+                    .Limit(200)
+                    .ToListAsync();
+
+                return genResult;
             }
         }
 
@@ -779,6 +926,63 @@ namespace Lyra.Core.Accounts
             //var block = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
             //return block;
         }
+
+        private async Task<List<Block>> GetBlocksInConsByHeightAsync(long height)
+        {
+            var cons = await FindConsolidationBlockByIndexAsync(height);
+            if (cons == null)
+                return new List<Block>();
+
+            // all blocks, append with the consolidation block
+            PipelineDefinition<Block, BsonDocument> pipeline = new BsonDocument[]
+            {
+                new BsonDocument("$match",
+                    new BsonDocument("Hash", cons.Hash)),
+                new BsonDocument("$lookup",
+                    new BsonDocument
+                    {
+                        { "from", _networkId + "_blocks" },
+                        { "localField", "blockHashes" },
+                        { "foreignField", "Hash" },
+                        { "as", "blks" }
+                    }),
+                new BsonDocument("$unwind",
+                    new BsonDocument("path", "$blks")),
+                new BsonDocument("$replaceRoot",
+                    new BsonDocument("newRoot", "$blks")),
+                new BsonDocument("$sort", new BsonDocument("TimeStamp", 1))
+            };
+
+            var q1 = _blocks.Aggregate(pipeline);
+
+            var x = await q1.ToListAsync();
+
+            return x.Select(a => BsonSerializer.Deserialize<Block>(a))           
+                .Append(cons)
+                .ToList();
+        }
+        public async Task<List<Block>> GetMultipleConsByHeightAsync(long height, int count)
+        {
+            var list = new List<Block>();
+            int total = 0;
+            int max = (count < 1 || count > 100) ? 100 : count;
+            for(var i = 0; i < max; i++)
+            {
+                var blklist = await GetBlocksInConsByHeightAsync(height + i);
+                if (!blklist.Any())
+                    break;
+
+                if (list.Count == 0)
+                    list.AddRange(blklist);
+                else
+                    list.AddRange(blklist.Skip(1));
+
+                if (list.Count >= max)
+                    break;
+            }
+            return list;
+        }
+
 
         public async Task<Block> FindBlockByHashAsync(string AccountId, string hash)
         {
@@ -952,7 +1156,7 @@ namespace Lyra.Core.Accounts
             return Task.FromResult(result);
         }
 
-        public Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
+        public Task<TransactionBlock?> FindBlockByIndexAsync(string AccountId, long index)
         {
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
@@ -960,6 +1164,15 @@ namespace Lyra.Core.Accounts
 
             var block = _blocks.Find(filterDefinition).FirstOrDefault();
             return Task.FromResult(block as TransactionBlock);
+        }
+
+        public TransactionBlock? FindBlockByIndex(string AccountId, long index)
+        {
+            var q = _blocks.OfType<TransactionBlock>()
+                .Find(a => a.AccountID == AccountId && a.Height == index)
+                .FirstOrDefault();
+
+            return q;
         }
 
         public async Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index)
@@ -1449,41 +1662,91 @@ namespace Lyra.Core.Accounts
 
         */
 
-        private Task UpdateSnapshotAsync(TransactionBlock tx)
+        private async Task UpdateSnapshotAsync(TransactionBlock tx)
         {
-            return _snapshots.ReplaceOneAsync(p => p.AccountID == tx.AccountID,
+            await _snapshots.ReplaceOneAsync(p => p.AccountID == tx.AccountID,
                 tx,
                 new ReplaceOptions { IsUpsert = true });
         }
 
-        public async Task<bool> AddBlockAsync(Block block)
+        public async Task<bool> DupCheckAsync(Block block)
         {
-            // in unit test maybe null
-            _log?.LogInformation($"AddBlockAsync: {block.BlockType} {block.Height} {block.Hash}");
-
-            if (await FindBlockByHashAsync(block.Hash) != null)
+            // make it one step operation
+            FilterDefinition<Block> query;
+            if (block is TransactionBlock tx)
             {
-                _log.LogWarning($"AccountCollection=>AddBlock: Block with such Hash already exists! {block.BlockType}, {block.Hash}");
-                return false;
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),
+                        filter.And(
+                            filter.Eq("AccountID", tx.AccountID),
+                            filter.Eq("Height", block.Height))
+                        );
+            }
+            else
+            {
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),
+                        filter.And(
+                            filter.Eq("BlockType", block.BlockType),
+                            filter.Eq("Height", block.Height))
+                        );
             }
 
-            var tx = block as TransactionBlock;
-            if (tx != null)
+            var results = await _blocks.FindAsync(query);
+            return results.Any();
+        }
+
+        public async Task<bool> AddBlockAsync(Block block)
+        {
+            // make it one step operation
+            FilterDefinition<Block> query;
+            if (block is TransactionBlock tx)
             {
-                var curNdx = await FindBlockByIndexAsync(tx.AccountID, tx.Height);
-                if (curNdx != null)
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),
+                        filter.And(
+                            filter.Eq("AccountID", tx.AccountID),
+                            filter.Eq("Height", block.Height))
+                        );
+            }
+            else
+            {
+                var filter = Builders<Block>.Filter;
+                query = filter.Or(
+                        filter.Eq("Hash", block.Hash),                    
+                        filter.And(
+                            filter.Eq("BlockType", block.BlockType),
+                            filter.Eq("Height", block.Height))
+                        );
+            }
+
+            var exists = _blocks.Find(query);
+            if(exists.Any())
+            {
+                // hack: testnet db error, dup service block height 8896
+                if(_networkId == "testnet" && block.BlockType == BlockTypes.Service && block.Height <= 8896)
                 {
-                    _log.LogWarning($"AccountCollection=>AddBlock: Block with such Index already exists! {block.BlockType}, {block.Hash} {tx.AccountID} {tx.Height} existing: {curNdx.Hash}");
+                    // no action, just add it.
+                    _log.LogWarning($"AccountCollection=>AddBlock: Service {block.Height} dup tolerant");
+                }
+                else
+                {
+                    var blk = exists.FirstOrDefault();
+                    _log.LogWarning($"AccountCollection=>AddBlock: Block exists! {block.BlockType}, {block.Hash}");
+                    _log.LogWarning($"AccountCollection=>AddBlock: Existing one: {blk.BlockType}, {blk.Hash}, {blk.Signature}");
                     return false;
                 }
             }
 
             try
             {
-                await _blocks.InsertOneAsync(block);
+                _blocks.InsertOne(block);
 
-                if(tx != null)
-                    await UpdateSnapshotAsync(tx);
+                if(block is TransactionBlock t)
+                    await UpdateSnapshotAsync(t);
 
                 return true;
             }
@@ -1710,16 +1973,16 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
+        public async Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var builder = Builders<Block>.Filter;
             var filter = builder.And(builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lt("TimeStamp.Ticks", endTime.Ticks));
-            var q = _blocks.Find(filter)
+            var q = await _blocks.Find(filter)
                 .SortBy(o => o.TimeStamp)
-                .Project(a => a.Hash)
-                .ToList();
+                //.Project(a => a.Hash)
+                .ToListAsync();
 
-            return Task.FromResult(q);
+            return q.Select(a => a.Hash).ToList();
 
             //var options = new FindOptions<Block, BsonDocument>
             //{
@@ -2095,12 +2358,39 @@ namespace Lyra.Core.Accounts
             return all;
         }
 
-        public async Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider)
+        public async Task<TransactionBlock?> FindDexWalletAsync(string owner, string symbol, string provider)
         {
             var all = await GetAllDexWalletsAsync(owner);
             return all.Cast<IDexWallet>()
                 .FirstOrDefault(a => a.ExtSymbol == symbol && a.ExtProvider == provider)
                 as TransactionBlock;
+        }
+
+        // Fiat wallet
+        public async Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol)
+        {
+            var all = await GetAllFiatWalletsAsync(owner);
+            return all.Cast<IFiatWallet>()
+                .FirstOrDefault(a => a.ExtSymbol == symbol)
+                as TransactionBlock;
+        }
+
+        public async Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner)
+        {
+            var wgens = await _blocks.OfType<FiatWalletGenesis>()
+                .Find(a => a.OwnerAccountId == owner)
+                .ToListAsync();
+
+            var all = new List<TransactionBlock>();
+            foreach (var w in wgens)
+            {
+                var dw = await FindLatestBlockAsync(w.AccountID) as TransactionBlock;
+                if (dw != null)
+                    all.Add(dw);
+                else
+                    _log.LogCritical("Not IFiatWallet!!!");
+            }
+            return all;
         }
 
         public async Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize)
@@ -2167,40 +2457,6 @@ namespace Lyra.Core.Accounts
             return blks;
         }
 
-        private async Task<List<TransactionBlock>> FindTradableOtcOrdersAsync()
-        {
-            var filter = Builders<TransactionBlock>.Filter;
-            var filterDefination = filter.Or(
-                filter.Eq("OOStatus", OTCOrderStatus.Open),
-                filter.Eq("OOStatus", OTCOrderStatus.Partial)
-                );
-
-            var q = await _snapshots
-                .FindAsync(filterDefination);
-
-            return q.ToList();
-        }
-
-        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync()
-        {
-            var ords = await FindTradableOtcOrdersAsync();
-            var daoIds = ords.Cast<IOtcOrder>()
-                .Select(a => a.Order.daoId)
-                .Distinct()
-                .ToList();
-
-            var daos = _snapshots
-                .AsQueryable()
-                .Where(a => daoIds.Contains(a.AccountID))
-                .ToList();
-
-            return new Dictionary<string, List<TransactionBlock>>
-            {
-                { "orders", ords },
-                { "daos", daos },
-            };
-        }
-
         public async Task<List<TransactionBlock>> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
         {
             var filter = Builders<TransactionBlock>.Filter;
@@ -2260,6 +2516,445 @@ namespace Lyra.Core.Accounts
             return stats;
         }
 
+        #region Universal order/trade
+        public async Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            var q = _blocks.OfType<UniOrderGenesisBlock>()
+                .Find(a => a.OwnerAccountId == accountId)
+                //.SortByDescending(a => a.TimeStamp)
+                .ToList();
+
+            var blks = new List<TransactionBlock>();
+            foreach (var x in q)
+            {
+                blks.Add(x);
+                var b = await FindLatestBlockAsync(x.AccountID) as TransactionBlock;
+                if(b.Hash != x.Hash)
+                    blks.Add(b);
+            }
+            return blks.OrderByDescending(a => a.TimeStamp).ToList();
+        }
+
+        /// <summary>
+        /// get order details
+        /// </summary>
+        /// <param name="orderId">the AccountID of order</param>
+        /// <returns>3 blocks in list: order's latest block, offering token genesis, biding token genesis</returns>
+        public async Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId)
+        {
+            var latest = await FindLatestBlockAsync(orderId) as TransactionBlock;
+            if(latest != null && latest is IUniOrder orderBlock)
+            {
+                var offeringGens = await FindTokenGenesisBlockAsync(null, orderBlock.Order.offering);
+                var bidingGens = await FindTokenGenesisBlockAsync(null, orderBlock.Order.biding);
+                var daoOnTheTime = await FindLatestBlockByTimeAsync(orderBlock.Order.daoId, orderBlock.TimeStamp);
+
+                var blks = new List<TransactionBlock>()
+                {
+                    latest as TransactionBlock, offeringGens, bidingGens, daoOnTheTime as TransactionBlock
+                };
+                return blks;
+            }
+
+            return null;
+        }
+
+        public async Task<BsonDocument> FindTradableUniOrders2Async(string ? catalog)
+        {
+            var arr = new BsonDocument[]
+{
+    new BsonDocument("$facet",
+    new BsonDocument
+        {
+            { "OverStats",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("UOStatus",
+                new BsonDocument("$exists", true))),
+                new BsonDocument("$bucket",
+                new BsonDocument
+                    {
+                        { "groupBy", "$UOStatus" },
+                        { "boundaries",
+                new BsonArray
+                        {
+                            0,
+                            10,
+                            30,
+                            50
+                        } },
+                        { "output",
+                new BsonDocument("Count",
+                new BsonDocument("$sum", 1)) }
+                    })
+            } },
+            { "OwnerStats",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("UOStatus",
+                new BsonDocument("$exists", true))),
+                new BsonDocument("$group",
+                new BsonDocument
+                    {
+                        { "_id",
+                new BsonDocument
+                        {
+                            { "Owner", "$OwnerAccountId" },
+                            { "State", "$UOStatus" }
+                        } },
+                        { "Count",
+                new BsonDocument("$sum", 1) }
+                    })
+            } },
+            { "Daos",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("$or",
+                new BsonArray
+                        {
+                            new BsonDocument("UOStatus", 0),
+                            new BsonDocument("UOStatus", 10)
+                        })),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", _networkId + "_snapshots" },
+                        { "localField", "Order.daoId" },
+                        { "foreignField", "AccountID" },
+                        { "as", "DaoInfo" }
+                    }),
+                new BsonDocument("$group",
+                new BsonDocument
+                    {
+                        { "_id", "$DaoInfo.AccountID" },
+                        { "Info",
+                new BsonDocument("$first", "$DaoInfo") }
+                    })
+            } },
+            { "Orders",
+    new BsonArray
+            {
+                new BsonDocument("$match",
+                new BsonDocument("$or",
+                new BsonArray
+                        {
+                            new BsonDocument("UOStatus", 0),
+                            new BsonDocument("UOStatus", 10)
+                        })),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", _networkId + "_blocks" },
+                        { "localField", "Order.offering" },
+                        { "foreignField", "Ticker" },
+                        { "as", "OfferingGens" }
+                    }),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", _networkId + "_blocks" },
+                        { "localField", "Order.biding" },
+                        { "foreignField", "Ticker" },
+                        { "as", "BidingGens" }
+                    }),
+                new BsonDocument("$project",
+                new BsonDocument
+                    {
+                        { "AccountID", 1 },
+                        { "OwnerAccountId", 1 },
+                        { "Order", 1 },
+                        { "UOStatus", 1 },
+                         { "TimeStamp", 1 },
+                        { "OfferingCat",
+                new BsonDocument("$first", "$OfferingGens.DomainName") },
+                        { "OfferingName",
+                new BsonDocument("$first", "$OfferingGens.Custom1") },
+                        { "OfferingDesc",
+                new BsonDocument("$first", "$OfferingGens.Description") },
+                        { "OfferingUrl",
+                new BsonDocument("$first", "$OfferingGens.Custom2") },
+                        { "BidingCat",
+                new BsonDocument("$first", "$BidingGens.DomainName") },
+                        { "BidingName",
+                new BsonDocument("$first", "$BidingGens.Custom1") },
+                        { "BidingDesc",
+                new BsonDocument("$first", "$BidingGens.Description") },
+                        { "BidingUrl",
+                new BsonDocument("$first", "$BidingGens.Custom2") }
+                    })
+            } }
+        })
+};
+
+            if (catalog != null && catalog != "All")
+            {
+                var type = catalog switch
+                {
+                    "Token" => HoldTypes.Token,
+                    "NFT" => HoldTypes.NFT,
+                    "Fiat" => HoldTypes.Fiat,
+                    "Service" => HoldTypes.SVC,
+                    _ => HoldTypes.TOT,
+                };
+
+                arr = arr.Prepend(new BsonDocument("$match", new BsonDocument("Order.offerby", type))).ToArray();
+            }
+
+            PipelineDefinition<TransactionBlock, BsonDocument> pipeline = arr;
+
+            try
+            {
+                var q1 = _snapshots.Aggregate(pipeline);
+
+                var x = await q1.FirstOrDefaultAsync();
+
+                return x;
+            }
+            catch(Exception ex)
+            {
+                // when no tradable error, there is a exception
+                return BsonDocument.Parse("{}");
+            }
+        }
+
+        /// <summary>
+        /// find current tradable orders. 
+        /// </summary>
+        /// <param name="catalog">null or 'All' for all catalog, 'Token', 'Fiat' or so for other catalogs.</param>
+        /// <returns>a mix of order and dao. user should treat them separately.</returns>
+        public async Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Or(
+                filter.Eq("UOStatus", UniOrderStatus.Open),
+                filter.Eq("UOStatus", UniOrderStatus.Partial)
+                );
+
+            if (catalog != null && catalog != "All")
+            {
+                var type = catalog switch
+                {
+                    "Token" => HoldTypes.Token,
+                    "NFT" => HoldTypes.NFT,
+                    "Fiat" => HoldTypes.Fiat,
+                    "Service" => HoldTypes.SVC,
+                    _ => HoldTypes.TOT,
+                };
+
+                filterDefination = filter.And(filterDefination, filter.Eq("Order.offerby", type));
+            }
+
+            // use mongodb Lookup to query _snapshots on (TransactionBlock as IUniOrder).Order.daoId == TransactionBlock.AccountID
+            var q2 = await _snapshots
+                .Aggregate()
+                .Match(filterDefination)
+                .Lookup(_snapshotsCollectionName, "Order.daoId", "AccountID", "DaoInfo")
+                .Unwind("DaoInfo")
+                .Project("{AccountID: 1, OwnerAccountId: 1, Order: 1, UOStatus: 1, DaoName: '$DaoInfo.Name'}")
+
+                .ToListAsync();
+
+            var arrDict = q2.ConvertAll(BsonTypeMapper.MapToDotNetValue);
+            var arrDict2 = arrDict.Select(a => (a as Dictionary<string, object>)).ToList();
+
+            var dictuids = new Dictionary<string, (long total, long finished)>();
+            foreach(var dict in arrDict2)
+            {
+                var userid = dict["OwnerAccountId"].ToString();
+
+                if (dictuids.ContainsKey(userid))
+                {
+                    dict.Add("Total", dictuids[userid].total);
+                    dict.Add("Finished", dictuids[userid].finished);
+
+                    continue;
+                }
+                
+                var filterDefinationTotal = filter.And(
+                    filter.Exists("UOStatus"),
+                    filter.Or(
+                        filter.Eq("OwnerAccountId", userid),
+                        filter.Eq("Trade.orderOwnerId", userid)
+                        )
+                    );
+
+                var filterDefinationFinished = filter.And(
+                    filter.Eq("UOStatus", UniTradeStatus.Closed),
+                    filter.Or(
+                        filter.Eq("OwnerAccountId", userid),
+                        filter.Eq("Trade.orderOwnerId", userid)
+                        )
+                    );
+
+                var total = _snapshots
+                    .Aggregate()
+                    .Match(filterDefinationTotal)
+                    .Count()
+                    .Single()
+                    .Count;
+
+                // finished may be empty
+                var finishedx = _snapshots
+                    .Aggregate()
+                    .Match(filterDefinationFinished)
+                    .Count();
+
+                var finished = 0L;
+                if (finishedx.Any())
+                {
+                    finished = finishedx.Single().Count;
+                }
+
+                dict.Add("Total", total);
+                dict.Add("Finished", finished);
+
+                dictuids.Add(userid, (total, finished));
+            }
+
+            return arrDict2;
+        }
+
+        public class OrderDaoCombo
+        {
+            public string offering { get; set; }
+            public string daoName { get; set; }
+    }
+
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync()
+        {
+            var ords = await FindTradableUniOrdersAsync("ALL");
+            var daoIds = ords.Cast<IUniOrder>()
+                .Select(a => a.Order.daoId)
+                .Distinct()
+                .ToList();
+
+            var daos = _snapshots
+                .AsQueryable()
+                .Where(a => daoIds.Contains(a.AccountID))
+                .ToList();
+
+            return new Dictionary<string, List<TransactionBlock>>
+            {
+                { "orders", ords.Cast<TransactionBlock>().ToList() },
+                { "daos", daos },
+            };
+        }
+
+        private async Task<List<TransactionBlock>> FindTradableUniOrdersAsync()
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.Or(
+                filter.Eq("UOStatus", UniOrderStatus.Open),
+                filter.Eq("UOStatus", UniOrderStatus.Partial)
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList().OrderByDescending(a => a.TimeStamp).ToList();
+        }
+
+        public async Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync()
+        {
+            var ords = await FindTradableUniOrdersAsync();
+            var daoIds = ords.Cast<IUniOrder>()
+                .Select(a => a.Order.daoId)
+                .Distinct()
+                .ToList();
+
+            var daos = _snapshots
+                .AsQueryable()
+                .Where(a => daoIds.Contains(a.AccountID))
+                .ToList();
+
+            return new Dictionary<string, List<TransactionBlock>>
+            {
+                { "orders", ords },
+                { "daos", daos },
+            };
+        }
+
+        public async Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.And(
+                filter.Exists("UTStatus"),
+                filter.Or(
+                    filter.Eq("OwnerAccountId", accountId),
+                    filter.Eq("Trade.orderOwnerId", accountId)
+                    )
+                );
+            var sort = Builders<TransactionBlock>.Sort.Descending("TimeStamp");
+            var options = new FindOptions<TransactionBlock>
+            {
+                Sort = sort
+            };
+
+            var q = await _snapshots
+                .FindAsync(filterDefination, options)                
+                ;
+
+            return q.ToList();
+        }
+
+        public async Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            var filter = Builders<TransactionBlock>.Filter;
+            var filterDefination = filter.And(
+                    filter.Eq("Trade.daoId", daoid),
+                    filter.Eq("UTStatus", status)
+                );
+
+            var q = await _snapshots
+                .FindAsync(filterDefination);
+
+            return q.ToList();
+        }
+
+        public async Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.And(
+                filter.Eq("Trade.orderId", orderid),
+                filter.Eq("BlockType", BlockTypes.UniTradeGenesis));
+
+            var q = _blocks
+                .Find(filterDefination)
+                .SortByDescending(a => a.TimeStamp)
+                .ToList();
+
+            var blks = new List<TransactionBlock>();
+            foreach (var x in q)
+            {
+                blks.Add(x as TransactionBlock);
+                var b = await FindLatestBlockAsync((x as TransactionBlock).AccountID) as TransactionBlock;
+                if(b.Hash != x.Hash)
+                    blks.Add(b);
+            }
+            return blks;
+        }
+
+        public async Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds)
+        {
+            var stats = new List<TradeStats>();
+            // 1, as trade owner; 2, as order owner; 
+            foreach (var accountId in accountIds)
+            {
+                var trades = await FindUniTradeAsync(accountId, false, -1, -1); // so if the api changes, modify here
+                stats.Add(new TradeStats
+                {
+                    AccountId = accountId,
+                    TotalTrades = trades.Count,
+                    FinishedCount = trades.Where(a => (a as IUniTrade).UTStatus == UniTradeStatus.Closed).Count(),
+                });
+            }
+            return stats;
+        }
+        #endregion
+
         public async Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly)
         {
             var filter = Builders<TransactionBlock>.Filter;
@@ -2287,7 +2982,7 @@ namespace Lyra.Core.Accounts
         {
             var myvotes = new List<TransactionBlock>();
 
-            var tradeblk = await FindLatestBlockAsync(tradeid) as IOtcTrade;
+            var tradeblk = await FindLatestBlockAsync(tradeid) as IUniTrade;
             if (tradeblk == null)
                 return myvotes;
 
@@ -2348,7 +3043,7 @@ namespace Lyra.Core.Accounts
 
             filterDefination = filter.And(
                     filter.Or(filter.Eq("BlockType", BlockTypes.OrgnizationChange),
-                        filter.Eq("BlockType", BlockTypes.OTCTradeResolutionRecv)),
+                        filter.Eq("BlockType", BlockTypes.UniTradeResolutionRecv)),
                     filter.Eq("voteid", voteid)
                 );
 
@@ -2370,6 +3065,68 @@ namespace Lyra.Core.Accounts
                     );
 
             return await q.FirstOrDefaultAsync();
+        }
+
+        public async Task<List<BsonDocument>> GetBalanceAsync(string accountId)
+        {
+            PipelineDefinition<TransactionBlock, BsonDocument> pipeline = new BsonDocument[]
+            {
+                new BsonDocument("$match",
+                new BsonDocument("AccountID", accountId)),
+                new BsonDocument("$unwind",
+                new BsonDocument("path", "$Balances")),
+                new BsonDocument("$lookup",
+                new BsonDocument
+                    {
+                        { "from", _networkId + "_blocks" },
+                        { "localField", "Balances.k" },
+                        { "foreignField", "Ticker" },
+                        { "as", "result" }
+                    }),
+                new BsonDocument("$unwind",
+                new BsonDocument("path", "$result")),
+                new BsonDocument("$project",
+                new BsonDocument
+                    {
+                        { "_id", 0 },
+                        { "Author", "$result.AccountID" },
+                        { "Time", "$result.TimeStamp.DateTime" },
+                        { "Ticker", "$result.Ticker" },
+                        { "Balance",
+                new BsonDocument("$divide",
+                new BsonArray
+                            {
+                                "$Balances.v",
+                                LyraGlobal.TOKENSTORAGERITO
+                            }) },
+                        { "Domain", "$result.DomainName" },
+                        { "Desc", "$result.Description" },
+                        { "Name", "$result.Custom1" },
+                        { "Url", "$result.Custom2" }
+                    })
+            };
+
+            var q1 = _snapshots.Aggregate( pipeline);                
+
+            var x = await q1.ToListAsync();
+
+            return x;
+        }
+
+        public async Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.And(
+                filter.Eq("AccountID", accountId),
+                filter.Lte("TimeStamp", time)
+                );
+
+            var q = _blocks
+                .Find(filterDefination)
+                .SortByDescending(a => a.TimeStamp)
+                .Limit(1);
+
+            return await q.FirstOrDefaultAsync();   // has account id, it must be a transaction block
         }
 
         public async Task FixDbRecordAsync()

@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using WorkflowCore.Interface;
+using WorkflowCore.Services;
 
 namespace Lyra.Core.WorkFlow
 {
@@ -178,7 +180,7 @@ deactivate db
     {
 
     }
-    public enum BrokerRecvType { None, PFRecv, DaoRecv, TradeRecv }
+    public enum BrokerRecvType { None, PFRecv, DaoRecv, TradeRecv, GuildRecv }
     public class BrokerFactory
     {
         public static Dictionary<string, IDebiWorkFlow> DynWorkFlows;
@@ -191,7 +193,7 @@ deactivate db
         {
             var desc = workflow.GetDescription();
             DynWorkFlows.Add(desc.Action, workflow);
-
+            //Console.WriteLine($"Adding workflow {desc.Action}");
             //if(desc.Blocks != null)
             //foreach(var bd in desc.Blocks)
             //{

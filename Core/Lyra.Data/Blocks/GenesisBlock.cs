@@ -23,6 +23,8 @@ namespace Lyra.Core.Blocks
         FiatCurrency = 200,
 
         Collectible = 300,
+
+        TradeOnlyToken = 400,
                
         Custom = 1000
     }

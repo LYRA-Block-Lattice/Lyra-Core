@@ -6,6 +6,7 @@ using Lyra.Data.API;
 using Lyra.Data.API.Identity;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Newtonsoft.Json;
@@ -26,12 +27,13 @@ namespace Lyra.Core.WorkFlow.DAO
             {
                 Action = BrokerActions.BRK_VOT_CREATE,
                 RecvVia = BrokerRecvType.DaoRecv,
-                Steps = new[] { CreateGenesisAsync }
+                Steps = new[] { VoteGenesisAsync }
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("data") ||
                 string.IsNullOrWhiteSpace(send.Tags["data"]) ||
@@ -88,14 +90,14 @@ namespace Lyra.Core.WorkFlow.DAO
                     return APIResultCodes.InvalidArgument;
 
                 // trade's dao == subject' dao
-                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.TradeId) as IOtcTrade;
+                var tradeblk = await sys.Storage.FindLatestBlockAsync(resolution.TradeId) as IUniTrade;
                 if(tradeblk == null)
                     return APIResultCodes.InvalidArgument;
 
                 if(tradeblk.Trade.daoId != subject.DaoId)
                     return APIResultCodes.InvalidDAO;
 
-                if (tradeblk.OTStatus != OTCTradeStatus.Dispute)
+                if (tradeblk.UTStatus != UniTradeStatus.Dispute)
                     return APIResultCodes.InvalidTradeStatus;
 
                 // verify complain is from user. by signature.
@@ -177,8 +179,9 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> VoteGenesisAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var subject = JsonConvert.DeserializeObject<VotingSubject>(send.Tags["data"]);
@@ -224,7 +227,7 @@ namespace Lyra.Core.WorkFlow.DAO
                 },
             };
 
-            gens.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            gens.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             gens.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

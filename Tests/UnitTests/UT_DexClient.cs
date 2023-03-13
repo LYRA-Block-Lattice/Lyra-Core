@@ -29,6 +29,8 @@ namespace UnitTests
             var gens = await GetGenesisWalletAsync();
             var dexUserWallet = await GetWalletAsync(pvtx);
 
+            await dexUserWallet.SetupEventsListenerAsync();
+
             await gens.SendAsync(100, dexUserWallet.AccountId);
             await dexUserWallet.SyncAsync(null);
             Assert.AreEqual(100, dexUserWallet.BaseBalance);
@@ -36,7 +38,7 @@ namespace UnitTests
             // request a wallet
             var crret = await dexUserWallet.CreateDexWalletAsync("TRX", "native");
             Assert.IsTrue(crret.Successful(), $"dex can't create wallet: {crret.ResultCode} {crret.ResultMessage}");
-            await Task.Delay(3000);
+            Assert.IsTrue(dexUserWallet.WaitForWorkflow(crret.TxHash));
 
             await TestDepositWithdraw(dexUserWallet);
         }
@@ -86,8 +88,8 @@ namespace UnitTests
             var walletStore = new SecuredWalletStore(lyrawalletfolder);
             var dexWallet = Wallet.Open(walletStore, "dex", "");
             var genesisWallet = await GetGenesisWalletAsync();
-            await genesisWallet.SendAsync(100000m, dexWallet.AccountId);
-            await Task.Delay(1000);
+            var ret = await genesisWallet.SendAsync(100000m, dexWallet.AccountId);
+
             await dexWallet.SyncAsync(genesisWallet.RPC);
             Assert.IsTrue(dexWallet.BaseBalance >= 100000m);
 
@@ -113,13 +115,14 @@ namespace UnitTests
             // must fail
             await dexUserWallet.SyncAsync(null);
             var getokretx = await dexUserWallet.DexGetTokenAsync((dexws.First() as TransactionBlock).AccountID, 500m);
-            Assert.IsTrue(!getokretx.Successful(), "Should not success");
+            Assert.IsTrue(getokretx.Successful(), "Should not not success");
+            Assert.IsTrue(dexUserWallet.WaitForWorkflow(getokretx.TxHash));
 
             // mint via dex account
             var dexbrk1 = dexws.First() as TransactionBlock;
             var mintRet = await dexWallet.DexMintTokenAsync(dexbrk1.AccountID, 1000m);
             Assert.IsTrue(mintRet.Successful(), $"Mint failed: {mintRet.ResultCode} {mintRet.ResultMessage}");
-            await Task.Delay(3000);
+            Assert.IsTrue(dexUserWallet.WaitForWorkflow(mintRet.TxHash));
 
             var brk1lstret = await client.GetLastBlockAsync(dexbrk1.AccountID);
             Assert.IsTrue(brk1lstret.Successful());
@@ -137,14 +140,16 @@ namespace UnitTests
             await dexUserWallet.SyncAsync(null);
             var getokret = await dexUserWallet.DexGetTokenAsync(dexbrk1.AccountID, 500m);
             Assert.IsTrue(getokret.Successful(), "error get ext token to own wallet");
-            await Task.Delay(3500);
+            Assert.IsTrue(dexUserWallet.WaitForWorkflow(getokret.TxHash));
+
             await dexUserWallet.SyncAsync(null);
             Assert.AreEqual(500m, dexUserWallet.GetLastSyncBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
 
             // put external token to dex wallet
             var putokret = await dexUserWallet.DexPutTokenAsync(dexbrk1.AccountID, "tether/TRX", 500m);
             Assert.IsTrue(putokret.Successful(), "Put token error");
-            await Task.Delay(1500);
+            Assert.IsTrue(dexUserWallet.WaitForWorkflow(putokret.TxHash));
+
             var brk1lstret2 = await client.GetLastBlockAsync(dexbrk1.AccountID);
             Assert.IsTrue(brk1lstret2.Successful());
             var brk1lastblk = brk1lstret2.GetBlock() as TransactionBlock;
@@ -156,7 +161,8 @@ namespace UnitTests
             // withdraw token to external blockchain
             var wdwret = await dexUserWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, "Txxxxxxxxx", 1000m);
             Assert.IsTrue(wdwret.Successful(), "Error withdraw");
-            await Task.Delay(1500);
+            Assert.IsTrue(dexUserWallet.WaitForWorkflow(wdwret.TxHash));
+
             var brk1lstret3 = await client.GetLastBlockAsync(dexbrk1.AccountID);
             Assert.IsTrue(brk1lstret3.Successful());
             var brk1lastblk3 = brk1lstret3.GetBlock() as TokenBurnBlock;

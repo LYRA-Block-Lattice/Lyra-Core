@@ -18,6 +18,13 @@ namespace Lyra.Core.Authorizers
 {
     public abstract class TransactionAuthorizer : BaseAuthorizer
     {
+        static readonly List<string> TradeOnlyDomains = new List<string>
+        {
+            "tot", "sku", "svc", "fiat"
+        };
+        static readonly List<string> NonFungibleDomains = new List<string>{
+            "nft", "tot", "sku", "svc", "fiat"
+        };
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             var tx = tblock as TransactionBlock;
@@ -100,7 +107,7 @@ namespace Lyra.Core.Authorizers
 
                 if (reltx != null)
                 {
-                    var txnew = await ConsensusService.Singleton.GetBlockForRelatedTxAsync(reltx) as Block;
+                    var txnew = await ConsensusService.Singleton.GetBlockByRelatedTxForCompareAuthAsync(reltx) as Block;
                     //var wf = BrokerFactory.GetBlueprint(reltx);
                     //if (wf == null)
                     //{
@@ -172,7 +179,7 @@ namespace Lyra.Core.Authorizers
             var result = block.VerifySignature(verifyAgainst);
             if (!result)
             {
-                _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID}");
+                _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID} input: {blockt.GetHashInput()}");
                 return APIResultCodes.BlockSignatureValidationFailed;
             }
 
@@ -319,8 +326,34 @@ namespace Lyra.Core.Authorizers
                 if (nftgen == null)
                     return APIResultCodes.TokenGenesisBlockNotFound;
 
-                if (!nftgen.IsNonFungible)
-                    return APIResultCodes.Success;
+                if (NonFungibleDomains.Contains(nftgen.DomainName) && Math.Round(tokenAmount, 0) != tokenAmount)
+                    return APIResultCodes.InvalidNonFungibleAmount;
+
+                if(send_or_receice_block.BlockType == BlockTypes.SendTransfer && TradeOnlyDomains.Contains(nftgen.DomainName))
+                {
+                    if (send_or_receice_block.Tags == null)
+                        return APIResultCodes.TotTransferNotAllowed;
+
+                    // verify tot
+                    if (send_or_receice_block.Tags.ContainsKey(Block.MANAGEDTAG))
+                    {
+                        // default contract generated block is allowed.
+                    }
+                    else
+                    {
+                        // non contract blocks 
+                        if (!send_or_receice_block.Tags.ContainsKey(Block.REQSERVICETAG))
+                        {
+                            return APIResultCodes.TotTransferNotAllowed;
+                        }
+
+                        if (send_or_receice_block.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_UNI_CRODR
+                            && send_or_receice_block.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_UNI_CRTRD)
+                        {
+                            return APIResultCodes.TotTransferNotAllowed;
+                        }
+                    }
+                }
 
                 //INonFungibleToken non_fungible_token = send_block.GetNonFungibleTransaction(previousBlock);
                 if (send_or_receice_block.NonFungibleToken == null)

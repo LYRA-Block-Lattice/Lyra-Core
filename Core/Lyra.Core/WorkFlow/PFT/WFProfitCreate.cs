@@ -20,13 +20,16 @@ namespace Lyra.Core.WorkFlow.PFT
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_PFT_CRPFT,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
         #region BRK_PFT_CRPFT
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+
             var chgs = block.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
@@ -53,8 +56,8 @@ namespace Lyra.Core.WorkFlow.PFT
                     if (pfts.Any(a => a.Name == block.Tags["name"]))
                         return APIResultCodes.DuplicateName;
 
-                    // one type per account. just keep it simple.
-                    if (pfts.Any(a => a.PType == ptype))
+                    // one node type per account. just keep it simple.
+                    if (pfts.Any(a => a.PType == ProfitingType.Node && a.PType == ptype))
                         return APIResultCodes.DuplicateAccountType;
 
                     if (shareRito == 0 && seats != 0)
@@ -77,8 +80,9 @@ namespace Lyra.Core.WorkFlow.PFT
 
             return APIResultCodes.Success;
         }
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is ProfitingGenesis);
             if (pgen != null)
@@ -114,7 +118,7 @@ namespace Lyra.Core.WorkFlow.PFT
                 RelatedTx = send.Hash
             };
 
-            pftGenesis.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            pftGenesis.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             pftGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

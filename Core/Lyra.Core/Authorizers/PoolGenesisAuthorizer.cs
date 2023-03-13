@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
@@ -24,12 +25,7 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                return APIResultCodes.InvalidServiceRequest;
-
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
+            if (relTx == null || relTx.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                 return APIResultCodes.InvalidServiceRequest;
 
             // create a semi random account for pool.

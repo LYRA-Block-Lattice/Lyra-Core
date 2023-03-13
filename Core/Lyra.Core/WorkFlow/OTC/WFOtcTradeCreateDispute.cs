@@ -30,8 +30,9 @@ namespace Lyra.Core.WorkFlow.OTC
 
         // user pay via off-chain ways and confirm payment in OTC trade.
         // 2022.9.1 we change mind to let only dealer to change dispute state of trade.
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 1)
                 return APIResultCodes.InvalidBlockTags;
 
@@ -79,8 +80,19 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        protected async Task<TransactionBlock> ChangeStateAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await ChangeStateAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        protected async Task<TransactionBlock?> ChangeStateAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var txInfo = send.GetBalanceChanges(await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock);
@@ -88,7 +100,7 @@ namespace Lyra.Core.WorkFlow.OTC
             var prevBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<OtcTradeRecvBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv

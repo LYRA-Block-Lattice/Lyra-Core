@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Newtonsoft.Json;
 using System;
@@ -11,6 +12,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
@@ -410,6 +413,11 @@ namespace Lyra.Core.API
         }
 
         #endregion
+
+        public Task<BlockAPIResult> GetBlockByHashAsync(string Hash)
+        {
+            return GetBlockByHashAsync("", Hash, "");
+        }
 
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
@@ -841,6 +849,21 @@ namespace Lyra.Core.API
             return await GetAsync<BlockAPIResult>("FindDexWallet", args);
         }
 
+        public async Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            return await GetMultiBlockByUrlAsync($"GetAllFiatWallets/?owner=" + owner);
+        }
+        public async Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "owner", owner },
+                { "symbol", symbol },
+            };
+
+            return await GetAsync<BlockAPIResult>("FindFiatWallet", args);
+        }
+
         public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
         {
             var args = new Dictionary<string, string>
@@ -872,7 +895,7 @@ namespace Lyra.Core.API
             return await GetAsync<MultiBlockAPIResult>("GetOtcOrdersByOwner", args);
         }
 
-        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        public async Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
             var args = new Dictionary<string, string>
             {
@@ -975,6 +998,147 @@ namespace Lyra.Core.API
             };
 
             return await GetAsync<BlockAPIResult>("FindNFTGenesisSend", args);
+        }
+
+        #region Universal Trade
+        public async Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetUniOrdersByOwner", args);
+        }
+
+        public async Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "orderid", orderid },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("FindUniTradeForOrder", args);
+        }
+
+        public async Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            var args = new Dictionary<string, string>
+            {
+
+            };
+
+            return await GetAsync<ContainerAPIResult>("FindTradableUni", args);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "onlyOpenTrade", onlyOpenTrade.ToString() },
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindUniTrade", args);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "daoid", daoid },
+                { "status", status.ToString() },
+                { "page", page.ToString() },
+                { "pageSize", pageSize.ToString() },
+            };
+
+            return GetAsync<MultiBlockAPIResult>("FindUniTradeByStatus", args);
+        }
+
+
+        public Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            return PostAsync<SimpleJsonAPIResult>("GetUniTradeStatsForUsers", req);
+        }
+
+        public async Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderid)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "orderid", orderid },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetUniOrderById", args);
+        }
+        #endregion
+
+        public async Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(
+                        $"FindTokensForAccount?accountId={accountId}&q={keyword}&cat={catalog}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<string?> FindTokensAsync(string? keyword, string? cat)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(
+                        $"FindTokens?q={keyword}&cat={cat}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<string?> FindDaosAsync(string? keyword)
+        {
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(
+                        $"FindDaos?q={keyword}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "AccountId", AccountId },
+                { "height", height.ToString() }
+            };
+
+            return await GetAsync<BlockAPIResult>("FindBlockByHeight", args);
+        }
+
+        public async Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "height", height.ToString() },
+                { "count", count.ToString() },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetMultipleConsByHeight", args);
         }
     }
 }

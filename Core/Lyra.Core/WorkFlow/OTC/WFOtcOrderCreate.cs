@@ -36,8 +36,9 @@ namespace Lyra.Core.WorkFlow
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 2 ||
                 !send.Tags.ContainsKey("data") ||
                 string.IsNullOrWhiteSpace(send.Tags["data"])
@@ -89,6 +90,8 @@ namespace Lyra.Core.WorkFlow
                 return APIResultCodes.InvalidAmount;
 
             // verify collateral
+            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+
             var chgs = send.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
                 chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] < order.collateral)
@@ -159,8 +162,9 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromDaoToOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(order.daoId) as TransactionBlock;
@@ -211,14 +215,15 @@ namespace Lyra.Core.WorkFlow
             dict[LyraGlobal.OFFICIALTICKERCODE] -= 2;   // for delist and close use later
             sendToOrderBlock.Balances = dict.ToLongDict();
 
-            sendToOrderBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            sendToOrderBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendToOrderBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendToOrderBlock;
         }
 
-        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> CreateGenesisAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var order = JsonConvert.DeserializeObject<OTCOrder>(send.Tags["data"]);
@@ -257,7 +262,7 @@ namespace Lyra.Core.WorkFlow
 
             otcblock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 2m.ToBalanceLong());   // for delist and close use later
 
-            otcblock.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            otcblock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             // pool blocks are service block so all service block signed by leader node
             otcblock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker;Microsoft.NET.Sdk.Publish">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Version>3.5.2.1</Version>
     <PackageId>lyranoded</PackageId>
     <Authors>lyra.live</Authors>
@@ -12,6 +12,7 @@
     <DockerfileContext>..\..</DockerfileContext>
     <ReleaseVersion>3.1</ReleaseVersion>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Lyra.Node Mainnet' ">
     <ExternalConsole>true</ExternalConsole>
@@ -22,15 +23,19 @@
   <ItemGroup>
     <Compile Remove="Accounts\**" />
     <Compile Remove="Authorizers\**" />
+    <Compile Remove="Models\**" />
     <Compile Remove="Protos\**" />
     <Content Remove="Accounts\**" />
     <Content Remove="Authorizers\**" />
+    <Content Remove="Models\**" />
     <Content Remove="Protos\**" />
     <EmbeddedResource Remove="Accounts\**" />
     <EmbeddedResource Remove="Authorizers\**" />
+    <EmbeddedResource Remove="Models\**" />
     <EmbeddedResource Remove="Protos\**" />
     <None Remove="Accounts\**" />
     <None Remove="Authorizers\**" />
+    <None Remove="Models\**" />
     <None Remove="Protos\**" />
   </ItemGroup>
   <ItemGroup>
@@ -49,21 +54,18 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel.Https" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
-    <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Reactive.Core" Version="5.0.0" />
-    <PackageReference Include="WorkflowCore.Persistence.MongoDB" Version="3.6.3" />
+    <PackageReference Include="WorkflowCore.Persistence.MongoDB" Version="3.8.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lyra.Core\Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\" />
   </ItemGroup>
 </Project>

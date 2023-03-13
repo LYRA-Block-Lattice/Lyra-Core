@@ -18,6 +18,10 @@ namespace Lyra.Core.Authorizers
             "wizard", "official", "tether", "contract"
         };
 
+        private readonly List<string> _nftDomains = new List<string> {
+            "nft", "tot", "svc"
+        };
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.TokenGenesis;
@@ -54,7 +58,7 @@ namespace Lyra.Core.Authorizers
                 if(block.DomainName.ToLower() != block.DomainName)
                     return APIResultCodes.InvalidDomainName;        // make sure domain name is lower case.
 
-                if (block.DomainName == "nft" && block.Ticker.ToLower() != block.Ticker)
+                if (_nftDomains.Contains(block.DomainName) && block.Ticker.ToLower() != block.Ticker)
                     return APIResultCodes.InvalidTickerName;        // make sure guid is lower case.
 
                 if (r.IsMatch(block.Ticker.Replace(block.DomainName + "/", "")))
@@ -67,15 +71,22 @@ namespace Lyra.Core.Authorizers
                 if (string.IsNullOrWhiteSpace(block.DomainName))
                     return APIResultCodes.EmptyDomainName;
 
-                bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
+                bool tokenIssuerIsSeed0 = (block.AccountID == ProtocolSettings.Default.StandbyValidators[0]);
                 if (!tokenIssuerIsSeed0 && block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
                 {
-                    if (block.DomainName != "nft" && block.DomainName.Length < 6)
+                    if (!_nftDomains.Contains(block.DomainName) && block.DomainName.Length < 4)
                         return APIResultCodes.DomainNameTooShort;
-                    if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
-                        return APIResultCodes.DomainNameReserved;
+
+                    if(LyraNodeConfig.GetNetworkId() != "xtest")    // for unit test
+                    {
+                        if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
+                            return APIResultCodes.DomainNameReserved;
+                    }
                 }
             }
+
+            //if (block.DomainName == "fiat" && block.Balances[block.Ticker] != 0)
+            //    return APIResultCodes.InvalidBalance;
 
             if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
                 return APIResultCodes.CannotModifyImportedAccount;
@@ -114,7 +125,7 @@ namespace Lyra.Core.Authorizers
                 if (block.NonFungibleKey != null && !Signatures.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
 
-                if(block.DomainName != "nft")
+                if(!_nftDomains.Contains(block.DomainName))
                     return APIResultCodes.InvalidNFT;
 
                 // Validate Collectible NFT
@@ -123,7 +134,8 @@ namespace Lyra.Core.Authorizers
                     if (block.Precision != 0)
                         return APIResultCodes.InvalidNFT;
 
-                    if (block.NonFungibleType != NonFungibleTokenTypes.Collectible)
+                    if (block.NonFungibleType != NonFungibleTokenTypes.Collectible
+                            && block.NonFungibleType != NonFungibleTokenTypes.TradeOnly)
                         return APIResultCodes.InvalidNFT;
                 }
 

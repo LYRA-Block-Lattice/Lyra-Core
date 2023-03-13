@@ -28,8 +28,9 @@ namespace Lyra.Core.WorkFlow.DAO
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("voteid") ||
                 string.IsNullOrWhiteSpace(send.Tags["voteid"]) ||
@@ -73,7 +74,7 @@ namespace Lyra.Core.WorkFlow.DAO
             // voter shouldn't multiple vote
             for(var a = votel.Height; a > 1; a--)
             {
-                var vx = await sys.Storage.FindBlockByHeightAsync(voteid, a);
+                var vx = await sys.Storage.FindBlockByIndexAsync(voteid, a);
                 if ((vx as VotingBlock).VoterId == send.AccountID)
                     return APIResultCodes.InvalidVote;
             }
@@ -85,8 +86,19 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> VoteAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
+            return await VoteAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await VoteAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        async Task<TransactionBlock?> VoteAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
 
             var voteid = send.Tags["voteid"];
@@ -99,7 +111,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             var votblk = await TransactionOperateAsync(sys, send.Hash, prevBlock,
                 () => prevBlock.GenInc<VotingBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv
@@ -119,6 +131,12 @@ namespace Lyra.Core.WorkFlow.DAO
                     else
                         oldbalance.Add("LYR", txInfo.Changes["LYR"]);
                     b.Balances = oldbalance.ToLongDict();
+
+                    // if refund receive, attach a refund reason.
+                    if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+                    {
+                        b.AddTag("auth", context.AuthResult.Result.ToString());
+                    }
                 });
             return votblk;
         }

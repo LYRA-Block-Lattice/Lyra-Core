@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
@@ -50,56 +51,60 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as DaoRecvBlock;
 
-            if (block.ShareRito.CountDecimalDigits() > 8 || block.SellerFeeRatio.CountDecimalDigits() > 8 || block.BuyerFeeRatio.CountDecimalDigits() > 8)
-                return APIResultCodes.InvalidDecimalDigitalCount;
+            var comRet = await DaoCommonAuthorizer.AuthorizeAsync(sys, block);
+            if (APIResultCodes.Success != comRet)
+                return comRet;
 
-            // profiting
-            if (block.ShareRito < 0 || block.ShareRito > 1)
-                return APIResultCodes.InvalidShareRitio;
+            //if (block.ShareRito.CountDecimalDigits() > 8 || block.SellerFeeRatio.CountDecimalDigits() > 8 || block.BuyerFeeRatio.CountDecimalDigits() > 8)
+            //    return APIResultCodes.InvalidDecimalDigitalCount;
 
-            if (block.Seats < 0 || block.Seats > 100)
-                return APIResultCodes.InvalidSeatsCount;
+                //// profiting
+                //if (block.ShareRito < 0 || block.ShareRito > 1)
+                //    return APIResultCodes.InvalidShareRitio;
 
-            if (block.ShareRito == 0 && block.Seats != 0)
-                return APIResultCodes.InvalidSeatsCount;
+                //if (block.Seats < 0 || block.Seats > 100)
+                //    return APIResultCodes.InvalidSeatsCount;
 
-            if (block.ShareRito > 0 && block.Seats == 0)
-                return APIResultCodes.InvalidSeatsCount;
+                //if (block.ShareRito == 0 && block.Seats != 0)
+                //    return APIResultCodes.InvalidSeatsCount;
 
-            // dao
-            if (block.PType != ProfitingType.Orgnization)
-                return APIResultCodes.InvalidDataType;
+                //if (block.ShareRito > 0 && block.Seats == 0)
+                //    return APIResultCodes.InvalidSeatsCount;
 
-            if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 300)
-                return APIResultCodes.ArgumentOutOfRange;
+                //// dao
+                //if (block.PType != ProfitingType.Orgnization)
+                //    return APIResultCodes.InvalidDataType;
 
-            // related tx must exist 
-            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if(relTx == null)
-                return APIResultCodes.InvalidServiceRequest;
+                //if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 300)
+                //    return APIResultCodes.ArgumentOutOfRange;
 
-            if (relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-            {
-                // verify its pf or dao
-                var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
-                if(daog == null && relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                    return APIResultCodes.InvalidServiceRequest;
-            }
+                //// related tx must exist 
+                //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+                //if(relTx == null)
+                //    return APIResultCodes.InvalidServiceRequest;
 
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
-                return APIResultCodes.InvalidServiceRequest;
+                //if (relTx.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
+                //{
+                //    // verify its pf or dao
+                //    var daog = await sys.Storage.FindFirstBlockAsync(relTx.DestinationAccountId) as DaoGenesisBlock;
+                //    if(daog == null && relTx.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
+                //        return APIResultCodes.InvalidServiceRequest;
+                //}
 
-            //var name = relTx.Tags["name"];
+                // service must not been processed, no, at least there is a receive block
+                //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+                //if (processed.Count != 0)
+                //    return APIResultCodes.InvalidServiceRequest;
 
-            //// create a semi random account for pool.
-            //// it can be verified by other nodes.
-            //var keyStr = $"{relTx.Hash.Substring(0, 16)},{name},{relTx.AccountID}";
-            //var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
+                //var name = relTx.Tags["name"];
 
-            //if (block.AccountID != AccountId)
-            //    return APIResultCodes.InvalidAccountId;
+                //// create a semi random account for pool.
+                //// it can be verified by other nodes.
+                //var keyStr = $"{relTx.Hash.Substring(0, 16)},{name},{relTx.AccountID}";
+                //var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
+
+                //if (block.AccountID != AccountId)
+                //    return APIResultCodes.InvalidAccountId;
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoAuthorizer->BrokerAccountRecvAuthorizer");
         }
@@ -147,6 +152,9 @@ namespace Lyra.Core.Authorizers
             if (string.IsNullOrEmpty(block.Description) || block.Description.Length > 300)
                 return APIResultCodes.ArgumentOutOfRange;
 
+            var comRet = await DaoCommonAuthorizer.AuthorizeAsync(sys, block);
+            if (APIResultCodes.Success != comRet)
+                return comRet;
             //// related tx must exist 
             //var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             //if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
@@ -198,7 +206,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as DaoGenesisBlock;
 
-            if(block.AccountType != AccountTypes.DAO)
+            if(block.AccountType != AccountTypes.DAO && block.AccountType != AccountTypes.Guild)
             {
                 return APIResultCodes.InvalidAccountType;
             }
@@ -206,4 +214,19 @@ namespace Lyra.Core.Authorizers
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DaoGenesisAuthorizer->DaoAuthorizer");
         }
     }
+
+    public class DaoCommonAuthorizer
+    {
+        public static async Task<APIResultCodes> AuthorizeAsync(DagSystem sys, IDao daoBlock)
+        {
+            if (daoBlock == null)
+                return APIResultCodes.InvalidBlockType;
+
+            if (daoBlock.BuyerFeeRatio < 0.0001m || daoBlock.SellerFeeRatio < 0.0001m)
+                return APIResultCodes.InvalidFeeRito;
+
+            return APIResultCodes.Success;
+        }
+    }
+        
 }

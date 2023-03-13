@@ -333,7 +333,9 @@ Y/n? ");
                     var creatRet = await _wallet.CreateProfitingAccountAsync(sName, type, ritio / 100, seats);
                     if (creatRet.Successful())
                     {
-                        var pftGensis = creatRet.GetBlock() as ProfitingGenesis;
+                        var pftblocks = await _wallet.GetBrokerAccountsAsync<ProfitingGenesis>();
+                        var pftGensis = pftblocks.FirstOrDefault();
+
                         Console.WriteLine($"Gratz! Your new profiting account is: {pftGensis.AccountID}");
                     }
                     else
@@ -391,7 +393,8 @@ Y/n? ");
                         var creatRet = await _wallet.CreateStakingAccountAsync(sName, pftAcct, days, compoundMode);
                         if (creatRet.Successful())
                         {
-                            var pftGensis = creatRet.GetBlock() as StakingGenesis;
+                            var pfts = await _wallet.GetBrokerAccountsAsync<StakingGenesis>();
+                            var pftGensis = pfts.FirstOrDefault();
                             Console.WriteLine($"Gratz! Your new staking account is: {pftGensis.AccountID}");
                         }
                         else

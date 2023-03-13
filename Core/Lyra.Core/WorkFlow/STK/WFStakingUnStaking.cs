@@ -21,13 +21,16 @@ namespace Lyra.Core.WorkFlow.STK
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_STK_UNSTK,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
-            var chgs = block.GetBalanceChanges(lastBlock);
+            var block = context.Send;
+            TransactionBlock last = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+
+            var chgs = block.GetBalanceChanges(last);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
 
@@ -36,7 +39,7 @@ namespace Lyra.Core.WorkFlow.STK
                 && block.Tags.Count == 2
                 )
             {
-                if (block.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                if (block.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                     return APIResultCodes.InvalidServiceRequest;
 
                 // verify sender is the owner of stkingblock
@@ -60,8 +63,10 @@ namespace Lyra.Core.WorkFlow.STK
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
+
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is UnStakingBlock))
                 return null;
@@ -100,7 +105,7 @@ namespace Lyra.Core.WorkFlow.STK
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
 
-            stkNext.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString()); 
+            stkNext.AddTag(Block.MANAGEDTAG, context.State.ToString()); 
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

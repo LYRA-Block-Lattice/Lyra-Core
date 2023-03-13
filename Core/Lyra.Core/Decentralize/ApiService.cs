@@ -85,26 +85,37 @@ namespace Lyra.Core.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            var state = await NodeService.Dag.Consensus.Ask<AuthState>(new ConsensusService.AskForConsensusState { ReqBlock = block1 });
-            NodeService.Dag.Consensus.Tell(state);
-            await state.WaitForCloseAsync();
-            var consensusResult = state.CommitConsensus;
+            var statex = await NodeService.Dag.Consensus.Ask<(APIResultCodes lockcheck, AuthState state)>(new ConsensusService.AskForConsensusState { ReqBlock = block1 });
+            if(statex.lockcheck == APIResultCodes.Success)
+            {
+                var state = statex.state;
+                NodeService.Dag.Consensus.Tell(state);
+                await state.WaitForCloseAsync();
+                var consensusResult = state.CommitConsensus;
 
-            if (consensusResult == ConsensusResult.Yea)
-            {
-                result.ResultCode = APIResultCodes.Success;
-                result.TxHash = block1.Hash;
-            }
-            else if (consensusResult == ConsensusResult.Nay)
-            {
-                result.ResultCode = state.GetMajorErrorCode();
-            }
-            else if (consensusResult == null || consensusResult == ConsensusResult.Uncertain)
-            {
-                result.ResultCode = APIResultCodes.ConsensusTimeout;
-            }
+                if (consensusResult == ConsensusResult.Yea)
+                {
+                    result.ResultCode = APIResultCodes.Success;
+                    result.TxHash = block1.Hash;
+                }
+                else if (consensusResult == ConsensusResult.Nay)
+                {
+                    result.ResultCode = state.GetMajorErrorCode();
+                }
+                else if (consensusResult == null || consensusResult == ConsensusResult.Uncertain)
+                {
+                    result.ResultCode = APIResultCodes.ConsensusTimeout;
+                }
 
-            return result;
+                return result;
+            }
+            else
+            {
+                return new AuthorizationAPIResult
+                {
+                    ResultCode = statex.lockcheck
+                };
+            }
         }
 
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesisAsync(LyraTokenGenesisBlock block)

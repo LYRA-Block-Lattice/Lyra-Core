@@ -28,7 +28,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            if (send == null || send.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                 return APIResultCodes.InvalidMessengerAccount;
 
             // first verify account id

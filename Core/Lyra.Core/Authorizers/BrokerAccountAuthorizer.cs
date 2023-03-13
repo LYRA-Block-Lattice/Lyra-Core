@@ -19,7 +19,7 @@ namespace Lyra.Core.Authorizers
             if (string.IsNullOrWhiteSpace(block.Name))
                 return APIResultCodes.InvalidName;
 
-            if (!await sys.Storage.AccountExistsAsync(block.OwnerAccountId))
+            if (!string.IsNullOrEmpty(block.OwnerAccountId) && !await sys.Storage.AccountExistsAsync(block.OwnerAccountId))
                 return APIResultCodes.AccountDoesNotExist;
 
             var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;

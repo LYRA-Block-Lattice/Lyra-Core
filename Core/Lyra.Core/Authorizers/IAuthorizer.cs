@@ -13,7 +13,7 @@ namespace Lyra.Core.Authorizers
         BlockTypes GetBlockType();
     }
 
-    public class AuthResult : WrokflowAuthResult
+    public class AuthResult : WorkflowAuthResult
     {
         public AuthorizationSignature Signature { get; set; }
     }

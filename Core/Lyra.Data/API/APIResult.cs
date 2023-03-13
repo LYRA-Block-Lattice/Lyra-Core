@@ -73,6 +73,11 @@ namespace Lyra.Core.API
         {
             return !(left == right);
         }
+
+        public override string ToString()
+        {
+            return ResultMessage;
+        }
     }
 
     public class SimpleJsonAPIResult : APIResult
@@ -443,7 +448,7 @@ namespace Lyra.Core.API
             else
             {
                 //File.AppendAllText(@"c:\tmp\hash.txt", $"Block {block.Hash} New txt: {block.GetHashInput()}\n");
-
+                Console.WriteLine($"hash input: \n{block.GetHashInput()}");
                 Console.WriteLine($">>>>>Block Hash Verification Error\n{BlockData}\n>>>>");
                 return null;
             }

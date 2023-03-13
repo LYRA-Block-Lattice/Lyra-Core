@@ -1,19 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Converto;
 using Lyra.Core.API;
+using Lyra.Data.API.WorkFlow.UniMarket;
+using Lyra.Data.Utils;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Lyra.Core.Blocks
 {
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
+        //[JsonIgnore]
+        //[System.Text.Json.Serialization.JsonIgnore] //add this one
+        //[BsonIgnoreIfNull]
+        //[BsonId]
+        //public BsonValue ID { get; set; }
+        
         /// <summary>
         /// a tag indicate that the signature is created by current leader, not the private key owner.
         /// </summary>
@@ -55,14 +67,32 @@ namespace Lyra.Core.Blocks
             ServiceHash = "need overwrite";   // disable warning
         }
 
+        private T CloneTo<T>() where T : Block
+        {
+            var json = JsonConvert.SerializeObject(this);
+            T t = JsonConvert.DeserializeObject<T>(json);
+            return t;
+        }
+
+        /// <summary>
+        /// when we add new field to the block, we need to exclude the new field for lower db version.
+        /// all derived class should first get base list, then add their own.
+        /// </summary>
+        /// <param name="dbVersion"></param>
+        /// <returns></returns>
+        //public static List<string> FieldsAddedForVer(int dbVersion)
+        //{
+        //    return new List<string>();
+        //}
+
         public virtual T GenInc<T>() where T : Block
         {
             var x = Activator.CreateInstance<T>();
-            return this.ConvertTo<T>()  //gender change
+            var next = CloneTo<T>()  //gender change
                 .With(new
                 {
                     // most necessary!
-                    BlockType = x.BlockType,
+                    x.BlockType,
                     Hash = "",
                     Signature = "",
                     Height = 0,
@@ -71,6 +101,18 @@ namespace Lyra.Core.Blocks
                     FeeType = AuthorizationFeeTypes.NoFee,
                     FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 });
+
+            // make sure the object is duplicated.
+            if(next is IUniOrder o && this is IUniOrder oo)
+            {
+                o.Order = oo.Order.Copy();
+            }
+            else if(next is IUniTrade t && this is IUniTrade tt)
+            {
+                t.Trade = tt.Trade.Copy();
+            }
+
+            return next;
         }
 
         public void InitializeBlock(Block? prevBlock, string PrivateKey, string AccountId)
@@ -90,6 +132,9 @@ namespace Lyra.Core.Blocks
             }
             Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
+
+            if (string.IsNullOrWhiteSpace(Hash))
+                Hash = CalculateHash();
 
             Sign(PrivateKey, AccountId);
 
@@ -121,11 +166,12 @@ namespace Lyra.Core.Blocks
 
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
+            
             Signature = await signr(Hash);
             //File.AppendAllText(@"c:\tmp\hash.txt", $"Sign Block {Hash} New txt: {GetHashInput()}\n");
         }
 
-        public virtual bool AuthCompare(Block other)
+        public virtual bool AuthCompare(Block? other)
         {
             if (other == null)
                 return false;
@@ -164,8 +210,22 @@ namespace Lyra.Core.Blocks
             return true;
         }
 
+        private static readonly object fileLock = new object();
         public override string GetHashInput()
         {
+            if(Version > 10)
+            {
+                var json = JsonConvert.SerializeObject(this, JsonUtils.Settings);
+
+                // debug only
+                //if(!Directory.Exists("c:\\tmp"))
+                //    Directory.CreateDirectory("c:\\tmp");   
+                //lock(fileLock)
+                //    File.AppendAllText("c:\\tmp\\GetHashInput.txt", $"{this.BlockType} {this.Height}\n{json}\n\n");
+
+                return json;
+            }
+            else
             return Height.ToString() + "|" +
                              DateTimeToString(TimeStamp) + "|" +
                              this.Version + "|" +
@@ -306,7 +366,7 @@ namespace Lyra.Core.Blocks
         //}
     }
 
-    public enum BlockTypes : byte
+    public enum BlockTypes
     {
         Null = 0,
 
@@ -381,6 +441,8 @@ namespace Lyra.Core.Blocks
         PoolWithdraw = 53,
         PoolSwapIn = 54,
         PoolSwapOut = 55,
+        PoolRefundRecv,
+        PoolRefundSend,
 
         // staking
         ProfitingGenesis = 60,
@@ -417,14 +479,34 @@ namespace Lyra.Core.Blocks
         // voting
         VoteGenesis = 100,
         Voting = 101,
+        VotingRefund,
 
         // Dealer
         DealerRecv = 105,
         DealerSend = 106,
         DealerGenesis = 107,
 
+        // Universal Order
+        UniOrderRecv = 110,
+        UniOrderGenesis = 111,
+        UniOrderSend = 112,
+        UniTradeRecv = 113,
+        UniTradeGenesis = 114,
+        UniTradeSend = 115,
+        UniTradeResolutionRecv = 116,
+
         // NFT
         //NFTGenesis = 110,     // not needed. a normal genesis block can handle it.
+        GuildRecv = 120,
+        GuildSend = 121,
+        GuildGenesis = 122,
+
+        // Fiat
+        FiatWalletGenesis = 130,
+        FiatTokenPrint = 131,
+        FiatTokenBurn = 132,
+        FiatSendToken = 133,
+        FiatRecvToken = 134,
     }
 
     public enum APIResultCodes
@@ -687,5 +769,11 @@ namespace Lyra.Core.Blocks
         DisputeCaseWasNotIncluded,
         InvalidVerificationCode,
         InvalidMetadataUri,
+        APIIsObsolete,
+        TotTransferNotAllowed,
+        InvalidProofOfDelivery,
+        InvalidFeeRito,
+        InvalidPrice,
+        DuplicateBlock,
     }
 }

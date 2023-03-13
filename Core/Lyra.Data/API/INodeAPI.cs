@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature);
 
         Task<BlockAPIResult> GetLastConsolidationBlockAsync();
-        Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count);
+        Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string? Signature, long startHeight, int count);
         Task<MultiBlockAPIResult> GetBlocksByConsolidationAsync(string AccountId, string Signature, string consolidationHash);
         //Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
         // add new api, all upgraded, delete old api, done.
@@ -52,15 +53,17 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetLastBlockAsync(string AccountId);
         Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index);
         Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index);
+        Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count);
 
         // Retrives a block by its hash
-        Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature);
+        Task<BlockAPIResult> GetBlockByHashAsync(string? AccountId, string Hash, string? Signature);
+        Task<BlockAPIResult> GetBlockByHashAsync(string Hash);
         Task<BlockAPIResult> GetBlockAsync(string Hash);
         Task<BlockAPIResult> GetBlockBySourceHashAsync(string sourceHash);
         Task<MultiBlockAPIResult> GetBlocksByRelatedTxAsync(string hash);
 
         Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature);
-        Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature);
+        Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string? Signature);
         Task<NewFeesAPIResult> LookForNewFeesAsync(string AccountId, string Signature);
 
         Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature);
@@ -104,11 +107,15 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetAllDexWalletsAsync(string owner);
         Task<BlockAPIResult> FindDexWalletAsync(string owner, string symbol, string provider);
 
+        // Fiat
+        Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner);
+        Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol);
+
         // DAO
         Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize);
         Task<BlockAPIResult> GetDaoByNameAsync(string name);
         Task<MultiBlockAPIResult> GetOtcOrdersByOwnerAsync(string accountId);
-        Task<ContainerAPIResult> FindTradableOtcAsync();
+        Task<ContainerAPIResult> FindTradableOrdersAsync();
         Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
         Task<MultiBlockAPIResult> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize);
         Task<SimpleJsonAPIResult> GetOtcTradeStatsForUsersAsync(TradeStatsReq req);
@@ -120,6 +127,21 @@ namespace Lyra.Core.API
 
         // NFT related
         Task<BlockAPIResult> FindNFTGenesisSendAsync(string accountId, string ticker, string serial);
+
+        // Universal Trade
+        Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId);
+        Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid);
+        Task<ContainerAPIResult> FindTradableUniAsync();
+        Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
+        Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);
+        Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req);
+        Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderId);
+
+        // json api, no we don't want add it to the interface.
+        Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog);
+        Task<string?> FindTokensAsync(string? keyword, string? cat);
+        Task<string?> FindDaosAsync(string? keyword);
+        Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height);
     }
 
     public interface INodeTransactionAPI

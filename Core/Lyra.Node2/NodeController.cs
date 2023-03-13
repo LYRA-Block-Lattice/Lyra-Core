@@ -13,7 +13,9 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using Lyra.Data.Crypto;
 using Lyra.Node2;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
@@ -22,9 +24,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 using Noded.Services;
+using OpenTelemetry.Trace;
+using Lyra.Data.Utils;
+using System.Text;
 
 namespace LyraLexWeb2
 {
+    //[ApiExplorerSettings(GroupName = "v1")]
     [Route("api/[controller]")]
     [ApiController]
     public class NodeController : ControllerBase
@@ -175,7 +181,7 @@ namespace LyraLexWeb2
 
         [Route("GetBlockByHash")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string? Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string? AccountId, string Hash, string? Signature)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetBlockByHashAsync(AccountId, Hash, Signature);
@@ -205,9 +211,17 @@ namespace LyraLexWeb2
             return await _node.GetBlocksByRelatedTxAsync(Hash);
         }
 
+        [Route("GetMultipleConsByHeight")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetMultipleConsByHeightAsync(height, count);
+        }
+
         [Route("GetNonFungibleTokens")]
         [HttpGet]
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string? Signature)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetNonFungibleTokensAsync(AccountId, Signature);
@@ -215,7 +229,7 @@ namespace LyraLexWeb2
 
         [Route("GetTokenGenesisBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string? AccountId, string TokenTicker, string? Signature)
         {
             if (! CheckServiceStatus()) return null;
             return await _node.GetTokenGenesisBlockAsync(AccountId, TokenTicker, Signature);
@@ -333,7 +347,7 @@ namespace LyraLexWeb2
 
         [Route("LookForNewTransfer2")]
         [HttpGet]
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string? Signature)
         {
             if (!CheckServiceStatus()) return null;
             return await _node.LookForNewTransfer2Async(AccountId, Signature);
@@ -435,7 +449,37 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock sendBlock)
         {
+            Console.WriteLine($"react hash: {sendBlock.Hash} dotnet hash: {sendBlock.CalculateHash()}");
+
             if (! CheckServiceStatus()) return null;
+            return await _trans.SendTransferAsync(sendBlock);
+        }
+
+        // this is used for React to submit block. the signature is in DER format
+        [Route("SendTransfer2")]
+        [HttpPost]
+        public async Task<AuthorizationAPIResult> SendTransfer2Async(SendTransferBlock sendBlock)
+        {
+            if (!CheckServiceStatus()) return null;
+            //Console.WriteLine($"{Convert.ToHexString(Encoding.Unicode.GetBytes(sendBlock.GetHashInput()))}");
+            //Console.WriteLine($"react hash: {sendBlock.Hash} dotnet hash: {sendBlock.CalculateHash()}");
+
+            var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(sendBlock.Signature.StringToByteArray());
+            var dotnetsign = Base58Encoding.Encode(dotnetsignBuff);
+
+            //Console.WriteLine($"old signature: {sendBlock.Signature} new signature: {dotnetsign}");
+
+            sendBlock.Signature = dotnetsign;
+
+            if(!sendBlock.VerifySignature(sendBlock.AccountID))
+            {
+                Console.WriteLine($"Failed block hash: {sendBlock.Hash} input is: " + sendBlock.GetHashInput());
+                return new AuthorizationAPIResult()
+                {
+                    ResultCode = APIResultCodes.BlockSignatureValidationFailed,
+                };
+            }
+
             return await _trans.SendTransferAsync(sendBlock);
         }
 
@@ -654,6 +698,23 @@ namespace LyraLexWeb2
             return await _node.FindDexWalletAsync(owner, symbol, provider);
         }
 
+        // Fiat
+        [Route("GetAllFiatWallets")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetAllFiatWalletsAsync(owner);
+        }
+
+        [Route("FindFiatWallet")]
+        [HttpGet]
+        public async Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindFiatWalletAsync(owner, symbol);
+        }
+
         [Route("GetAllDaos")]
         [HttpGet]
         public async Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
@@ -680,10 +741,10 @@ namespace LyraLexWeb2
 
         [Route("FindTradableOtc")]
         [HttpGet]
-        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        public async Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.FindTradableOtcAsync();
+            return await _node.FindTradableOrdersAsync();
         }
 
         [Route("FindOtcTrade")]
@@ -756,6 +817,156 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             return await _node.FindNFTGenesisSendAsync(accountId, ticker, serial);
+        }
+
+        #region Universal Trade
+        [Route("GetUniOrdersByOwner")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetUniOrdersByOwnerAsync(accountId);
+        }
+
+        [Route("FindUniTradeForOrder")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindUniTradeForOrderAsync(orderid);
+        }
+
+        [Route("FindTradableUni")]
+        [HttpGet]
+        public async Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindTradableUniAsync();
+        }
+
+        [Route("FindUniTrade")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+        }
+
+        [Route("FindUniTradeByStatus")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindUniTradeByStatusAsync(daoid, status, page, pageSize);
+        }
+
+        [Route("GetUniTradeStatsForUsers")]
+        [HttpPost]
+        public async Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetUniTradeStatsForUsersAsync(req);
+        }
+
+        /// <summary>
+        /// get order by id
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [Route("GetUniOrderById")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderId)
+        {
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetUniOrderByIdAsync(orderId);
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                }
+                else
+                {
+                    result.SetBlocks(blocks.Cast<Block>().ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetUniOrderByIdAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.StorageAPIFailure;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+        #endregion
+
+        // pure json rest api
+        [HttpGet]
+        [Route("FindTokensForAccount")]
+        public async Task<IActionResult> FindTokensForAccountAsync(string accountId, string? q, string? cat)
+        {
+            if (!CheckServiceStatus()) return null;
+            var blocks = await (_node as NodeAPI).FindTokensForAccountAsync(accountId, q, cat);
+            if (blocks != null)
+            {
+                var ret = blocks.Select(a =>
+                new
+                {
+                    Token = a.Ticker,
+                    Domain = a.DomainName,
+                    IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
+                    Name = a.Custom1 ?? a.Ticker,   // NFT's name
+                });
+                return new JsonResult(ret);
+            }
+            else
+                return NotFound();
+        }
+
+        [HttpGet]
+        [Route("FindTokens")]
+        public async Task<IActionResult> FindTokenAsync(string? q, string? cat)
+        {
+            if (!CheckServiceStatus()) return null;
+            var blocks = await (_node as NodeAPI).FindTokensAsync(q, cat);
+            if (blocks == null)
+                return NotFound();
+
+            var ret = blocks.Select(a =>
+                new
+                {
+                    Token = a.Ticker,
+                    Domain = a.DomainName,
+                    IsTOT = LyraGlobal.IsTokenTradeOnly(a.Ticker),
+                    Name = a.Custom1 ?? a.Ticker,   // NFT's name
+                });
+            return new JsonResult(ret);
+        }
+
+        [HttpGet]
+        [Route("FindDaos")]
+        public async Task<MultiBlockAPIResult> FindDaosAsync(string? q)
+        {
+            if (!CheckServiceStatus()) return null;
+            var blocks = await (_node as NodeAPI).FindDaosAsync(q);
+            var ret = blocks
+                .Where(a => a.Name != "Lyra Guild");     // important.
+                                                         //.Select(a =>
+                                                         //new
+                                                         //{
+                                                         //    a.Name,
+                                                         //    DaoId = a.AccountID,
+                                                         //    a.Seats,
+                                                         //    a.ShareRito,
+                                                         //    a.SellerPar,
+                                                         //    a.SellerFeeRatio,
+                                                         //    a.BuyerPar,
+                                                         //    a.BuyerFeeRatio,
+                                                         //});
+            return new MultiBlockAPIResult(ret.ToArray());
         }
 
         //[HttpPost]

@@ -152,7 +152,11 @@ namespace Lyra.Core.Decentralize
                 // first try auth locally
                 if (_state == null)
                 {
-                    _state = _context.CreateAuthringState(msg, sourceValid);
+                    var statex = await _context.CreateAuthringStateAsync(msg, sourceValid);
+                    if (statex.result != APIResultCodes.Success || statex.state == null)
+                        return;
+
+                    _state = statex.state;
                 }
 
                 // if source is invalid, we just listen to the network. 
@@ -268,6 +272,7 @@ namespace Lyra.Core.Decentralize
                     foreach (var id in tmpResult.LockedIDs)
                         if (_context.CheckIfIdIsLocked(id))
                         {
+                            _log.LogWarning($"Resource is locked for account: {id}");
                             busy = true;
                             break;
                         }  
@@ -318,7 +323,7 @@ namespace Lyra.Core.Decentralize
 
             stopwatch.Stop();
             if (result.Result == APIResultCodes.Success)
-                _log.LogInformation($"LocalAuthorizingAsync {item.Block.BlockType} takes {stopwatch.ElapsedMilliseconds} ms with {result.Result} for {item.Block.Hash}");
+                _log.LogInformation($"LocalAuthorizingAsync {authorizer.GetType().Name} {item.Block.BlockType} takes {stopwatch.ElapsedMilliseconds} ms with {result.Result} for {item.Block.Hash}");
             else
             {
                 if (result.Result == APIResultCodes.CouldNotFindLatestBlock)

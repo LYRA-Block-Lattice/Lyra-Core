@@ -23,11 +23,11 @@ namespace Lyra.Core.Authorizers
             var block = tblock as PoolWithdrawBlock;
 
             var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+            if (send == null || send.DestinationAccountId != LyraGlobal.GUILDACCOUNTID)
                 return APIResultCodes.InvalidMessengerAccount;
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if(blocks.Count != 0)
+            if(blocks.Count != 1)
                 return APIResultCodes.InvalidRelatedTx;
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolWithdrawAuthorizer->SendTransferAuthorizer");

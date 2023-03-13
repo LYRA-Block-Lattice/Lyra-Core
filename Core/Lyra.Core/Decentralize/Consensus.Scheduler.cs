@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Lyra.Core.Utils;
+using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using ZstdSharp.Unsafe;
 using IScheduler = Quartz.IScheduler;
 
 namespace Lyra.Core.Decentralize
@@ -213,6 +215,52 @@ namespace Lyra.Core.Decentralize
 
                         //if(!cs._activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging))
                         await cs.ConsolidateBlocksAsync();
+
+                        // monitor workflow and lockups
+                        if(cs._lockers.Count > 0)
+                        {
+                            foreach (var lckdto in cs._lockers.Values.ToArray())
+                            {
+                                if (lckdto.haswf && lckdto.workflowid != null)
+                                {
+                                    var wf = cs._hostEnv.GetWorkflowHost().PersistenceStore.GetWorkflowInstance(lckdto.workflowid);
+                                    if (wf == null)
+                                    {
+                                        cs.RemoveLockerDTO(lckdto.reqhash);
+                                        cs._log.LogWarning($"remove locker for wf exit {lckdto.reqhash}.");
+                                    }
+                                    else
+                                    {
+                                        // check wf error
+                                        var lc = wf.Result.Data as LyraContext;
+                                        if(lc.State == WFState.Error)
+                                        {
+                                            cs._log.LogWarning($"WF error for {lc.Send.Hash}.");
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (!cs._activeConsensus.ContainsKey(lckdto.reqhash))
+                                    {
+                                        cs.RemoveLockerDTO(lckdto.reqhash);
+                                        cs._log.LogWarning($"remove locker for consensus out {lckdto.reqhash}.");
+
+                                    }
+                                }
+                            }
+
+                            cs._log.LogWarning($"Locker count: {cs._lockers.Count}");
+                            //foreach(var lkr in cs._lockers)
+                            //{
+                            //    // dump lockers
+                            //    cs._log.LogWarning($"{lkr.Key}:");
+                            //    foreach(var id in lkr.Value.lockedups)
+                            //    {
+                            //        cs._log.LogWarning($"\t-> {id}");
+                            //    }
+                            //}
+                        }
                     }
                 }
                 catch (Exception e)

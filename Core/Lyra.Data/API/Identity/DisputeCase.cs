@@ -1,5 +1,6 @@
 ﻿using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.IdGenerators;
@@ -57,7 +58,7 @@ namespace Lyra.Data.API.Identity
             State == DisputeNegotiationStates.AllPartiesNotified ||
             State == DisputeNegotiationStates.AcceptanceConfirmed;
 
-        public (string complaintant, string respondant) GetRoles(IOtcTrade trade)
+        public (string complaintant, string respondant) GetRoles(IUniTrade trade)
         {
             if (trade.OwnerAccountId == Complaint.ownerId)
                 return (trade.OwnerAccountId, trade.Trade.orderOwnerId);
@@ -65,7 +66,7 @@ namespace Lyra.Data.API.Identity
                 return (trade.Trade.orderOwnerId, trade.OwnerAccountId);
         }
 
-        public virtual bool Verify(IOtcTrade trade)
+        public virtual bool Verify(IUniTrade trade)
         {
             return trade.AccountID == Complaint.tradeId && 
                 (trade.OwnerAccountId == Complaint.ownerId || trade.Trade.orderOwnerId == Complaint.ownerId) &&
@@ -96,7 +97,7 @@ namespace Lyra.Data.API.Identity
         public string VoteId { get; set; }
         public ODRResolution? Resolution { get; set; }     
 
-        public override bool Verify(IOtcTrade trade)
+        public override bool Verify(IUniTrade trade)
         {
             (var complaintantId, var respondantId) = GetRoles(trade);
 

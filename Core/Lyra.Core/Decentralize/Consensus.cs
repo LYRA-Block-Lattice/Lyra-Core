@@ -1,10 +1,13 @@
 ﻿using Clifton.Blockchain;
+using Humanizer;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.WorkFlow;
 using Lyra.Data;
 using Lyra.Data.API;
+using Lyra.Data.API.WorkFlow;
+using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging;
@@ -12,6 +15,7 @@ using Neo;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,7 +44,7 @@ namespace Lyra.Core.Decentralize
             return status;
         }
 
-        public string GetUnConsolidatedHash(List<string> unCons)
+        public string GetUnConsolidatedHash(List<string>? unCons)
         {
             if (unCons == null)
                 return "";
@@ -82,7 +86,7 @@ namespace Lyra.Core.Decentralize
             if (localDbState.totalBlockCount == 0)
             {
                 LocalDbSyncState.Remove();
-            }                
+            }
             else
             {
                 var oldState = LocalDbSyncState.Load();
@@ -91,7 +95,7 @@ namespace Lyra.Core.Decentralize
                 if (seedSvcGen.ResultCode != APIResultCodes.Success)
                     return false;
 
-                if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
+                if (oldState.svcGenHash != seedSvcGen.GetBlock()?.Hash)
                     LocalDbSyncState.Remove();
 
                 //if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
@@ -114,9 +118,53 @@ namespace Lyra.Core.Decentralize
             else
                 localState.lastVerifiedConsHeight = 0;
 
+            LocalDbSyncState.Save(localState);
+
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
                 return false;
+
+
+            // TODO: with two steps config upgrade to full support
+            if(Settings.Default.LyraNode.Lyra.NetworkId == "devnet" || Settings.Default.LyraNode.Lyra.NetworkId == "testnet")
+            {
+                // first verify current data
+
+
+                //a new algorithm.we have the latest cons' hash. so sync from current height to that height,
+                // verify hash at final stage. if wrong, delete all blocks.
+                var w = Stopwatch.StartNew();
+                long count = 1;
+                long totalms = 1000;        // assume default 1 second for one cons block
+                for (var height = localState.lastVerifiedConsHeight == 0 ? 1 : localState.lastVerifiedConsHeight; height <= lastCons.Height; height++)
+                {
+                    w.Restart();
+                    _log.LogInformation($"Sync and verify chunk {height}, estimate finish in {TimeSpan.FromMilliseconds((totalms / count) * (lastCons.Height - height)).Humanize()}");
+
+                    (var ret, var latestHeight) = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
+                    if (!ret)
+                    {
+                        _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
+                        localState.lastVerifiedConsHeight = height - 1;
+                        LocalDbSyncState.Save(localState);
+                        return false;
+                    }
+                    //else  don't. let a dbcc run.
+                    //{
+                    //    localState.lastVerifiedConsHeight = height;
+                    //    LocalDbSyncState.Save(localState);
+                    //    return true;
+                    //}
+                    w.Stop();
+                    totalms += w.ElapsedMilliseconds;
+
+                    count += latestHeight - height;
+
+                    height = latestHeight;
+                }
+
+                return await DBCCAsync();
+            }           
 
             bool IsSuccess;
             while (true)
@@ -125,15 +173,15 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     var remoteConsQuery = await consensusClient.GetConsolidationBlocksAsync(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
-                    if(remoteConsQuery.ResultCode == APIResultCodes.Success)
+                    if (remoteConsQuery.ResultCode == APIResultCodes.Success)
                     {
                         var remoteConsBlocks = remoteConsQuery.GetBlocks();
-                        if(remoteConsBlocks.Any())
+                        if (remoteConsBlocks.Any())
                         {
                             foreach (var block in remoteConsBlocks)
                             {
                                 var consTarget = block as ConsolidationBlock;
-                                _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
+                                _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget?.Height} of total {lastCons.Height}.");
                                 if (await SyncAndVerifyConsolidationBlockAsync(consensusClient, fastClient, consTarget))
                                 {
                                     _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
@@ -166,7 +214,7 @@ namespace Lyra.Core.Decentralize
                             }
                         }
                     }
-                    else if(remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
+                    else if (remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
                     {
                         _log.LogWarning("Got inconsistant result from network. retry later.");
                         throw new Exception("Failed to sync. reason: " + remoteConsQuery.ResultCode);
@@ -292,7 +340,7 @@ namespace Lyra.Core.Decentralize
                         //    if (lastConsOfSeed.ResultCode == APIResultCodes.APIRouteFailed)
                         //        agg.ReBase(true);
                         //}
-                        
+
                         continue;
                     }
 
@@ -317,7 +365,7 @@ namespace Lyra.Core.Decentralize
                         {
                             emptySyncTimes = 0;
                             continue;
-                        }                            
+                        }
                         else
                         {
                             emptySyncTimes++;
@@ -327,7 +375,7 @@ namespace Lyra.Core.Decentralize
                             else
                             {
                                 _log.LogInformation("Waiting for any new changes ...");
-                                await Task.Delay(5000);                                
+                                await Task.Delay(5000);
                             }
                         }
                     }
@@ -340,11 +388,126 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation("Engaging Sync partial success. continue...");
                     await Task.Delay(1000);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _log.LogInformation($"Engaging Sync failed with error \"{ex.Message}\". continue...");
                     await Task.Delay(1000);
                 }
+            }
+        }
+
+        private async Task<bool> SyncOneChunk(List<Block> blocks)
+        {
+            var consBlock = blocks.Last() as ConsolidationBlock;
+
+            var mt = new MerkleTree();
+            for (int i = 0; i < blocks.Count - 1; i++)
+            {
+                var hash1 = blocks[i].Hash;
+                if (hash1 != consBlock.blockHashes[i])
+                    return false;
+
+                mt.AppendLeaf(MerkleHash.Create(hash1));
+            }
+
+            var merkelTreeHash = mt.BuildTree().ToString();
+            if (consBlock.MerkelTreeHash != merkelTreeHash)
+            {
+                _log.LogWarning($"SyncAndVerifyConsolidationBlock2: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
+                return false;
+            }
+
+            // make sure no extra blocks here
+            if (consBlock.Height > 1)
+            {
+                //var prevConsHash = consBlock.blockHashes.First();
+                //var prevConsResult = await fastClient.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
+                //if (prevConsResult.ResultCode != APIResultCodes.Success)
+                //{
+                //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
+                //    return false;
+                //}
+
+                //var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
+                //if (prevConsBlock == null)
+                //{
+                //    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsBlock: null");
+                //    return false;
+                //}
+
+                var prevConsBlock = blocks.First() as ConsolidationBlock;
+                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(prevConsBlock.TimeStamp, consBlock.TimeStamp);
+                var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
+                foreach (var extraBlock in q)
+                {
+                    await _sys.Storage.RemoveBlockAsync(extraBlock);
+                }
+            }
+
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                if (null == await _sys.Storage.FindBlockByHashAsync(blocks[i].Hash))
+                {
+                    //_log.LogInformation($"Sync block {blocks[i].Hash}");
+                    var ret = await _sys.Storage.AddBlockAsync(blocks[i]);
+                    if (!ret)
+                    {
+                        _log.LogWarning($"SyncAndVerifyConsolidationBlock2: AddBlockAsync failed: {blocks[i].Hash}");
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// sync consblock and all it's contained blocks. (previous cons -> this cons.)
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="consBlock"></param>
+        /// <returns></returns>
+        private async Task<(bool, long latestHeight)> SyncAndVerifyConsolidationBlock2Async(ILyraAPI safeClient, ILyraAPI fastClient, long height)
+        {
+            //_log.LogInformation($"Sync and verify consolidation block height height");
+
+            try
+            {
+                var blksreq = await fastClient.GetMultipleConsByHeightAsync(height, 100);
+                if (blksreq.ResultCode != APIResultCodes.Success)
+                    return (false, 0);
+
+                var blocks = blksreq.GetBlocks()
+                    .ToArray();
+                if (!blocks.Any())
+                    return (true, 0);
+
+                // pickup consolidation blocks one by one
+                var lastPos = 0;
+                for(var pos = lastPos; pos < blocks.Length; pos++)
+                {
+                    if (blocks[pos].BlockType != BlockTypes.Consolidation)
+                        continue;
+
+                    if (pos == 0)
+                        continue;
+                    
+                    var consPos = pos;
+                    var slice = blocks[lastPos..(consPos+1)];
+
+                    var ret = await SyncOneChunk(slice.ToList());
+
+                    if (!ret)
+                        return (false, 0);
+
+                    lastPos = pos;
+                }             
+
+                return (true, blocks[lastPos].Height);
+            }
+            catch (Exception ex)
+            {
+                _log.LogError($"Sync and verify consolidation block 2 height {height} Error! {ex}");
+                return (false, 0);
             }
         }
 
@@ -358,7 +521,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
-            foreach(var hash in consBlock.blockHashes)
+            foreach (var hash in consBlock.blockHashes)
             {
                 if (!await SyncOneBlockAsync(fastClient, hash))
                     return false;
@@ -375,7 +538,7 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogWarning($"SyncAndVerifyConsolidationBlock: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
                 return false;
-            }                
+            }
 
             // make sure no extra blocks here
             if (consBlock.Height > 1)
@@ -386,7 +549,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
                     return false;
-                }                    
+                }
 
                 var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
                 if (prevConsBlock == null)
@@ -454,7 +617,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> SyncOneBlockAsync(ILyraAPI client, string hash)
         {
-            if(null != await _sys.Storage.FindBlockByHashAsync(hash))
+            if (null != await _sys.Storage.FindBlockByHashAsync(hash))
             {
                 return true;
             }
@@ -482,16 +645,16 @@ namespace Lyra.Core.Decentralize
                 else
                 {
                     _log.LogWarning($"Error SyncOneBlockAsync: block null? {block is null}");
-                    if(!(block is null))
+                    if (!(block is null))
                         _log.LogWarning($"Error SyncOneBlockAsync: block VerifyHash? {block.VerifyHash()}");
                     return false;
-                }                    
+                }
             }
             else
             {
                 _log.LogWarning($"Error SyncOneBlockAsync: remote return: {remoteBlock.ResultCode}");
                 return false;
-            }                
+            }
         }
 
         public async Task GenesisAsync()
@@ -513,9 +676,14 @@ namespace Lyra.Core.Decentralize
             var pf = await CreatePoolFactoryBlockAsync();
             await SendBlockToConsensusAndWaitResultAsync(pf);
 
-            await Task.Delay(25000);        // because cons block has a time shift.
+            await Task.Delay(2000);
+            var gg = await GuildGenesisAsync();
+            await SendBlockToConsensusAndWaitResultAsync(gg);
 
-            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
+            await Task.Delay(-1000 * LyraGlobal.CONSOLIDATIONDELAY);        // because cons block has a time shift.
+            await Task.Delay(2000);
+
+            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen, pf, gg);
             await SendBlockToConsensusAndWaitResultAsync(consGen);
 
             await Task.Delay(1000);
@@ -529,11 +697,13 @@ namespace Lyra.Core.Decentralize
             Wallet.Create(memStore, "tmp", "", Settings.Default.LyraNode.Lyra.NetworkId, _sys.PosWallet.PrivateKey);
             var gensWallet = Wallet.Open(memStore, "tmp", "");
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
+            var port = gensWallet.NetworkId == "mainnet" ? 5504 : 4504;
+            var client = LyraRestClient.Create(gensWallet.NetworkId, "", "", "", $"https://localhost:{port}/api/Node/");
+            await gensWallet.SyncAsync(client);
+            var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
+
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = CreateSafeClient();
-                await gensWallet.SyncAsync(client);
-                var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.SendAsync(amount, accId);
                 if (sendResult.ResultCode == APIResultCodes.Success)
                 {
@@ -541,7 +711,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    _log.LogError($"Genesis send {amount} failed to accountId: {accId}");
+                    _log.LogError($"Genesis send {amount} failed to accountId: {accId} {sendResult.ResultCode}");
                 }
             }
         }
@@ -588,23 +758,25 @@ namespace Lyra.Core.Decentralize
             return svcBlock;
         }
 
-        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen, PoolFactoryBlock pf)
+        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen,
+            PoolFactoryBlock pf, TransactionBlock gg)
         {
             var consBlock = new ConsolidationBlock
             {
                 createdBy = ProtocolSettings.Default.StandbyValidators[0],
                 blockHashes = new List<string>()
                 {
-                    svcGen.Hash, lyraGen.Hash, pf.Hash
+                    svcGen.Hash, lyraGen.Hash, pf.Hash, gg.Hash
                 },
                 totalBlockCount = 3     // not including self
             };
-            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-18);
+            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(LyraGlobal.CONSOLIDATIONDELAY);
 
             var mt = new MerkleTree();
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));
             mt.AppendLeaf(MerkleHash.Create(lyraGen.Hash));
             mt.AppendLeaf(MerkleHash.Create(pf.Hash));
+            mt.AppendLeaf(MerkleHash.Create(gg.Hash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = svcGen.Hash;
@@ -654,12 +826,13 @@ namespace Lyra.Core.Decentralize
                 TransferFee = 1,           //zero for genesis. back to normal when genesis done
                 TokenGenerationFee = 10000,
                 TradeFee = 0.1m,
-                FeesGenerated = 0
+                FeesGenerated = 0,
+                ServiceHash = null
             };
 
             // wait for all nodes ready
             // for unit test
-            if(_localNode == null)      // unit test code
+            if (_localNode == null)      // unit test code
             {
                 svcGenesis.Authorizers = new Dictionary<string, string>();
                 foreach (var pn in ProtocolSettings.Default.StandbyValidators)
@@ -749,8 +922,58 @@ namespace Lyra.Core.Decentralize
                     var hoststr = hostAddrStr.Contains(":") ? hostAddrStr : $"{hostAddrStr}:{peerPort}";
                     var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{hoststr}/api/Node/");
                     _ = client.GetPoolAsync("a", "b");
-                }     
+                }
             }
+        }
+
+        public async Task<TransactionBlock> GuildGenesisAsync()
+        {
+            var name = "Lyra Guild";
+            var desc = "The orgnization to create DAO";
+            var sellerPar = 120;
+            var buyerPar = 120;
+
+            var AccountId = LyraGlobal.GUILDACCOUNTID;
+            var exists = await _sys.Storage.FindFirstBlockAsync(AccountId);
+            if (exists != null)
+                return null;
+
+            var sb = await _sys.Storage.GetLastServiceBlockAsync();
+            var guildgen = new GuildGenesisBlock
+            {
+                Height = 1,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // transaction
+                AccountType = AccountTypes.Guild,
+                AccountID = AccountId,
+                Balances = new Dictionary<string, long>(),
+
+                // broker
+                Name = name,
+
+                // profiting
+                PType = ProfitingType.Orgnization,
+                ShareRito = 1,
+                Seats = 100,
+                SellerFeeRatio = 0.01m,
+                BuyerFeeRatio = 0.01m,
+
+                // dao
+                Description = desc,
+                SellerPar = sellerPar,
+                BuyerPar = buyerPar,
+                Treasure = new Dictionary<string, long>(),
+            };
+
+            guildgen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+
+            // pool blocks are service block so all service block signed by leader node
+            guildgen.InitializeBlock(null, _sys.PosWallet.PrivateKey, AccountId: _sys.PosWallet.AccountId);
+            return guildgen;
         }
 
         public async Task LeaderSendBlockToConsensusAndForgetAsync(Block block)
@@ -770,17 +993,26 @@ namespace Lyra.Core.Decentralize
                 {
                     From = _sys.PosWallet.AccountId,
                     Block = block,
-                    BlockHash = block.Hash,
+                    BlockHash = block.Hash!,
                     MsgType = ChatMessageType.AuthorizerPrePrepare
                 };
 
-                var state = CreateAuthringState(msg, true);
+                var statex = await CreateAuthringStateAsync(msg, true);
 
-                await SubmitToConsensusAsync(state);
+                if (statex.result != APIResultCodes.Success || statex.state == null)
+                {
+                    _log.LogWarning($"Failed to CreateAuthringStateAsync: {statex.result}");
+                }
+
+                var submitret = await SubmitToConsensusAsync(statex.state);
+                if (!submitret)
+                {
+                    _log.LogWarning($"Failed to SubmitToConsensusAsync.");
+                }
             }
         }
 
-        private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
+        private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string>? voters = null)        // default is genesus, 4 default
         {
             if (block == null)
                 throw new ArgumentNullException();
@@ -789,28 +1021,107 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId,
                 Block = block,
-                BlockHash = block.Hash,
+                BlockHash = block.Hash!,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = CreateAuthringState(msg, true);
-
-            var sent = await SubmitToConsensusAsync(state);
-            if(sent)
+            var statex = await CreateAuthringStateAsync(msg, true);
+            if (statex.result == APIResultCodes.Success)
             {
-                await state.WaitForCloseAsync();
+                var state = statex.state;
+                var sent = await SubmitToConsensusAsync(statex.state);
+                if (sent)
+                {
+                    await state.WaitForCloseAsync();
 
-                return (state.CommitConsensus, state.GetMajorErrorCode());
+                    return (state.CommitConsensus, state.GetMajorErrorCode());
+                }
+                else
+                {
+                    return (null, APIResultCodes.DoubleSpentDetected);
+                }
             }
             else
             {
-                return (null, APIResultCodes.DoubleSpentDetected);
+                return (null, statex.result);
             }
         }
 
-        public AuthState CreateAuthringState(AuthorizingMsg msg, bool sourceValid)
+        public async Task<(APIResultCodes result, AuthState? state)> CreateAuthringStateAsync(AuthorizingMsg msg, bool sourceValid)
         {
-            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
+            //_log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
+
+            /*            if (msg.Block is TransactionBlock trans)
+                        {
+                            // check if a block is generated from workflow which has locked several chains.
+                            bool InWFOK = false;
+                            if (trans is IBrokerAccount brkr && IsRequestLocked(brkr.RelatedTx))
+                            {
+                                if(IsRequestLocked(brkr.RelatedTx))
+                                {
+                                    InWFOK = true;
+
+                                    // add the new block to locker dto
+                                    var lockdto = GetLockerDTOFromReq(brkr.RelatedTx);
+                                    lockdto.seqhashes.Add(trans.Hash);
+
+                                    if (lockdto.lockedups.Contains(trans.AccountID))
+                                    {
+                                        // then should be ok
+
+
+                                        // cascading lock? no.
+                                        //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
+                                    }
+                                    else
+                                    {
+                                        lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
+                                    }
+                                }
+                            }
+                            else if(trans is IPool pool)
+                            {
+                                if (IsRequestLocked(pool.RelatedTx))
+                                {
+                                    InWFOK = true;
+
+                                    // add the new block to locker dto
+                                    var lockdto = GetLockerDTOFromReq(pool.RelatedTx);
+                                    lockdto.seqhashes.Add(trans.Hash);
+
+                                    if (lockdto.lockedups.Contains(trans.AccountID))
+                                    {
+                                        // then should be ok
+
+
+                                        // cascading lock? no.
+                                        //var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, brkr.RelatedTx);
+                                    }
+                                    else
+                                    {
+                                        lockdto.lockedups.Add(trans.AccountID);  // prevent race condition. lock all blocks generated in WF.
+                                    }
+                                }
+                            }
+
+                            if (!InWFOK)
+                            {
+                                // check locker here
+                                var lockdto = await WorkFlowBase.GetLocketDTOAsync(_sys, trans);
+                                foreach (var str in lockdto.lockedups)
+                                {
+                                    if (IsAccountLocked(str))
+                                    {
+                                        // some account was locked!
+                                        _log.LogWarning($"Resource is locked: {str}");
+                                        return (APIResultCodes.ResourceIsBusy, null);
+                                    }
+                                }
+
+                                //Console.WriteLine($"Try add a lockup for msg: {msg.BlockHash} accountid: {lockdto.reqhash}");
+                                AddLockerDTO(lockdto);
+                            }
+                        }*/
 
             AuthState state;
             if (msg.Block is ServiceBlock sb)
@@ -830,13 +1141,26 @@ namespace Lyra.Core.Decentralize
 
             state.IsSourceValid = sourceValid;
 
-            return state;
+            // tmp code to create guild genesis
+            if (msg.Block is SendTransferBlock send && send.DestinationAccountId == LyraGlobal.GUILDACCOUNTID)
+            {
+                if (!await _sys.Storage.AccountExistsAsync(LyraGlobal.GUILDACCOUNTID))
+                {
+                    if (Board.CurrentLeader == _sys.PosWallet.AccountId)
+                    {
+                        var gg = await GuildGenesisAsync();
+                        await SendBlockToConsensusAndWaitResultAsync(gg);
+                    }
+                }
+            }
+
+            return (APIResultCodes.Success, state);
         }
 
         private class LocalDbSyncState
         {
             public int databaseVersion { get; set; }
-            public string svcGenHash { get; set; }      // make sure not mix with other dbs
+            public string? svcGenHash { get; set; }      // make sure not mix with other dbs
             public long lastVerifiedConsHeight { get; set; }
 
             public static LocalDbSyncState Load()
@@ -845,7 +1169,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var fn = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}syncState.json";
                     if (File.Exists(fn))
-                        return JsonConvert.DeserializeObject<LocalDbSyncState>(File.ReadAllText(fn));
+                        return JsonConvert.DeserializeObject<LocalDbSyncState>(File.ReadAllText(fn)) ?? new LocalDbSyncState();
                 }
                 catch (Exception)
                 {

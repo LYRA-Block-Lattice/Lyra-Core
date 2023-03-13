@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Lyra.Core.WorkFlow
 {
     [LyraWorkFlow]
@@ -23,14 +24,15 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_DPOREQ,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
         // DEX
         #region BRK_DEX_DPOREQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             var symbol = block.Tags.ContainsKey("symbol") ? block.Tags["symbol"] : null;
             if (symbol == null)
                 return APIResultCodes.InvalidName;
@@ -53,8 +55,10 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
+
             var symbol = send.Tags["symbol"];
             var provider = send.Tags["provider"];
 
@@ -106,7 +110,7 @@ namespace Lyra.Core.WorkFlow
                 AccountType = AccountTypes.DEX
             };
 
-            wgen.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            wgen.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             wgen.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -127,12 +131,13 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_MINT,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid == null)
                 return APIResultCodes.InvalidAccountId;
@@ -153,8 +158,9 @@ namespace Lyra.Core.WorkFlow
 
             return APIResultCodes.Success;
         }
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is TokenMintBlock))
                 return null;
@@ -202,7 +208,7 @@ namespace Lyra.Core.WorkFlow
             else
                 mint.Balances.Add(ticker, amount.ToBalanceLong());
 
-            mint.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            mint.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             mint.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -222,13 +228,14 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_GETTKN,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
         #region BRK_DEX_GETTKN
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             var dexid2 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid2 == null)
                 return APIResultCodes.InvalidAccountId;
@@ -253,8 +260,9 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is DexSendBlock))
                 return null;
@@ -297,7 +305,7 @@ namespace Lyra.Core.WorkFlow
             sendtoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
             sendtoken.Balances[ticker] -= amount.ToBalanceLong();
 
-            sendtoken.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            sendtoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendtoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -319,8 +327,9 @@ namespace Lyra.Core.WorkFlow
         }
 
         #region BRK_DEX_PUTTKN
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             var dexid3 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid3 == null)
                 return APIResultCodes.InvalidAccountId;
@@ -339,8 +348,19 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
+            return await BrokerOpsAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await BrokerOpsAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is DexReceiveBlock))
                 return null;
@@ -393,7 +413,12 @@ namespace Lyra.Core.WorkFlow
                 recvtoken.Balances.Add(ticker, chgs.Changes[ticker].ToBalanceLong());
             }
 
-            recvtoken.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            recvtoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
+            // if refund receive, attach a refund reason.
+            if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+            {
+                recvtoken.AddTag("auth", context.AuthResult.Result.ToString());
+            }
 
             recvtoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
@@ -410,13 +435,14 @@ namespace Lyra.Core.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DEX_WDWREQ,
-                RecvVia = BrokerRecvType.PFRecv,
+                RecvVia = BrokerRecvType.GuildRecv,
             };
         }
 
         #region BRK_DEX_WDWREQ
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
             var dexid4 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid4 == null)
                 return APIResultCodes.InvalidAccountId;
@@ -438,8 +464,9 @@ namespace Lyra.Core.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is TokenBurnBlock))
                 return null;
@@ -488,14 +515,14 @@ namespace Lyra.Core.WorkFlow
             burntoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
             burntoken.Balances[ticker] -= amount.ToBalanceLong();
 
-            burntoken.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            burntoken.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             burntoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
             return burntoken;
         }
 
-        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash)
+        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, LyraContext context, string hash)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(hash);
             if (!blocks.Any(a => a is TokenWithdrawBlock))

@@ -6,7 +6,10 @@ using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using MongoDB.Bson;
+using static Lyra.Core.Accounts.MongoAccountCollection;
 
 namespace Lyra.Core.Accounts
 {
@@ -23,10 +26,12 @@ namespace Lyra.Core.Accounts
         Task<bool> AccountExistsAsync(string AccountId);
         Task<Block> FindLatestBlockAsync();
         Task<Block> FindLatestBlockAsync(string AccountId);
-        Task<Block> FindBlockByHeightAsync(string AccountId, long height);
         Task<Block> FindFirstBlockAsync(string AccountId);
         TransactionBlock FindFirstBlock(string AccountId);
+        Task<Block> FindBlockByHeightAsync(string AccountId, long height);
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
+        Task<List<Block>> GetMultipleConsByHeightAsync(long height, int count);
+        Task<bool> DupCheckAsync(Block block);
 
         // DAO and OTC
         Task<List<TransactionBlock>> FindAllVotesByDaoAsync(string daoid, bool openOnly);
@@ -34,19 +39,30 @@ namespace Lyra.Core.Accounts
         Task<VotingSummary> GetVoteSummaryAsync(string voteid);
         Task<TransactionBlock> FindExecForVoteAsync(string voteid);
 
+        Task<List<DaoGenesisBlock>> FindDaosAsync(string keyword);
         Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize);
         Block GetDaoByName(string name);
         Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId);
-        Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync();
+        Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync();
         Task<List<TransactionBlock>> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
         Task<List<TransactionBlock>> FindOtcTradeByStatusAsync(string daoid, OTCTradeStatus status, int page, int pageSize);
         Task<List<TransactionBlock>> FindOtcTradeForOrderAsync(string orderid);
         Task<List<TradeStats>> GetOtcTradeStatsForUsersAsync(List<string> accountIds);
 
+        // Universal Order and trade
+        Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId);
+        Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync();
+        Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize);
+        Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize);
+        Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid);
+        Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds);
+
         Block GetDealerByName(string name);
         Block GetDealerByAccountId(string accountId);
 
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
+        Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog);
+        Task<List<TokenGenesisBlock>?> FindTokensForAccountAsync(string accountId, string keyword, string catalog);
         Block FindBlockByHash(string hash);
         Task<Block> FindBlockByHashAsync(string hash);
         Task<Block> FindBlockByHashAsync(string AccountId, string hash);
@@ -55,7 +71,7 @@ namespace Lyra.Core.Accounts
         Task<List<NonFungibleToken>> GetIssuedNFTInstancesAsync(bool GetOnlySendBlocks, string AccountId, string TokenCode);
         Task<bool> DoesAccountHaveCollectibleNFTInstanceAsync(string owner_account_id, TokenGenesisBlock token_block, string serial_number);
         Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash);
-        Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index);
+        Task<TransactionBlock?> FindBlockByIndexAsync(string AccountId, long index);
         Task<List<TransactionDescription>> SearchTransactionsAsync(string accountId, DateTime startTime, DateTime endTime, int count);
         Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index);
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);
@@ -146,6 +162,19 @@ namespace Lyra.Core.Accounts
 
         // DEX
         Task<List<TransactionBlock>> GetAllDexWalletsAsync(string owner);
-        Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider);
+        Task<TransactionBlock?> FindDexWalletAsync(string owner, string symbol, string provider);
+
+        // Fiat
+        Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner);
+        Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol);
+
+        Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog);
+        Task<BsonDocument> FindTradableUniOrders2Async(string? catalog);
+        Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId);
+
+        // v2
+        Task<List<BsonDocument>> GetBalanceAsync(string accountId);
+
+        Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time);
     }
 }

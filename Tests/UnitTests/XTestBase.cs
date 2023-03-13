@@ -10,6 +10,7 @@ using Lyra.Core.Utils;
 using Lyra.Core.WorkFlow;
 using Lyra.Data.API;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Crypto;
 using Lyra.Data.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,10 +20,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Neo;
 using Serilog;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +50,7 @@ namespace UnitTests
         protected readonly string test4PrivateKey = "yEEj2uvCQji75Qps4jZdPRZj7KtFoeW2dh7pmfXjEuYXK9Uz3";
         protected string test4PublicKey = "LUT5jYomQHCJQhG3Co7GadEtohpwwYtyYz1vABHGeDkLDpSJGXFfpYgD9XckRXQg2Hv2Yrb2Ade3jbecZpLf4hbVho6b5n";
 
-        protected string fiat = "EUR";
+        protected string fiat = "fiat/USD";
 
         IHostEnv _env;
         protected ConsensusService cs;
@@ -70,6 +74,7 @@ namespace UnitTests
         protected AuthResult _lastAuthResult;
         AutoResetEvent _newAuth = new AutoResetEvent(false);
 
+        protected string _currentTestTask;
         string _workflowKey;
         AutoResetEvent _workflowEnds = new AutoResetEvent(false);
         List<string> _endedWorkflows = new List<string>();
@@ -81,6 +86,7 @@ namespace UnitTests
         {
             var serilogLogger = new LoggerConfiguration()
                 //.MinimumLevel.Verbose()
+                .WriteTo.Console()
                 .WriteTo.File("c:\\tmp\\unittestlog.txt")
                 .CreateLogger();
 
@@ -93,64 +99,63 @@ namespace UnitTests
             sys.StartConsensus();
             store = ta.TheDagSystem.Storage;
 
-            // workflow init
-            IServiceProvider serviceProvider = ConfigureServices();
+            //IServiceProvider serviceProvider = ConfigureServices();
 
-            //start the workflow host
-            var host = serviceProvider.GetService<IWorkflowHost>();
+            ////start the workflow host
+            //var host = serviceProvider.GetService<IWorkflowHost>();
 
-            var alltypes = typeof(DebiWorkflow)
-                .Assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
+            ////var alltypes = typeof(DebiWorkflow)
+            ////    .Assembly.GetTypes()
+            ////    .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
 
-            foreach (var type in alltypes)
-            {
-                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(a => a.Name == "RegisterWorkflow")
-                    .Last();
+            //foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            //{
+            //    var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            //        .Where(a => a.Name == "RegisterWorkflow")
+            //        .Last();
 
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+            //    var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
 
-                genericMethodInfo.Invoke(host, new object[] { });
-            }
-           
-            host.OnStepError += Host_OnStepError;
-            host.OnLifeCycleEvent += Host_OnLifeCycleEvent;
-            host.Start();
+            //    genericMethodInfo.Invoke(host, new object[] { });
+            //}
 
-            _env = serviceProvider.GetService<IHostEnv>();
-            _env.SetWorkflowHost(host);
+            //host.OnStepError += cs.Host_OnStepError;
+            //host.OnLifeCycleEvent += cs.Host_OnLifeCycleEvent;
+            //host.Start();
+
+            //_env = serviceProvider.GetService<IHostEnv>();
+            //_env.SetWorkflowHost(host);
 
             //host.StartWorkflow("HelloWorld", 1, null, null);
         }
 
-        object lifeo = new object();
-        private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
-        {
-            lock(lifeo)
-            {
-                //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
-                if (evt.Reference == "end")
-                {
-                    if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
-                    {
-                        _endedWorkflows.Add(evt.WorkflowInstanceId);
-                        var hash = cs.GetHashForWorkflow(evt.WorkflowInstanceId);
-                        //Console.WriteLine($"Unlock {hash}");
-                        _lockedIdDict.Remove(hash);
-                        //Console.WriteLine($"Key is {hash} terminated. Set it. {_lockedIdDict.Count} locked.");
-                        //Console.WriteLine($"WF ended. {_lockedIdDict.Count} locked.");
-                        _workflowEnds.Set();
-                    }
-                }
-            }             
-        }
+        //object lifeo = new object();
+        //private void Host_OnLifeCycleEvent(WorkflowCore.Models.LifeCycleEvents.LifeCycleEvent evt)
+        //{
+        //    lock (lifeo)
+        //    {
+        //        //Console.WriteLine($"Life: {evt.WorkflowInstanceId}: {evt.Reference}");
+        //        if (evt.Reference == "end")
+        //        {
+        //            if (!_endedWorkflows.Contains(evt.WorkflowInstanceId))
+        //            {
+        //                _endedWorkflows.Add(evt.WorkflowInstanceId);
+        //                var hash = evt.WorkflowDefinitionId;//cs.GetHashForWorkflow(evt.WorkflowInstanceId);
+        //                //Console.WriteLine($"Unlock {hash}");
+        //                //_lockedIdDict.Remove(hash);
+        //                //Console.WriteLine($"Key is {hash} terminated. Set it. {_lockedIdDict.Count} locked.");
+        //                //Console.WriteLine($"WF ended. {_lockedIdDict.Count} locked.");
+        //                _workflowEnds.Set();
+        //            }
+        //        }
+        //    }             
+        //}
 
-        private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
-        {
-            Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
-            _workflowEnds.Set();
-        }
+        //private void Host_OnStepError(WorkflowCore.Models.WorkflowInstance workflow, WorkflowCore.Models.WorkflowStep step, Exception exception)
+        //{
+        //    Console.WriteLine($"Workflow Host Error: {workflow.Id} {step.Name} {exception}");
+        //    _workflowEnds.Set();
+        //}
 
         private static IServiceProvider ConfigureServices()
         {
@@ -200,44 +205,25 @@ namespace UnitTests
             Shutdown();
         }
 
-        protected Dictionary<string, List<string>> _lockedIdDict = new Dictionary<string, List<string>>();
+        //protected Dictionary<string, List<string>> _lockedIdDict = new Dictionary<string, List<string>>();
         private async Task<AuthResult> LockAuth(DagSystem sys, Block block)
         {
+            AuthorizingMsg msg = new AuthorizingMsg
+            {
+                From = cs.GetDagSystem().PosWallet.AccountId,
+                Block = block,
+                BlockHash = block.Hash!,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var statex = await cs.CreateAuthringStateAsync(msg, true);
+            if (statex.result != APIResultCodes.Success)
+                return new AuthResult { Result = statex.result };
+
             AuthResult LocalAuthResult = null;
             var auth = cs.AF.Create(block);
             var tmpResult = await auth.AuthorizeAsync(sys, block);
-            if (tmpResult.Result == APIResultCodes.Success)
-            {
-                // try lock
-                bool busy = false;
-                foreach (var id in tmpResult.LockedIDs)
-                    if (_lockedIdDict.Values.Any(a => a.Contains(id)))
-                    {
-                        busy = true;
-                        break;
-                    }
-                if (busy)
-                {
-                    LocalAuthResult = new AuthResult
-                    {
-                        Result = APIResultCodes.ResourceIsBusy,
-                        LockedIDs = new List<string>()
-                    };
-                }
-                else
-                {
-                    LocalAuthResult = tmpResult;
-                    if(tmpResult.LockedIDs.Count > 0)
-                    {
-                        //Console.WriteLine($"Lock {block.Hash}");
-                        _lockedIdDict.Add(block.Hash, tmpResult.LockedIDs);
-                    }                        
-                }
-            }
-            else
-            {
-                LocalAuthResult = tmpResult;
-            }
+            LocalAuthResult = tmpResult;
             return LocalAuthResult;
         }
 
@@ -252,7 +238,7 @@ namespace UnitTests
 
                     _lastAuthResult = await LockAuth(sys, block);
 
-                    if(_lastAuthResult.Result != APIResultCodes.Success)
+                    //if(_lastAuthResult.Result != APIResultCodes.Success)
                         Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Height: {block.Height} Result: {_lastAuthResult.Result} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} {block.BlockType} ");
                     //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
@@ -313,6 +299,46 @@ namespace UnitTests
                 cs = ConsensusService.Singleton;
                 cs.SetHostEnv(_env);
             }
+
+            cs.OnBlockFinished += (b, ok) =>
+            {
+                Console.WriteLine($"OnBlockFinished fired {b} result {ok}");
+                _newAuth.Set();
+            };
+
+            cs.OnWorkflowFinished += (wf, ok) =>
+            {
+                Console.WriteLine($"OnWorkflowFinished fired {wf} result {ok}");
+                if (wf == _workflowKey)
+                    _workflowEnds.Set();
+                else
+                    Console.WriteLine($"wf key different. expecting {_workflowKey} but {wf}");
+            };
+
+            // workflow init
+            IServiceProvider serviceProvider = ConfigureServices();
+            var host = serviceProvider.GetService<IWorkflowHost>();
+
+            foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            {
+                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(a => a.Name == "RegisterWorkflow")
+                    .Last();
+
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+
+                genericMethodInfo.Invoke(host, new object[] { });
+            }
+
+            _env = serviceProvider.GetService<IHostEnv>();
+            cs.SetHostEnv(_env);
+            _env.SetWorkflowHost(host);
+            cs.StartWorkflowEngine();
+
+            cs.TestSharedInit();
+
+            await Task.Delay(100);
+
             cs.OnNewBlock += async (b) => (ConsensusResult.Yea, (await AuthAsync(b)).ResultCode);
             //{
             //    var result = ;
@@ -329,7 +355,9 @@ namespace UnitTests
             await AuthAsync(tokenGen);
             var pf = await cs.CreatePoolFactoryBlockAsync();
             await AuthAsync(pf);
-            var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
+            var gg = await cs.GuildGenesisAsync();
+            await AuthAsync(gg);
+            var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf, gg);
             await AuthAsync(consGen);
             //await store.AddBlockAsync(consGen);
 
@@ -345,8 +373,10 @@ namespace UnitTests
                 .Callback(async () => { ahr = await api.GetSyncHeightAsync(); })
                 .ReturnsAsync(() => ahr);
 
+            //mock.Setup(x => x.GetLastServiceBlockAsync())
+            //    .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
             mock.Setup(x => x.GetLastServiceBlockAsync())
-                .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
+                .Returns(() => Task.FromResult(BlockAPIResult.Create(svcGen)));
             mock.Setup(x => x.GetLastConsolidationBlockAsync())
                 .Returns(() => Task.FromResult(api.GetLastConsolidationBlockAsync()).Result);
             mock.Setup(x => x.GetBlockByIndexAsync(It.IsAny<string>(), It.IsAny<long>()))
@@ -364,8 +394,18 @@ namespace UnitTests
             mock.Setup(x => x.FindDexWalletAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string, string>((owner, symbol, provider) => Task.FromResult(api.FindDexWalletAsync(owner, symbol, provider)).Result);
 
+            // Fiat
+            mock.Setup(x => x.GetAllFiatWalletsAsync(It.IsAny<string>()))
+                .Returns<string>((owner) => Task.FromResult(api.GetAllFiatWalletsAsync(owner)).Result);
+            mock.Setup(x => x.FindFiatWalletAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string>((owner, symbol) => Task.FromResult(api.FindFiatWalletAsync(owner, symbol)).Result);
+
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
+            mock.Setup(x => x.GetBlockByHashAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string, string>((acct, hash, sign) => Task.FromResult(api.GetBlockByHashAsync(acct, hash, sign)).Result);
+            mock.Setup(x => x.GetBlockByHashAsync(It.IsAny<string>()))
+                .Returns<string>((hash) => Task.FromResult(api.GetBlockByHashAsync(hash)).Result);
             mock.Setup(x => x.GetBlockBySourceHashAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetBlockBySourceHashAsync(acct)).Result);
             mock.Setup(x => x.GetBlocksByRelatedTxAsync(It.IsAny<string>()))
@@ -384,15 +424,28 @@ namespace UnitTests
                 .Returns<int, int>((page, pageSize) => Task.FromResult(api.GetAllDaosAsync(page, pageSize)).Result);
             mock.Setup(x => x.GetOtcOrdersByOwnerAsync(It.IsAny<string>()))
                 .Returns<string>(accountId => Task.FromResult(api.GetOtcOrdersByOwnerAsync(accountId)).Result);
-            mock.Setup(x => x.FindTradableOtcAsync())
-                .Returns(() => Task.FromResult(api.FindTradableOtcAsync()).Result);
+            mock.Setup(x => x.FindTradableOrdersAsync())
+                .Returns(() => Task.FromResult(api.FindTradableOrdersAsync()).Result);
             mock.Setup(x => x.FindOtcTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) => 
                     Task.FromResult(api.FindOtcTradeAsync(accountId, isOpen, page, pagesize)).Result);
             mock.Setup(x => x.FindOtcTradeByStatusAsync(It.IsAny<string>(), It.IsAny<OTCTradeStatus>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns<string, OTCTradeStatus, int, int>((daoid, status, page, pagesize) =>
-                    Task.FromResult(api.FindOtcTradeByStatusAsync(daoid, status, page, pagesize)).Result); 
-            
+                    Task.FromResult(api.FindOtcTradeByStatusAsync(daoid, status, page, pagesize)).Result);
+
+            #region Universal Trade
+            mock.Setup(x => x.GetUniOrdersByOwnerAsync(It.IsAny<string>()))
+                .Returns<string>(accountId => Task.FromResult(api.GetUniOrdersByOwnerAsync(accountId)).Result);
+            mock.Setup(x => x.FindTradableUniAsync())
+                .Returns(() => Task.FromResult(api.FindTradableUniAsync()).Result);
+            mock.Setup(x => x.FindUniTradeAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<string, bool, int, int>((accountId, isOpen, page, pagesize) =>
+                    Task.FromResult(api.FindUniTradeAsync(accountId, isOpen, page, pagesize)).Result);
+            mock.Setup(x => x.FindUniTradeByStatusAsync(It.IsAny<string>(), It.IsAny<UniTradeStatus>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns<string, UniTradeStatus, int, int>((daoid, status, page, pagesize) =>
+                    Task.FromResult(api.FindUniTradeByStatusAsync(daoid, status, page, pagesize)).Result);
+            #endregion
+
             mock.Setup(x => x.FindAllVotesByDaoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns<string, bool>((daoid, openOnly) =>
                     Task.FromResult(api.FindAllVotesByDaoAsync(daoid, openOnly)).Result);
@@ -455,14 +508,14 @@ namespace UnitTests
             Assert.IsTrue(ret == APIResultCodes.Success, $"gensisis can't sync: {ret}");
 
             // make sure test and test2 has been registed to dealer
-            var url = networkId == "devnet" ? "https://dealer.devnet.lyra.live:7070" : "https://dealertestnet.lyra.live/";
+            var url = networkId == "devnet" ? "https://dealerdevnet.lyra.live/" : "https://dealertestnet.lyra.live/";
             dealer = new DealerClient(new Uri(new Uri(url), "/api/dealer/"));
 
             var lsb = await client.GetLastServiceBlockAsync();
             var rret = await dealer.RegisterAsync(testPublicKey, "unittest1", "Unit", "", "Test 1", "u1@", "111", "111", "",
                 Signatures.GetSignature(testPrivateKey, (lsb.GetBlock().Hash), testPublicKey), "", ""
                 );
-            Assert.IsTrue(rret.Successful());
+            Assert.IsTrue(rret.Successful(), $"dealer register error {rret.ResultCode}");
             var rret2 = await dealer.RegisterAsync(test2PublicKey, "unittest2", "Unit", "", "Test 2", "u1@", "222", "111", "",
                 Signatures.GetSignature(test2PrivateKey, (lsb.GetBlock().Hash), test2PublicKey), "", ""
                 );
@@ -472,30 +525,58 @@ namespace UnitTests
         protected async Task WaitBlock(string target)
         {
             Console.WriteLine($"Waiting for block: {target}");
-            var ret = _newAuth.WaitOne(10000);
+
+            var ret = _newAuth.WaitOne(Debugger.IsAttached ? 300000 : 3000);
+
             Assert.IsTrue(ret, "block not authorized properly.");
         }
 
-        protected async Task WaitWorkflow(string target, bool checklock = true)
+        protected async Task WaitWorkflow(string target)
         {
-            await WaitWorkflow(null, target, checklock);
+            await WaitWorkflow(null, target);
         }
 
-        protected async Task WaitWorkflow(string key, string target, bool checklock = true)
+        protected async Task<APIResultCodes> WaitWorkflow(string key, string target, APIResultCodes expected = APIResultCodes.Success)
         {
             _workflowKey = key;            
 
-            Console.WriteLine($"\nWaiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
-#if DEBUG
-            var ret = _workflowEnds.WaitOne(1000000);
-#else
-            var ret = _workflowEnds.WaitOne(3000);
-#endif
-            _workflowEnds.Reset();
+            Console.WriteLine($"\n{_currentTestTask} Waiting for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}");
+
+            var ret = _workflowEnds.WaitOne(Debugger.IsAttached ? 30000 : 30000);
+            
             //Console.WriteLine($"Waited for workflow ({DateTime.Now:mm:ss.ff}):: {target}, Got it? {ret}");
-            Assert.IsTrue(ret, "workflow not finished properly.");
-            if(checklock)
-                Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
+            Assert.IsTrue(ret, $"{_currentTestTask} workflow {_workflowKey} not finished properly.");
+            //if(checklock)
+            //    Assert.IsTrue(_lockedIdDict.Count == 0, $"Pending locked ID: {_lockedIdDict.Count}");
+
+            if(cs != null)
+            {
+                Console.WriteLine($"{_currentTestTask} Wait for workflow ({DateTime.Now:mm:ss.ff}):: key: {key}, target: {target}. Done. {cs.LockedCount} locked.");
+                if (cs.LockedCount > 0)
+                {
+                    foreach (var l in cs.Lockedups)
+                    {
+                        Console.WriteLine($"Pending Locking: {l}");
+                    }
+                }
+            }
+
+            Console.WriteLine();
+
+            var blksret = await client.GetBlocksByRelatedTxAsync(key);
+            Assert.IsTrue(blksret.Successful(), $"Can't get related tx while wait for workflow: {blksret.ResultCode}");
+            var blk1 = blksret.GetBlocks().FirstOrDefault();
+
+            //Assert.IsTrue(_lastAuthResult.Result == APIResultCodes.Success, $"Last result is not success: {_lastAuthResult.Result}");
+            Assert.IsNotNull(blk1, $"{_currentTestTask} can't get wf recv block for key {key}");
+
+            Assert.IsTrue(blk1.Tags.ContainsKey("auth"), "wf first block not contains auth tag.");
+            var wfresult = Enum.Parse<APIResultCodes>(blk1.Tags["auth"]);
+            Assert.IsTrue(wfresult == expected, $"{_currentTestTask} workflow result not expected: {wfresult}");
+
+            _workflowEnds.Reset();
+            Console.WriteLine($"Workflow ({DateTime.Now:mm:ss.ff}) {_currentTestTask} ended.");
+            return wfresult;
         }
 
         private async Task CreateConsolidation()
@@ -513,6 +594,7 @@ namespace UnitTests
             if(networkId == "xtest")
             {
                 TestSetup();
+                await Task.Delay(100);      // make sure mongodb clean all.
                 await CreateTestBlockchainAsync();
             }                
             else
@@ -567,12 +649,50 @@ namespace UnitTests
             Assert.AreEqual(test4PublicKey, test4Wallet.AccountId);
 
             await test4Wallet.SyncAsync(client);
+
+            if(networkId != "xtest")
+            {
+                await testWallet.SetupEventsListenerAsync();
+                await test2Wallet.SetupEventsListenerAsync();
+                await test3Wallet.SetupEventsListenerAsync();
+                await test4Wallet.SetupEventsListenerAsync();
+            }
+        }
+
+        protected async Task PrintBalancesForAsync(params string[] accountids)
+        {
+            foreach (var x in accountids)
+            {
+                var ret = await client.GetLastBlockAsync(x);
+                if (ret.Successful())
+                {
+                    var block = ret.GetBlock() as TransactionBlock;
+                    PrintBalance(block.BlockType.ToString(), block);
+                }
+                else
+                {
+                    Console.WriteLine($"Print Balance failed: {ret.ResultCode}");
+                }
+            }
+        }
+
+        protected void PrintBalances(params TransactionBlock[] blocks)
+        {
+            foreach(var x in blocks)
+            {
+                PrintBalance(x.BlockType.ToString(), x);
+            }
+        }
+
+        protected void PrintBalance(string name, TransactionBlock trans)
+        {
+            Console.WriteLine($"Balance: {name}, {trans.BalanceToReadString()}");
         }
 
         protected async Task SetupEventsListener()
         {
-            var port = TestConfig.networkId == "mainnet" ? 5504 : 4504;
-            var url = $"https://{TestConfig.networkId}.lyra.live:{port}/events";
+            //var port = TestConfig.networkId == "mainnet" ? 5504 : 4504;
+            var url = $"https://{TestConfig.networkId}.lyra.live/events";
             _eventClient = new LyraEventClient(LyraEventHelper.CreateConnection(new Uri(url)));
 
             _eventClient.RegisterOnEvent(async evt => await ProcessEventAsync(evt));

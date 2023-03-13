@@ -28,8 +28,9 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        public async override Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send)
+        public async override Task<Func<DagSystem, LyraContext, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
             var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
 
@@ -52,8 +53,9 @@ namespace Lyra.Core.WorkFlow.OTC
             }
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 4 ||
                 !send.Tags.ContainsKey("tradeid") ||
                 string.IsNullOrWhiteSpace(send.Tags["tradeid"]) ||
@@ -116,8 +118,9 @@ namespace Lyra.Core.WorkFlow.OTC
                     // we verify cancel request and reply by signature.
                     var lastCase = brief.GetDisputeHistory().Last();
 
-                    if (!lastCase.Verify(tradeblk))
-                        return APIResultCodes.Unauthorized;
+                    // disable for upgrade, non-compatible
+                    //if (!lastCase.Verify(tradeblk))
+                    //    return APIResultCodes.Unauthorized;
 
                     //if (!lastCase.GetAllowCancel())
                     //    return APIResultCodes.InvalidOperation; // cancellation is controlled by trading room
@@ -140,8 +143,19 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SealTradeAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
+            return await SealTradeAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await SealTradeAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        async Task<TransactionBlock?> SealTradeAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
@@ -150,7 +164,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeRecvBlock>(),
-                () => WFState.Init,
+                () => context.State,
                 (b) =>
                 {
                     // recv
@@ -169,8 +183,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        async Task<TransactionBlock> SendTokenFromTradeToOrderAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromTradeToOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
 
             var lastblock = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
@@ -179,7 +194,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
@@ -198,8 +213,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        async Task<TransactionBlock> OrderReceiveTokenFromTradeAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> OrderReceiveTokenFromTradeAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
 
             var lastblocktrade = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
@@ -209,7 +225,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblockorder,
                 () => lastblockorder.GenInc<OtcOrderRecvBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send
@@ -231,8 +247,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralToBuyerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
             var tradelatest = await sys.Storage.FindLatestBlockAsync(tradeid) as TransactionBlock;
 
@@ -241,7 +258,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, daolastblock,
                 () => daolastblock.GenInc<DaoSendBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv
@@ -257,8 +274,9 @@ namespace Lyra.Core.WorkFlow.OTC
                 });
         }
 
-        async Task<TransactionBlock> SendTokenFromTradeToTradeOwnerAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SendTokenFromTradeToTradeOwnerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var tradeid = send.Tags["tradeid"];
             var trade = await sys.Storage.FindLatestBlockAsync(tradeid) as IOtcTrade;
 
@@ -268,7 +286,7 @@ namespace Lyra.Core.WorkFlow.OTC
 
             return await TransactionOperateAsync(sys, send.Hash, lastblock,
                 () => lastblock.GenInc<OtcTradeSendBlock>(),
-                () => WFState.Running,
+                () => context.State,
                 (b) =>
                 {
                     // send

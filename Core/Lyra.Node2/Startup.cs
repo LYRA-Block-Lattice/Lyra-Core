@@ -72,7 +72,11 @@ namespace Lyra.Node2
 
             services.AddMvc();
             services.AddControllers();
-            services.AddSignalR();
+            services.AddEndpointsApiExplorer();
+            services.AddSignalR(o =>
+            {
+                o.EnableDetailedErrors = true;
+            });
 
             // workflow need this
             BsonClassMap.RegisterClassMap<LyraContext>(cm =>
@@ -99,6 +103,7 @@ namespace Lyra.Node2
             services.AddTransient<ReqViewChange>();
             services.AddTransient<SubmitBlock>();
             services.AddTransient<CustomMessage>();
+            services.AddTransient<Terminator>();
 
             services.AddApiVersioning(options => {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
@@ -121,9 +126,49 @@ namespace Lyra.Node2
             //services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
 
             // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = $"{LyraGlobal.PRODUCTNAME} API", Version = "v1" });
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = $"{LyraGlobal.PRODUCTNAME} API",
+                    Description = "Lyra blockchain API.",
+                    TermsOfService = new Uri("https://lyra.live/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Contact",
+                        Url = new Uri("https://lyra.live/contact")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License",
+                        Url = new Uri("https://lyra.live/license")
+                    }
+                });
+
+                options.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Version = "v2",
+                    Title = $"Lyra Web3 eCommerce API",
+                    Description = "Lyra Web3 eCommerce API with blockchain data query.",
+                    TermsOfService = new Uri("https://lyra.live/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Contact",
+                        Url = new Uri("https://lyra.live/contact")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "License",
+                        Url = new Uri("https://lyra.live/license")
+                    }
+                });
+
+                // using System.Reflection;
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+                var xmlFilename2 = $"Lyra.Data.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename2));
             });
         }
 
@@ -170,12 +215,11 @@ namespace Lyra.Node2
                 //app.UseHsts();
             }
 
-            app.UseCors(builder =>
-                builder
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                );
+            app.UseCors(x => x
+                                .AllowAnyMethod()
+                                .AllowAnyHeader()
+                                .SetIsOriginAllowed(origin => true) // allow any origin
+                                .AllowCredentials()); // allow credentials
 
             var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
             loggerFactory.AddFile(logPath + "noded-{Date}.txt");
@@ -196,6 +240,7 @@ namespace Lyra.Node2
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V1");
+                c.SwaggerEndpoint("/swagger/v2/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V2");
             });
 
             //app.UseHttpsRedirection();
@@ -219,20 +264,20 @@ namespace Lyra.Node2
             var host = app.ApplicationServices.GetService<IWorkflowHost>();
 
             // register work flows
-            var alltypes = typeof(DebiWorkflow)
-                .Assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
+            //var alltypes = typeof(DebiWorkflow)
+            //    .Assembly.GetTypes()
+            //    .Where(t => t.IsSubclassOf(typeof(DebiWorkflow)) && !t.IsAbstract);
 
-            foreach (var type in alltypes)
-            {
-                var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(a => a.Name == "RegisterWorkflow")
-                    .Last();
+            //foreach (var type in BrokerFactory.DynWorkFlows.Values.Select(a => a.GetType()))
+            //{
+            //    var methodInfo = typeof(WorkflowHost).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            //        .Where(a => a.Name == "RegisterWorkflow")
+            //        .Last();
 
-                var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
+            //    var genericMethodInfo = methodInfo.MakeGenericMethod(type, typeof(LyraContext));
 
-                genericMethodInfo.Invoke(host, new object[] { });
-            }
+            //    genericMethodInfo.Invoke(host, new object[] { });
+            //}
 
             //host.Start(); // will start later on consensus network is ready
             var evn = app.ApplicationServices.GetService<IHostEnv>();

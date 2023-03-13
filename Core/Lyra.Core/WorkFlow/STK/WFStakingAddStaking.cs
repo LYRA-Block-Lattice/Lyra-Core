@@ -11,6 +11,7 @@ using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
 
+
 namespace Lyra.Core.WorkFlow.STK
 {
     [LyraWorkFlow]//v
@@ -25,8 +26,11 @@ namespace Lyra.Core.WorkFlow.STK
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var block = context.Send;
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+
             var chgs = block.GetBalanceChanges(lastBlock);
             if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return APIResultCodes.InvalidFeeAmount;
@@ -44,11 +48,22 @@ namespace Lyra.Core.WorkFlow.STK
             return APIResultCodes.Success;
         }
 
-        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
-            return await CNOAddStakingImplAsync(sys, send, send.Hash, true);
+            return await BrokerOpsAsync(sys, context) as ReceiveTransferBlock;
         }
-        public static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, SendTransferBlock send, string relatedTx, bool finalOne)
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            return await BrokerOpsAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
+            return await CNOAddStakingImplAsync(sys, context, send, send.Hash);
+        }
+        public static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, LyraContext context, SendTransferBlock send, string relatedTx)
         {
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
@@ -100,7 +115,12 @@ namespace Lyra.Core.WorkFlow.STK
             var chgs = send.GetBalanceChanges(sendPrev);
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
 
-            stkNext.AddTag(Block.MANAGEDTAG, finalOne ? WFState.Finished.ToString() : WFState.Running.ToString());
+            stkNext.AddTag(Block.MANAGEDTAG, context.State.ToString());
+            // if refund receive, attach a refund reason.
+            if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+            {
+                stkNext.AddTag("auth", context.AuthResult.Result.ToString());
+            }
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

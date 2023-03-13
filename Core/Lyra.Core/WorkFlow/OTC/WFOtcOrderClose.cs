@@ -27,8 +27,9 @@ namespace Lyra.Core.WorkFlow.OTC
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("daoid") ||                                            
                 !send.Tags.ContainsKey("orderid") ||
@@ -76,8 +77,9 @@ namespace Lyra.Core.WorkFlow.OTC
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> SealOrderAsync(DagSystem sys, SendTransferBlock send)
+        async Task<TransactionBlock> SealOrderAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var daoid = send.Tags["daoid"];
             var orderid = send.Tags["orderid"];
 
@@ -140,14 +142,15 @@ namespace Lyra.Core.WorkFlow.OTC
             
             sendToTradeBlock.Balances["LYR"] = 0;          // all remaining LYR
 
-            sendToTradeBlock.AddTag(Block.MANAGEDTAG, WFState.Running.ToString());
+            sendToTradeBlock.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendToTradeBlock.InitializeBlock(lastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendToTradeBlock;
         }
 
-        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, SendTransferBlock send)
+        protected async Task<TransactionBlock> SendCollateralToSellerAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             var daoid = send.Tags["daoid"];
             var orderid = send.Tags["orderid"];
             var orderlatest = await sys.Storage.FindLatestBlockAsync(orderid) as TransactionBlock;
@@ -229,7 +232,7 @@ namespace Lyra.Core.WorkFlow.OTC
             dict[LyraGlobal.OFFICIALTICKERCODE] -= amountToSeller;
             sendCollateral.Balances = dict.ToLongDict();
 
-            sendCollateral.AddTag(Block.MANAGEDTAG, WFState.Finished.ToString());
+            sendCollateral.AddTag(Block.MANAGEDTAG, context.State.ToString());
 
             sendCollateral.InitializeBlock(daolastblock, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return sendCollateral;

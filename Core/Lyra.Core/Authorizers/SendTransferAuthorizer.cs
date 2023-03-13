@@ -19,10 +19,19 @@ namespace Lyra.Core.Authorizers
 {
     public class SendTransferAuthorizer : TransactionAuthorizer
     {
+        private readonly List<string> _totDomains = new List<string> {
+            "tot", "sku", "svc"
+        };
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.SendTransfer;
         }
+
+        // decouple send. minimal verification.
+        // target normal account: ok or lost.
+        // target IBrokerAccount: unreceive by workflow.
+        // most important, no lock at all!!!
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is SendTransferBlock))
@@ -56,6 +65,10 @@ namespace Lyra.Core.Authorizers
 
             if (block.AccountID.Equals(LyraGlobal.BURNINGACCOUNTID))
                 return APIResultCodes.InvalidAccountId;
+
+            //// fiat token never be in wallet.
+            //if(block.Balances.Any(a => a.Key.ToLower().StartsWith("fiat/")))
+            //    return APIResultCodes.InvalidBalance;
 
             //// 1. check if the account already exists
             //if (!await sys.Storage.AccountExists(block.AccountID))
@@ -103,10 +116,14 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
+            // api upgrade / obsolete
+            if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
+                return APIResultCodes.APIIsObsolete;
+
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
-            // a normal send is success.
+/*            // a normal send is success.
             // monitor special account
             if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
             {
@@ -143,7 +160,7 @@ namespace Lyra.Core.Authorizers
                 {
                     return APIResultCodes.InvalidDestinationAccountId;
                 }
-            }
+            }*/
 
             return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "SendTransferAuthorizer->TransactionAuthorizer");
         }

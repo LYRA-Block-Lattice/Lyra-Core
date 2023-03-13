@@ -16,7 +16,7 @@ namespace Lyra.Core.Blocks
     {
 
         // the address (account id, public key) of the recipient
-        public string DestinationAccountId { get; set; }
+        public string DestinationAccountId { get; set; } = null!;
 
         // Optional ID that can be used by the recipient to request the status of transaction without compromising identity
         // Can be assigned either by sender or recipient
@@ -27,12 +27,12 @@ namespace Lyra.Core.Blocks
         // TO DO: create new separate block for send transfer; make this block abstract base class for all sending blocks
         //public string PaymentID { get; set; }
 
-        public override bool AuthCompare(Block other)
+        public override bool AuthCompare(Block? other)
         {
             var ob = other as SendTransferBlock;
 
             return base.AuthCompare(ob) &&
-                DestinationAccountId == ob.DestinationAccountId
+                DestinationAccountId == ob?.DestinationAccountId
                 ;
         }
 
@@ -48,7 +48,7 @@ namespace Lyra.Core.Blocks
             return BlockTypes.SendTransfer;
         }
 
-        public override TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        public override TransactionInfoEx? GetTransaction(TransactionBlock previousBlock)
         {
             var chgs = GetBalanceChanges(previousBlock);
             if (chgs.Changes.Count > 1)

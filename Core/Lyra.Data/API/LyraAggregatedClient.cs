@@ -1,7 +1,9 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
+using Org.BouncyCastle.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -148,7 +150,6 @@ namespace Lyra.Data.API
             var results = await WhenAllOrExceptionAsync(taskss);
 
             int expectedCount = _networkId == "devnet" ? 3 : LyraGlobal.GetMajority(19);
-            //int expectedCount = (int)Math.Round((decimal)taskss.Count / 2);// LyraGlobal.GetMajority(taskss.Count);
             if (_seedsOnly)    // seed stage
                 expectedCount = 2;
 
@@ -172,21 +173,28 @@ namespace Lyra.Data.API
                     })
                     .OrderByDescending(x => x.Count);
 
-                var best = coll.First();
+                var best = coll.FirstOrDefault();
 
-                if (best.Count >= expectedCount)
+                if(best != null)
                 {
-                    var x = results.First(a => a.IsSuccess && a.Result == best.Data);
+                    if (best.Count >= expectedCount)
+                    {
+                        var x = results.First(a => a.IsSuccess && a.Result == best.Data);
 
-                    finalResult = x.Result;
-                    //return (x.Result, "");
+                        finalResult = x.Result;
+                        //return (x.Result, "");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Aggregator Result count: {best.Count} / {expectedCount} / {taskss.Count}");
+                        // print the unconsist ones
+                    }
+                    dbConsist = best.Count == results.Count();
                 }
                 else
                 {
-                    Console.WriteLine($"Aggregator Result count: {best.Count} / {expectedCount} / {taskss.Count}");
-                    // print the unconsist ones
+                    dbConsist = true;
                 }
-                dbConsist = best.Count == results.Count();
             }
 
             var failedResult = results.Where(a => !a.IsSuccess);
@@ -247,6 +255,13 @@ namespace Lyra.Data.API
             var tasks = _primaryClients.Select(client => client.GetBlockAsync(Hash)).ToList();
 
             return await CheckResultAsync("GetBlock", tasks);
+        }
+
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string Hash)
+        {
+            var tasks = _primaryClients.Select(client => client.GetBlockByHashAsync("", Hash, "")).ToList();
+
+            return await CheckResultAsync("GetBlockByHash", tasks, Hash);
         }
 
         public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
@@ -563,6 +578,16 @@ namespace Lyra.Data.API
             return SeedClient.FindDexWalletAsync(owner, symbol, provider);
         }
 
+        public Task<MultiBlockAPIResult> GetAllFiatWalletsAsync(string owner)
+        {
+            return SeedClient.GetAllFiatWalletsAsync(owner);
+        }
+
+        public Task<BlockAPIResult> FindFiatWalletAsync(string owner, string symbol)
+        {
+            return SeedClient.FindFiatWalletAsync(owner, symbol);
+        }
+
         public Task<MultiBlockAPIResult> GetAllDaosAsync(int page, int pageSize)
         {
             return SeedClient.GetAllDaosAsync(page, pageSize);
@@ -578,9 +603,9 @@ namespace Lyra.Data.API
             return SeedClient.GetOtcOrdersByOwnerAsync(accountId);
         }
 
-        public Task<ContainerAPIResult> FindTradableOtcAsync()
+        public Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
-            return SeedClient.FindTradableOtcAsync();
+            return SeedClient.FindTradableOrdersAsync();
         }
 
         public Task<MultiBlockAPIResult> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
@@ -629,5 +654,67 @@ namespace Lyra.Data.API
 
             return await CheckResultAsync("", tasks);
         }
+
+        #region Uni Trade
+        public Task<MultiBlockAPIResult> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            return SeedClient.GetUniOrdersByOwnerAsync(accountId);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeForOrderAsync(string orderid)
+        {
+            return SeedClient.FindUniTradeForOrderAsync(orderid);
+        }
+
+        public Task<ContainerAPIResult> FindTradableUniAsync()
+        {
+            return SeedClient.FindTradableUniAsync();
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            return SeedClient.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize);
+        }
+
+        public Task<MultiBlockAPIResult> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            return SeedClient.FindUniTradeByStatusAsync(daoid, status, page, pageSize);
+        }
+
+        public Task<SimpleJsonAPIResult> GetUniTradeStatsForUsersAsync(TradeStatsReq req)
+        {
+            return SeedClient.GetUniTradeStatsForUsersAsync(req);
+        }
+
+        public Task<string?> FindTokensAsync(string? keyword, string? cat)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string?> FindDaosAsync(string? keyword)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string?> FindTokensForAccountAsync(string accountId, string keyword, string catalog)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<MultiBlockAPIResult> GetUniOrderByIdAsync(string orderid)
+        {
+            return SeedClient.GetUniOrderByIdAsync(orderid);
+        }
+
+        public Task<BlockAPIResult> FindBlockByHeightAsync(string AccountId, long height)
+        {
+            return SeedClient.FindBlockByHeightAsync(AccountId, height);
+        }
+
+        public Task<MultiBlockAPIResult> GetMultipleConsByHeightAsync(long height, int count)
+        {
+            return SeedClient.GetMultipleConsByHeightAsync(height, count);
+        }
+        #endregion
     }
 }

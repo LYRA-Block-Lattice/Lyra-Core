@@ -11,13 +11,17 @@ namespace Lyra.Core.WorkFlow
     public interface IDebiWorkFlow
     {
         WorkFlowDescription GetDescription();
-        Task<Func<DagSystem, SendTransferBlock, Task<TransactionBlock>>[]> GetProceduresAsync(DagSystem sys, SendTransferBlock send);
+        Task<Func<DagSystem, LyraContext, Task<TransactionBlock?>>[]> GetProceduresAsync(DagSystem sys, LyraContext context);
 
-        Task<WrokflowAuthResult> PreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
-        Task<TransactionBlock> MainProcAsync(DagSystem sys, SendTransferBlock send, LyraContext context);
+        Task<WorkflowAuthResult> PreAuthAsync(DagSystem sys, LyraContext context);
+        Task<TransactionBlock?> MainProcAsync(DagSystem sys, LyraContext context);
+
+        Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context);
+        Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context);
+        Task<SendTransferBlock?> RefundSendAsync(DagSystem sys, LyraContext context);
     }
 
-    public class WrokflowAuthResult
+    public class WorkflowAuthResult
     {
         public APIResultCodes Result { get; set; }
         public List<string> LockedIDs { get; set; }

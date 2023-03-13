@@ -28,8 +28,9 @@ namespace Lyra.Core.WorkFlow.DAO
             };
         }
 
-        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, LyraContext context)
         {
+            var send = context.Send;
             if (send.Tags.Count != 3 ||
                 !send.Tags.ContainsKey("data") ||
                 string.IsNullOrWhiteSpace(send.Tags["data"]) ||
@@ -123,8 +124,20 @@ namespace Lyra.Core.WorkFlow.DAO
             return APIResultCodes.Success;
         }
 
-        async Task<TransactionBlock> MainAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<ReceiveTransferBlock?> NormalReceiveAsync(DagSystem sys, LyraContext context)
         {
+            return await MainAsync(sys, context) as ReceiveTransferBlock;
+        }
+
+        public override async Task<ReceiveTransferBlock?> RefundReceiveAsync(DagSystem sys, LyraContext context)
+        {
+            // just receive, change nothing.
+            return await TransReceiveAsync<DaoRecvBlock>(sys, context) as ReceiveTransferBlock;
+        }
+
+        async Task<TransactionBlock?> MainAsync(DagSystem sys, LyraContext context)
+        {
+            var send = context.Send;
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (recv != null)
@@ -138,7 +151,7 @@ namespace Lyra.Core.WorkFlow.DAO
 
             return await TransactionOperateAsync(sys, send.Hash, prevBlock, 
                 () => prevBlock.GenInc<DaoRecvBlock>(),
-                () => WFState.Finished,
+                () => context.State,
                 (b) =>
                 {
                     // recv
@@ -175,6 +188,12 @@ namespace Lyra.Core.WorkFlow.DAO
                             dao.BuyerPar = int.Parse(chg.Value);
                         else if (chg.Key == "Description")
                             dao.Description = chg.Value;
+                    }
+
+                    // if refund receive, attach a refund reason.
+                    if (context.State == WFState.NormalReceive || context.State == WFState.RefundReceive)
+                    {
+                        b.AddTag("auth", context.AuthResult.Result.ToString());
                     }
                 });
         }

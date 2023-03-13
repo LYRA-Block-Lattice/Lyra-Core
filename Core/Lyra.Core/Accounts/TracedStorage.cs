@@ -3,13 +3,16 @@ using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.API.ODR;
 using Lyra.Data.API.WorkFlow;
+using Lyra.Data.API.WorkFlow.UniMarket;
 using Lyra.Data.Blocks;
 using Lyra.Shared;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Lyra.Core.Accounts.MongoAccountCollection;
 
 namespace Lyra.Core.Accounts
 {
@@ -33,13 +36,19 @@ namespace Lyra.Core.Accounts
         //public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
-        public async Task<Block> FindBlockByHeightAsync(string AccountId, long height) => await StopWatcher.TrackAsync(() => _store.FindBlockByHeightAsync(AccountId, height), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
+        //public async Task<Block> FindBlockByHeightAsync(string AccountId, long height) => await StopWatcher.TrackAsync(() => _store.FindBlockByHeightAsync(AccountId, height), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
+        public async Task<bool> DupCheckAsync(Block block) => await StopWatcher.TrackAsync(() => _store.DupCheckAsync(block), StopWatcher.GetCurrentMethod());
+
         public async Task<bool> AccountExistsAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.AccountExistsAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.AccountExistsAsync(AccountId);
         public async Task<Block> FindLatestBlockAsync() => await StopWatcher.TrackAsync(() => _store.FindLatestBlockAsync(), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync();
         public async Task<Block> FindLatestBlockAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.FindLatestBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
         public async Task<Block> FindBlockByHashAsync(string hash) => await StopWatcher.TrackAsync(() => _store.FindBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(hash);
+        public async Task<List<Block>> GetMultipleConsByHeightAsync(long height, int count) => await StopWatcher.TrackAsync(() => _store.GetMultipleConsByHeightAsync(height, count), StopWatcher.GetCurrentMethod());
         public async Task<Block> FindBlockByHashAsync(string AccountId, string hash) => await StopWatcher.TrackAsync(() => _store.FindBlockByHashAsync(AccountId, hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(AccountId, hash);
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword) => await StopWatcher.TrackAsync(() => _store.FindTokenGenesisBlocksAsync(keyword), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlocksAsync(keyword);
+        public async Task<List<TokenGenesisBlock>> FindTokensForAccountAsync(string accountId, string keyword, string catalog) => await StopWatcher.TrackAsync(() => _store.FindTokensForAccountAsync(accountId, keyword, catalog), StopWatcher.GetCurrentMethod());//_store.FindTokensAsync(keyword);
+        public async Task<List<TokenGenesisBlock>> FindTokensAsync(string keyword, string catalog) => await StopWatcher.TrackAsync(() => _store.FindTokensAsync(keyword, catalog), StopWatcher.GetCurrentMethod());//_store.FindTokensAsync(keyword);
+        public async Task<List<DaoGenesisBlock>> FindDaosAsync(string keyword) => await StopWatcher.TrackAsync(() => _store.FindDaosAsync(keyword), StopWatcher.GetCurrentMethod());//_store.FindDaosAsync(keyword);
         public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker) => await StopWatcher.TrackAsync(() => _store.FindTokenGenesisBlockAsync(Hash, Ticker), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlockAsync(Hash, Ticker);
         public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash) => await StopWatcher.TrackAsync(() => _store.FindBlockBySourceHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockBySourceHashAsync(hash);
         public async Task<long> GetBlockCountAsync() => await StopWatcher.TrackAsync(() => _store.GetBlockCountAsync(), StopWatcher.GetCurrentMethod());//_store.GetBlockCountAsync();
@@ -47,6 +56,11 @@ namespace Lyra.Core.Accounts
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.GetNonFungibleTokensAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.GetNonFungibleTokensAsync(AccountId);
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await StopWatcher.TrackAsync(() => _store.FindUnsettledSendBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindUnsettledSendBlockAsync(AccountId);
         public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.TrackAsync(() => _store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
+        public async Task<Block> FindBlockByHeightAsync(string AccountId, long height) => await StopWatcher.TrackAsync(() => _store.FindBlockByHeightAsync(AccountId, height), StopWatcher.GetCurrentMethod());//_store.FindBlockByHeightAsync(AccountId, height);
+        // v2
+        public async Task<List<Dictionary<string, object>>> FindTradableUniOrdersAsync(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrdersAsync(catalog), StopWatcher.GetCurrentMethod());
+        public async Task<BsonDocument> FindTradableUniOrders2Async(string? catalog) => await StopWatcher.TrackAsync(() => _store.FindTradableUniOrders2Async(catalog), StopWatcher.GetCurrentMethod());
+        public async Task<List<TransactionBlock>?> GetUniOrderByIdAsync(string orderId) => await StopWatcher.TrackAsync(() => _store.GetUniOrderByIdAsync(orderId), StopWatcher.GetCurrentMethod());
 
         public Task UpdateStatsAsync()
         {
@@ -293,9 +307,19 @@ namespace Lyra.Core.Accounts
             return StopWatcher.TrackAsync(() => _store.GetAllDexWalletsAsync(owner), StopWatcher.GetCurrentMethod());
         }
 
-        public Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider)
+        public Task<TransactionBlock?> FindDexWalletAsync(string owner, string symbol, string provider)
         {
             return StopWatcher.TrackAsync(() => _store.FindDexWalletAsync(owner, symbol, provider), StopWatcher.GetCurrentMethod());
+        }
+
+        public Task<List<TransactionBlock>> GetAllFiatWalletsAsync(string owner)
+        {
+            return StopWatcher.TrackAsync(() => _store.GetAllFiatWalletsAsync(owner), StopWatcher.GetCurrentMethod());
+        }
+
+        public Task<TransactionBlock?> FindFiatWalletAsync(string owner, string symbol)
+        {
+            return StopWatcher.TrackAsync(() => _store.FindFiatWalletAsync(owner, symbol), StopWatcher.GetCurrentMethod());
         }
 
         public void Dispose()
@@ -348,9 +372,9 @@ namespace Lyra.Core.Accounts
             return StopWatcher.Track(() => _store.GetOtcOrdersByOwnerAsync(accountId), "GetOtcOrdersByOwner");
         }
 
-        public Task<Dictionary<string, List<TransactionBlock>>> FindTradableOtcAsync()
+        public Task<Dictionary<string, List<TransactionBlock>>> FindTradableOrdersAsync()
         {
-            return StopWatcher.Track(() => _store.FindTradableOtcAsync(), "FindTradableOtcAsync");
+            return StopWatcher.Track(() => _store.FindTradableOrdersAsync(), "FindTradableOrdersAsync");
         }
 
         public Task<List<TransactionBlock>> FindOtcTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
@@ -377,5 +401,48 @@ namespace Lyra.Core.Accounts
         {
             return StopWatcher.Track(() => _store.FindNFTGenesisSendAsync(accountId, ticker, serial), "FindNFTGenesisSendAsync");
         }
+
+        public Task<List<BsonDocument>> GetBalanceAsync(string accountId)
+        {
+            return StopWatcher.Track(() => _store.GetBalanceAsync(accountId), "GetBalanceAsync");
+        }
+
+        public Task<Block> FindLatestBlockByTimeAsync(string accountId, DateTime time)
+        {
+            return StopWatcher.Track(() => _store.FindLatestBlockByTimeAsync(accountId, time), "FindLatestBlockByTimeAsync");
+        }
+
+        #region Universal trade
+        public Task<List<TransactionBlock>> GetUniOrdersByOwnerAsync(string accountId)
+        {
+            return StopWatcher.Track(() => _store.GetUniOrdersByOwnerAsync(accountId), "GetUniOrdersByOwner");
+        }
+
+        public Task<Dictionary<string, List<TransactionBlock>>> FindTradableUniAsync()
+        {
+            return StopWatcher.Track(() => _store.FindTradableUniAsync(), "FindTradableUniAsync");
+        }
+
+        public Task<List<TransactionBlock>> FindUniTradeAsync(string accountId, bool onlyOpenTrade, int page, int pageSize)
+        {
+            return StopWatcher.Track(() => _store.FindUniTradeAsync(accountId, onlyOpenTrade, page, pageSize), "FindUniTradeAsync");
+        }
+
+        public Task<List<TransactionBlock>> FindUniTradeByStatusAsync(string daoid, UniTradeStatus status, int page, int pageSize)
+        {
+            return StopWatcher.Track(() => _store.FindUniTradeByStatusAsync(daoid, status, page, pageSize), "FindUniTradeByStatus");
+        }
+
+        public Task<List<TransactionBlock>> FindUniTradeForOrderAsync(string orderid)
+        {
+            return StopWatcher.Track(() => _store.FindUniTradeForOrderAsync(orderid), "FindUniTradeForOrder");
+        }
+
+        public Task<List<TradeStats>> GetUniTradeStatsForUsersAsync(List<string> accountIds)
+        {
+            return StopWatcher.Track(() => _store.GetUniTradeStatsForUsersAsync(accountIds), "GetUniTradeStatsForUsers");
+        }
+
+        #endregion
     }
 }

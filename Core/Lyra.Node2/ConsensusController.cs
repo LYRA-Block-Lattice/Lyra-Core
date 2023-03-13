@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace LyraLexWeb2
 {
+    //[ApiExplorerSettings(GroupName = "v1")]
     [Route("api/[controller]")]
     [ApiController]
     public class ConsensusController : ControllerBase
@@ -665,10 +666,10 @@ namespace LyraLexWeb2
 
         [Route("FindTradableOtc")]
         [HttpGet]
-        public async Task<ContainerAPIResult> FindTradableOtcAsync()
+        public async Task<ContainerAPIResult> FindTradableOrdersAsync()
         {
             if (!await CheckServiceStatusAsync()) return null;
-            return await _aggClient.FindTradableOtcAsync();
+            return await _aggClient.FindTradableOrdersAsync();
         }
 
         [Route("FindOtcTrade")]
