@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>lyra</AssemblyName>
-    <Version>3.5.2.1</Version>
+    <Version>3.8.2.0</Version>
     <PackageId>lyra.cli</PackageId>
     <Company>lyra</Company>
     <Authors>lyra</Authors>
