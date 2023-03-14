@@ -448,6 +448,10 @@ namespace Lyra.Core.API
             {
                 return block;
             }
+            else if (block != null && block.Hash == "4KwWGimr5BmH6qgkMF8jLyYD9471vevKSgS8GTXSPxGn") // testnet block error fix
+            {
+                return block;
+            }
             else
             {
                 //File.AppendAllText(@"c:\tmp\hash.txt", $"Block {block.Hash} New txt: {block.GetHashInput()}\n");
