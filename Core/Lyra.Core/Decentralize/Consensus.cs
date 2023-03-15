@@ -96,7 +96,11 @@ namespace Lyra.Core.Decentralize
                     return false;
 
                 if (oldState.svcGenHash != seedSvcGen.GetBlock()?.Hash)
+                {
                     LocalDbSyncState.Remove();
+                    oldState.svcGenHash = seedSvcGen.GetBlock()?.Hash;
+                    LocalDbSyncState.Save(oldState);
+                }                    
 
                 //if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
                 //{
@@ -141,7 +145,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
                     localState.lastVerifiedConsHeight = height - 1;
                     LocalDbSyncState.Save(localState);
-                    return false;
+                    break;
                 }
                 //else  don't. let a dbcc run.
                 //{
