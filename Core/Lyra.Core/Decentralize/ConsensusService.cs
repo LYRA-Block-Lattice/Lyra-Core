@@ -316,12 +316,12 @@ namespace Lyra.Core.Decentralize
                             //    await CriticalRelayAsync(signedMsg, null);
                             //}                            
 
-                            //await OnNextConsensusMessageAsync(signedMsg);
+                            await OnNextConsensusMessageAsync(signedMsg);
 
-                            await CriticalRelayAsync(signedMsg, async (msg) =>
-                            {
-                                await OnNextConsensusMessageAsync(msg);
-                            });
+                            //await CriticalRelayAsync(signedMsg, async (msg) =>
+                            //{
+                            //    await OnNextConsensusMessageAsync(msg);
+                            //});
 
                             /*                            BlockTypes bt = BlockTypes.Null;
                                                         if (signedMsg is AuthorizingMsg au)
