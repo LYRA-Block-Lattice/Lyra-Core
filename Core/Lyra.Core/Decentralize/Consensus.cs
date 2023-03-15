@@ -96,7 +96,11 @@ namespace Lyra.Core.Decentralize
                     return false;
 
                 if (oldState.svcGenHash != seedSvcGen.GetBlock()?.Hash)
+                {
                     LocalDbSyncState.Remove();
+                    oldState.svcGenHash = seedSvcGen.GetBlock()?.Hash;
+                    LocalDbSyncState.Save(oldState);
+                }                    
 
                 //if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
                 //{
@@ -125,116 +129,37 @@ namespace Lyra.Core.Decentralize
                 return false;
 
 
-            // TODO: with two steps config upgrade to full support
-            if(Settings.Default.LyraNode.Lyra.NetworkId == "devnet" || Settings.Default.LyraNode.Lyra.NetworkId == "testnet")
+            //a new algorithm.we have the latest cons' hash. so sync from current height to that height,
+            // verify hash at final stage. if wrong, delete all blocks.
+            var w = Stopwatch.StartNew();
+            long count = 1;
+            long totalms = 1000;        // assume default 1 second for one cons block
+            for (var height = localState.lastVerifiedConsHeight == 0 ? 1 : localState.lastVerifiedConsHeight; height <= lastCons.Height; height++)
             {
-                // first verify current data
+                w.Restart();
+                _log.LogInformation($"Sync and verify chunk {height}, estimate finish in {TimeSpan.FromMilliseconds((totalms / count) * (lastCons.Height - height)).Humanize()}");
 
-
-                //a new algorithm.we have the latest cons' hash. so sync from current height to that height,
-                // verify hash at final stage. if wrong, delete all blocks.
-                var w = Stopwatch.StartNew();
-                long count = 1;
-                long totalms = 1000;        // assume default 1 second for one cons block
-                for (var height = localState.lastVerifiedConsHeight == 0 ? 1 : localState.lastVerifiedConsHeight; height <= lastCons.Height; height++)
+                (var ret, var latestHeight) = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
+                if (!ret)
                 {
-                    w.Restart();
-                    _log.LogInformation($"Sync and verify chunk {height}, estimate finish in {TimeSpan.FromMilliseconds((totalms / count) * (lastCons.Height - height)).Humanize()}");
-
-                    (var ret, var latestHeight) = await SyncAndVerifyConsolidationBlock2Async(consensusClient, fastClient, height);
-                    if (!ret)
-                    {
-                        _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
-                        localState.lastVerifiedConsHeight = height - 1;
-                        LocalDbSyncState.Save(localState);
-                        return false;
-                    }
-                    //else  don't. let a dbcc run.
-                    //{
-                    //    localState.lastVerifiedConsHeight = height;
-                    //    LocalDbSyncState.Save(localState);
-                    //    return true;
-                    //}
-                    w.Stop();
-                    totalms += w.ElapsedMilliseconds;
-
-                    count += latestHeight - height;
-
-                    height = latestHeight;
-                }
-
-                return await DBCCAsync();
-            }           
-
-            bool IsSuccess;
-            while (true)
-            {
-                _log.LogInformation("while true in SyncDatabaseAsync");
-                try
-                {
-                    var remoteConsQuery = await consensusClient.GetConsolidationBlocksAsync(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
-                    if (remoteConsQuery.ResultCode == APIResultCodes.Success)
-                    {
-                        var remoteConsBlocks = remoteConsQuery.GetBlocks();
-                        if (remoteConsBlocks.Any())
-                        {
-                            foreach (var block in remoteConsBlocks)
-                            {
-                                var consTarget = block as ConsolidationBlock;
-                                _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget?.Height} of total {lastCons.Height}.");
-                                if (await SyncAndVerifyConsolidationBlockAsync(consensusClient, fastClient, consTarget))
-                                {
-                                    _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
-
-                                    localState.lastVerifiedConsHeight = consTarget.Height;
-                                    LocalDbSyncState.Save(localState);
-                                }
-                                else
-                                {
-                                    throw new Exception($"Consolidation block {consTarget.Height} is failure.");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            _log.LogInformation($"sync unconsolidated blocks by lastCons");
-                            // here need to sync unconsolidated blocks.
-                            var lastConsToSyncQuery = await consensusClient.GetLastConsolidationBlockAsync();
-                            if (lastConsToSyncQuery.Successful())
-                            {
-                                var lastConsToSync = lastConsToSyncQuery.GetBlock() as ConsolidationBlock;
-                                await SyncAllUnConsolidatedBlocks(lastConsToSync, consensusClient);
-
-                                IsSuccess = true;
-                                break;
-                            }
-                            else
-                            {
-                                throw new Exception("Failed to sync uncons blocks. reason: " + remoteConsQuery.ResultCode);
-                            }
-                        }
-                    }
-                    else if (remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
-                    {
-                        _log.LogWarning("Got inconsistant result from network. retry later.");
-                        throw new Exception("Failed to sync. reason: " + remoteConsQuery.ResultCode);
-                    }
-                    else
-                    {
-                        _log.LogWarning($"Unexpected error {remoteConsQuery.ResultCode}: {remoteConsQuery.ResultMessage}. retry later.");
-                        throw new Exception($"Failed to sync. reason: {remoteConsQuery.ResultCode}: {remoteConsQuery.ResultMessage}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _log.LogWarning("SyncDatabase Exception: " + ex.Message);
-                    await Task.Delay(30000);
-                    IsSuccess = false;
+                    _log.LogInformation($"SyncDatabase: SyncAndVerifyConsolidationBlock2Async failed at height {height}. Rollback to {height - 1}.");
+                    localState.lastVerifiedConsHeight = height - 1;
+                    LocalDbSyncState.Save(localState);
                     break;
                 }
-            }
+                else
+                {
+                    localState.lastVerifiedConsHeight = height;
+                    LocalDbSyncState.Save(localState);
+                }
+                w.Stop();
+                totalms += w.ElapsedMilliseconds;
 
-            return IsSuccess;
+                count += latestHeight - height;
+
+                height = latestHeight;
+            }
+            return await DBCCAsync();
         }
 
         private async Task<bool> SyncAllUnConsolidatedBlocks(ConsolidationBlock myLastCons, ILyraAPI client)
@@ -483,16 +408,16 @@ namespace Lyra.Core.Decentralize
 
                 // pickup consolidation blocks one by one
                 var lastPos = 0;
-                for(var pos = lastPos; pos < blocks.Length; pos++)
+                for (var pos = lastPos; pos < blocks.Length; pos++)
                 {
                     if (blocks[pos].BlockType != BlockTypes.Consolidation)
                         continue;
 
                     if (pos == 0)
                         continue;
-                    
+
                     var consPos = pos;
-                    var slice = blocks[lastPos..(consPos+1)];
+                    var slice = blocks[lastPos..(consPos + 1)];
 
                     var ret = await SyncOneChunk(slice.ToList());
 
@@ -500,7 +425,7 @@ namespace Lyra.Core.Decentralize
                         return (false, 0);
 
                     lastPos = pos;
-                }             
+                }
 
                 return (true, blocks[lastPos].Height);
             }

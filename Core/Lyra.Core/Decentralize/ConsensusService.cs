@@ -315,7 +315,7 @@ namespace Lyra.Core.Decentralize
                             //{
                             //    await CriticalRelayAsync(signedMsg, null);
                             //}                            
-                            
+
                             await OnNextConsensusMessageAsync(signedMsg);
 
                             //await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -563,6 +563,10 @@ namespace Lyra.Core.Decentralize
                             {
                                 _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
                                 missingBlock = true;
+
+                                var vState = LocalDbSyncState.Load();
+                                vState.lastVerifiedConsHeight = lastCons.Height - 1;
+                                LocalDbSyncState.Save(vState);
                             }
                         }
                     }
@@ -599,7 +603,8 @@ namespace Lyra.Core.Decentralize
                     if (missingBlock)
                     {
                         _log.LogInformation($"DBCC: Fixing database...");
-                        var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(client, fastClient, lastCons);
+                        //var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(client, fastClient, lastCons);
+                        var consSyncResult = await SyncDatabaseAsync(client, 3);
                         if (consSyncResult)
                             i++;
                         else

@@ -1726,18 +1726,21 @@ namespace Lyra.Core.Accounts
             var exists = _blocks.Find(query);
             if(exists.Any())
             {
-                // hack: testnet db error, dup service block height 8896
-                if(_networkId == "testnet" && block.BlockType == BlockTypes.Service && block.Height <= 8896)
+                if(block.Hash != "8PjzRhffAeUXLzzkLabcrukoSjvRpmGzzzCf9Xuwn8sU" && block.Hash != "2hLjaKdW1EMqyMaQ6LgK5nZWSuJrZ25W9HVJo61NyvNB")    //mainnet wrong svc block
                 {
-                    // no action, just add it.
-                    _log.LogWarning($"AccountCollection=>AddBlock: Service {block.Height} dup tolerant");
-                }
-                else
-                {
-                    var blk = exists.FirstOrDefault();
-                    _log.LogWarning($"AccountCollection=>AddBlock: Block exists! {block.BlockType}, {block.Hash}");
-                    _log.LogWarning($"AccountCollection=>AddBlock: Existing one: {blk.BlockType}, {blk.Hash}, {blk.Signature}");
-                    return false;
+                    // hack: testnet db error, dup service block height 8896
+                    if (_networkId == "testnet" && block.BlockType == BlockTypes.Service && block.Height <= 8896)
+                    {
+                        // no action, just add it.
+                        _log.LogWarning($"AccountCollection=>AddBlock: Service {block.Height} dup tolerant");
+                    }
+                    else
+                    {
+                        var blk = exists.FirstOrDefault();
+                        _log.LogWarning($"AccountCollection=>AddBlock: Block exists! {block.BlockType}, {block.Hash}");
+                        _log.LogWarning($"AccountCollection=>AddBlock: Existing one: {blk.BlockType}, {blk.Hash}, {blk.Signature}");
+                        return false;
+                    }
                 }
             }
 

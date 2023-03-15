@@ -433,15 +433,22 @@ namespace Lyra.Core.API
             return Successful() ? GetBlock() as T : null;
         }
 
-        public Block? GetBlock()
+        public Block? GetBlock(bool verify = true)
         {
             Block? block = null;
 
             if (TypeDict.ContainsKey(ResultBlockType))
                 block = TypeDict[ResultBlockType].Invoke(null, new object[] { BlockData }) as Block;
 
+            if(!verify)
+                return block;
+
             // here verify block signature. 
             if(block != null && block.VerifyHash())
+            {
+                return block;
+            }
+            else if (block != null && (block.Hash == "4KwWGimr5BmH6qgkMF8jLyYD9471vevKSgS8GTXSPxGn")) // testnet block error fix
             {
                 return block;
             }

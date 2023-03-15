@@ -132,7 +132,13 @@ namespace Lyra.Data.Blocks
             if(Version > 4)
                 extraData += ShareRito.ToBalanceLong().ToString() + "|";
             else
-                extraData += ShareRito.ToString() + "|";
+            {
+                if (ShareRito == 0)
+                    extraData += "0.000000|";
+                else
+                    extraData += ShareRito.ToString() + "|";
+            }
+                
             extraData += Seats.ToString() + "|";
             return extraData;
         }
