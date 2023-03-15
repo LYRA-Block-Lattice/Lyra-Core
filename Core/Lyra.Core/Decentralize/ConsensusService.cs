@@ -599,7 +599,8 @@ namespace Lyra.Core.Decentralize
                     if (missingBlock)
                     {
                         _log.LogInformation($"DBCC: Fixing database...");
-                        var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(client, fastClient, lastCons);
+                        //var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(client, fastClient, lastCons);
+                        var consSyncResult = await SyncDatabaseAsync(client, 3);
                         if (consSyncResult)
                             i++;
                         else
