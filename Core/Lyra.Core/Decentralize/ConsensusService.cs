@@ -563,6 +563,10 @@ namespace Lyra.Core.Decentralize
                             {
                                 _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
                                 missingBlock = true;
+
+                                var vState = LocalDbSyncState.Load();
+                                vState.lastVerifiedConsHeight = lastCons.Height - 1;
+                                LocalDbSyncState.Save(vState);
                             }
                         }
                     }

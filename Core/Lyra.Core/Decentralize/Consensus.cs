@@ -147,12 +147,11 @@ namespace Lyra.Core.Decentralize
                     LocalDbSyncState.Save(localState);
                     break;
                 }
-                //else  don't. let a dbcc run.
-                //{
-                //    localState.lastVerifiedConsHeight = height;
-                //    LocalDbSyncState.Save(localState);
-                //    return true;
-                //}
+                else
+                {
+                    localState.lastVerifiedConsHeight = height;
+                    LocalDbSyncState.Save(localState);
+                }
                 w.Stop();
                 totalms += w.ElapsedMilliseconds;
 

@@ -1726,7 +1726,7 @@ namespace Lyra.Core.Accounts
             var exists = _blocks.Find(query);
             if(exists.Any())
             {
-                if(block.Hash != "8PjzRhffAeUXLzzkLabcrukoSjvRpmGzzzCf9Xuwn8sU")    //mainnet wrong svc block
+                if(block.Hash != "8PjzRhffAeUXLzzkLabcrukoSjvRpmGzzzCf9Xuwn8sU" && block.Hash != "2hLjaKdW1EMqyMaQ6LgK5nZWSuJrZ25W9HVJo61NyvNB")    //mainnet wrong svc block
                 {
                     // hack: testnet db error, dup service block height 8896
                     if (_networkId == "testnet" && block.BlockType == BlockTypes.Service && block.Height <= 8896)
