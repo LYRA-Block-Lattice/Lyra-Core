@@ -39,7 +39,7 @@ namespace Lyra.Core.Accounts
         Task<VotingSummary> GetVoteSummaryAsync(string voteid);
         Task<TransactionBlock> FindExecForVoteAsync(string voteid);
 
-        Task<List<DaoGenesisBlock>> FindDaosAsync(string keyword);
+        Task<List<TransactionBlock>> FindDaosAsync(string keyword);
         Task<List<TransactionBlock>> GetAllDaosAsync(int page, int pageSize);
         Block GetDaoByName(string name);
         Task<List<Block>> GetOtcOrdersByOwnerAsync(string accountId);

@@ -952,8 +952,8 @@ namespace LyraLexWeb2
         {
             if (!CheckServiceStatus()) return null;
             var blocks = await (_node as NodeAPI).FindDaosAsync(q);
-            var ret = blocks
-                .Where(a => a.Name != "Lyra Guild");     // important.
+            //var ret = blocks
+            //    .Where(a => a.Name != "Lyra Guild");     // important.
                                                          //.Select(a =>
                                                          //new
                                                          //{
@@ -966,7 +966,7 @@ namespace LyraLexWeb2
                                                          //    a.BuyerPar,
                                                          //    a.BuyerFeeRatio,
                                                          //});
-            return new MultiBlockAPIResult(ret.ToArray());
+            return new MultiBlockAPIResult(blocks.ToArray());
         }
 
         //[HttpPost]
