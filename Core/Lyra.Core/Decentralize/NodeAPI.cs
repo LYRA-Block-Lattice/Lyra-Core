@@ -237,7 +237,7 @@ namespace Lyra.Core.Decentralize
         {
             return await NodeService.Dag.Storage.FindTokensAsync(keyword, catalog);
         }
-        public async Task<List<DaoGenesisBlock>> FindDaosAsync(string? keyword)
+        public async Task<List<TransactionBlock>> FindDaosAsync(string? keyword)
         {
             return await NodeService.Dag.Storage.FindDaosAsync(keyword);
         }

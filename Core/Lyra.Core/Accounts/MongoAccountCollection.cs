@@ -810,15 +810,17 @@ namespace Lyra.Core.Accounts
             return genResult;
         }
 
-        public async Task<List<DaoGenesisBlock>> FindDaosAsync(string keyword)
+        public async Task<List<TransactionBlock>> FindDaosAsync(string keyword)
         {
+            List<DaoGenesisBlock> result = new List<DaoGenesisBlock>();
+
             if(string.IsNullOrWhiteSpace(keyword))
             {
                 var genResult = await _blocks.OfType<DaoGenesisBlock>()
                     .Find(FilterDefinition<DaoGenesisBlock>.Empty)
                     .Limit(200)
                     .ToListAsync();
-                return genResult;
+                result = genResult;
             }
             else
             {
@@ -832,8 +834,22 @@ namespace Lyra.Core.Accounts
                     .Limit(200)
                     .ToListAsync();
 
-                return genResult;
+                result = genResult;
             }
+
+            List<TransactionBlock> daos = new List<TransactionBlock>();
+            foreach (var dao in result)
+            {
+                if(dao.Name != "Lyra Guild")
+                {
+                    var daoBlock = FindLatestBlock(dao.AccountID) as TransactionBlock;
+                    if (daoBlock != null)
+                    {
+                        daos.Add(daoBlock);
+                    }
+                }
+            }
+            return daos;
         }
 
         private IEnumerable<String> FindAllImportedAccountID()
