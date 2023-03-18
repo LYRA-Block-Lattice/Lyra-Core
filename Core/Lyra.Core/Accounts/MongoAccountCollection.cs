@@ -2603,6 +2603,7 @@ namespace Lyra.Core.Accounts
                             30,
                             50
                         } },
+                        { "default", new BsonDocument("Count", new BsonDocument("$sum", 0)) },
                         { "output",
                 new BsonDocument("Count",
                 new BsonDocument("$sum", 1)) }
@@ -2735,6 +2736,7 @@ namespace Lyra.Core.Accounts
             catch(Exception ex)
             {
                 // when no tradable error, there is a exception
+                _log.LogInformation($"Mongodb in find orders: {ex}");
                 return BsonDocument.Parse("{}");
             }
         }
