@@ -156,7 +156,7 @@ git clone https://github.com/LYRA-Block-Lattice/Lyra-Core
 cd Lyra-Core/Docker
 cp .env.dualnet-example .env-dualnet
 vi .env-dualnet
-docker-compose --env-file .env-dualnet -f docker-compose-dualnet.yml up --no-start
+docker-compose --env-file .env.dualnet -f docker-compose-dualnet.yml up --no-start
 docker start docker_mongo_1
 cat dbrestore-dualnet.sh | docker exec -i docker_mongo_1 bash
 docker start docker_testnet_1
